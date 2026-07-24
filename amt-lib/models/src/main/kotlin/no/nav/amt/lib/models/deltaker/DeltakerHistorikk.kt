@@ -17,6 +17,16 @@ sealed interface DeltakerHistorikk {
 
     fun navEnheter(): List<UUID> = emptyList()
 
+    data class EnkeltplasstOkonomiGodkjent(
+        val data: PrisinformasjonForHistorikk,
+    ) : DeltakerHistorikk {
+        override val sistEndret = data.sistEndret
+
+        override fun navAnsatte() = listOf(data.sistEndretAvNavAnsattId)
+
+        override fun navEnheter() = listOf(data.sistEndretAvNavEnhetId)
+    }
+
     data class VurderingFraArrangor(
         val data: VurderingFraArrangorData,
     ) : DeltakerHistorikk {

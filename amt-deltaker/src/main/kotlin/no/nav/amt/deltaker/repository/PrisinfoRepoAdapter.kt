@@ -61,8 +61,8 @@ object PrisinfoRepoAdapter {
     }
 
     fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository
-        .hentPrisinfos(gjennomforingId)
-        .associate { it.rolle to it.toPrisinformasjonDto() }
+        .hentPrisinfoMap(gjennomforingId)
+        .mapValues { (_, prisinfo) -> prisinfo.toPrisinformasjonDto() }
 
     /**
      * Henter prisinfo for en gjennomføring, med prioritet på godkjente records.

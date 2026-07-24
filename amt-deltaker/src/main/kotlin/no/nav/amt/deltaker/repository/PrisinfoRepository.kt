@@ -2,9 +2,11 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter.toPrisinformasjonDto
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.models.deltaker.PrisinformasjonForHistorikk
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -39,8 +41,7 @@ object PrisinfoRepository {
         val sql =
             """
             SELECT 
-                d2p.prisinformasjon_id,
-                d2p.rolle,
+                prisinfo.id,
                 prisinfo.deltakerliste_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
@@ -64,12 +65,12 @@ object PrisinfoRepository {
         }
     }
 
-    fun hentPrisinfos(gjennomforingId: UUID): List<PrisinfoDbo> {
+    fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinfoDbo> {
         val sql =
             """
             SELECT 
-                d2p.prisinformasjon_id,
                 d2p.rolle,
+                prisinfo.id,
                 prisinfo.deltakerliste_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
@@ -83,11 +84,12 @@ object PrisinfoRepository {
             """.trimIndent()
 
         return Database.query { session ->
-            session.run(
-                queryOf(sql, gjennomforingId)
-                    .map(::rowMapper)
-                    .asList,
-            )
+            session
+                .run(
+                    queryOf(sql, gjennomforingId)
+                        .map { row -> PrisinfoDbo.Rolle.valueOf(row.string("rolle")) to rowMapper(row) }
+                        .asList,
+                ).toMap()
         }
     }
 
@@ -157,10 +159,48 @@ object PrisinfoRepository {
         )
     }
 
+    fun hentPrisinfoListeForHistorikk(deltakerId: UUID): List<PrisinformasjonForHistorikk> {
+        val sql =
+            """
+            SELECT 
+                prisinfo.id,
+                prisinfo.deltakerliste_id,
+                prisinfo.status,
+                prisinfo.prisinformasjon_json_type,
+                prisinfo.anskaffelse_pris,
+                prisinfo.tilleggsopplysninger,
+                prisinfo.ingenkostnader_aarsak,
+                vedtak.modified_at,
+                vedtak.sist_endret_av,
+                vedtak.sist_endret_av_enhet
+            FROM
+                deltaker                
+                JOIN vedtak ON deltaker.id = vedtak.deltaker_id
+                JOIN enkeltplass_prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.deltakerliste_id
+            WHERE 
+                deltaker.id = ?
+                AND prisinfo.status = 'GODKJENT'
+            ORDER BY vedtak.modified_at                
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(sql, deltakerId)
+                    .map { row ->
+                        PrisinformasjonForHistorikk(
+                            prisinformasjon = rowMapper(row).toPrisinformasjonDto(),
+                            sistEndret = row.localDateTime("modified_at"),
+                            sistEndretAvNavAnsattId = row.uuid("sist_endret_av"),
+                            sistEndretAvNavEnhetId = row.uuid("sist_endret_av_enhet"),
+                        )
+                    }.asList,
+            )
+        }
+    }
+
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
-        id = row.uuid("prisinformasjon_id"),
+        id = row.uuid("id"),
         gjennomforingId = row.uuid("deltakerliste_id"),
-        rolle = PrisinfoDbo.Rolle.valueOf(row.string("rolle")),
         status = PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),

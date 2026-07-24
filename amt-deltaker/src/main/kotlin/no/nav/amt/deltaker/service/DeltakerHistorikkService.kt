@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.extensions.skalInkluderesIHistorikk
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -93,6 +94,13 @@ class DeltakerHistorikkService(
             endringFraTiltakskoordinatorRepository
                 .getForDeltaker(deltakerId)
                 .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
+        },
+        { deltakerId ->
+            PrisinfoRepository
+                .hentPrisinfoListeForHistorikk(deltakerId)
+                .map { prisinformasjonForHistorikk ->
+                    DeltakerHistorikk.EnkeltplasstOkonomiGodkjent(prisinformasjonForHistorikk)
+                }
         },
     )
 }

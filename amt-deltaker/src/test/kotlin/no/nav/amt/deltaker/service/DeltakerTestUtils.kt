@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.service
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -142,6 +143,15 @@ object DeltakerTestUtils {
                 first.data.innsoktAvEnhet shouldBe second.data.innsoktAvEnhet
                 first.data.utkastDelt shouldBeCloseTo second.data.utkastDelt
                 first.data.utkastGodkjentAvNav shouldBe second.data.utkastGodkjentAvNav
+            }
+
+            is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> {
+                second.shouldBeInstanceOf<DeltakerHistorikk.EnkeltplasstOkonomiGodkjent>()
+
+                first.data shouldBe second.data
+                first.sistEndret shouldBe second.sistEndret
+                first.navAnsatte() shouldBe second.navAnsatte()
+                first.navEnheter() shouldBe second.navEnheter()
             }
         }
     }

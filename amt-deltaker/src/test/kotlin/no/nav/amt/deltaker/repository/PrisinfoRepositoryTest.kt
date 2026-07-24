@@ -3,19 +3,29 @@
 package no.nav.amt.deltaker.repository
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.time.LocalDateTime
 import java.util.UUID
 
 class PrisinfoRepositoryTest {
@@ -208,6 +218,210 @@ class PrisinfoRepositoryTest {
 
             // Assert
             result shouldBe null
+        }
+    }
+
+    @Nested
+    inner class HentPrisinfoListeForHistorikkTests {
+        private val navEnhet = lagNavEnhet()
+        val deltakerliste = lagDeltakerliste()
+        val navAnsatt = lagNavAnsatt()
+        val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+        )
+
+        @BeforeEach
+        fun beforeEach() {
+            NavEnhetRepository().upsert(navEnhet)
+            TestRepository.insert(navAnsatt)
+        }
+
+        @Test
+        fun `returnerer tom liste når deltaker ikke har prisinfo`() {
+            // Arrange
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 0
+        }
+
+        @Test
+        fun `returnerer tom liste når prisinfo ikke er godkjent`() {
+            // Arrange
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 15000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 0
+        }
+
+        @Test
+        fun `returnerer prisinfo når status er godkjent`() {
+            // Arrange
+            val sistEndret = LocalDateTime.now().minusDays(1)
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                sistEndret = sistEndret,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 20000,
+                tilleggsopplysninger = "Opplysning",
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            assertSoftly(result.first()) {
+                prisinformasjon.shouldNotBeNull()
+                sistEndretAvNavAnsattId shouldBe navAnsatt.id
+                sistEndretAvNavEnhetId shouldBe navEnhet.id
+                this.sistEndret.toLocalDate() shouldBe sistEndret.toLocalDate()
+            }
+        }
+
+        @Test
+        fun `returnerer bare godkjent prisinfo, ikke kladd`() {
+            // Arrange
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+
+            val godkjentPrisinfo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            val kladdPrisinfo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 25000,
+            )
+            PrisinfoRepository.upsertPrisinfo(godkjentPrisinfo)
+            PrisinfoRepository.upsertPrisinfo(kladdPrisinfo)
+            PrisinfoRepository.oppdaterStatus(godkjentPrisinfo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+
+            // Assert - bare den godkjente returneres
+            result shouldHaveSize 1
+            result.first().prisinformasjon.shouldNotBeNull()
+        }
+
+        @Test
+        fun `returnerer tom liste for deltaker uten vedtak`() {
+            TestRepository.insert(deltaker)
+
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 15000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 0
+        }
+
+        @Test
+        fun `returnerer ikke prisinfo fra en annen deltakers deltakerliste`() {
+            // Arrange
+            val deltakerliste1 = lagDeltakerliste()
+            val deltakerliste2 = lagDeltakerliste()
+
+            val deltaker1 = lagDeltaker(
+                deltakerliste = deltakerliste1,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+            )
+            val deltaker2 = lagDeltaker(
+                deltakerliste = deltakerliste2,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+            )
+            val vedtak1 = lagVedtak(
+                deltakerId = deltaker1.id,
+                deltakerVedVedtak = deltaker1,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            val vedtak2 = lagVedtak(
+                deltakerId = deltaker2.id,
+                deltakerVedVedtak = deltaker2,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker1, vedtak1)
+            TestRepository.insert(deltaker2, vedtak2)
+
+            // Prisinfo on deltakerliste2 only
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste2.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 30000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+
+            // Act
+            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker1.id)
+
+            // Assert
+            result shouldHaveSize 0
         }
     }
 }
