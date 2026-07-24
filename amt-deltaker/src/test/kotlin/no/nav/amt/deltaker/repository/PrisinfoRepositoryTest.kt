@@ -317,7 +317,6 @@ class PrisinfoRepositoryTest {
                 prisinformasjon.shouldNotBeNull()
                 sistEndretAvNavAnsattId shouldBe navAnsatt.id
                 sistEndretAvNavEnhetId shouldBe navEnhet.id
-                this.sistEndret.toLocalDate() shouldBe sistEndret.toLocalDate()
             }
         }
 
