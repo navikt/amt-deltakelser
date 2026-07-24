@@ -18,7 +18,7 @@ sealed interface DeltakerHistorikk {
     fun navEnheter(): List<UUID> = emptyList()
 
     data class EnkeltplassOkonomiGodkjent(
-        val data: PrisinformasjonForHistorikk,
+        val data: OkonomiGodkjentForHistorikk,
     ) : DeltakerHistorikk {
         override val sistEndret = data.sistEndret
 

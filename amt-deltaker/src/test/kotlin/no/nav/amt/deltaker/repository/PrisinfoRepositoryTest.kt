@@ -314,7 +314,6 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 1
             assertSoftly(result.first()) {
-                prisinformasjon.shouldNotBeNull()
                 sistEndretAvNavAnsattId shouldBe navAnsatt.id
                 sistEndretAvNavEnhetId shouldBe navEnhet.id
             }
@@ -352,7 +351,6 @@ class PrisinfoRepositoryTest {
 
             // Assert - bare den godkjente returneres
             result shouldHaveSize 1
-            result.first().prisinformasjon.shouldNotBeNull()
         }
 
         @Test

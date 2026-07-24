@@ -2,11 +2,10 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter.toPrisinformasjonDto
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
+import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
-import no.nav.amt.lib.models.deltaker.PrisinformasjonForHistorikk
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -159,7 +158,7 @@ object PrisinfoRepository {
         )
     }
 
-    fun hentPrisinfoListeForHistorikk(deltakerId: UUID): List<PrisinformasjonForHistorikk> {
+    fun hentPrisinfoListeForHistorikk(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val sql =
             """
             SELECT 
@@ -187,8 +186,7 @@ object PrisinfoRepository {
             session.run(
                 queryOf(sql, deltakerId)
                     .map { row ->
-                        PrisinformasjonForHistorikk(
-                            prisinformasjon = rowMapper(row).toPrisinformasjonDto(),
+                        OkonomiGodkjentForHistorikk(
                             sistEndret = row.localDateTime("modified_at"),
                             sistEndretAvNavAnsattId = row.uuid("sist_endret_av"),
                             sistEndretAvNavEnhetId = row.uuid("sist_endret_av_enhet"),
