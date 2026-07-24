@@ -89,11 +89,10 @@ class GjennomforingUpserterTest {
             PrisinfoDbo(
                 id = totrinnsIdInTest,
                 gjennomforingId = firstArg(),
-                rolle = secondArg(),
                 prisinfoJsonSubtype = "Anskaffelse",
             )
         }
-        every { PrisinfoRepository.hentPrisinfos(any()) } returns emptyList()
+        every { PrisinfoRepository.hentPrisinfoMap(any()) } returns emptyMap()
         every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
 
         mockkObject(PrisinfoRepoAdapter)

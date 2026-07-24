@@ -244,4 +244,6 @@ private fun DeltakerHistorikk.toStartdato() = when (this) {
     is DeltakerHistorikk.VurderingFraArrangor -> null
 
     is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
+
+    is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> null
 }

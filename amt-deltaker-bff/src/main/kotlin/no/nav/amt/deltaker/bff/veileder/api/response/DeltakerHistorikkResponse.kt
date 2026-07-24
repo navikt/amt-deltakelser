@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -33,6 +34,7 @@ import java.util.UUID
     JsonSubTypes.Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
     JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
     JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
+    JsonSubTypes.Type(value = EnkeltplassOkonomiGodkjentResponse::class, name = "EnkeltplassOkonomiGodkjent"),
 )
 sealed interface DeltakerHistorikkResponse {
     companion object {
@@ -90,6 +92,7 @@ sealed interface DeltakerHistorikkResponse {
                     ansatte = ansatte,
                 )
             }
+
             is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse.fromModel(
                 model = model.endringFraArrangor,
                 arrangornavn = arrangornavn,
@@ -115,8 +118,34 @@ sealed interface DeltakerHistorikkResponse {
                 enheter = enheter,
                 ansatte = ansatte,
             )
+
+            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
+                model = model.data,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
         }
     }
+}
+
+data class EnkeltplassOkonomiGodkjentResponse(
+    val endretAv: String,
+    val endretAvEnhet: String,
+    val endret: LocalDateTime,
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: OkonomiGodkjentForHistorikk,
+        enheter: Map<UUID, NavEnhet>,
+        ansatte: Map<UUID, NavAnsatt>,
+    ) : this(
+        endretAv = requireNotNull(ansatte[model.sistEndretAvNavAnsattId]?.navn) {
+            "Fant ikke navn for Nav-ansatt med id=${model.sistEndretAvNavAnsattId}"
+        },
+        endretAvEnhet = requireNotNull(enheter[model.sistEndretAvNavEnhetId]?.navn) {
+            "Fant ikke navn for enhet med id=${model.sistEndretAvNavEnhetId}"
+        },
+        endret = model.sistEndret,
+    )
 }
 
 data class DeltakerEndringResponse(
