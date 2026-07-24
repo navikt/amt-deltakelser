@@ -158,9 +158,8 @@ object PrisinfoRepository {
         )
     }
 
-    // TODO: Det er besluttet at Nav-ansatt som har godkjent økonomi skal benyttes i stedet for veileder som har
-    // har opprettet deltakelsen. Det må derfor legges til nye kolonner for godkjent_av (og evt. godkjent_av_enhet)
-    // i tabellen enkeltplass_prisinformasjon
+    // TODO: Det er besluttet at Nav-ansatt som har godkjent økonomi skal benyttes i stedet for veileder som har opprettet deltakelsen.
+    // Det må derfor legges til nye kolonner for godkjent_av (og evt. godkjent_av_enhet) i tabellen enkeltplass_prisinformasjon
     fun hentPrisinfoListeForHistorikk(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val sql =
             """
