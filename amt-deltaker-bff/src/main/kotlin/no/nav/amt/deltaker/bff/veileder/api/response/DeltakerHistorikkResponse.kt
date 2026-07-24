@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.PrisinformasjonForHistorikk
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -90,6 +91,7 @@ sealed interface DeltakerHistorikkResponse {
                     ansatte = ansatte,
                 )
             }
+
             is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse.fromModel(
                 model = model.endringFraArrangor,
                 arrangornavn = arrangornavn,
@@ -115,8 +117,32 @@ sealed interface DeltakerHistorikkResponse {
                 enheter = enheter,
                 ansatte = ansatte,
             )
+
+            is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
+                model = model.data,
+                enheter = enheter,
+                ansatte = ansatte,
+            )
         }
     }
+}
+
+data class EnkeltplassOkonomiGodkjentResponse(
+    val prisinformasjon: PrisinformasjonResponse,
+    val endretAv: String,
+    val endretAvEnhet: String,
+    val endret: LocalDateTime,
+) : DeltakerHistorikkResponse {
+    constructor(
+        model: PrisinformasjonForHistorikk,
+        enheter: Map<UUID, NavEnhet>,
+        ansatte: Map<UUID, NavAnsatt>,
+    ) : this(
+        prisinformasjon = PrisinformasjonResponse.fromModel(model.prisinformasjon),
+        endretAv = ansatte[model.sistEndretAvNavAnsattId]?.navn ?: error("Fant ikke navn for Nav-ansatt"),
+        endretAvEnhet = enheter[model.sistEndretAvNavEnhetId]?.navn ?: error("Fant ikke navn for enhet"),
+        endret = model.sistEndret,
+    )
 }
 
 data class DeltakerEndringResponse(

@@ -253,6 +253,7 @@ class KafkaConsumerService(
         is DeltakerHistorikk.ImportertFraArena,
         is DeltakerHistorikk.Vedtak,
         is DeltakerHistorikk.VurderingFraArrangor,
+        is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent,
         -> null
     }
 

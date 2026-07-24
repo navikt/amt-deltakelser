@@ -39,20 +39,49 @@ sealed interface DeltakerHistorikkResponse {
             arrangornavn: String,
             enheter: Map<UUID, NavEnhet>,
             oppstartstype: Oppstartstype,
-        ): List<DeltakerHistorikkResponse> = models.map {
+        ): List<DeltakerHistorikkResponse> = models.mapNotNull {
             when (it) {
-                is DeltakerHistorikk.Endring -> DeltakerEndringResponse(it.endring, ansatte, enheter, arrangornavn, oppstartstype)
-                is DeltakerHistorikk.Vedtak -> VedtakResponse(it.vedtak, ansatte, enheter)
-                is DeltakerHistorikk.Forslag -> ForslagHistorikkResponse(it.forslag, arrangornavn, ansatte, enheter)
-                is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse(it.endringFraArrangor, arrangornavn)
-                is DeltakerHistorikk.ImportertFraArena -> ImportertFraArenaResponse(it.importertFraArena)
-                is DeltakerHistorikk.VurderingFraArrangor -> VurderingFraArrangorResponse(it.data, arrangornavn)
-                is DeltakerHistorikk.InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse(it.data, ansatte, enheter)
-                is DeltakerHistorikk.EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorResponse(
-                    it.endringFraTiltakskoordinator,
-                    ansatte,
-                    enheter,
+                is DeltakerHistorikk.Endring -> DeltakerEndringResponse(
+                    model = it.endring,
+                    ansatte = ansatte,
+                    enheter = enheter,
+                    arrangornavn = arrangornavn,
+                    deltakerlisteOppstartstype = oppstartstype,
                 )
+                is DeltakerHistorikk.Vedtak -> VedtakResponse(
+                    model = it.vedtak,
+                    ansatte = ansatte,
+                    enheter = enheter,
+                )
+                is DeltakerHistorikk.Forslag -> ForslagHistorikkResponse(
+                    model = it.forslag,
+                    arrangornavn = arrangornavn,
+                    ansatte = ansatte,
+                    enheter = enheter,
+                )
+                is DeltakerHistorikk.EndringFraArrangor -> EndringFraArrangorResponse(
+                    model = it.endringFraArrangor,
+                    arrangornavn = arrangornavn,
+                )
+                is DeltakerHistorikk.ImportertFraArena -> ImportertFraArenaResponse(
+                    model = it.importertFraArena,
+                )
+                is DeltakerHistorikk.VurderingFraArrangor -> VurderingFraArrangorResponse(
+                    model = it.data,
+                    arrangornavn = arrangornavn,
+                )
+                is DeltakerHistorikk.InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse(
+                    model = it.data,
+                    ansatte = ansatte,
+                    enheter = enheter,
+                )
+                is DeltakerHistorikk.EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorResponse(
+                    model = it.endringFraTiltakskoordinator,
+                    ansatte = ansatte,
+                    enheter = enheter,
+                )
+                // økomomi godkjent er ikke relevant for tiltaksarrangører
+                is DeltakerHistorikk.EnkeltplasstOkonomiGodkjent -> null
             }
         }
     }
