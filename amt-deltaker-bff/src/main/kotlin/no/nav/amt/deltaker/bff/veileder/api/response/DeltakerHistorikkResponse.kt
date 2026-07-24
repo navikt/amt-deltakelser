@@ -34,6 +34,7 @@ import java.util.UUID
     JsonSubTypes.Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
     JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
     JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
+    JsonSubTypes.Type(value = EnkeltplassOkonomiGodkjentResponse::class, name = "EnkeltplassOkonomiGodkjent"),
 )
 sealed interface DeltakerHistorikkResponse {
     companion object {
