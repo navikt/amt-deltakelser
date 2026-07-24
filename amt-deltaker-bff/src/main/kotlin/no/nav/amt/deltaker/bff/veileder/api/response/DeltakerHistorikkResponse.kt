@@ -138,8 +138,8 @@ data class EnkeltplassOkonomiGodkjentResponse(
         enheter: Map<UUID, NavEnhet>,
         ansatte: Map<UUID, NavAnsatt>,
     ) : this(
-        endretAv = ansatte[model.sistEndretAvNavAnsattId]?.navn ?: error("Fant ikke navn for Nav-ansatt"),
-        endretAvEnhet = enheter[model.sistEndretAvNavEnhetId]?.navn ?: error("Fant ikke navn for enhet"),
+        endretAv = requireNotNull(ansatte[model.sistEndretAvNavAnsattId]?.navn) { "Fant ikke navn for Nav-ansatt med id=${model.sistEndretAvNavAnsattId}" },
+        endretAvEnhet = requireNotNull(enheter[model.sistEndretAvNavEnhetId]?.navn) { "Fant ikke navn for enhet med id=${model.sistEndretAvNavEnhetId}" },
         endret = model.sistEndret,
     )
 }
