@@ -69,6 +69,7 @@ kotlin {
         jvmTarget = JvmTarget.JVM_25
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
+            "-Xannotation-default-target=param-property",
             "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
         )
     }
