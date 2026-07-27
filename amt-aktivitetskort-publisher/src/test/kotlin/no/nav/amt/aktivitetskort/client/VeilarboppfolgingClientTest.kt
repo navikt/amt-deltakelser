@@ -5,45 +5,61 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
-import org.junit.jupiter.api.BeforeEach
+import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import java.time.LocalDateTime
-import java.time.ZoneId
+import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.web.client.match.MockRestRequestMatchers.header
+import org.springframework.test.web.client.match.MockRestRequestMatchers.method
+import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
+import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class VeilarboppfolgingClientTest : ClientTestBase() {
-    private lateinit var client: VeilarboppfolgingClient
-
-    @BeforeEach
-    fun createClient() {
-        client = VeilarboppfolgingClient(
-            baseUrl = server.url("/").toString().removeSuffix("/"),
-            veilarboppfolgingTokenProvider = tokenProvider,
-            objectMapper = staticObjectMapper,
-        )
-    }
-
+@RestClientTest(VeilarboppfolgingClient::class)
+@TestPropertySource(properties = ["veilarboppfolging.url=http://veilarboppfolging"])
+class VeilarboppfolgingClientTest(
+    private val sut: VeilarboppfolgingClient,
+) : RestClientTestBase() {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `hentOppfolgingperiode - returnerer gyldig oppfolgingsperiode`(useEndDate: Boolean) {
-        val expected = createOppfolgingPeriodeDTO(useEndDate)
-        val expectedAsJson = staticObjectMapper.writeValueAsString(expected)
-        enqueueJson(expectedAsJson)
+        val uuid = UUID.randomUUID()
+        val startDatoUtc = ZonedDateTime.now(ZoneOffset.UTC)
+        val sluttDatoUtc = if (useEndDate) startDatoUtc.plusDays(1) else null
 
-        val oppfolgingsperiode = client.hentOppfolgingperiode("123456789")
+        val responseJson =
+            """
+            {
+                "uuid":"$uuid",
+                "startDato":"$startDatoUtc",
+                "sluttDato":${if (useEndDate) "\"$sluttDatoUtc\"" else "null"}
+            }
+            """.trimIndent()
+
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON))
+
+        val oppfolgingsperiode = sut.hentOppfolgingperiode("123456789")
 
         assertSoftly(oppfolgingsperiode.shouldNotBeNull()) {
-            id shouldBe expected.uuid
-            startDato shouldBe nowAsLocalDateTime
+            id shouldBe uuid
+            startDato shouldBe startDatoUtc.toSystemZoneLocalDateTime()
 
-            if (sluttDato != null) {
-                sluttDato shouldBe nowAsLocalDateTime.plusDays(1)
+            if (useEndDate) {
+                sluttDato shouldBe sluttDatoUtc?.toSystemZoneLocalDateTime()
             } else {
                 sluttDato.shouldBeNull()
             }
@@ -52,34 +68,29 @@ class VeilarboppfolgingClientTest : ClientTestBase() {
 
     @Test
     fun `hentOppfolgingperiode - returnerer null ved 204 No Content`() {
-        enqueueHttpStatus(HttpStatus.NO_CONTENT)
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andRespond(withNoContent())
 
-        val result = client.hentOppfolgingperiode("12345678910")
+        val result = sut.hentOppfolgingperiode("12345678910")
 
         result.shouldBeNull()
     }
 
     @Test
     fun `hentOppfolgingperiode - kaster feil ved 500 status`() {
-        enqueueHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
         val thrown = shouldThrow<RuntimeException> {
-            client.hentOppfolgingperiode("12345678910")
+            sut.hentOppfolgingperiode("12345678910")
         }
 
         thrown.message shouldBe "Uventet status ved hent status-kall mot veilarboppfolging 500"
-    }
-
-    companion object {
-        private val nowAsZonedDateTimeUtc: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
-        private val nowAsLocalDateTime: LocalDateTime = nowAsZonedDateTimeUtc
-            .withZoneSameInstant(ZoneId.systemDefault())
-            .toLocalDateTime()
-
-        private fun createOppfolgingPeriodeDTO(useEndDate: Boolean) = VeilarboppfolgingClient.OppfolgingPeriodeDTO(
-            uuid = UUID.randomUUID(),
-            startDato = nowAsZonedDateTimeUtc,
-            sluttDato = if (useEndDate) nowAsZonedDateTimeUtc.plusDays(1) else null,
-        )
     }
 }

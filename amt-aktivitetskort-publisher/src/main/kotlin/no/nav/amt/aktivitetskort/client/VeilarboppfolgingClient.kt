@@ -2,47 +2,42 @@ package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
-import no.nav.common.rest.client.RestClient.baseClient
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.toEntity
 import java.time.ZonedDateTime
 import java.util.UUID
-import java.util.function.Supplier
 
+@Service
 class VeilarboppfolgingClient(
-    private val baseUrl: String,
-    private val veilarboppfolgingTokenProvider: Supplier<String>,
-    private val objectMapper: ObjectMapper,
-    private val httpClient: OkHttpClient = baseClient(),
+    @Value($$"${veilarboppfolging.url}") baseUrl: String,
+    restClientBuilder: RestClient.Builder,
 ) {
-    companion object {
-        private val mediaTypeJson = "application/json".toMediaType()
-    }
+    private val restClient: RestClient = restClientBuilder
+        .baseUrl("$baseUrl/veilarboppfolging")
+        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+        .build()
 
-    fun hentOppfolgingperiode(fnr: String): Oppfolgingsperiode? {
-        val personRequestJson = objectMapper.writeValueAsString(PersonRequest(fnr))
-        val request = Request
-            .Builder()
-            .url("$baseUrl/api/v3/oppfolging/hent-gjeldende-periode")
-            .header("Accept", "application/json; charset=utf-8")
-            .header("Authorization", "Bearer ${veilarboppfolgingTokenProvider.get()}")
-            .post(personRequestJson.toRequestBody(mediaTypeJson))
-            .build()
+    fun hentOppfolgingperiode(fnr: String): Oppfolgingsperiode? = try {
+        val response = restClient
+            .post()
+            .uri("/api/v3/oppfolging/hent-gjeldende-periode")
+            .body(PersonRequest(fnr))
+            .retrieve()
+            .toEntity<OppfolgingPeriodeDTO>()
 
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw RuntimeException("Uventet status ved hent status-kall mot veilarboppfolging ${response.code}")
-            }
-            if (response.code == 204) return null
-
-            return objectMapper
-                .readValue<OppfolgingPeriodeDTO>(response.body.string())
-                .toModel()
+        if (response.statusCode.value() == HttpStatus.NO_CONTENT.value()) {
+            null
+        } else {
+            response.body?.toModel()
         }
+    } catch (e: RestClientResponseException) {
+        throw RuntimeException("Uventet status ved hent status-kall mot veilarboppfolging ${e.statusCode.value()}", e)
     }
 
     private data class PersonRequest(
