@@ -78,6 +78,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-enhet/$id"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -93,6 +94,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-enhet/$id"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -145,6 +147,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-ansatt/$idInTest"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -176,6 +179,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-ansatt/$id"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -191,6 +195,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-ansatt/$id"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -209,6 +214,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""["$personident"]"""))
@@ -238,6 +244,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -262,6 +269,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
@@ -297,6 +305,7 @@ class AmtPersonClientTest(
             server
                 .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 

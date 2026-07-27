@@ -90,6 +90,7 @@ class HentArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -121,6 +122,7 @@ class HentArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
@@ -136,6 +138,7 @@ class HentArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -151,6 +154,7 @@ class HentArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 

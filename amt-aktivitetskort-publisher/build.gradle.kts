@@ -21,6 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.springframework.boot:spring-boot-kafka")
+    implementation("org.springframework.boot:spring-boot-restclient")
 
     implementation(libs.tools.jackson.module.kotlin)
 
@@ -29,16 +30,13 @@ dependencies {
     implementation(libs.flyway.postgres)
     implementation(libs.postgresql)
 
-    implementation(libs.okhttp)
-
     implementation(libs.micrometer.prometheus)
     implementation(libs.logstash.encoder)
 
-    implementation(libs.nav.common.token.client)
-    implementation(libs.nav.common.rest)
     implementation(libs.nav.common.log)
 
     implementation(libs.token.validation.spring)
+    implementation(libs.token.client.spring)
 
     implementation(libs.unleash)
 
@@ -54,12 +52,15 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.springframework.boot:spring-boot-restclient-test")
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.kafka)
 
     testImplementation(libs.mockk)
-    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.springmockk)
+    testImplementation(libs.token.validation.spring.test)
 }
 
 kotlin {
@@ -68,7 +69,6 @@ kotlin {
         jvmTarget = JvmTarget.JVM_25
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
-            "-Xannotation-default-target=param-property",
             "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
         )
     }

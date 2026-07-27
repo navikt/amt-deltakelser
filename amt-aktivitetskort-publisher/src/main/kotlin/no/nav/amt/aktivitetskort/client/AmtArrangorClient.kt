@@ -1,50 +1,45 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.domain.Arrangor
-import no.nav.common.rest.client.RestClient.baseClient
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.body
 import java.util.UUID
-import java.util.function.Supplier
 
+@Service
 class AmtArrangorClient(
-    private val baseUrl: String,
-    private val tokenProvider: Supplier<String>,
-    private val objectMapper: ObjectMapper,
-    private val httpClient: OkHttpClient = baseClient(),
+    @Value($$"${amt.arrangor.url}") baseUrl: String,
+    restClientBuilder: RestClient.Builder,
 ) {
-    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorDto {
-        val request = Request
-            .Builder()
-            .url("$baseUrl/api/service/arrangor/organisasjonsnummer/$orgnummer")
-            .addHeader("Authorization", "Bearer ${tokenProvider.get()}")
-            .get()
-            .build()
+    private val restClient: RestClient = restClientBuilder
+        .baseUrl(baseUrl)
+        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+        .build()
 
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw RuntimeException("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${response.code}")
-            }
-            return objectMapper.readValue<ArrangorMedOverordnetArrangorDto>(response.body.string())
-        }
+    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorDto = try {
+        restClient
+            .get()
+            .uri("/api/service/arrangor/organisasjonsnummer/{orgnummer}", orgnummer)
+            .retrieve()
+            .body<ArrangorMedOverordnetArrangorDto>()
+            ?: throw RuntimeException("Tomt svar fra amt-arrangor")
+    } catch (e: RestClientResponseException) {
+        throw RuntimeException("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${e.statusCode}", e)
     }
 
-    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorDto {
-        val request = Request
-            .Builder()
-            .url("$baseUrl/api/service/arrangor/$arrangorId")
-            .addHeader("Authorization", "Bearer ${tokenProvider.get()}")
+    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorDto = try {
+        restClient
             .get()
-            .build()
-
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw RuntimeException("Kunne ikke hente arrangør med id $arrangorId fra amt-arrangør. Status=${response.code}")
-            }
-            return objectMapper.readValue<ArrangorMedOverordnetArrangorDto>(response.body.string())
-        }
+            .uri("/api/service/arrangor/{arrangorId}", arrangorId)
+            .retrieve()
+            .body<ArrangorMedOverordnetArrangorDto>()
+            ?: throw RuntimeException("Tomt svar fra amt-arrangor")
+    } catch (e: RestClientResponseException) {
+        throw RuntimeException("Kunne ikke hente arrangør med id $arrangorId fra amt-arrangør. Status=${e.statusCode}", e)
     }
 
     data class ArrangorMedOverordnetArrangorDto(

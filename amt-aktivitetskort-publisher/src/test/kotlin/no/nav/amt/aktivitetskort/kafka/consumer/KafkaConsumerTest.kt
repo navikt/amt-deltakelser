@@ -4,12 +4,14 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
 import no.nav.amt.aktivitetskort.IntegrationTest
 import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.database.TestData.toDto
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
+import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.kafka.core.KafkaTemplate
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -38,7 +41,9 @@ class KafkaConsumerTest(
     private val offset: Long = 0
 
     @BeforeEach
-    fun setup() = mockAktivitetArenaAclServer.clearResponses()
+    fun setup() {
+        every { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) } throws RuntimeException("Not configured")
+    }
 
     @Test
     fun `listen - melding om ny arrangor - arrangor upsertes`() {
@@ -104,9 +109,9 @@ class KafkaConsumerTest(
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
 
-        mockAmtArenaAclServer.addArenaIdResponse(ctx.deltaker.id, 1234)
-        mockAktivitetArenaAclServer.addAktivitetsIdResponse(1234, ctx.melding.id)
-        mockVeilarboppfolgingServer.addResponse()
+        mockAmtArenaAclClient(ctx.deltaker.id, 1234)
+        mockAktivitetArenaAclClient(1234, ctx.melding.id)
+        mockVeilarboppfolgingClient()
 
         kafkaTemplate.send(
             ProducerRecord(
@@ -159,9 +164,9 @@ class KafkaConsumerTest(
         deltakerRepository.upsert(ctx.deltaker, -1)
         meldingRepository.upsert(ctx.melding)
 
-        mockAmtArenaAclServer.addArenaIdResponse(ctx.deltaker.id, 1234)
-        mockAktivitetArenaAclServer.addAktivitetsIdResponse(1234, nyId)
-        mockVeilarboppfolgingServer.addResponse()
+        mockAmtArenaAclClient(ctx.deltaker.id, 1234)
+        mockAktivitetArenaAclClient(1234, nyId)
+        mockVeilarboppfolgingClient()
 
         kafkaTemplate.send(
             ProducerRecord(
@@ -202,9 +207,9 @@ class KafkaConsumerTest(
         testDatabase.insertAktivOppfolgingsperiode(id = ctx.oppfolgingsperiodeId)
         meldingRepository.upsert(ctx.melding)
 
-        mockAmtArenaAclServer.addArenaIdResponse(ctx.deltaker.id, 1234)
-        mockAktivitetArenaAclServer.addAktivitetsIdResponse(1234, ctx.aktivitetskort.id)
-        mockVeilarboppfolgingServer.addResponse()
+        mockAmtArenaAclClient(ctx.deltaker.id, 1234)
+        mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
+        mockVeilarboppfolgingClient()
 
         kafkaTemplate.send(
             ProducerRecord(
@@ -239,8 +244,8 @@ class KafkaConsumerTest(
         testDatabase.insertAktivOppfolgingsperiode(id = ctx.oppfolgingsperiodeId)
         meldingRepository.upsert(ctx.melding)
 
-        mockAmtArenaAclServer.addArenaIdResponse(ctx.deltaker.id, 1234)
-        mockAktivitetArenaAclServer.addAktivitetsIdResponse(1234, ctx.aktivitetskort.id)
+        mockAmtArenaAclClient(ctx.deltaker.id, 1234)
+        mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
 
         kafkaTemplate.send(
             ProducerRecord(
@@ -282,5 +287,27 @@ class KafkaConsumerTest(
             deltakerRepository.get(deltaker.id) shouldBe null
             meldingRepository.getByDeltakerId(deltaker.id) shouldBe emptyList()
         }
+    }
+
+    private fun mockAmtArenaAclClient(
+        amtId: UUID,
+        arenaId: Long,
+    ) {
+        every { amtArenaAclClient.getArenaIdForAmtId(amtId) } returns arenaId
+    }
+
+    private fun mockAktivitetArenaAclClient(
+        arenaId: Long,
+        aktivitetId: UUID,
+    ) {
+        every { aktivitetArenaAclClient.getAktivitetIdForArenaId(arenaId) } returns aktivitetId
+    }
+
+    private fun mockVeilarboppfolgingClient(oppfolgingsperiodeId: UUID = UUID.randomUUID()) {
+        every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns Oppfolgingsperiode(
+            id = oppfolgingsperiodeId,
+            startDato = LocalDateTime.now().minusDays(5),
+            sluttDato = null,
+        )
     }
 }

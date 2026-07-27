@@ -98,6 +98,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
@@ -110,6 +111,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -123,6 +125,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -161,6 +164,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -178,6 +182,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -216,6 +221,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
@@ -233,6 +239,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -281,6 +288,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -302,6 +310,7 @@ class AmtArrangorClientTest(
             server
                 .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
