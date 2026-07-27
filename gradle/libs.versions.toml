@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "2.4.0"
+kotlin-version = "2.4.10"
 ktor-version = "3.5.1"
 logback-version = "1.5.38"
 logstash-encoder-version = "9.0"
@@ -17,7 +17,7 @@ postgres-version = "42.7.13"
 caffeine-version = "3.2.4"
 mockk-version = "1.14.11"
 nimbus-version = "10.9.1"
-unleash-version = "12.2.2"
+unleash-version = "12.2.3"
 tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
