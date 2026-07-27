@@ -38,8 +38,7 @@ jobs:
           ./gradlew check \
             $GRADLE_ARGS \
             --no-daemon \
-            --no-configuration-cache \
-            --no-build-cache
+            --no-configuration-cache
 # Kommenter inn ved behov
 #             --info \
 #             --console=plain \
