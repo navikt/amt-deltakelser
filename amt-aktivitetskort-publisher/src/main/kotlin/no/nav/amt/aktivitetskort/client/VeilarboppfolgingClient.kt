@@ -31,7 +31,7 @@ class VeilarboppfolgingClient(
             .retrieve()
             .toEntity<OppfolgingPeriodeDTO>()
 
-        if (response.statusCode.value() == HttpStatus.NO_CONTENT.value()) {
+        if (response.statusCode == HttpStatus.NO_CONTENT) {
             null
         } else {
             response.body?.toModel()

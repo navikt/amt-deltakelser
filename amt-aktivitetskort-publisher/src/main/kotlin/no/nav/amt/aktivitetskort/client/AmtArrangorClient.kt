@@ -7,7 +7,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
-import org.springframework.web.client.body
+import org.springframework.web.client.requiredBody
 import java.util.UUID
 
 @Service
@@ -25,8 +25,7 @@ class AmtArrangorClient(
             .get()
             .uri("/api/service/arrangor/organisasjonsnummer/{orgnummer}", orgnummer)
             .retrieve()
-            .body<ArrangorMedOverordnetArrangorDto>()
-            ?: throw RuntimeException("Tomt svar fra amt-arrangor")
+            .requiredBody<ArrangorMedOverordnetArrangorDto>()
     } catch (e: RestClientResponseException) {
         throw RuntimeException("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${e.statusCode}", e)
     }
@@ -36,8 +35,7 @@ class AmtArrangorClient(
             .get()
             .uri("/api/service/arrangor/{arrangorId}", arrangorId)
             .retrieve()
-            .body<ArrangorMedOverordnetArrangorDto>()
-            ?: throw RuntimeException("Tomt svar fra amt-arrangor")
+            .requiredBody<ArrangorMedOverordnetArrangorDto>()
     } catch (e: RestClientResponseException) {
         throw RuntimeException("Kunne ikke hente arrangør med id $arrangorId fra amt-arrangør. Status=${e.statusCode}", e)
     }
