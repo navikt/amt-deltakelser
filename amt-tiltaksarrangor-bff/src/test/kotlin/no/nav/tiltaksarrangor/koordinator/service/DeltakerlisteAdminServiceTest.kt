@@ -34,7 +34,7 @@ class DeltakerlisteAdminServiceTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
-    @Suppress("unused") @MockkBean(relaxed = true) private val metricsService: MetricsService,
+    @MockkBean(relaxed = true) private val metricsService: MetricsService,
 ) : IntegrationTest() {
     @Test
     fun `getAlleDeltakerlister - ansatt er ikke koordinator - returnerer unauthorized`() {
