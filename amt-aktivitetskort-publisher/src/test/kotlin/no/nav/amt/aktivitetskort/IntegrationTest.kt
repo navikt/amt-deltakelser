@@ -11,10 +11,7 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.kafka.KafkaContainer
-import org.testcontainers.utility.DockerImageName
+import org.springframework.kafka.core.KafkaTemplate
 
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableMockOAuth2Server
@@ -35,19 +32,6 @@ abstract class IntegrationTest : RepositoryTestBase() {
     @MockkBean
     lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
 
-    companion object {
-        @Suppress("unused")
-        val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka")).apply {
-            // workaround for https://github.com/testcontainers/testcontainers-java/issues/9506
-            withEnv("KAFKA_LISTENERS", "PLAINTEXT://:9092,BROKER://:9093,CONTROLLER://:9094")
-            start()
-            System.setProperty("KAFKA_BROKERS", bootstrapServers)
-        }
-
-        @JvmStatic
-        @DynamicPropertySource
-        @Suppress("unused")
-        fun registerProperties(registry: DynamicPropertyRegistry) {
-        }
-    }
+    @MockkBean(relaxed = true)
+    lateinit var kafkaTemplate: KafkaTemplate<String, String>
 }

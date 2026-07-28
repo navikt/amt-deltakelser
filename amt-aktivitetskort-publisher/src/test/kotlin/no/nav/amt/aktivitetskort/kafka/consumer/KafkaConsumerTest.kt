@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
+import io.mockk.mockk
 import no.nav.amt.aktivitetskort.IntegrationTest
 import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.database.TestData
@@ -20,15 +21,13 @@ import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.awaitility.Awaitility.await
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.Acknowledgment
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 class KafkaConsumerTest(
     private val arrangorRepository: ArrangorRepository,
@@ -36,9 +35,10 @@ class KafkaConsumerTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val deltakerRepository: DeltakerRepository,
     private val meldingRepository: MeldingRepository,
-    private val kafkaTemplate: KafkaTemplate<String, String>,
+    private val kafkaConsumer: KafkaConsumer,
 ) : IntegrationTest() {
     private val offset: Long = 0
+    private val ack: Acknowledgment = mockk(relaxed = true)
 
     @BeforeEach
     fun setup() {
@@ -49,35 +49,30 @@ class KafkaConsumerTest(
     fun `listen - melding om ny arrangor - arrangor upsertes`() {
         val arrangor = TestData.lagArrangor()
 
-        kafkaTemplate
-            .send(
-                ProducerRecord(
-                    ARRANGOR_TOPIC,
-                    arrangor.id.toString(),
-                    staticObjectMapper.writeValueAsString(arrangor.toDto()),
-                ),
-            ).get()
+        kafkaConsumer.listen(
+            ConsumerRecord(ARRANGOR_TOPIC, 0, offset, arrangor.id.toString(), staticObjectMapper.writeValueAsString(arrangor.toDto())),
+            ack,
+        )
 
-        await().untilAsserted {
-            arrangorRepository.get(arrangor.id).shouldNotBeNull()
-        }
+        arrangorRepository.get(arrangor.id).shouldNotBeNull()
     }
 
     @Test
     fun `listen - melding om ny tiltakstype - tiltakstype upsertes`() {
         val ctx = TestData.MockContext()
 
-        kafkaTemplate.send(
-            ProducerRecord(
+        kafkaConsumer.listen(
+            ConsumerRecord(
                 TILTAKSTYPE_TOPIC,
+                0,
+                offset,
                 ctx.tiltakstype.id.toString(),
                 staticObjectMapper.writeValueAsString(ctx.tiltakstype),
             ),
+            ack,
         )
 
-        await().atMost(5, TimeUnit.SECONDS).until {
-            tiltakstypeRepository.getById(ctx.tiltakstype.id) != null
-        }
+        tiltakstypeRepository.getById(ctx.tiltakstype.id) shouldNotBe null
     }
 
     @Test
@@ -90,17 +85,18 @@ class KafkaConsumerTest(
             tiltakskode = Tiltakskode.OPPFOLGING,
         )
 
-        kafkaTemplate.send(
-            ProducerRecord(
+        kafkaConsumer.listen(
+            ConsumerRecord(
                 DELTAKERLISTE_V2_TOPIC,
+                0,
+                offset,
                 deltakerlistePayload.id.toString(),
                 staticObjectMapper.writeValueAsString(deltakerlistePayload),
             ),
+            ack,
         )
 
-        await().untilAsserted {
-            deltakerlisteRepository.get(deltakerlistePayload.id).shouldNotBeNull()
-        }
+        deltakerlisteRepository.get(deltakerlistePayload.id).shouldNotBeNull()
     }
 
     @Test
@@ -113,42 +109,43 @@ class KafkaConsumerTest(
         mockAktivitetArenaAclClient(1234, ctx.melding.id)
         mockVeilarboppfolgingClient()
 
-        kafkaTemplate.send(
-            ProducerRecord(
+        kafkaConsumer.listen(
+            ConsumerRecord(
                 DELTAKER_TOPIC,
+                0,
+                offset,
                 ctx.deltaker.id.toString(),
                 staticObjectMapper.writeValueAsString(ctx.deltaker.toDto()),
             ),
+            ack,
         )
 
-        await().untilAsserted {
-            ctx.melding.id shouldBe ctx.aktivitetskortId
-            ctx.melding.aktivitetskort.id shouldBe ctx.aktivitetskortId
-            val deltaker = deltakerRepository.get(ctx.deltaker.id)
+        ctx.melding.id shouldBe ctx.aktivitetskortId
+        ctx.melding.aktivitetskort.id shouldBe ctx.aktivitetskortId
+        val deltaker = deltakerRepository.get(ctx.deltaker.id)
 
-            deltaker.shouldNotBeNull()
-            deltaker shouldBe ctx.deltaker
+        deltaker.shouldNotBeNull()
+        deltaker shouldBe ctx.deltaker
 
-            val aktivitetskort = meldingRepository
-                .getByDeltakerId(deltaker.id)
-                .first()
-                .aktivitetskort
+        val aktivitetskort = meldingRepository
+            .getByDeltakerId(deltaker.id)
+            .first()
+            .aktivitetskort
 
-            assertSoftly(aktivitetskort) {
-                personident shouldBe ctx.aktivitetskort.personident
-                tittel shouldBe ctx.aktivitetskort.tittel
-                aktivitetStatus shouldBe ctx.aktivitetskort.aktivitetStatus
-                startDato shouldBe ctx.aktivitetskort.startDato
-                sluttDato shouldBe ctx.aktivitetskort.sluttDato
-                beskrivelse shouldBe ctx.aktivitetskort.beskrivelse
-                endretAv shouldBe ctx.aktivitetskort.endretAv
-                endretTidspunkt shouldBeCloseTo ctx.aktivitetskort.endretTidspunkt
-                avtaltMedNav shouldBe ctx.aktivitetskort.avtaltMedNav
-                oppgave shouldBe ctx.aktivitetskort.oppgave
-                handlinger shouldNotBe null
-                detaljer shouldBe ctx.aktivitetskort.detaljer
-                etiketter shouldBe ctx.aktivitetskort.etiketter
-            }
+        assertSoftly(aktivitetskort) {
+            personident shouldBe ctx.aktivitetskort.personident
+            tittel shouldBe ctx.aktivitetskort.tittel
+            aktivitetStatus shouldBe ctx.aktivitetskort.aktivitetStatus
+            startDato shouldBe ctx.aktivitetskort.startDato
+            sluttDato shouldBe ctx.aktivitetskort.sluttDato
+            beskrivelse shouldBe ctx.aktivitetskort.beskrivelse
+            endretAv shouldBe ctx.aktivitetskort.endretAv
+            endretTidspunkt shouldBeCloseTo ctx.aktivitetskort.endretTidspunkt
+            avtaltMedNav shouldBe ctx.aktivitetskort.avtaltMedNav
+            oppgave shouldBe ctx.aktivitetskort.oppgave
+            handlinger shouldNotBe null
+            detaljer shouldBe ctx.aktivitetskort.detaljer
+            etiketter shouldBe ctx.aktivitetskort.etiketter
         }
     }
 
@@ -168,32 +165,33 @@ class KafkaConsumerTest(
         mockAktivitetArenaAclClient(1234, nyId)
         mockVeilarboppfolgingClient()
 
-        kafkaTemplate.send(
-            ProducerRecord(
+        kafkaConsumer.listen(
+            ConsumerRecord(
                 DELTAKER_TOPIC,
+                0,
+                offset,
                 ctx.deltaker.id.toString(),
                 staticObjectMapper.writeValueAsString(endretDeltaker.toDto()),
             ),
+            ack,
         )
 
-        await().untilAsserted {
-            val deltaker = deltakerRepository.get(ctx.deltaker.id)
-            deltaker.shouldNotBeNull()
-            deltaker shouldBe endretDeltaker
+        val deltaker = deltakerRepository.get(ctx.deltaker.id)
+        deltaker.shouldNotBeNull()
+        deltaker shouldBe endretDeltaker
 
-            val aktivitetskort = meldingRepository
-                .getByDeltakerId(deltaker.id)
+        val aktivitetskort = meldingRepository
+            .getByDeltakerId(deltaker.id)
 
-            aktivitetskort.size shouldBe 2
-            val nyttAktivitetskort = aktivitetskort
-                .first()
-                .aktivitetskort
-            nyttAktivitetskort.id shouldBe nyId
-            nyttAktivitetskort shouldBe ctx.aktivitetskort.copy(
-                id = nyId,
-                sluttDato = endretDeltaker.sluttdato,
-            )
-        }
+        aktivitetskort.size shouldBe 2
+        val nyttAktivitetskort = aktivitetskort
+            .first()
+            .aktivitetskort
+        nyttAktivitetskort.id shouldBe nyId
+        nyttAktivitetskort shouldBe ctx.aktivitetskort.copy(
+            id = nyId,
+            sluttDato = endretDeltaker.sluttdato,
+        )
     }
 
     @Test
@@ -211,23 +209,18 @@ class KafkaConsumerTest(
         mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
         mockVeilarboppfolgingClient()
 
-        kafkaTemplate.send(
-            ProducerRecord(
-                DELTAKER_TOPIC,
-                ctx.deltaker.id.toString(),
-                null,
-            ),
+        kafkaConsumer.listen(
+            ConsumerRecord(DELTAKER_TOPIC, 0, offset, ctx.deltaker.id.toString(), null),
+            ack,
         )
 
-        await().untilAsserted {
-            val aktivitetskort = meldingRepository
-                .getByDeltakerId(ctx.deltaker.id)
-                .first()
-                .aktivitetskort
-            aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
+        val aktivitetskort = meldingRepository
+            .getByDeltakerId(ctx.deltaker.id)
+            .first()
+            .aktivitetskort
+        aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
 
-            deltakerRepository.get(ctx.deltaker.id) shouldBe null
-        }
+        deltakerRepository.get(ctx.deltaker.id) shouldBe null
     }
 
     @Test
@@ -247,23 +240,18 @@ class KafkaConsumerTest(
         mockAmtArenaAclClient(ctx.deltaker.id, 1234)
         mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
 
-        kafkaTemplate.send(
-            ProducerRecord(
-                DELTAKER_TOPIC,
-                ctx.deltaker.id.toString(),
-                null,
-            ),
+        kafkaConsumer.listen(
+            ConsumerRecord(DELTAKER_TOPIC, 0, offset, ctx.deltaker.id.toString(), null),
+            ack,
         )
 
-        await().untilAsserted {
-            val aktivitetskort = meldingRepository
-                .getByDeltakerId(ctx.deltaker.id)
-                .first()
-                .aktivitetskort
+        val aktivitetskort = meldingRepository
+            .getByDeltakerId(ctx.deltaker.id)
+            .first()
+            .aktivitetskort
 
-            aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.FULLFORT
-            deltakerRepository.get(ctx.deltaker.id) shouldBe null
-        }
+        aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.FULLFORT
+        deltakerRepository.get(ctx.deltaker.id) shouldBe null
     }
 
     @Test
@@ -275,18 +263,13 @@ class KafkaConsumerTest(
         deltakerlisteRepository.upsert(deltakerliste)
         deltakerRepository.upsert(deltaker, offset)
 
-        kafkaTemplate.send(
-            ProducerRecord(
-                DELTAKER_TOPIC,
-                deltaker.id.toString(),
-                null,
-            ),
+        kafkaConsumer.listen(
+            ConsumerRecord(DELTAKER_TOPIC, 0, offset, deltaker.id.toString(), null),
+            ack,
         )
 
-        await().untilAsserted {
-            deltakerRepository.get(deltaker.id) shouldBe null
-            meldingRepository.getByDeltakerId(deltaker.id) shouldBe emptyList()
-        }
+        deltakerRepository.get(deltaker.id) shouldBe null
+        meldingRepository.getByDeltakerId(deltaker.id) shouldBe emptyList()
     }
 
     private fun mockAmtArenaAclClient(
