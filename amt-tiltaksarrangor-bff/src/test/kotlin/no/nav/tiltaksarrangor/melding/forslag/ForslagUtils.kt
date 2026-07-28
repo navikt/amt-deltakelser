@@ -148,7 +148,7 @@ fun <T : Forslag.Endring> assertProducedForslag(
     val keys = mutableListOf<String>()
     val values = mutableListOf<String>()
 
-    verify(atLeast = 1) { producer.produce(MELDING_TOPIC, capture(keys), capture(values)) }
+    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
 
     val forslagMap = keys.zip(values).associate { (k, v) ->
         UUID.fromString(k) to objectMapper.readValue<Forslag>(v)
@@ -170,7 +170,7 @@ fun getProducedForslag(
     val keys = mutableListOf<String>()
     val values = mutableListOf<String>()
 
-    verify(atLeast = 1) { producer.produce(MELDING_TOPIC, capture(keys), capture(values)) }
+    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
 
     val forslagMap = keys.zip(values).associate { (k, v) ->
         UUID.fromString(k) to objectMapper.readValue<Forslag>(v)

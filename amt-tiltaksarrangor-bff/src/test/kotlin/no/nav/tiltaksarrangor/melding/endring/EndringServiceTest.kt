@@ -4,7 +4,6 @@ import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
-import io.mockk.slot
 import io.mockk.verify
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -46,10 +45,11 @@ class EndringServiceTest(
             oppdatertDeltaker.startDato shouldBe request.startdato
             oppdatertDeltaker.sluttDato shouldBe request.sluttdato
 
-            val valueSlot = slot<String>()
-            verify { producer.produce(MELDING_TOPIC, any(), capture(valueSlot)) }
+            val keys = mutableListOf<String>()
+            val values = mutableListOf<String>()
+            verify { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
 
-            val endring = objectMapper.readValue<EndringFraArrangor>(valueSlot.captured)
+            val endring = objectMapper.readValue<EndringFraArrangor>(values.last())
             endring.deltakerId shouldBe deltaker.id
             endring.endring.shouldBeInstanceOf<EndringFraArrangor.LeggTilOppstartsdato>()
         }
