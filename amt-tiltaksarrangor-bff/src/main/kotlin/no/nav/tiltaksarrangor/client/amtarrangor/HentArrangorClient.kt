@@ -26,7 +26,7 @@ class HentArrangorClient(
                 throw UnauthorizedException("Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør.")
             else -> {
                 log.error("Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør. Responsekode: ${e.statusCode.value()}")
-                throw RuntimeException("Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør.")
+                throw RuntimeException("Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${e.statusCode.value()}", e)
             }
         }
     }

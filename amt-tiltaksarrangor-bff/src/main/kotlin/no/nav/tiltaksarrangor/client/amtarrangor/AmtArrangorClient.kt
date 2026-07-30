@@ -25,7 +25,7 @@ class AmtArrangorClient(
             }
             HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                 throw UnauthorizedException("Ikke tilgang til å hente ansatt fra amt-arrangør")
-            else -> throw RuntimeException("Kunne ikke hente ansatt fra amt-arrangør.")
+            else -> throw RuntimeException("Kunne ikke hente ansatt fra amt-arrangør. Status=${e.statusCode.value()}", e)
         }
     }
 
@@ -41,7 +41,7 @@ class AmtArrangorClient(
             when (e.statusCode) {
                 HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                     throw UnauthorizedException("Ikke tilgang til å legge til deltakerliste i amt-arrangør")
-                else -> throw RuntimeException("Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør.")
+                else -> throw RuntimeException("Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør. Status=${e.statusCode.value()}", e)
             }
         }
     }
@@ -58,7 +58,7 @@ class AmtArrangorClient(
             when (e.statusCode) {
                 HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                     throw UnauthorizedException("Ikke tilgang til å fjerne deltakerliste i amt-arrangør")
-                else -> throw RuntimeException("Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør.")
+                else -> throw RuntimeException("Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør. Status=${e.statusCode.value()}", e)
             }
         }
     }
@@ -74,7 +74,7 @@ class AmtArrangorClient(
             when (e.statusCode) {
                 HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                     throw UnauthorizedException("Ikke tilgang til å oppdatere veiledere i amt-arrangør")
-                else -> throw RuntimeException("Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør.")
+                else -> throw RuntimeException("Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør. Status=${e.statusCode.value()}", e)
             }
         }
     }

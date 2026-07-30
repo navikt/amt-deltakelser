@@ -19,7 +19,7 @@ class AmtPersonClient(
         when (e.statusCode) {
             HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                 throw UnauthorizedException("Ikke tilgang til å hente NAV-enhet fra amt-person-service")
-            else -> throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service")
+            else -> throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service. Status=${e.statusCode.value()}", e)
         }
     }
 
@@ -30,7 +30,7 @@ class AmtPersonClient(
         when (e.statusCode) {
             HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
                 throw UnauthorizedException("Ikke tilgang til å hente NAV-ansatt fra amt-person-service")
-            else -> throw RuntimeException("Kunne ikke hente NAV-ansatt fra amt-person-service")
+            else -> throw RuntimeException("Kunne ikke hente NAV-ansatt fra amt-person-service. Status=${e.statusCode.value()}", e)
         }
     }
 
