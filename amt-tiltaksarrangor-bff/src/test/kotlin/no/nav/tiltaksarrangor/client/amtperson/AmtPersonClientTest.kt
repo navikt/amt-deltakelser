@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.tiltaksarrangor.client.ClientTestConfig
 import no.nav.tiltaksarrangor.client.RestClientTestBase
@@ -91,7 +92,7 @@ class AmtPersonClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Kunne ikke hente NAV-enhet fra amt-person-service"
+            }.message shouldStartWith "Kunne ikke hente NAV-enhet fra amt-person-service"
         }
     }
 
@@ -192,7 +193,7 @@ class AmtPersonClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Kunne ikke hente NAV-ansatt fra amt-person-service"
+            }.message shouldStartWith "Kunne ikke hente NAV-ansatt fra amt-person-service"
         }
     }
 

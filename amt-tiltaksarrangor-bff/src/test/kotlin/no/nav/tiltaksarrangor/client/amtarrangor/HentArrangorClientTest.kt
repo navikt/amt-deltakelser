@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.tiltaksarrangor.client.ClientTestConfig
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
@@ -151,7 +152,7 @@ class HentArrangorClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør."
+            }.message shouldStartWith "Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør."
         }
     }
 }

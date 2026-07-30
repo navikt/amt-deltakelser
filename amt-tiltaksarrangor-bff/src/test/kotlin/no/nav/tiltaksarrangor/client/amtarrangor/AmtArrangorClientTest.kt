@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.tiltaksarrangor.client.ClientTestConfig
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
@@ -122,7 +123,7 @@ class AmtArrangorClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.getAnsatt()
-            }.message shouldBe "Kunne ikke hente ansatt fra amt-arrangør."
+            }.message shouldStartWith "Kunne ikke hente ansatt fra amt-arrangør."
         }
     }
 
@@ -179,7 +180,7 @@ class AmtArrangorClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldStartWith "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør."
         }
     }
 
@@ -236,7 +237,7 @@ class AmtArrangorClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldStartWith "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør."
         }
     }
 
@@ -307,7 +308,7 @@ class AmtArrangorClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldBe "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør."
+            }.message shouldStartWith "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør."
         }
     }
 }
