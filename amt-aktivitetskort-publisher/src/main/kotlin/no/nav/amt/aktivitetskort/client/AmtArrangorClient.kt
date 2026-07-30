@@ -1,5 +1,6 @@
 package no.nav.amt.aktivitetskort.client
 
+import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientResponseException
 import java.util.UUID
@@ -8,13 +9,13 @@ import java.util.UUID
 class AmtArrangorClient(
     private val api: AmtArrangorApi,
 ) {
-    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorDto = try {
+    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorResponse = try {
         api.hentArrangorByOrgnummer(orgnummer)
     } catch (e: RestClientResponseException) {
         throw RuntimeException("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør. Status=${e.statusCode}", e)
     }
 
-    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorDto = try {
+    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorResponse = try {
         api.hentArrangorById(arrangorId)
     } catch (e: RestClientResponseException) {
         throw RuntimeException("Kunne ikke hente arrangør med id $arrangorId fra amt-arrangør. Status=${e.statusCode}", e)

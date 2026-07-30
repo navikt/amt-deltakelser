@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltaksarrangor.client.ClientTestConfig
+import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.VeilederAnsatt
 import no.nav.tiltaksarrangor.model.Veiledertype
@@ -13,14 +14,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -30,16 +28,9 @@ import java.util.UUID
 
 @ActiveProfiles("test")
 @RestClientTest(AmtArrangorClient::class)
-@Import(ClientTestConfig::class)
-@TestPropertySource(
-    properties = [
-        "amt-arrangor.default.url=http://amt-arrangor",
-    ],
-)
 class AmtArrangorClientTest(
     @Autowired private val sut: AmtArrangorClient,
-    @Autowired private val server: MockRestServiceServer,
-) {
+) : RestClientTestBase("amt-arrangor-tokenx") {
     @Nested
     inner class GetAnsattTests {
         @Test
@@ -50,10 +41,10 @@ class AmtArrangorClientTest(
             val deltakerId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andRespond(
                     withSuccess(
                         """
@@ -96,9 +87,9 @@ class AmtArrangorClientTest(
         @Test
         fun `getAnsatt - kaster ikke NoSuchElementException ved 404`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
@@ -109,9 +100,9 @@ class AmtArrangorClientTest(
         @Test
         fun `getAnsatt - kaster UnauthorizedException ved 403`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -123,9 +114,9 @@ class AmtArrangorClientTest(
         @Test
         fun `getAnsatt - kaster RuntimeException ved 500`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -144,10 +135,10 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andRespond(withSuccess())
 
             sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
@@ -162,9 +153,9 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -180,9 +171,9 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -201,10 +192,10 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andRespond(withSuccess())
 
             sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
@@ -219,9 +210,9 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
@@ -237,9 +228,9 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
@@ -263,10 +254,10 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withSuccess())
 
@@ -286,9 +277,9 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -308,9 +299,9 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 

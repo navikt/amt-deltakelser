@@ -1,7 +1,7 @@
 package no.nav.amt.aktivitetskort.service
 
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
-import no.nav.amt.aktivitetskort.client.ArrangorMedOverordnetArrangorDto
+import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
@@ -174,7 +174,7 @@ class KafkaConsumerService(
         log.info("Hentet og lagret overordnet arrangør med id $arrangorId som manglet i databasen")
     }
 
-    private fun lagreArrangorMedOverordnetArrangor(arrangorMedOverordnetArrangor: ArrangorMedOverordnetArrangorDto) {
+    private fun lagreArrangorMedOverordnetArrangor(arrangorMedOverordnetArrangor: ArrangorMedOverordnetArrangorResponse) {
         arrangorMedOverordnetArrangor.overordnetArrangor?.let {
             arrangorRepository.upsert(
                 Arrangor(

@@ -1,0 +1,68 @@
+package no.nav.tiltaksarrangor.config
+
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
+import org.springframework.boot.restclient.RestClientCustomizer
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.client.DelegatingOAuth2AuthorizedClientProvider
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
+import org.springframework.security.oauth2.client.TokenExchangeOAuth2AuthorizedClientProvider
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository
+import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
+import org.springframework.security.web.SecurityFilterChain
+
+@Configuration(proxyBeanMethods = false)
+class SecurityConfig {
+    @Bean
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
+        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+        .csrf { it.disable() }
+        .formLogin { it.disable() }
+        .httpBasic { it.disable() }
+        .logout { it.disable() }
+        .oauth2ResourceServer { it.jwt {} }
+        .authorizeHttpRequests {
+            it
+                .requestMatchers(EndpointRequest.to(HealthEndpoint::class.java))
+                .permitAll()
+                .requestMatchers("/internal/**", "/actuator/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+        }.build()
+
+    @Bean
+    fun authorizedClientManager(
+        clientRegistrationRepository: ClientRegistrationRepository,
+        authorizedClientRepository: OAuth2AuthorizedClientRepository,
+    ): OAuth2AuthorizedClientManager = DefaultOAuth2AuthorizedClientManager(
+        clientRegistrationRepository,
+        authorizedClientRepository,
+    ).apply {
+        setAuthorizedClientProvider(
+            DelegatingOAuth2AuthorizedClientProvider(
+                OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build(),
+                TokenExchangeOAuth2AuthorizedClientProvider(),
+            ),
+        )
+    }
+
+    @Bean
+    fun oauth2Configurer(manager: OAuth2AuthorizedClientManager): OAuth2RestClientHttpServiceGroupConfigurer =
+        OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
+
+    @Bean
+    fun defaultHeadersCustomizer() = RestClientCustomizer { builder ->
+        builder
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader("Nav-Consumer-Id", "amt-tiltaksarrangor-bff")
+    }
+}
