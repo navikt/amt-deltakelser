@@ -24,7 +24,6 @@ import java.time.Instant
  * på RestClientTokenExchangeTokenResponseClient.
  */
 class TokenExchangePrivateKeyJwtTest {
-
     @Test
     fun `token exchange med private_key_jwt kaster ikke IllegalArgumentException`() {
         val registrationRepo = InMemoryClientRegistrationRepository(TOKENX_REGISTRATION)
@@ -87,7 +86,8 @@ class TokenExchangePrivateKeyJwtTest {
             .withClientRegistrationId("amt-arrangor-tokenx")
             .principal(
                 JwtAuthenticationToken(
-                    Jwt.withTokenValue("subject-token")
+                    Jwt
+                        .withTokenValue("subject-token")
                         .header("alg", "RS256")
                         .issuer("http://localhost:9999/tokenx")
                         .subject("test-user")
@@ -96,7 +96,6 @@ class TokenExchangePrivateKeyJwtTest {
                         .expiresAt(Instant.now().plusSeconds(3600))
                         .build(),
                 ),
-            )
-            .build()
+            ).build()
     }
 }
