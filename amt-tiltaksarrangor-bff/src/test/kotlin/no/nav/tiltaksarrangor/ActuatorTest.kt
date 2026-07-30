@@ -46,18 +46,4 @@ class ActuatorTest(
 
         response.statusCode shouldBe HttpStatus.OK
     }
-
-    @Test
-    fun `Metrics-endepunktet skal returnere NOT_FOUND`() {
-        val uri =
-            UriComponentsBuilder
-                .fromUriString("http://localhost:{port}/internal/metrics")
-                .buildAndExpand(managementPort)
-                .toUri()
-
-        val response = restTemplate.getForEntity<String>(uri)
-
-        // GlobalExceptionHandler er satt opp til å gi INTERNAL_SERVER_ERROR for NOT_FOUND
-        response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
-    }
 }

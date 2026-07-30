@@ -1,7 +1,5 @@
 package no.nav.tiltaksarrangor.config
 
-import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
-import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -28,9 +26,7 @@ class SecurityConfig {
         .oauth2ResourceServer { it.jwt {} }
         .authorizeHttpRequests {
             it
-                .requestMatchers(EndpointRequest.to(HealthEndpoint::class.java))
-                .permitAll()
-                .requestMatchers("/internal/**", "/actuator/**")
+                .requestMatchers("/internal/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
