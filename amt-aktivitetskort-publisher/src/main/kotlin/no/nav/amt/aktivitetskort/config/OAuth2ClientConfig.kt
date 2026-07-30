@@ -11,7 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
 import org.springframework.security.web.SecurityFilterChain
@@ -46,11 +45,7 @@ class OAuth2ClientConfig {
     fun authorizedClientManager(repo: ClientRegistrationRepository) = AuthorizedClientServiceOAuth2AuthorizedClientManager(
         repo,
         InMemoryOAuth2AuthorizedClientService(repo),
-    ).apply {
-        setAuthorizedClientProvider(
-            OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build(),
-        )
-    }
+    )
 
     @Bean
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
