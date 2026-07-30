@@ -58,7 +58,9 @@ class OAuth2ClientConfig {
     @Bean
     fun defaultHeadersConfigurer() = RestClientHttpServiceGroupConfigurer { groups ->
         groups.forEachClient { _, builder ->
-            builder.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            builder
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("Nav-Consumer-Id", "amt-aktivitetskort-publisher")
         }
     }
 }
