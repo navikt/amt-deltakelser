@@ -28,9 +28,10 @@ class OAuth2ClientConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
         .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-        .csrf { csrfConfigurer -> csrfConfigurer.disable() }
-        .cors {}
-        .formLogin { formLoginConfigurer -> formLoginConfigurer.disable() }
+        .csrf { it.disable() }
+        .formLogin { it.disable() }
+        .httpBasic { it.disable() }
+        .logout { it.disable() }
         .authorizeHttpRequests {
             it
                 .requestMatchers(EndpointRequest.to(HealthEndpoint::class.java))
