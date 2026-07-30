@@ -4,21 +4,20 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.tiltaksarrangor.client.ClientTestConfig
+import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
@@ -29,16 +28,9 @@ import java.util.UUID
 
 @ActiveProfiles("test")
 @RestClientTest(AmtPersonClient::class)
-@Import(ClientTestConfig::class)
-@TestPropertySource(
-    properties = [
-        "amt-person.url=http://amt-person-service",
-    ],
-)
 class AmtPersonClientTest(
     @Autowired private val sut: AmtPersonClient,
-    @Autowired private val server: MockRestServiceServer,
-) {
+) : RestClientTestBase("amt-person-aad") {
     @Nested
     inner class HentEnhetTests {
         @Test
@@ -46,9 +38,9 @@ class AmtPersonClientTest(
             val idInTest = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-enhet/$idInTest"))
+                .expect(requestTo("/api/nav-enhet/$idInTest"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -76,9 +68,9 @@ class AmtPersonClientTest(
             val id = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-enhet/$id"))
+                .expect(requestTo("/api/nav-enhet/$id"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -92,15 +84,15 @@ class AmtPersonClientTest(
             val id = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-enhet/$id"))
+                .expect(requestTo("/api/nav-enhet/$id"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
             shouldThrow<RuntimeException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Kunne ikke hente NAV-enhet fra amt-person-service"
+            }.message shouldStartWith "Kunne ikke hente NAV-enhet fra amt-person-service"
         }
     }
 
@@ -111,10 +103,10 @@ class AmtPersonClientTest(
             val idInTest = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-ansatt/$idInTest"))
+                .expect(requestTo("/api/nav-ansatt/$idInTest"))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andRespond(
                     withSuccess(
                         """
@@ -145,9 +137,9 @@ class AmtPersonClientTest(
             val idInTest = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-ansatt/$idInTest"))
+                .expect(requestTo("/api/nav-ansatt/$idInTest"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -177,9 +169,9 @@ class AmtPersonClientTest(
             val id = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-ansatt/$id"))
+                .expect(requestTo("/api/nav-ansatt/$id"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -193,15 +185,15 @@ class AmtPersonClientTest(
             val id = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-ansatt/$id"))
+                .expect(requestTo("/api/nav-ansatt/$id"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
             shouldThrow<RuntimeException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Kunne ikke hente NAV-ansatt fra amt-person-service"
+            }.message shouldStartWith "Kunne ikke hente NAV-ansatt fra amt-person-service"
         }
     }
 
@@ -212,9 +204,9 @@ class AmtPersonClientTest(
             val personident = "12345678901"
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
+                .expect(requestTo("/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""["$personident"]"""))
@@ -242,9 +234,9 @@ class AmtPersonClientTest(
             val personident = "12345678901"
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
+                .expect(requestTo("/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -267,9 +259,9 @@ class AmtPersonClientTest(
             val personident2 = "98765432100"
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
+                .expect(requestTo("/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
@@ -303,9 +295,9 @@ class AmtPersonClientTest(
             val personident = "12345678901"
 
             server
-                .expect(requestTo("http://amt-person-service/api/nav-bruker/kontaktinformasjon"))
+                .expect(requestTo("/api/nav-bruker/kontaktinformasjon"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 

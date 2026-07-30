@@ -1,5 +1,6 @@
 package no.nav.amt.aktivitetskort.client
 
+import no.nav.amt.aktivitetskort.client.request.PersonRequest
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import org.springframework.http.HttpStatus

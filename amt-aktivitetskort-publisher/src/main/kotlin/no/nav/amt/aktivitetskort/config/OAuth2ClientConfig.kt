@@ -1,12 +1,9 @@
 package no.nav.amt.aktivitetskort.config
 
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
-import org.springframework.boot.restclient.RestClientCustomizer
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
@@ -49,11 +46,4 @@ class OAuth2ClientConfig {
 
     @Bean
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
-
-    @Bean
-    fun defaultHeadersCustomizer() = RestClientCustomizer { builder ->
-        builder
-            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .defaultHeader("Nav-Consumer-Id", "amt-aktivitetskort-publisher")
-    }
 }

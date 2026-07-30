@@ -1,5 +1,6 @@
 package no.nav.amt.aktivitetskort.client
 
+import no.nav.amt.aktivitetskort.client.request.HentAktivitetIdRequest
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.HttpExchange
@@ -14,8 +15,3 @@ interface AktivitetArenaAclApi {
         @RequestBody request: HentAktivitetIdRequest,
     ): UUID
 }
-
-data class HentAktivitetIdRequest(
-    val arenaId: Long,
-    val aktivitetKategori: String = "TILTAKSAKTIVITET",
-)

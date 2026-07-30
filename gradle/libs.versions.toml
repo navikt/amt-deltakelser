@@ -33,14 +33,12 @@ archunit-version = "1.5.0"
 spring-boot-version = "4.1.0"
 spring-dependency-management-version = "1.1.7"
 tools-jackson-version = "3.2.1"
-token-support-version = "6.0.11"
 shedlock-spring-version = "7.7.0"
 springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
 jsoup-version = "1.23.1"
 pdfgen-core-version = "1.1.82"
-
 
 # CVE-fixes
 netty-version = "4.2.16.Final"
@@ -62,9 +60,6 @@ jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-dat
 
 # spring-boot spesifikt
 tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "tools-jackson-version" }
-token-validation-spring = { module = "no.nav.security:token-validation-spring", version.ref = "token-support-version" }
-token-client-spring = { module = "no.nav.security:token-client-spring", version.ref = "token-support-version" }
-token-validation-spring-test = { module = "no.nav.security:token-validation-spring-test", version.ref = "token-support-version" }
 shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock-spring-version" }
 shedlock-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock-spring-version" }
 springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk-version" }
