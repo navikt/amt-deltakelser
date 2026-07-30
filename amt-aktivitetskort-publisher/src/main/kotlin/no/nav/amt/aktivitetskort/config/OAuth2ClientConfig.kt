@@ -28,7 +28,7 @@ class OAuth2ClientConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
         .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-        .csrf { it.disable() }
+        .csrf { csrf -> csrf.ignoringRequestMatchers("/internal/**", "/actuator/**") }
         .formLogin { it.disable() }
         .httpBasic { it.disable() }
         .logout { it.disable() }
