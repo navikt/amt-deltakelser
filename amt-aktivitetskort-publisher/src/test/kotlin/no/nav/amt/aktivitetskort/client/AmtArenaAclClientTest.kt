@@ -2,14 +2,16 @@ package no.nav.amt.aktivitetskort.client
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.amt.aktivitetskort.config.ClientConfig
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -17,19 +19,19 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.util.UUID
 
-@RestClientTest(AmtArenaAclClient::class)
-@TestPropertySource(properties = ["amt.arena-acl.url=http://arena-acl"])
+@RestClientTest(components = [AmtArenaAclClient::class, ClientConfig::class])
+@Import(OAuth2ClientTestConfig::class)
 class AmtArenaAclClientTest(
-    private val sut: AmtArenaAclClient,
-) : RestClientTestBase() {
+    @Autowired private val sut: AmtArenaAclClient,
+) : RestClientTestBase("amt-arena-acl") {
     @Test
     fun `getArenaIdForAmtId - returnerer arenaid om eksisterer`() {
         val amtId = UUID.randomUUID()
         val arenaId = 1L
         server
-            .expect(requestTo("http://arena-acl/api/v2/translation/$amtId"))
+            .expect(requestTo("/api/v2/translation/$amtId"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${OAuth2ClientTestConfig.TOKEN}"))
             .andRespond(withSuccess("""{"arenaId": "$arenaId", "arenaHistId": null}""", MediaType.APPLICATION_JSON))
 
         val id = sut.getArenaIdForAmtId(amtId)
@@ -42,9 +44,8 @@ class AmtArenaAclClientTest(
         val amtId = UUID.randomUUID()
         val arenaHistId = 1L
         server
-            .expect(requestTo("http://arena-acl/api/v2/translation/$amtId"))
+            .expect(requestTo("/api/v2/translation/$amtId"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withSuccess("""{"arenaId": null, "arenaHistId": "$arenaHistId"}""", MediaType.APPLICATION_JSON))
 
         val thrown = shouldThrow<HistoriskArenaDeltakerException> {
@@ -58,9 +59,8 @@ class AmtArenaAclClientTest(
     fun `getArenaIdForAmtId - returnerer null om ingen arenaid finnes`() {
         val amtId = UUID.randomUUID()
         server
-            .expect(requestTo("http://arena-acl/api/v2/translation/$amtId"))
+            .expect(requestTo("/api/v2/translation/$amtId"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withSuccess("""{"arenaId": null, "arenaHistId": null}""", MediaType.APPLICATION_JSON))
 
         sut.getArenaIdForAmtId(amtId) shouldBe null
@@ -70,9 +70,8 @@ class AmtArenaAclClientTest(
     fun `getArenaIdForAmtId - kaster exception ved 404`() {
         val amtId = UUID.randomUUID()
         server
-            .expect(requestTo("http://arena-acl/api/v2/translation/$amtId"))
+            .expect(requestTo("/api/v2/translation/$amtId"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         shouldThrow<RuntimeException> {
