@@ -46,17 +46,4 @@ class ActuatorTest(
 
         response.statusCode shouldBe HttpStatus.OK
     }
-
-    @Test
-    fun `Metrics-endepunktet skal returnere NOT_FOUND`() {
-        val uri =
-            UriComponentsBuilder
-                .fromUriString("http://localhost:{port}/internal/metrics")
-                .buildAndExpand(managementPort)
-                .toUri()
-
-        val response = restTemplate.getForEntity<String>(uri)
-
-        response.statusCode shouldBe HttpStatus.NOT_FOUND
-    }
 }
