@@ -10,9 +10,9 @@ import org.springframework.test.web.client.MockRestServiceServer
 @Import(ClientTestConfig::class, ClientConfig::class)
 @TestPropertySource(
     properties = [
-        "spring.http.serviceclient.amt-arrangor-tokenx.base-url=",
-        "spring.http.serviceclient.amt-arrangor-aad.base-url=",
-        "spring.http.serviceclient.amt-person-aad.base-url=",
+        "spring.http.serviceclient.amt-arrangor-tokenx.base-url=http://localhost:8080",
+        "spring.http.serviceclient.amt-arrangor-aad.base-url=http://localhost:8080",
+        "spring.http.serviceclient.amt-person-aad.base-url=http://localhost:8080",
         "spring.test.restclient.mockrestserviceserver.enabled=false",
     ],
 )
