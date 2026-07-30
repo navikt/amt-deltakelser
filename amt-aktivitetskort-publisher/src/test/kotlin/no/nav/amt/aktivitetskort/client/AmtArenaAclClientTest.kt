@@ -2,6 +2,7 @@ package no.nav.amt.aktivitetskort.client
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.amt.aktivitetskort.config.ClientConfig
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

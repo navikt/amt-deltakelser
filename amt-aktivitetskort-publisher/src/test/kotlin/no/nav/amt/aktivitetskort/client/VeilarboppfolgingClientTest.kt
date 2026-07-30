@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.amt.aktivitetskort.config.ClientConfig
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

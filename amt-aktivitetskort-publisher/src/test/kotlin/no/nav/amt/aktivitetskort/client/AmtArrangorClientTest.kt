@@ -1,6 +1,7 @@
 package no.nav.amt.aktivitetskort.client
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.aktivitetskort.config.ClientConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired

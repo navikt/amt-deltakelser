@@ -1,4 +1,4 @@
-package no.nav.amt.aktivitetskort.client
+package no.nav.amt.aktivitetskort.config
 
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
@@ -15,25 +16,21 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer
-import org.springframework.web.service.registry.ImportHttpServices
-
-@Configuration(proxyBeanMethods = false)
-@ImportHttpServices(group = "amt-arena-acl", types = [AmtArenaAclApi::class])
-@ImportHttpServices(group = "aktivitet-arena-acl", types = [AktivitetArenaAclApi::class])
-@ImportHttpServices(group = "amt-arrangor", types = [AmtArrangorApi::class])
-@ImportHttpServices(group = "veilarboppfolging", types = [VeilarboppfolgingApi::class])
-class ClientConfig
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2ClientConfig {
     /**
-     * Disables Spring Security's default web security (CSRF, login page).
+     * Overrides Spring Security's default web security.
      * Required because spring-boot-security-oauth2-client pulls in spring-security-web.
-     * This service has no protected endpoints — it's a Kafka consumer with internal admin endpoints only.
+     * This service has no browser-facing endpoints — it's a Kafka consumer with internal admin endpoints only.
+     * CSRF is ignored for internal/actuator paths (machine-to-machine, behind Nais network policy).
      */
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
-        .csrf { it.disable() }
+        .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+        .csrf { csrfConfigurer -> csrfConfigurer.disable() }
+        .cors {}
+        .formLogin { formLoginConfigurer -> formLoginConfigurer.disable() }
         .authorizeHttpRequests {
             it
                 .requestMatchers(EndpointRequest.to(HealthEndpoint::class.java))
