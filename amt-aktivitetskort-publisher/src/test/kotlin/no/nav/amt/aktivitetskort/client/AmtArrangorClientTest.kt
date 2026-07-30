@@ -59,6 +59,26 @@ class AmtArrangorClientTest(
     }
 
     @Test
+    fun `hentArrangor - skal sende Nav-Consumer-Id og Accept-header`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(header("Nav-Consumer-Id", "amt-aktivitetskort-publisher"))
+            .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+            .andRespond(
+                withSuccess(
+                    """{"id":"$arrangorId","navn":"Test","organisasjonsnummer":"123","overordnetArrangor":null}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        sut.hentArrangor(arrangorId)
+        server.verify()
+    }
+
+    @Test
     fun `hentArrangor - arrangor finnes ikke - kaster RuntimeException`() {
         server
             .expect(requestTo("/api/service/arrangor/organisasjonsnummer/foo"))
