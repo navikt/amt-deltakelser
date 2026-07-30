@@ -1,6 +1,7 @@
 package no.nav.amt.aktivitetskort.config
 
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
+import org.springframework.boot.restclient.RestClientCustomizer
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,7 +15,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2ClientConfig {
@@ -51,11 +51,9 @@ class OAuth2ClientConfig {
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     @Bean
-    fun defaultHeadersConfigurer() = RestClientHttpServiceGroupConfigurer { groups ->
-        groups.forEachClient { _, builder ->
-            builder
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Nav-Consumer-Id", "amt-aktivitetskort-publisher")
-        }
+    fun defaultHeadersCustomizer() = RestClientCustomizer { builder ->
+        builder
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader("Nav-Consumer-Id", "amt-aktivitetskort-publisher")
     }
 }
