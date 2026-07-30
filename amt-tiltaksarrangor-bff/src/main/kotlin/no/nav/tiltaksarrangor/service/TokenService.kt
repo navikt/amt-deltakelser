@@ -1,24 +1,21 @@
 package no.nav.tiltaksarrangor.service
 
-import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-class TokenService(
-    private val contextHolder: TokenValidationContextHolder,
-) {
+class TokenService {
     fun getPersonligIdentTilInnloggetAnsatt(): String {
-        val context = contextHolder.getTokenValidationContext()
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authorized, valid token is missing")
 
-        val token =
-            context.firstValidToken
-                ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authorized, valid token is missing")
+        val jwt = (authentication as? JwtAuthenticationToken)?.token
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authorized, valid token is missing")
 
-        return token.jwtTokenClaims.getStringClaim("pid") ?: throw ResponseStatusException(
-            HttpStatus.UNAUTHORIZED,
-            "PID is missing or is not a string",
-        )
+        return jwt.getClaimAsString("pid")
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "PID is missing or is not a string")
     }
 }

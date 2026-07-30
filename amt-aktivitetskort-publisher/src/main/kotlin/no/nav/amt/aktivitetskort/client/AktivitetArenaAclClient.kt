@@ -1,5 +1,6 @@
 package no.nav.amt.aktivitetskort.client
 
+import no.nav.amt.aktivitetskort.client.request.HentAktivitetIdRequest
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientResponseException
 import java.util.UUID

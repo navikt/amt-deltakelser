@@ -37,8 +37,8 @@ dependencies {
 
     implementation(libs.kafka.clients)
 
-    implementation(libs.token.validation.spring)
-    implementation(libs.token.client.spring)
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation(libs.unleash)
 
     implementation(libs.postgresql)
@@ -59,7 +59,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.token.validation.spring.test)
 
     testImplementation(libs.testcontainers.postgresql)
 

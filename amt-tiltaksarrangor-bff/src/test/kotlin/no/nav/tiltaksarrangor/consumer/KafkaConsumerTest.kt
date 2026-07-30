@@ -13,7 +13,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
+import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -73,7 +73,7 @@ class KafkaConsumerTest(
     fun setup() {
         val enhetIdSlot = slot<UUID>()
         every { amtPersonClient.hentEnhet(capture(enhetIdSlot)) } answers {
-            NavEnhetDto(
+            NavEnhetResponse(
                 id = enhetIdSlot.captured,
                 enhetId = "0000",
                 navn = "Ukjent enhet",
