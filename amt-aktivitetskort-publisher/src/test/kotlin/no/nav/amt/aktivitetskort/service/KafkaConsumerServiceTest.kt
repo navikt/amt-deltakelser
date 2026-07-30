@@ -6,6 +6,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
+import no.nav.amt.aktivitetskort.client.ArrangorMedOverordnetArrangorDto
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.database.TestData.lagArrangor
 import no.nav.amt.aktivitetskort.database.TestData.lagDeltakerliste
@@ -226,7 +227,7 @@ class KafkaConsumerServiceTest {
             every { arrangorRepository.get(arrangorInTest.organisasjonsnummer) } returns null andThen arrangorInTest
             every { arrangorRepository.upsert(any()) } returns RepositoryResult.Created(arrangorInTest)
             every { amtArrangorClient.hentArrangor(arrangorInTest.organisasjonsnummer) } returns
-                AmtArrangorClient.ArrangorMedOverordnetArrangorDto(
+                ArrangorMedOverordnetArrangorDto(
                     arrangorInTest.id,
                     arrangorInTest.navn,
                     arrangorInTest.organisasjonsnummer,

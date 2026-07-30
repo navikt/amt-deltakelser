@@ -4,30 +4,29 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
-import org.springframework.http.HttpHeaders
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.client.match.MockRestRequestMatchers.header
+import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.util.UUID
 
-@RestClientTest(AktivitetArenaAclClient::class)
-@TestPropertySource(properties = ["aktivitet.arena-acl.url=http://aktivitet-arena-acl"])
+@RestClientTest(components = [AktivitetArenaAclClient::class, ClientConfig::class])
+@Import(OAuth2ClientTestConfig::class)
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class AktivitetArenaAclClientTest(
     private val sut: AktivitetArenaAclClient,
-) : RestClientTestBase() {
+) : RestClientTestBase("aktivitet-arena-acl") {
     @Test
     fun `getAktivitetIdForArenaId - returnerer id om eksisterer`() {
         val aktivitetId = UUID.randomUUID()
         server
-            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
+            .expect(requestTo("/api/translation/arenaid"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withSuccess(""""$aktivitetId"""", MediaType.APPLICATION_JSON))
 
         val id = sut.getAktivitetIdForArenaId(1L)
@@ -38,9 +37,8 @@ class AktivitetArenaAclClientTest(
     @Test
     fun `getAktivitetIdForArenaId - kaster exception ved 404`() {
         server
-            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
+            .expect(requestTo("/api/translation/arenaid"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         shouldThrow<RuntimeException> {
