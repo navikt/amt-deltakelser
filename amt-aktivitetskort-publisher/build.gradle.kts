@@ -35,8 +35,8 @@ dependencies {
 
     implementation(libs.nav.common.log)
 
-    implementation("org.springframework.boot:spring-boot-security-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     implementation(libs.unleash)
 

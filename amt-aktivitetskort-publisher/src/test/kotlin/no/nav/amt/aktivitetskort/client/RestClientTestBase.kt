@@ -7,10 +7,10 @@ import org.springframework.test.web.client.MockRestServiceServer
 
 @TestPropertySource(
     properties = [
-        "spring.http.serviceclient.amt-arena-acl.base-url=",
-        "spring.http.serviceclient.amt-arrangor.base-url=",
-        "spring.http.serviceclient.aktivitet-arena-acl.base-url=",
-        "spring.http.serviceclient.veilarboppfolging.base-url=",
+        "spring.http.serviceclient.amt-arena-acl.base-url=http://localhost:8080",
+        "spring.http.serviceclient.amt-arrangor.base-url=http://localhost:8080",
+        "spring.http.serviceclient.aktivitet-arena-acl.base-url=http://localhost:8080",
+        "spring.http.serviceclient.veilarboppfolging.base-url=http://localhost:8080",
         "spring.test.restclient.mockrestserviceserver.enabled=false",
     ],
 )
