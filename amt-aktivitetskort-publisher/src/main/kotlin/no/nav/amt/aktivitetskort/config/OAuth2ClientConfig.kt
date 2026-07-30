@@ -43,22 +43,20 @@ class OAuth2ClientConfig {
         }.build()
 
     @Bean
-    fun authorizedClientManager(repo: ClientRegistrationRepository): OAuth2AuthorizedClientManager =
-        AuthorizedClientServiceOAuth2AuthorizedClientManager(
-            repo,
-            InMemoryOAuth2AuthorizedClientService(repo),
-        ).apply {
-            setAuthorizedClientProvider(
-                OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build(),
-            )
-        }
+    fun authorizedClientManager(repo: ClientRegistrationRepository) = AuthorizedClientServiceOAuth2AuthorizedClientManager(
+        repo,
+        InMemoryOAuth2AuthorizedClientService(repo),
+    ).apply {
+        setAuthorizedClientProvider(
+            OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build(),
+        )
+    }
 
     @Bean
-    fun oauth2Configurer(manager: OAuth2AuthorizedClientManager): OAuth2RestClientHttpServiceGroupConfigurer =
-        OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
+    fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     @Bean
-    fun defaultHeadersConfigurer(): RestClientHttpServiceGroupConfigurer = RestClientHttpServiceGroupConfigurer { groups ->
+    fun defaultHeadersConfigurer() = RestClientHttpServiceGroupConfigurer { groups ->
         groups.forEachClient { _, builder ->
             builder.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
         }
