@@ -13,9 +13,11 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
@@ -49,6 +51,7 @@ class VeilarboppfolgingClientTest(
         server
             .expect(requestTo("/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
             .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${OAuth2ClientTestConfig.TOKEN}"))
             .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON))
 
         val oppfolgingsperiode = sut.hentOppfolgingperiode("123456789")
