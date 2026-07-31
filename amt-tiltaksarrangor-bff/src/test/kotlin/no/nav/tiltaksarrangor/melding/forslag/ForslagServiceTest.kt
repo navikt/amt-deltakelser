@@ -31,7 +31,6 @@ class ForslagServiceTest(
             opprettetForslag.opprettet shouldBeCloseTo LocalDateTime.now()
 
             assertProducedForslag(
-                producer = producer,
                 forslagId = opprettetForslag.id,
                 endringstype = opprettetForslag.endring::class,
             )
@@ -53,14 +52,13 @@ class ForslagServiceTest(
             opprettetForslag.opprettet shouldBeCloseTo LocalDateTime.now()
 
             repository.get(forslag.id).isFailure shouldBe true
-            val erstattet = getProducedForslag(producer, forslag.id)
+            val erstattet = getProducedForslag(forslag.id)
 
             val status = erstattet.status as Forslag.Status.Erstattet
             status.erstattetMedForslagId shouldBe opprettetForslag.id
             status.erstattet shouldBeCloseTo opprettetForslag.opprettet
 
             assertProducedForslag(
-                producer = producer,
                 forslagId = opprettetForslag.id,
                 endringstype = opprettetForslag.endring::class,
             )
@@ -86,7 +84,7 @@ class ForslagServiceTest(
 
             forslagService.tilbakekall(forslag.id, koordinator)
 
-            val tilbakekaltForslag = getProducedForslag(producer, forslag.id)
+            val tilbakekaltForslag = getProducedForslag(forslag.id)
             val status = tilbakekaltForslag.status as Forslag.Status.Tilbakekalt
 
             status.tilbakekalt shouldBeCloseTo LocalDateTime.now()

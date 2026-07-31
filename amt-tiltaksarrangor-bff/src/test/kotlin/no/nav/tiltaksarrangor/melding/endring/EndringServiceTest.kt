@@ -2,20 +2,27 @@ package no.nav.tiltaksarrangor.melding.endring
 
 import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Melding
+import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.kafka.stringStringConsumer
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
+import java.util.UUID
+import kotlin.reflect.KClass
 
 class EndringServiceTest(
     private val endringService: EndringService,
@@ -35,6 +42,12 @@ class EndringServiceTest(
                 sluttdato = LocalDate.now().plusWeeks(42),
             )
 
+            val cache = mutableMapOf<UUID, Melding>()
+            val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+                cache[UUID.fromString(k)] = objectMapper.readValue(v)
+            }
+            consumer.start()
+
             val oppdatertDeltaker = endringService.endreDeltaker(
                 deltaker = deltaker,
                 deltakerliste = deltakerliste,
@@ -45,13 +58,13 @@ class EndringServiceTest(
             oppdatertDeltaker.startDato shouldBe request.startdato
             oppdatertDeltaker.sluttDato shouldBe request.sluttdato
 
-            val keys = mutableListOf<String>()
-            val values = mutableListOf<String>()
-            verify { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
+            awaitProducedEndring(
+                cache = cache,
+                deltakerId = deltaker.id,
+                endringstype = EndringFraArrangor.LeggTilOppstartsdato::class,
+            )
 
-            val endring = objectMapper.readValue<EndringFraArrangor>(values.last())
-            endring.deltakerId shouldBe deltaker.id
-            endring.endring.shouldBeInstanceOf<EndringFraArrangor.LeggTilOppstartsdato>()
+            runBlocking { consumer.close() }
         }
     }
 
@@ -74,5 +87,23 @@ class EndringServiceTest(
             oppdatertDeltaker?.startdato shouldBe request.startdato
             oppdatertDeltaker?.sluttdato shouldBe request.sluttdato
         }
+    }
+}
+
+fun <T : EndringFraArrangor.Endring> awaitProducedEndring(
+    cache: MutableMap<UUID, Melding>,
+    deltakerId: UUID,
+    endringstype: KClass<T>,
+) {
+    await().untilAsserted {
+        val endring = cache.values.firstNotNullOfOrNull {
+            when (it) {
+                is EndringFraArrangor -> if (it.deltakerId == deltakerId) it else null
+                is Forslag, is Vurdering -> null
+            }
+        }
+
+        endring shouldNotBe null
+        endring!!.endring::class shouldBe endringstype
     }
 }

@@ -13,7 +13,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.tiltaksarrangor.IntegrationTest
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
+import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -49,14 +49,16 @@ import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
-import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.kafka.support.Acknowledgment
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class KafkaConsumerTest(
     private val arrangorRepository: ArrangorRepository,
@@ -65,15 +67,13 @@ class KafkaConsumerTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
-    private val kafkaConsumer: KafkaConsumer,
+    private val testKafkaProducer: KafkaProducer<String, String>,
 ) : IntegrationTest() {
-    private val ack = Acknowledgment { }
-
     @BeforeEach
     fun setup() {
         val enhetIdSlot = slot<UUID>()
         every { amtPersonClient.hentEnhet(capture(enhetIdSlot)) } answers {
-            NavEnhetResponse(
+            NavEnhetDto(
                 id = enhetIdSlot.captured,
                 enhetId = "0000",
                 navn = "Ukjent enhet",
@@ -103,24 +103,21 @@ class KafkaConsumerTest(
         )
     }
 
-    private fun consumerRecord(
-        topic: String,
-        key: String,
-        value: String?,
-    ) = ConsumerRecord<String, String>(topic, 0, 0L, key, value)
-
     @Test
     fun `skal lagre tiltakstype i database`() {
-        kafkaConsumer.listen(
-            consumerRecord(
-                TILTAKSTYPE_TOPIC,
-                tiltakstypePayloadInTest.id.toString(),
-                objectMapper.writeValueAsString(tiltakstypePayloadInTest),
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    TILTAKSTYPE_TOPIC,
+                    null,
+                    tiltakstypePayloadInTest.id.toString(),
+                    objectMapper.writeValueAsString(tiltakstypePayloadInTest),
+                ),
+            ).get()
 
-        tiltakstypeRepository.getByTiltakskode(tiltakstypePayloadInTest.tiltakskode) shouldNotBe null
+        await().untilAsserted {
+            tiltakstypeRepository.getByTiltakskode(tiltakstypePayloadInTest.tiltakskode) shouldNotBe null
+        }
     }
 
     @Nested
@@ -130,16 +127,19 @@ class KafkaConsumerTest(
             tiltakstypeRepository.upsert(tiltakstypePayloadInTest.toModel())
             arrangorRepository.insertOrUpdateArrangor(arrangorInTest.toArrangorDbo())
 
-            kafkaConsumer.listen(
-                consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
-                    deltakerlisteIdInTest.toString(),
-                    objectMapper.writeValueAsString(gjennomforingPayloadInTest),
-                ),
-                ack,
-            )
+            testKafkaProducer
+                .send(
+                    ProducerRecord(
+                        DELTAKERLISTE_V2_TOPIC,
+                        null,
+                        deltakerlisteIdInTest.toString(),
+                        objectMapper.writeValueAsString(gjennomforingPayloadInTest),
+                    ),
+                ).get()
 
-            deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldNotBe null
+            await().untilAsserted {
+                deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldNotBe null
+            }
         }
 
         @Test
@@ -152,16 +152,18 @@ class KafkaConsumerTest(
             )
             deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldNotBe null
 
-            kafkaConsumer.listen(
-                consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
-                    deltakerlisteIdInTest.toString(),
-                    null,
-                ),
-                ack,
-            )
+            testKafkaProducer
+                .send(
+                    ProducerRecord(
+                        DELTAKERLISTE_V2_TOPIC,
+                        deltakerlisteIdInTest.toString(),
+                        null,
+                    ),
+                ).get()
 
-            deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldBe null
+            await().untilAsserted {
+                deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldBe null
+            }
         }
 
         @Test
@@ -180,17 +182,20 @@ class KafkaConsumerTest(
 
             val avsluttetDeltakerlisteDto = gjennomforingPayloadInTest.copy(status = GjennomforingStatusType.AVSLUTTET)
 
-            kafkaConsumer.listen(
-                consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
-                    deltakerlisteIdInTest.toString(),
-                    objectMapper.writeValueAsString(avsluttetDeltakerlisteDto),
-                ),
-                ack,
-            )
+            testKafkaProducer
+                .send(
+                    ProducerRecord(
+                        DELTAKERLISTE_V2_TOPIC,
+                        null,
+                        deltakerlisteIdInTest.toString(),
+                        objectMapper.writeValueAsString(avsluttetDeltakerlisteDto),
+                    ),
+                ).get()
 
-            deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldBe null
-            deltakerRepository.getDeltaker(deltaker.id) shouldBe null
+            await().untilAsserted {
+                deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldBe null
+                deltakerRepository.getDeltaker(deltaker.id) shouldBe null
+            }
         }
     }
 
@@ -205,16 +210,19 @@ class KafkaConsumerTest(
                 overordnetArrangorId = UUID.randomUUID(),
             )
 
-        kafkaConsumer.listen(
-            consumerRecord(
-                ARRANGOR_TOPIC,
-                arrangorId.toString(),
-                objectMapper.writeValueAsString(arrangorDto),
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ARRANGOR_TOPIC,
+                    null,
+                    arrangorId.toString(),
+                    objectMapper.writeValueAsString(arrangorDto),
+                ),
+            ).get()
 
-        arrangorRepository.getArrangor(arrangorId) shouldNotBe null
+        await().until {
+            arrangorRepository.getArrangor(arrangorId) != null
+        }
     }
 
     @Test
@@ -227,16 +235,19 @@ class KafkaConsumerTest(
             overordnetArrangorId = null,
         )
         arrangorRepository.insertOrUpdateArrangor(arrangorDto.toArrangorDbo())
-        kafkaConsumer.listen(
-            consumerRecord(
-                ARRANGOR_TOPIC,
-                arrangorId.toString(),
-                null,
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ARRANGOR_TOPIC,
+                    null,
+                    arrangorId.toString(),
+                    null,
+                ),
+            ).get()
 
-        arrangorRepository.getArrangor(arrangorId) shouldBe null
+        await().atMost(5, TimeUnit.SECONDS).until {
+            arrangorRepository.getArrangor(arrangorId) == null
+        }
     }
 
     @Test
@@ -267,19 +278,22 @@ class KafkaConsumerTest(
                         ),
                     ),
             )
-        kafkaConsumer.listen(
-            consumerRecord(
-                ARRANGOR_ANSATT_TOPIC,
-                ansattId.toString(),
-                objectMapper.writeValueAsString(ansattDto),
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ARRANGOR_ANSATT_TOPIC,
+                    null,
+                    ansattId.toString(),
+                    objectMapper.writeValueAsString(ansattDto),
+                ),
+            ).get()
 
-        tiltaksarrangorAnsattRepository.getAnsatt(ansattId) shouldNotBe null
-        tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId).size shouldBe 2
-        tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).size shouldBe 1
-        tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId).size shouldBe 1
+        await().atMost(5, TimeUnit.SECONDS).until {
+            tiltaksarrangorAnsattRepository.getAnsatt(ansattId) != null &&
+                tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId).size == 2 &&
+                tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).size == 1 &&
+                tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId).size == 1
+        }
     }
 
     @Test
@@ -311,19 +325,22 @@ class KafkaConsumerTest(
                     ),
             )
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansattDto.toAnsattDbo())
-        kafkaConsumer.listen(
-            consumerRecord(
-                ARRANGOR_ANSATT_TOPIC,
-                ansattId.toString(),
-                null,
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ARRANGOR_ANSATT_TOPIC,
+                    null,
+                    ansattId.toString(),
+                    null,
+                ),
+            ).get()
 
-        tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId) shouldBe emptyList()
-        tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId) shouldBe emptyList()
-        tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId) shouldBe emptyList()
-        tiltaksarrangorAnsattRepository.getAnsatt(ansattId) shouldBe null
+        await().atMost(5, TimeUnit.SECONDS).until {
+            tiltaksarrangorAnsattRepository.getAnsattRolleListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getKoordinatorDeltakerlisteDboListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getVeilederDeltakerDboListe(ansattId).isEmpty() &&
+                tiltaksarrangorAnsattRepository.getAnsatt(ansattId) == null
+        }
     }
 
     @Test
@@ -360,16 +377,19 @@ class KafkaConsumerTest(
             )
             medVurderinger()
 
-            kafkaConsumer.listen(
-                consumerRecord(
-                    DELTAKER_TOPIC,
-                    dto.id.toString(),
-                    objectMapper.writeValueAsString(dto),
-                ),
-                ack,
-            )
+            testKafkaProducer
+                .send(
+                    ProducerRecord(
+                        DELTAKER_TOPIC,
+                        null,
+                        dto.id.toString(),
+                        objectMapper.writeValueAsString(dto),
+                    ),
+                ).get()
 
-            deltakerRepository.getDeltaker(dto.id) shouldNotBe null
+            await().atMost(5, TimeUnit.SECONDS).until {
+                deltakerRepository.getDeltaker(dto.id) != null
+            }
         }
     }
 
@@ -378,16 +398,19 @@ class KafkaConsumerTest(
         val deltaker = getDeltaker(UUID.randomUUID())
 
         deltakerRepository.insertOrUpdateDeltaker(deltaker)
-        kafkaConsumer.listen(
-            consumerRecord(
-                DELTAKER_TOPIC,
-                deltaker.id.toString(),
-                null,
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    DELTAKER_TOPIC,
+                    null,
+                    deltaker.id.toString(),
+                    null,
+                ),
+            ).get()
 
-        deltakerRepository.getDeltaker(deltaker.id) shouldBe null
+        await().atMost(5, TimeUnit.SECONDS).until {
+            deltakerRepository.getDeltaker(deltaker.id) == null
+        }
     }
 
     @Test
@@ -398,16 +421,19 @@ class KafkaConsumerTest(
 
             medStatus(DeltakerStatus.Type.HAR_SLUTTET, 50)
 
-            kafkaConsumer.listen(
-                consumerRecord(
-                    DELTAKER_TOPIC,
-                    deltakerDto.id.toString(),
-                    objectMapper.writeValueAsString(deltakerDto),
-                ),
-                ack,
-            )
+            testKafkaProducer
+                .send(
+                    ProducerRecord(
+                        DELTAKER_TOPIC,
+                        null,
+                        deltakerDto.id.toString(),
+                        objectMapper.writeValueAsString(deltakerDto),
+                    ),
+                ).get()
 
-            deltakerRepository.getDeltaker(deltakerDto.id) shouldBe null
+            await().atMost(5, TimeUnit.SECONDS).until {
+                deltakerRepository.getDeltaker(deltakerDto.id) == null
+            }
         }
     }
 
@@ -426,16 +452,19 @@ class KafkaConsumerTest(
                 innhold = Innhold.EndreSluttdatoInnhold(sluttdato = LocalDate.now().plusWeeks(3)),
                 createdAt = LocalDateTime.now(),
             )
-        kafkaConsumer.listen(
-            consumerRecord(
-                ENDRINGSMELDING_TOPIC,
-                endringsmeldingId.toString(),
-                objectMapper.writeValueAsString(endringsmeldingDto),
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ENDRINGSMELDING_TOPIC,
+                    null,
+                    endringsmeldingId.toString(),
+                    objectMapper.writeValueAsString(endringsmeldingDto),
+                ),
+            ).get()
 
-        endringsmeldingRepository.getEndringsmelding(endringsmeldingId) shouldNotBe null
+        await().atMost(5, TimeUnit.SECONDS).until {
+            endringsmeldingRepository.getEndringsmelding(endringsmeldingId) != null
+        }
     }
 
     @Test
@@ -454,16 +483,19 @@ class KafkaConsumerTest(
                 createdAt = LocalDateTime.now(),
             )
         endringsmeldingRepository.insertOrUpdateEndringsmelding(endringsmeldingDto.toEndringsmeldingDbo())
-        kafkaConsumer.listen(
-            consumerRecord(
-                ENDRINGSMELDING_TOPIC,
-                endringsmeldingId.toString(),
-                null,
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ENDRINGSMELDING_TOPIC,
+                    null,
+                    endringsmeldingId.toString(),
+                    null,
+                ),
+            ).get()
 
-        endringsmeldingRepository.getEndringsmelding(endringsmeldingId) shouldBe null
+        await().atMost(5, TimeUnit.SECONDS).until {
+            endringsmeldingRepository.getEndringsmelding(endringsmeldingId) == null
+        }
     }
 
     @Test
@@ -494,15 +526,18 @@ class KafkaConsumerTest(
                 innhold = Innhold.EndreSluttdatoInnhold(sluttdato = LocalDate.now().plusWeeks(3)),
                 createdAt = LocalDateTime.now(),
             )
-        kafkaConsumer.listen(
-            consumerRecord(
-                ENDRINGSMELDING_TOPIC,
-                endringsmeldingId.toString(),
-                objectMapper.writeValueAsString(utfortEndringsmeldingDto),
-            ),
-            ack,
-        )
+        testKafkaProducer
+            .send(
+                ProducerRecord(
+                    ENDRINGSMELDING_TOPIC,
+                    null,
+                    endringsmeldingId.toString(),
+                    objectMapper.writeValueAsString(utfortEndringsmeldingDto),
+                ),
+            ).get()
 
-        endringsmeldingRepository.getEndringsmelding(endringsmeldingId)?.status shouldBe Endringsmelding.Status.UTFORT
+        await().atMost(5, TimeUnit.SECONDS).until {
+            endringsmeldingRepository.getEndringsmelding(endringsmeldingId)?.status == Endringsmelding.Status.UTFORT
+        }
     }
 }

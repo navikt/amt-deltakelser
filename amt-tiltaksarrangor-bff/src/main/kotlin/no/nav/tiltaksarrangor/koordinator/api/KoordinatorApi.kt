@@ -1,11 +1,13 @@
 package no.nav.tiltaksarrangor.koordinator.api
 
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.tiltaksarrangor.koordinator.model.Deltakerliste
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
 import no.nav.tiltaksarrangor.koordinator.model.MineDeltakerlister
 import no.nav.tiltaksarrangor.koordinator.model.TilgjengeligVeileder
 import no.nav.tiltaksarrangor.koordinator.service.KoordinatorService
 import no.nav.tiltaksarrangor.service.TokenService
+import no.nav.tiltaksarrangor.utils.Issuer
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -17,6 +19,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator")
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class KoordinatorApi(
     private val tokenService: TokenService,
     private val koordinatorService: KoordinatorService,

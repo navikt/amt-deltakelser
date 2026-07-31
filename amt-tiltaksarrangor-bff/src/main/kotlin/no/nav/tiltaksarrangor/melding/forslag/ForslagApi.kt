@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.melding.forslag
 
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.tiltaksarrangor.melding.MeldingTilgangskontrollService
 import no.nav.tiltaksarrangor.melding.forslag.request.AvsluttDeltakelseRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.DeltakelsesmengdeRequest
@@ -11,6 +12,7 @@ import no.nav.tiltaksarrangor.melding.forslag.request.IkkeAktuellRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.SluttarsakRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.SluttdatoRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.StartdatoRequest
+import no.nav.tiltaksarrangor.utils.Issuer
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -20,6 +22,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/deltaker/{deltakerId}/forslag")
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class ForslagApi(
     private val tilgangskontrollService: MeldingTilgangskontrollService,
     private val forslagService: ForslagService,
