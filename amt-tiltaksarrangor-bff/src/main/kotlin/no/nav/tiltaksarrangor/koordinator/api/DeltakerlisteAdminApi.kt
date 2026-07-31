@@ -1,8 +1,10 @@
 package no.nav.tiltaksarrangor.koordinator.api
 
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.tiltaksarrangor.koordinator.model.AdminDeltakerliste
 import no.nav.tiltaksarrangor.koordinator.service.DeltakerlisteAdminService
 import no.nav.tiltaksarrangor.service.TokenService
+import no.nav.tiltaksarrangor.utils.Issuer
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,6 +15,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator/admin")
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class DeltakerlisteAdminApi(
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
     private val tokenService: TokenService,

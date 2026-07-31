@@ -7,12 +7,14 @@ import no.nav.amt.aktivitetskort.client.AmtArrangorClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.repositories.RepositoryTestBase
 import no.nav.amt.aktivitetskort.unleash.UnleashTestConfiguration
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
 
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableMockOAuth2Server
 @Import(UnleashTestConfiguration::class)
 abstract class IntegrationTest : RepositoryTestBase() {
     @LocalServerPort

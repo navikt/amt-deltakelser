@@ -35,8 +35,8 @@ dependencies {
 
     implementation(libs.nav.common.log)
 
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation(libs.token.validation.spring)
+    implementation(libs.token.client.spring)
 
     implementation(libs.unleash)
 
@@ -59,6 +59,7 @@ dependencies {
 
     testImplementation(libs.mockk)
     testImplementation(libs.springmockk)
+    testImplementation(libs.token.validation.spring.test)
 }
 
 kotlin {

@@ -1,9 +1,11 @@
 package no.nav.tiltaksarrangor.api
 
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.service.TiltaksarrangorService
 import no.nav.tiltaksarrangor.service.TokenService
+import no.nav.tiltaksarrangor.utils.Issuer
 import no.nav.tiltaksarrangor.utils.objectMapper
 import no.nav.tiltaksarrangor.utils.writePolymorphicListAsString
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -17,6 +19,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor")
+@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class TiltaksarrangorApi(
     private val tokenService: TokenService,
     private val tiltaksarrangorService: TiltaksarrangorService,
