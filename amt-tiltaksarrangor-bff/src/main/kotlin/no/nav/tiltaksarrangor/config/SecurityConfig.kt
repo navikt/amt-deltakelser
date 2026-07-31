@@ -55,7 +55,9 @@ class SecurityConfig {
         addParametersConverter { grantRequest ->
             // TokenX krever eksplisitt audience — Spring setter den ikke automatisk
             LinkedMultiValueMap<String, String>().apply {
-                grantRequest.clientRegistration.scopes.firstOrNull()?.let { add("audience", it) }
+                grantRequest.clientRegistration.scopes
+                    .firstOrNull()
+                    ?.let { add("audience", it) }
             }
         }
         addParametersConverter { grantRequest ->
