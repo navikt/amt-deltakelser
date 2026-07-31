@@ -53,11 +53,14 @@ class SecurityConfig {
 
     internal fun tokenExchangeResponseClient() = RestClientTokenExchangeTokenResponseClient().apply {
         addParametersConverter { grantRequest ->
-            // TokenX krever eksplisitt audience — Spring setter den ikke automatisk
+            // TokenX krever eksplisitt audience — fail fast hvis config mangler/er tvetydig
+            val audience = grantRequest.clientRegistration.scopes.singleOrNull()
+                ?: error(
+                    "Token exchange krever nøyaktig ett scope (brukes som audience) for client '${grantRequest.clientRegistration.registrationId}'",
+                )
+
             LinkedMultiValueMap<String, String>().apply {
-                grantRequest.clientRegistration.scopes
-                    .firstOrNull()
-                    ?.let { add("audience", it) }
+                add("audience", audience)
             }
         }
         addParametersConverter { grantRequest ->

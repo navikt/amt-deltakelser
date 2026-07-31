@@ -2,8 +2,6 @@ package no.nav.tiltaksarrangor.client
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.registration.ClientRegistration
@@ -23,9 +21,6 @@ class ClientTestConfig {
     @Bean
     fun mockServerConfigurer(): RestClientHttpServiceGroupConfigurer = RestClientHttpServiceGroupConfigurer { groups ->
         groups.forEachClient { group: HttpServiceGroup, builder: RestClient.Builder ->
-            builder
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Nav-Consumer-Id", "amt-tiltaksarrangor-bff")
             mocks[group.name()] = MockRestServiceServer.bindTo(builder).build()
         }
     }
