@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.client.endpoint.TokenExchangeGrantReq
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.util.LinkedMultiValueMap
 
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
@@ -37,27 +38,35 @@ class SecurityConfig {
         }.build()
 
     @Bean
-    fun authorizedClientManager(clientRegistrationRepository: ClientRegistrationRepository): OAuth2AuthorizedClientManager {
-        val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
-            JWK.parse(registration.clientSecret)
-        }
-        val tokenExchangeClient = RestClientTokenExchangeTokenResponseClient()
-        tokenExchangeClient.addParametersConverter { grantRequest -> jwtConverter.convert(grantRequest)!! }
-
-        val tokenExchangeProvider = TokenExchangeOAuth2AuthorizedClientProvider()
-        tokenExchangeProvider.setAccessTokenResponseClient(tokenExchangeClient)
-
-        return AuthorizedClientServiceOAuth2AuthorizedClientManager(
+    fun authorizedClientManager(clientRegistrationRepository: ClientRegistrationRepository): OAuth2AuthorizedClientManager =
+        AuthorizedClientServiceOAuth2AuthorizedClientManager(
             clientRegistrationRepository,
             InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository),
         ).apply {
             setAuthorizedClientProvider(
                 DelegatingOAuth2AuthorizedClientProvider(
                     OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build(),
-                    tokenExchangeProvider,
+                    tokenExchangeProvider(),
                 ),
             )
         }
+
+    internal fun tokenExchangeResponseClient() = RestClientTokenExchangeTokenResponseClient().apply {
+        addParametersConverter { grantRequest ->
+            // TokenX krever eksplisitt audience — Spring setter den ikke automatisk
+            LinkedMultiValueMap<String, String>().apply {
+                grantRequest.clientRegistration.scopes.firstOrNull()?.let { add("audience", it) }
+            }
+        }
+        addParametersConverter { grantRequest ->
+            NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
+                JWK.parse(registration.clientSecret)
+            }.convert(grantRequest)!!
+        }
+    }
+
+    private fun tokenExchangeProvider() = TokenExchangeOAuth2AuthorizedClientProvider().apply {
+        setAccessTokenResponseClient(tokenExchangeResponseClient())
     }
 
     @Bean
