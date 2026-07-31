@@ -6,7 +6,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
-import org.springframework.web.client.requiredBody
+import org.springframework.web.client.body
 import java.util.UUID
 
 /**
@@ -31,7 +31,8 @@ class AktivitetArenaAclClient(
             .uri("/api/translation/arenaid")
             .body(HentAktivitetIdRequest(arenaId))
             .retrieve()
-            .requiredBody<UUID>()
+            .body<UUID>()
+            ?: throw RuntimeException("Tomt svar fra aktivitet-arena-acl")
     } catch (e: RestClientResponseException) {
         throw RuntimeException("Klarte ikke å hente aktivitetId for ArenaId. Status: ${e.statusCode}", e)
     }

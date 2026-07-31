@@ -1,12 +1,16 @@
 package no.nav.tiltaksarrangor.melding.forslag
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.verify
-import no.nav.amt.lib.kafka.Producer
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.runBlocking
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Melding
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
+import no.nav.tiltaksarrangor.kafka.stringStringConsumer
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
 import no.nav.tiltaksarrangor.repositories.NavEnhetRepository
@@ -22,6 +26,7 @@ import no.nav.tiltaksarrangor.testutils.getKoordinator
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
 import no.nav.tiltaksarrangor.testutils.getNavEnhet
 import no.nav.tiltaksarrangor.utils.objectMapper
+import org.awaitility.Awaitility.await
 import org.springframework.context.ApplicationContext
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
@@ -141,40 +146,44 @@ fun forlengDeltakelseForslag(
 )
 
 fun <T : Forslag.Endring> assertProducedForslag(
-    producer: Producer<String, String>,
     forslagId: UUID,
     endringstype: KClass<T>,
 ) {
-    val keys = mutableListOf<String>()
-    val values = mutableListOf<String>()
+    val cache = mutableMapOf<UUID, Melding>()
 
-    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
-
-    val forslagMap = keys.zip(values).associate { (k, v) ->
-        UUID.fromString(k) to objectMapper.readValue<Forslag>(v)
+    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    val producedForslag = forslagMap[forslagId]
-        ?: error("Forslag med id $forslagId ble ikke produsert. Produserte: ${forslagMap.keys}")
+    consumer.start()
 
-    assertSoftly(producedForslag) {
-        id shouldBe forslagId
-        endring::class shouldBe endringstype
+    await().untilAsserted {
+        val cachedMelding = cache[forslagId]
+        cachedMelding.shouldNotBeNull()
+
+        assertSoftly(cachedMelding.shouldBeInstanceOf<Forslag>()) {
+            id shouldBe forslagId
+            endring::class shouldBe endringstype
+        }
     }
+
+    runBlocking { consumer.close() }
 }
 
-fun getProducedForslag(
-    producer: Producer<String, String>,
-    id: UUID,
-): Forslag {
-    val keys = mutableListOf<String>()
-    val values = mutableListOf<String>()
+fun getProducedForslag(id: UUID): Forslag {
+    val cache = mutableMapOf<UUID, Melding>()
 
-    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
-
-    val forslagMap = keys.zip(values).associate { (k, v) ->
-        UUID.fromString(k) to objectMapper.readValue<Forslag>(v)
+    val consumer = stringStringConsumer(MELDING_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    return forslagMap[id] ?: error("Forslag med id $id ble ikke produsert. Produserte: ${forslagMap.keys}")
+    consumer.start()
+
+    await().untilAsserted {
+        cache[id] shouldNotBe null
+    }
+
+    runBlocking { consumer.close() }
+
+    return cache[id] as Forslag
 }

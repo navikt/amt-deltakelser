@@ -56,6 +56,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.kafka)
 
     testImplementation(libs.mockk)
     testImplementation(libs.springmockk)

@@ -66,7 +66,7 @@ class KoordinatorServiceTest(
     private val ulestEndringRepository: UlestEndringRepository,
     private val ansattService: AnsattService,
     private val koordinatorService: KoordinatorService,
-    @MockkBean(relaxed = true) private val metricsService: MetricsService,
+    @Suppress("unused") @MockkBean(relaxed = true) private val metricsService: MetricsService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
 ) : IntegrationTest() {
     @BeforeEach

@@ -20,10 +20,7 @@ object ClientUtils {
         .baseUrl(baseUrl)
         .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
         .defaultRequest {
-            it.header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${oAuth2AccessTokenService.getAccessToken(clientProperties).access_token}",
-            )
+            it.header(HttpHeaders.AUTHORIZATION, "Bearer ${oAuth2AccessTokenService.getAccessToken(clientProperties).access_token}")
         }.build()
 
     fun handleClientError(

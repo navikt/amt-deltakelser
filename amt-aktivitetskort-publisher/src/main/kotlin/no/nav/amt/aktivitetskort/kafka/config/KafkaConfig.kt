@@ -7,7 +7,6 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
@@ -17,7 +16,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
 class KafkaConfig(
     @Value($$"${KAFKA_BROKERS}") private val kafkaBrokers: String,
     @Value($$"${KAFKA_SECURITY_PROTOCOL:SSL}") private val kafkaSecurityProtocol: String,

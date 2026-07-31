@@ -65,12 +65,12 @@ class TiltaksarrangorServiceTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val ulestEndringRepository: UlestEndringRepository,
     private val tiltaksarrangorService: TiltaksarrangorService,
-    @MockkBean(relaxed = true) private val metricsService: MetricsService,
-    @MockkBean(relaxed = true) private val auditLoggerService: AuditLoggerService,
+    @MockkBean(relaxed = true) @Suppress("unused") private val metricsService: MetricsService,
+    @MockkBean(relaxed = true) @Suppress("unused") private val auditLoggerService: AuditLoggerService,
     @MockkBean(relaxUnitFun = true) private val navAnsattService: NavAnsattService,
     @MockkBean(relaxUnitFun = true) private val navEnhetService: NavEnhetService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
-    @MockkBean(relaxUnitFun = true) private val meldingProducer: MeldingProducer,
+    @MockkBean(relaxUnitFun = true) @Suppress("unused") private val meldingProducer: MeldingProducer,
 ) : IntegrationTest() {
     @BeforeEach
     fun setup() {

@@ -62,6 +62,7 @@ dependencies {
     testImplementation(libs.token.validation.spring.test)
 
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.kafka)
 
     testImplementation(libs.mockk)
     testImplementation(libs.springmockk)
