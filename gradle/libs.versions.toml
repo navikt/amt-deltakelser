@@ -39,7 +39,7 @@ springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
 jsoup-version = "1.22.2"
-pdfgen-core-version = "1.1.81"
+pdfgen-core-version = "1.1.82"
 
 
 # CVE-fixes
