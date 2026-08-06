@@ -4,7 +4,6 @@ import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
@@ -24,20 +23,19 @@ class VeilarboppfolgingClient(
         .build()
 
     fun hentOppfolgingperiode(fnr: String): Oppfolgingsperiode? = try {
-        val response = restClient
+        restClient
             .post()
             .uri("/api/v3/oppfolging/hent-gjeldende-periode")
             .body(PersonRequest(fnr))
             .retrieve()
             .toEntity<OppfolgingPeriodeDTO>()
-
-        if (response.statusCode.value() == HttpStatus.NO_CONTENT.value()) {
-            null
-        } else {
-            response.body?.toModel()
-        }
+            .body
+            ?.toModel()
     } catch (e: RestClientResponseException) {
-        throw RuntimeException("Uventet status ved hent status-kall mot veilarboppfolging ${e.statusCode.value()}", e)
+        throw RuntimeException(
+            "Feil ved kall mot veilarboppfolging. Status=${e.statusCode.value()}, body=${e.responseBodyAsString}",
+            e,
+        )
     }
 
     private data class PersonRequest(
