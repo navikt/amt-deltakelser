@@ -47,7 +47,8 @@ class GjennomforingConsumer(
         value: String?,
     ) {
         if (value == null) {
-            if (key !in deltakerlisteTombstoneBlacklist) {
+            val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(key)
+            if (key !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 deltakerlisteRepository.delete(key)
             }
         } else {
