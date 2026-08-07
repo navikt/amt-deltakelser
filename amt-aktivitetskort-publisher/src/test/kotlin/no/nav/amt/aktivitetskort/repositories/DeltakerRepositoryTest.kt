@@ -27,6 +27,16 @@ class DeltakerRepositoryTest(
     }
 
     @Test
+    fun `getAntallDeltakereForDeltakerliste - returnerer antall deltakere for deltakerliste`() {
+        val deltakerlisteId = UUID.randomUUID()
+        testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = deltakerlisteId))
+        deltakerRepository.upsert(TestData.lagDeltaker(deltakerlisteId = deltakerlisteId), 0)
+        deltakerRepository.upsert(TestData.lagDeltaker(deltakerlisteId = deltakerlisteId), 1)
+
+        deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteId) shouldBe 2
+    }
+
+    @Test
     fun `upsert - finnes ikke - returnerer Created Result - finnes i database`() {
         val deltaker = TestData
             .lagDeltaker()

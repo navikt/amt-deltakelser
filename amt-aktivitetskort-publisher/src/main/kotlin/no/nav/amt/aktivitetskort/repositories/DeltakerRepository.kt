@@ -159,6 +159,13 @@ class DeltakerRepository(
 
     fun get(id: UUID): Deltaker? = getDeltakerMedOffset(id)?.deltaker
 
+    fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = template
+        .query(
+            "SELECT COUNT(*) FROM deltaker WHERE deltakerliste_id = :deltakerliste_id",
+            sqlParameters("deltakerliste_id" to deltakerlisteId),
+        ) { rs, _ -> rs.getInt(1) }
+        .firstOrNull() ?: 0
+
     //
     private fun skalKorrigereTidligereDeltaker(lagretDeltaker: Deltaker?): Boolean =
         // Hvis første vi hører om deltakeren er avsluttende status
