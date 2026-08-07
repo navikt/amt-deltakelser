@@ -47,8 +47,15 @@ class GjennomforingConsumer(
         value: String?,
     ) {
         if (value == null) {
-            if (key !in deltakerlisteTombstoneBlacklist) {
+            log.info("Mottok tombstone for gjennomføring: $key")
+            val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(key)
+            if (key !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 deltakerlisteRepository.delete(key)
+            } else {
+                log.error(
+                    "Ignorerer tombstone for $key. " +
+                        "Deltakerliste er svartelistet eller har deltakere. Antall deltakere: $antallDeltakere",
+                )
             }
         } else {
             handterDeltakerliste(objectMapper.readValue(value))
