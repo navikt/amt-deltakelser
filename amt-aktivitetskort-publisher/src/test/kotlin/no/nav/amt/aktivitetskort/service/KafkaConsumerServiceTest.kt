@@ -70,6 +70,7 @@ class KafkaConsumerServiceTest {
             (firstArg() as Consumer<TransactionStatus>).accept(SimpleTransactionStatus())
         }
         every { tiltakstypeRepository.getByTiltakskode(any()) } returns ctx.tiltakstype
+        every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
     }
 
@@ -152,6 +153,18 @@ class KafkaConsumerServiceTest {
             )
 
             verify(exactly = 1) { deltakerlisteRepository.delete(ctx.deltakerliste.id) }
+        }
+
+        @Test
+        fun `mottar tombstone for deltakerliste med deltakere - sletter ikke deltakerliste`() {
+            every { deltakerRepository.getAntallDeltakereForDeltakerliste(ctx.deltakerliste.id) } returns 2
+
+            kafkaConsumerService.deltakerlisteHendelse(
+                id = ctx.deltakerlisteGruppePayload.id,
+                value = null,
+            )
+
+            verify(exactly = 0) { deltakerlisteRepository.delete(any()) }
         }
 
         @Test

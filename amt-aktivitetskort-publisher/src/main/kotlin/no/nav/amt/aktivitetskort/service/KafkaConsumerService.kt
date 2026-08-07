@@ -89,8 +89,15 @@ class KafkaConsumerService(
         value: String?,
     ) {
         if (value == null) {
-            if (id !in deltakerlisteTombstoneBlacklist) {
+            log.info("Mottok tombstone for gjennomføring: $id")
+            val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(id)
+            if (id !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 deltakerlisteRepository.delete(id)
+            } else {
+                log.error(
+                    "Ignorerer tombstone for $id. " +
+                        "Deltakerliste er svartelistet eller har deltakere. Antall deltakere: $antallDeltakere",
+                )
             }
             return
         }
