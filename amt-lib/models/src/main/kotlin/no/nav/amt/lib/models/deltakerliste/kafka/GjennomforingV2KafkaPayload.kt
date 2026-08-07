@@ -135,7 +135,10 @@ sealed interface GjennomforingV2KafkaPayload {
         const val GRUPPE_V2_TYPE = "TiltaksgjennomforingV2.Gruppe"
         const val ENKELTPLASS_V2_TYPE = "TiltaksgjennomforingV2.Enkeltplass"
 
-        val deltakerlisteTombstoneBlacklist = setOf("447551d8-971e-4ba1-bf14-20c8a4921337").map { UUID.fromString(it) }
+        val deltakerlisteTombstoneBlacklist = setOf(
+            "447551d8-971e-4ba1-bf14-20c8a4921337",
+            "2add3de2-5e09-427c-9cf9-d37ac20051ab",
+        ).map { UUID.fromString(it) }
 
         // I tilfellet vi har noen gjennomføringer som feiler
         val gjennomforingBlacklist = emptySet<UUID>()
