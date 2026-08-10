@@ -1,18 +1,18 @@
 import java.net.URI
 
+plugins {
+    `java-library`
+    `maven-publish`
+    kotlin("jvm")
+    id("org.jlleitschuh.gradle.ktlint")
+}
+
 group = "no.nav.amt.deltakelser.lib"
 
 val libsWrapper = VersionCatalogWrapper.fromProject(project)
 
 repositories {
     mavenCentral()
-}
-
-plugins {
-    `java-library`
-    `maven-publish`
-    kotlin("jvm")
-    id("org.jlleitschuh.gradle.ktlint")
 }
 
 java {
