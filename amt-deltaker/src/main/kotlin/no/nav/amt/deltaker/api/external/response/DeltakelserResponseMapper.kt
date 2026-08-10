@@ -34,7 +34,7 @@ class DeltakelserResponseMapper(
     private fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
         deltakerId = deltaker.id,
         deltakerlisteId = deltaker.deltakerliste.id,
-        tittel = lagTittel(
+        tittel = lagArrangorTittel(
             deltaker,
         ),
         tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
@@ -87,7 +87,7 @@ class DeltakelserResponseMapper(
         else -> this.getStatustekst()
     }
 
-    private fun lagTittel(deltaker: Deltaker): String {
+    private fun lagArrangorTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.arrangor
             ?.let {
                 arrangorService.getArrangorNavn(
