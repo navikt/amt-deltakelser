@@ -91,6 +91,6 @@ class VeilarboppfolgingClientTest(
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "Feil ved kall mot veilarboppfolging. Status=500, body="
+        thrown.message shouldBe "Uventet status ved hent status-kall mot veilarboppfolging 500"
     }
 }
