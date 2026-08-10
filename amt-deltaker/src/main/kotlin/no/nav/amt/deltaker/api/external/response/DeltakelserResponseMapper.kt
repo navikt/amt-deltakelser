@@ -7,9 +7,9 @@ import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -34,7 +34,7 @@ class DeltakelserResponseMapper(
     private fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
         deltakerId = deltaker.id,
         deltakerlisteId = deltaker.deltakerliste.id,
-        tittel = lagTittel(
+        tittel = lagArrangorTittel(
             deltaker,
         ),
         tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
@@ -87,7 +87,7 @@ class DeltakelserResponseMapper(
         else -> this.getStatustekst()
     }
 
-    private fun lagTittel(deltaker: Deltaker): String {
+    private fun lagArrangorTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.arrangor
             ?.let {
                 arrangorService.getArrangorNavn(
@@ -97,14 +97,12 @@ class DeltakelserResponseMapper(
             }
             ?: "Ukjent arrangør"
 
-        return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
-            Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
-            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
-            -> deltaker.deltakerliste.navn
-            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER -> "Tilrettelagt arbeid med oppfølging hos $arrangorNavn"
-            else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
-        }
+        return TiltakVisningsnavn.lagTittel(
+            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+            tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
+            arrangorNavn = arrangorNavn,
+            opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
+        )
     }
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(

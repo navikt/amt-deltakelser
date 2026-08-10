@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.commonresponse
 
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
-import no.nav.amt.felles.visningsnavn.lagVisningsnavn
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 
 data class VisningsnavnResponse(
@@ -12,7 +11,7 @@ data class VisningsnavnResponse(
 ) {
     companion object {
         fun fraGjennomforing(gjennomforing: GjennomforingModel) = fraVisningsnavn(
-            lagVisningsnavn(
+            TiltakVisningsnavn.lagVisningsnavn(
                 tiltakskode = gjennomforing.tiltak.tiltakskode,
                 tiltaksnavn = gjennomforing.tiltak.navn,
                 gjennomforingsnavn = gjennomforing.navn,

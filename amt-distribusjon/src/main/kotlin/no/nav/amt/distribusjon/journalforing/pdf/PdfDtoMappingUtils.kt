@@ -6,7 +6,7 @@ import no.nav.amt.distribusjon.hendelse.model.visningsnavn
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.utils.formatDate
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
-import no.nav.amt.felles.visningsnavn.lagVisningsnavn
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
@@ -70,7 +70,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
     else -> throw IllegalArgumentException("Ukjent tiltakstype: ${this.tiltak.tiltakskode}")
 }
 
-fun HendelseDeltaker.Deltakerliste.visningsnavn() = lagVisningsnavn(
+fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisningsnavn(
     tiltakskode = tiltak.tiltakskode,
     tiltaksnavn = tiltak.navn,
     gjennomforingsnavn = navn,
