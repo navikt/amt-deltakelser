@@ -1,14 +1,14 @@
+plugins {
+    kotlin("jvm")
+    application
+    id("org.jlleitschuh.gradle.ktlint")
+}
+
 val libsWrapper = VersionCatalogWrapper.fromProject(project)
 
 repositories {
     mavenCentral()
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
-}
-
-plugins {
-    kotlin("jvm")
-    application
-    id("org.jlleitschuh.gradle.ktlint")
 }
 
 dependencies {

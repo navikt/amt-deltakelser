@@ -9,6 +9,9 @@ dependencies {
 
     // --- Feature Toggle ---
     implementation(libs.unleash)
+
+    // --- Visningsnavn ---
+    implementation(project(":amt-felles:visningsnavn"))
 }
 
 application { mainClass = "no.nav.amt.deltaker.ApplicationKt" }

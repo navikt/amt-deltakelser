@@ -1,7 +1,7 @@
 package no.nav.amt.aktivitetskort.domain
 
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortDto
-import no.nav.amt.felles.visningsnavn.lagAktivitetskortTittel
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -84,7 +84,7 @@ data class Aktivitetskort(
         fun lagTittel(
             deltakerliste: Deltakerliste,
             arrangor: Arrangor,
-        ): String = lagAktivitetskortTittel(
+        ): String = TiltakVisningsnavn.lagAktivitetskortTittel(
             tiltakskode = deltakerliste.tiltak.tiltakskode,
             tiltaksnavn = deltakerliste.tiltak.navn,
             gjennomforingsnavn = deltakerliste.navn,

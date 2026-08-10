@@ -14,7 +14,9 @@ import org.springframework.context.annotation.Configuration
 class ClientConfig {
     @Bean
     fun customizer(requestInterceptor: OAuth2ClientRequestInterceptor) = RestClientCustomizer {
-        it.requestInterceptor(requestInterceptor)
+        it
+            .requestInterceptor(requestInterceptor)
+            .defaultHeader("Nav-Consumer-Id", "amt-aktivitetskort-publisher")
     }
 
     @Bean

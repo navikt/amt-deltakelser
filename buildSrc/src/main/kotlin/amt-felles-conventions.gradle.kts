@@ -1,12 +1,12 @@
+plugins {
+    kotlin("jvm")
+    id("org.jlleitschuh.gradle.ktlint")
+}
+
 val libsWrapper = VersionCatalogWrapper.fromProject(project)
 
 repositories {
     mavenCentral()
-}
-
-plugins {
-    kotlin("jvm")
-    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {
