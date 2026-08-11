@@ -18,10 +18,11 @@ import java.time.LocalDate
 class EndreStartdatoExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endret startdato for søkt inn enkeltplass - status skal forbli søkt inn`() {
+        val opprinneligSluttdato = LocalDate.now().plusWeeks(6)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             startdato = LocalDate.now().plusDays(3),
-            sluttdato = LocalDate.now().plusWeeks(6),
+            sluttdato = opprinneligSluttdato,
             deltakerliste = TestData.lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -32,7 +33,7 @@ class EndreStartdatoExtensionsTest {
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().plusDays(10),
-            sluttdato = LocalDate.now().plusWeeks(8),
+            sluttdato = opprinneligSluttdato,
             begrunnelse = null,
             forslagId = null,
         )
@@ -53,10 +54,11 @@ class EndreStartdatoExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - endret startdato i fortid for søkt inn enkeltplass - status skal forbli søkt inn`() {
+        val opprinneligSluttdato = LocalDate.now().plusWeeks(6)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             startdato = LocalDate.now().plusDays(3),
-            sluttdato = LocalDate.now().plusWeeks(6),
+            sluttdato = opprinneligSluttdato,
             deltakerliste = TestData.lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -67,7 +69,7 @@ class EndreStartdatoExtensionsTest {
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().minusDays(2),
-            sluttdato = LocalDate.now().plusWeeks(8),
+            sluttdato = opprinneligSluttdato,
             begrunnelse = null,
             forslagId = null,
         )
