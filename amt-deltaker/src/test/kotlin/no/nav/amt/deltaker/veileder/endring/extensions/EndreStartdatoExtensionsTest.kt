@@ -52,6 +52,41 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
+    fun `oppdaterDeltaker - endret startdato i fortid for søkt inn enkeltplass - status skal forbli søkt inn`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            startdato = LocalDate.now().plusDays(3),
+            sluttdato = LocalDate.now().plusWeeks(6),
+            deltakerliste = TestData.lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.ENKELTPLASS,
+            ),
+        )
+        val endringsrequest = StartdatoRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            startdato = LocalDate.now().minusDays(2),
+            sluttdato = LocalDate.now().plusWeeks(8),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+            status.type shouldBe DeltakerStatus.Type.SOKT_INN
+        }
+    }
+
+    @Test
     fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
