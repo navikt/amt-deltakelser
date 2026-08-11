@@ -31,6 +31,10 @@ fun Deltaker.endreDeltakersOppstart(
         nyStartdato: LocalDate?,
         nySluttdato: LocalDate?,
     ): DeltakerStatus {
+        if (status.type == DeltakerStatus.Type.SOKT_INN) {
+            return status
+        }
+
         // SkalBliIkkeAktuell er kun for Arena deltakere
         fun Deltaker.skalBliIkkeAktuell(
             startdato: LocalDate?,
