@@ -117,6 +117,7 @@ object EnkeltplassPdfDtoMapper {
             // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
             representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
 
+            // Tilfeller som skal ha ekstra innhold i PDF
             representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
                 bransje = opplaringKategoriseringValg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).single(),
                 forerkortOgSertifiseringer = opplaringKategoriseringValg
@@ -141,7 +142,8 @@ object EnkeltplassPdfDtoMapper {
                 )
             }
 
-            else -> throw IllegalArgumentException("Kunne ikke avgjøre type PDF-innhold for ${tiltak.tiltakskode}")
+            // Øvrige tilfeller som ikke skal ha ekstra innhold
+            else -> EnkeltplassInnhold.UtenInnhold
         }
     }
 
