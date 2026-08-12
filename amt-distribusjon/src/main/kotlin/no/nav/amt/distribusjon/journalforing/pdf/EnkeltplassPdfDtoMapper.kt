@@ -114,8 +114,10 @@ object EnkeltplassPdfDtoMapper {
         val representerSet = opplaringKategoriseringValg.hentRepresenterer()
 
         return when {
-            // Tilfeller som skal ha ekstra innhold i PDF
+            // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
+            representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
 
+            // Tilfeller som skal ha ekstra innhold i PDF
             representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
                 bransje = opplaringKategoriseringValg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).single(),
                 forerkortOgSertifiseringer = opplaringKategoriseringValg

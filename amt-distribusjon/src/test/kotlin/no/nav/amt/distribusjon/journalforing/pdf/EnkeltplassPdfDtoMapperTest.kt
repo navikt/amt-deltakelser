@@ -11,6 +11,7 @@ import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -264,7 +265,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal kaste IllegalArgumentException når ingen gyldig kategoriseringstype finnes`() {
+        fun `toInnhold skal returnere tomt innhold når ingen gyldig kategoriseringstype finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -278,9 +279,7 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            shouldThrow<IllegalArgumentException> {
-                deltakerliste.toInnhold()
-            }
+            deltakerliste.toInnhold() shouldBe EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
