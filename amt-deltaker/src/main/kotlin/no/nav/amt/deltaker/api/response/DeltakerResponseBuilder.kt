@@ -127,18 +127,19 @@ class DeltakerResponseBuilder(
         includeOpplaringKategorisering: Boolean,
         historikk: List<DeltakerHistorikk> = emptyList(),
     ): GjennomforingResponse {
-        val skalHenteEnkeltplassValg =
-            includeOpplaringKategorisering && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
-
-        val (prisinformasjon, prisinformasjonTilGodkjenning) = if (skalHenteEnkeltplassValg) {
-            hentPrisinfoPair(deltakerliste.id)
-        } else {
-            Pair(null, null)
-        }
-
-        val prisinformasjonTilGodkjenningMedBegrunnelse =
-            leggTilPrisinformasjonBegrunnelse(prisinformasjonTilGodkjenning, historikk)
+        val skalHenteEnkeltplassValg = skalHenteEnkeltplassValg(deltakerliste, includeOpplaringKategorisering)
+        val (prisinformasjon, prisinformasjonTilGodkjenning) = hentPrisinfoPairHvisAktuelt(
+            gjennomforingId = deltakerliste.id,
+            skalHenteEnkeltplassValg = skalHenteEnkeltplassValg,
+        )
+        val prisinformasjonTilGodkjenningMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(
+            prisinformasjon = prisinformasjonTilGodkjenning,
+            prisinformasjonId = hentPrisinformasjonIdForEndringHvisAktuelt(
+                gjennomforingId = deltakerliste.id,
+                skalHenteEnkeltplassValg = skalHenteEnkeltplassValg,
+            ),
+            historikk = historikk,
+        )
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
@@ -151,18 +152,10 @@ class DeltakerResponseBuilder(
 
     private fun leggTilPrisinformasjonBegrunnelse(
         prisinformasjon: PrisinformasjonDto?,
+        prisinformasjonId: UUID?,
         historikk: List<DeltakerHistorikk>,
     ): PrisinformasjonDto? {
-        val begrunnelse = prisinformasjon?.let { prisinfo ->
-            historikk
-                .asReversed()
-                .asSequence()
-                .filterIsInstance<DeltakerHistorikk.Endring>()
-                .mapNotNull { it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo }
-                .firstOrNull { it.prisinfo == prisinfo }
-                ?.begrunnelse
-                ?.takeIf { it.isNotBlank() }
-        }
+        val begrunnelse = finnPrisinformasjonBegrunnelse(prisinformasjonId, historikk)
 
         return when (prisinformasjon) {
             null -> null
@@ -171,6 +164,51 @@ class DeltakerResponseBuilder(
             is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse)
         }
     }
+
+    private fun skalHenteEnkeltplassValg(
+        deltakerliste: Deltakerliste,
+        includeOpplaringKategorisering: Boolean,
+    ): Boolean =
+        includeOpplaringKategorisering &&
+            deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
+            !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
+
+    private fun hentPrisinfoPairHvisAktuelt(
+        gjennomforingId: UUID,
+        skalHenteEnkeltplassValg: Boolean,
+    ): Pair<PrisinformasjonDto?, PrisinformasjonDto?> =
+        if (skalHenteEnkeltplassValg) {
+            hentPrisinfoPair(gjennomforingId)
+        } else {
+            Pair(null, null)
+        }
+
+    private fun hentPrisinformasjonIdForEndringHvisAktuelt(
+        gjennomforingId: UUID,
+        skalHenteEnkeltplassValg: Boolean,
+    ): UUID? =
+        if (skalHenteEnkeltplassValg) {
+            PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(gjennomforingId)
+        } else {
+            null
+        }
+
+    private fun finnPrisinformasjonBegrunnelse(
+        prisinformasjonId: UUID?,
+        historikk: List<DeltakerHistorikk>,
+    ): String? {
+        if (prisinformasjonId == null) return null
+
+        return historikk
+            .asReversed()
+            .asSequence()
+            .filterIsInstance<DeltakerHistorikk.Endring>()
+            .mapNotNull { it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo }
+            .firstOrNull { it.prisinformasjonId == prisinformasjonId }
+            ?.begrunnelse
+            ?.takeIf { it.isNotBlank() }
+    }
+
 
     /**
      * Henter gjeldende- og prisinfo til endring.

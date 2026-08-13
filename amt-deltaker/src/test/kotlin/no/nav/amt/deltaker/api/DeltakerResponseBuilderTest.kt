@@ -182,6 +182,9 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
             } returns emptyMap()
+            every {
+                PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id)
+            } returns null
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
@@ -231,6 +234,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
         val gjeldendePrisinfo = Anskaffelse(pris = 10000)
         val prisinfoTilGodkjenning = Anskaffelse(pris = 12000)
+        val prisinformasjonId = UUID.randomUUID()
         val forventetBegrunnelse = "Oppdatert etter ny dokumentasjon"
         val irrelevantBegrunnelse = "Dette er en annen endring"
 
@@ -241,6 +245,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                     endring = DeltakerEndring.Endring.EndrePrisinfo(
                         prisinfo = Anskaffelse(pris = 99999),
                         begrunnelse = irrelevantBegrunnelse,
+                        prisinformasjonId = UUID.randomUUID(),
                     ),
                 ),
             ),
@@ -250,6 +255,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                     endring = DeltakerEndring.Endring.EndrePrisinfo(
                         prisinfo = prisinfoTilGodkjenning,
                         begrunnelse = forventetBegrunnelse,
+                        prisinformasjonId = prisinformasjonId,
                     ),
                 ),
             ),
@@ -264,6 +270,9 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
                 PrisinfoDbo.Rolle.ENDRING to prisinfoTilGodkjenning,
             )
+            every {
+                PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id)
+            } returns prisinformasjonId
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(
