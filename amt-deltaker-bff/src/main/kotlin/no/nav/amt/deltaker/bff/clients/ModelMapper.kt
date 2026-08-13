@@ -74,7 +74,6 @@ class ModelMapper {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
                 prisinformasjon = prisinformasjon,
                 prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
-                prisinformasjonBegrunnelse = prisinformasjonBegrunnelse,
             )
         }
 

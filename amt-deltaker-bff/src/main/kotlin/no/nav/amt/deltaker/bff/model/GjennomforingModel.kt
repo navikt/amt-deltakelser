@@ -26,7 +26,6 @@ data class GjennomforingModel(
     val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
     val prisinformasjon: PrisinformasjonDto? = null,
     val prisinformasjonTilGodkjenning: PrisinformasjonDto? = null,
-    val prisinformasjonBegrunnelse: String? = null,
 ) {
     val erEnkeltplass = type == GjennomforingType.Enkeltplass
 }

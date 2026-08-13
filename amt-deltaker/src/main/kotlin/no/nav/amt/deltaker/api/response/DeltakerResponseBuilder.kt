@@ -137,23 +137,40 @@ class DeltakerResponseBuilder(
             Pair(null, null)
         }
 
-        val prisinformasjonBegrunnelse = historikk
-            .asReversed()
-            .filterIsInstance<DeltakerHistorikk.Endring>()
-            .mapNotNull {
-                (it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo)
-                    ?.begrunnelse
-                    ?.takeIf { begrunnelse -> begrunnelse.isNotBlank() }
-            }.firstOrNull()
+        val prisinformasjonMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(prisinformasjon, historikk)
+        val prisinformasjonTilGodkjenningMedBegrunnelse =
+            leggTilPrisinformasjonBegrunnelse(prisinformasjonTilGodkjenning, historikk)
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
-            prisinformasjon = prisinformasjon,
-            prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
-            prisinformasjonBegrunnelse = prisinformasjonBegrunnelse,
+            prisinformasjon = prisinformasjonMedBegrunnelse,
+            prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
         )
+    }
+
+    private fun leggTilPrisinformasjonBegrunnelse(
+        prisinformasjon: PrisinformasjonDto?,
+        historikk: List<DeltakerHistorikk>,
+    ): PrisinformasjonDto? {
+        val begrunnelse = prisinformasjon?.let { prisinfo ->
+            historikk
+                .asReversed()
+                .asSequence()
+                .filterIsInstance<DeltakerHistorikk.Endring>()
+                .mapNotNull { it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo }
+                .firstOrNull { it.prisinfo == prisinfo }
+                ?.begrunnelse
+                ?.takeIf { it.isNotBlank() }
+        }
+
+        return when (prisinformasjon) {
+            null -> null
+            is PrisinformasjonDto.Anskaffelse -> prisinformasjon.copy(begrunnelse = begrunnelse)
+            is PrisinformasjonDto.Tilskudd -> prisinformasjon.copy(begrunnelse = begrunnelse)
+            is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse)
+        }
     }
 
     /**
