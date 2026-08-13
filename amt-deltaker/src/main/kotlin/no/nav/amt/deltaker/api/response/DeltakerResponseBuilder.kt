@@ -22,6 +22,7 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -73,6 +74,7 @@ class DeltakerResponseBuilder(
             gjennomforing = buildGjennomforingResponse(
                 deltakerliste = deltaker.deltakerliste,
                 includeOpplaringKategorisering = includeOpplaringKategorisering,
+                historikk = historikk,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -123,6 +125,7 @@ class DeltakerResponseBuilder(
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
+        historikk: List<DeltakerHistorikk> = emptyList(),
     ): GjennomforingResponse {
         val skalHenteEnkeltplassValg =
             includeOpplaringKategorisering && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
@@ -134,12 +137,22 @@ class DeltakerResponseBuilder(
             Pair(null, null)
         }
 
+        val prisinformasjonBegrunnelse = historikk
+            .asReversed()
+            .filterIsInstance<DeltakerHistorikk.Endring>()
+            .mapNotNull {
+                (it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo)
+                    ?.begrunnelse
+                    ?.takeIf { begrunnelse -> begrunnelse.isNotBlank() }
+            }.firstOrNull()
+
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
             prisinformasjon = prisinformasjon,
             prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
+            prisinformasjonBegrunnelse = prisinformasjonBegrunnelse,
         )
     }
 

@@ -28,6 +28,7 @@ data class DeltakerlisteResponse(
     val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse? = null,
     val prisinformasjon: PrisinformasjonResponse? = null,
     val prisinformasjonTilGodkjenning: PrisinformasjonResponse? = null,
+    val prisinformasjonBegrunnelse: String? = null,
 ) {
     constructor(model: GjennomforingModel) : this(
         deltakerlisteId = model.id,
@@ -47,6 +48,7 @@ data class DeltakerlisteResponse(
         opplaringKategoriseringValg = model.opplaringKategoriseringValg?.let(::OpplaringKategoriseringValgResponse),
         prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
         prisinformasjonTilGodkjenning = model.prisinformasjonTilGodkjenning?.let(PrisinformasjonResponse::fromModel),
+        prisinformasjonBegrunnelse = model.prisinformasjonBegrunnelse,
     )
 }
 
