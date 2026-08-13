@@ -2,10 +2,9 @@ package no.nav.amt.aktivitetskort.client
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.amt.aktivitetskort.config.ClientConfig
+import no.nav.amt.person.service.clients.AKTIVITET_ARENA_ACL_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -18,19 +17,18 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.util.UUID
 
-@RestClientTest(components = [AktivitetArenaAclClient::class, ClientConfig::class])
-@Import(OAuth2ClientTestConfig::class)
+@RestClientTest(AktivitetArenaAclClient::class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class AktivitetArenaAclClientTest(
     private val sut: AktivitetArenaAclClient,
-) : RestClientTestBase("aktivitet-arena-acl") {
+) : RestClientTestBase(AKTIVITET_ARENA_ACL_CLIENT_ID) {
     @Test
     fun `getAktivitetIdForArenaId - returnerer id om eksisterer`() {
         val aktivitetId = UUID.randomUUID()
         server
-            .expect(requestTo("/api/translation/arenaid"))
+            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${OAuth2ClientTestConfig.TOKEN}"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer aktivitet-arena-acl-token"))
             .andRespond(withSuccess(""""$aktivitetId"""", MediaType.APPLICATION_JSON))
 
         val id = sut.getAktivitetIdForArenaId(1L)
@@ -41,7 +39,7 @@ class AktivitetArenaAclClientTest(
     @Test
     fun `getAktivitetIdForArenaId - kaster exception ved 404`() {
         server
-            .expect(requestTo("/api/translation/arenaid"))
+            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 

@@ -12,9 +12,9 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
 
-@SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(UnleashTestConfiguration::class)
-abstract class IntegrationTest : RepositoryTestBase() {
+abstract class IntegrationTestBase : RepositoryTestBase() {
     @LocalServerPort
     private var port: Int = 0
 

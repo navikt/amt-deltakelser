@@ -1,0 +1,116 @@
+spring:
+  main:
+    banner-mode: off
+
+  threads:
+    virtual:
+      enabled: true
+
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+
+  datasource:
+    url: ${DB_JDBC_URL}
+    hikari:
+      maximum-pool-size: 3
+
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 10s
+
+    serviceclient:
+      amt-arena-acl:
+        base-url: ${AMT_ARENA_ACL_URL}
+      amt-arrangor:
+        base-url: ${AMT_ARRANGOR_URL}
+      aktivitet-arena-acl:
+        base-url: ${AKTIVITET_ARENA_ACL_URL}
+      veilarboppfolging:
+        base-url: ${VEILARBOPPFOLGING_URL}
+
+  security:
+    oauth2:
+      client:
+        provider:
+          azuread:
+            token-uri: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+
+        registration:
+          amt-arena-acl:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_ARENA_ACL_SCOPE}
+
+          amt-arrangor:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_ARRANGOR_SCOPE}
+
+          aktivitet-arena-acl:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AKTIVITET_ARENA_ACL_SCOPE}
+
+          veilarboppfolging:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${VEILARBOPPFOLGING_SCOPE}
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    prometheus:
+      access: read_only
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - livenessState
+        readiness:
+          include:
+            - readinessState
+            - db
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - health
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+
+kafka:
+  auto-offset-reset: earliest
+
+app:
+  env:
+    unleashUrl: ${UNLEASH_SERVER_API_URL}/api
+    unleashApiToken: ${UNLEASH_SERVER_API_TOKEN}
+
+veilederurl:
+  basepath: ${VEILEDERURL_BASEPATH}
+
+deltakerurl:
+  basepath: ${DELTAKERURL_BASEPATH}
