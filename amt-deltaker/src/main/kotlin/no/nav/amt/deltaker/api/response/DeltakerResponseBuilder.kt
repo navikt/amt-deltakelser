@@ -137,7 +137,6 @@ class DeltakerResponseBuilder(
             Pair(null, null)
         }
 
-        val prisinformasjonMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(prisinformasjon, historikk)
         val prisinformasjonTilGodkjenningMedBegrunnelse =
             leggTilPrisinformasjonBegrunnelse(prisinformasjonTilGodkjenning, historikk)
 
@@ -145,7 +144,7 @@ class DeltakerResponseBuilder(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
-            prisinformasjon = prisinformasjonMedBegrunnelse,
+            prisinformasjon = prisinformasjon,
             prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
         )
     }

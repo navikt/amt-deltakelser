@@ -226,6 +226,62 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `buildGjennomforingResponse - setter begrunnelse kun på matchende prisinformasjonTilGodkjenning`() {
+        // Arrange
+        val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
+        val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+        val prisinfoTilGodkjenning = Anskaffelse(pris = 12000)
+        val forventetBegrunnelse = "Oppdatert etter ny dokumentasjon"
+        val irrelevantBegrunnelse = "Dette er en annen endring"
+
+        val historikk = listOf(
+            DeltakerHistorikk.Endring(
+                no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+                    deltakerId = UUID.randomUUID(),
+                    endring = DeltakerEndring.Endring.EndrePrisinfo(
+                        prisinfo = Anskaffelse(pris = 99999),
+                        begrunnelse = irrelevantBegrunnelse,
+                    ),
+                ),
+            ),
+            DeltakerHistorikk.Endring(
+                no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+                    deltakerId = UUID.randomUUID(),
+                    endring = DeltakerEndring.Endring.EndrePrisinfo(
+                        prisinfo = prisinfoTilGodkjenning,
+                        begrunnelse = forventetBegrunnelse,
+                    ),
+                ),
+            ),
+        )
+
+        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
+        mockkObject(PrisinfoRepoAdapter)
+        try {
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
+            } returns mapOf(
+                PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
+                PrisinfoDbo.Rolle.ENDRING to prisinfoTilGodkjenning,
+            )
+
+            // Act
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(
+                deltakerliste = deltakerliste,
+                includeOpplaringKategorisering = true,
+                historikk = historikk,
+            )
+
+            // Assert
+            // Begrunnelse skal kun følge ENDRING-prisinfo som matcher prisinformasjonTilGodkjenning.
+            (response.prisinformasjon as Anskaffelse).begrunnelse shouldBe null
+            (response.prisinformasjonTilGodkjenning as Anskaffelse).begrunnelse shouldBe forventetBegrunnelse
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+    }
+
+    @Test
     fun `buildVedtaksinformasjonResponse - mapper vedtaksinformasjon korrekt`() {
         // Arrange
         val vedtaksinformasjon = no.nav.amt.deltaker.utils.data.TestData
