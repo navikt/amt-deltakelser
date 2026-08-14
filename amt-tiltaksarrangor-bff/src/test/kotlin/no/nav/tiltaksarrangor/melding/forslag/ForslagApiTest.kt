@@ -4,7 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.melding.forslag.request.AvsluttDeltakelseRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.DeltakelsesmengdeRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.EndreAvslutningRequest
@@ -32,7 +32,7 @@ import java.util.UUID
 class ForslagApiTest(
     private val forslagService: ForslagService,
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `skal teste token autentisering`() {
         val deltakerId = UUID.randomUUID()

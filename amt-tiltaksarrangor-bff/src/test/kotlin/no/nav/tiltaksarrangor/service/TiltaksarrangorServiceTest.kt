@@ -11,7 +11,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.api.response.OppdateringResponse
 import no.nav.tiltaksarrangor.consumer.model.AdresseJsonDbo
@@ -71,7 +71,7 @@ class TiltaksarrangorServiceTest(
     @MockkBean(relaxUnitFun = true) private val navEnhetService: NavEnhetService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
     @MockkBean(relaxUnitFun = true) private val meldingProducer: MeldingProducer,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false

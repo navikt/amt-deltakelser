@@ -22,7 +22,6 @@ spec:
   port: 8080
   terminationGracePeriodSeconds: 60
 
-
   prometheus:
     enabled: true
     port: "8081"

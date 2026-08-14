@@ -1,7 +1,7 @@
 package no.nav.tiltaksarrangor.unleash
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import org.junit.jupiter.api.Test
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.get
 @AutoConfigureMockMvc
 class UnleashAPITest(
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `getFeaturetoggles - ikke autentisert - returnerer 401`() {
         mockMvc

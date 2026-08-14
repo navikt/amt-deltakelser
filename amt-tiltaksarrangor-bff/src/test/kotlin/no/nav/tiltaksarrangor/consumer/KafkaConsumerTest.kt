@@ -10,7 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
 import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
@@ -66,7 +66,7 @@ class KafkaConsumerTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val kafkaConsumer: KafkaConsumer,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     private val ack = Acknowledgment { }
 
     @BeforeEach

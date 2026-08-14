@@ -21,7 +21,7 @@ import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(UnleashTestConfiguration::class, TestJwtConfig::class)
-abstract class IntegrationTest : RepositoryTestBase() {
+abstract class IntegrationTestBase : RepositoryTestBase() {
     @Autowired
     protected lateinit var jwtEncoder: JwtEncoder
 

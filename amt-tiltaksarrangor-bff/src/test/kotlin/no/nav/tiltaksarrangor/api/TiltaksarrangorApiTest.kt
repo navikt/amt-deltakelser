@@ -9,7 +9,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
@@ -54,7 +54,7 @@ class TiltaksarrangorApiTest(
     private val arrangorRepository: ArrangorRepository,
     private val navAnsattRepository: NavAnsattRepository,
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Nested
     inner class GetMineRollerTests {
         @Test
