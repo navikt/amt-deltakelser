@@ -13,7 +13,7 @@ class LogConfig {
     fun auditLogger(): AuditLogger = AuditLoggerImpl()
 
     @Bean
-    fun logFilterRegistrationBean(): FilterRegistrationBean<LogRequestFilter> = FilterRegistrationBean<LogRequestFilter>().apply {
+    fun logFilterRegistrationBean() = FilterRegistrationBean<LogRequestFilter>().apply {
         setFilter(LogRequestFilter("amt-tiltaksarrangor-bff", false))
         order = 1
         addUrlPatterns("/*")

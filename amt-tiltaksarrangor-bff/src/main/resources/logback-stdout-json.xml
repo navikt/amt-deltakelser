@@ -23,7 +23,7 @@
     <!-- Logger cookies dersom den ikke parses riktig, noe vi ikke ønsker -->
     <logger name="org.apache.tomcat.util.http.parser.Cookie" level="OFF" />
 
-    <logger name="no.nav.common.rest.filter.LogRequestFilter" level="DEBUG"/>
+    <logger name="no.nav.common.rest.filter" level="DEBUG"/>
     <logger name="org.apache" level="INFO"/>
     <logger name="org.apache.cxf" level="ERROR"/>
     <logger name="no.nav.common.cxf" level="ERROR"/>
