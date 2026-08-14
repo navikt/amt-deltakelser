@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.endpoint.TokenExchangeGrantReq
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
 import org.springframework.util.LinkedMultiValueMap
+import java.time.Instant
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2ClientConfig {
@@ -54,6 +55,9 @@ class OAuth2ClientConfig {
 
         val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
             JWK.parse(registration.clientSecret)
+        }
+        jwtConverter.setJwtClientAssertionCustomizer { context ->
+            context.claims.notBefore(Instant.now().minusSeconds(5))
         }
 
         addParametersConverter { grantRequest ->
