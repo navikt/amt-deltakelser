@@ -11,7 +11,6 @@ import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -29,7 +28,7 @@ import java.util.UUID
 @ActiveProfiles("test")
 @RestClientTest(AmtPersonClient::class)
 class AmtPersonClientTest(
-    @Autowired private val sut: AmtPersonClient,
+    private val sut: AmtPersonClient,
 ) : RestClientTestBase(AMT_PERSON_AAD_CLIENT_ID) {
     @Nested
     inner class HentEnhetTests {

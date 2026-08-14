@@ -1,6 +1,5 @@
 package no.nav.tiltaksarrangor.client
 
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
@@ -19,28 +18,6 @@ class OAuth2ClientTestConfig {
     private val mocks = mutableMapOf<String, MockRestServiceServer>()
 
     @Bean
-    fun tokenXAuthorizedClientManager() = OAuth2AuthorizedClientManager { authorizeRequest ->
-        val registration = ClientRegistration
-            .withRegistrationId(AMT_ARRANGOR_TOKENX_CLIENT_ID)
-            .authorizationGrantType(
-                AuthorizationGrantType("urn:ietf:params:oauth:grant-type:token-exchange"),
-            ).clientId("test-client-tokenx")
-            .tokenUri("http://localhost:9999/tokenx/token")
-            .build()
-
-        OAuth2AuthorizedClient(
-            registration,
-            authorizeRequest.principal.name,
-            OAuth2AccessToken(
-                OAuth2AccessToken.TokenType.BEARER,
-                "tokenx-test-token",
-                Instant.now(),
-                Instant.now().plusSeconds(3600),
-            ),
-        )
-    }
-
-    @Bean
     fun mockServerConfigurer(environment: Environment) = RestClientHttpServiceGroupConfigurer { groups ->
         groups.forEachClient { group, builder ->
             val baseUrl = environment.getRequiredProperty("spring.http.serviceclient.${group.name()}.base-url")
@@ -50,35 +27,35 @@ class OAuth2ClientTestConfig {
     }
 
     @Bean
-    fun azureAdAuthorizedClientManager() = OAuth2AuthorizedClientManager { authorizeRequest ->
-        val registrationId = authorizeRequest.clientRegistrationId
+    fun oauth2AuthorizedClientManager(): OAuth2AuthorizedClientManager = OAuth2AuthorizedClientManager { request ->
+        val registrationId = request.clientRegistrationId
 
         val registration = ClientRegistration
             .withRegistrationId(registrationId)
-            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
             .clientId(registrationId)
-            .tokenUri("http://localhost:9999/token")
+            .authorizationGrantType(
+                if (registrationId == AMT_ARRANGOR_TOKENX_CLIENT_ID) {
+                    AuthorizationGrantType("urn:ietf:params:oauth:grant-type:token-exchange")
+                } else {
+                    AuthorizationGrantType.CLIENT_CREDENTIALS
+                },
+            ).tokenUri("http://localhost:9999/token")
             .build()
-
-        val accessToken = OAuth2AccessToken(
-            OAuth2AccessToken.TokenType.BEARER,
-            "$registrationId-token",
-            Instant.now(),
-            Instant.now().plusSeconds(3600),
-        )
 
         OAuth2AuthorizedClient(
             registration,
-            registrationId,
-            accessToken,
+            request.principal.name,
+            OAuth2AccessToken(
+                OAuth2AccessToken.TokenType.BEARER,
+                "$registrationId-token",
+                Instant.now(),
+                Instant.now().plusSeconds(3600),
+            ),
         )
     }
 
     @Bean
-    fun oauth2Configurer(
-        @Qualifier("azureAdAuthorizedClientManager")
-        manager: OAuth2AuthorizedClientManager,
-    ) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
+    fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     fun getMock(group: String): MockRestServiceServer = mocks[group] ?: error("No mock for group '$group'")
 }
