@@ -6,7 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldStartWith
-import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_AAD_CLIENT_ID
+import no.nav.tiltaksarrangor.client.ClientTestConfig
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -24,10 +25,11 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.util.UUID
 
+@ActiveProfiles("test")
 @RestClientTest(HentArrangorClient::class)
 class HentArrangorClientTest(
     @Autowired private val sut: HentArrangorClient,
-) : RestClientTestBase(AMT_ARRANGOR_AAD_CLIENT_ID) {
+) : RestClientTestBase("amt-arrangor-aad") {
     @Nested
     inner class GetArrangorTests {
         @Test
@@ -37,10 +39,10 @@ class HentArrangorClientTest(
             val overordnetArrangorId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .expect(requestTo("/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andRespond(
                     withSuccess(
                         """
@@ -78,9 +80,9 @@ class HentArrangorClientTest(
             val arrangorId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .expect(requestTo("/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(
                     withSuccess(
@@ -110,9 +112,9 @@ class HentArrangorClientTest(
             val orgnummer = "123456789"
 
             server
-                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .expect(requestTo("/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
@@ -126,9 +128,9 @@ class HentArrangorClientTest(
             val orgnummer = "123456789"
 
             server
-                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .expect(requestTo("/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
@@ -142,9 +144,9 @@ class HentArrangorClientTest(
             val orgnummer = "123456789"
 
             server
-                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .expect(requestTo("/$orgnummer"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ${ClientTestConfig.TOKEN}"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 

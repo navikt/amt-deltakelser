@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.client.web.client.support.OAuth2RestC
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2ClientConfig {
-    // denne er påkrevet for jobber og Kafka-klienter hvor det ikke er en aktiv request
     @Bean
     fun oauth2AuthorizedClientManager(
         clientRegistrationRepository: ClientRegistrationRepository,

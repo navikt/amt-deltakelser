@@ -7,12 +7,12 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.client.MockRestServiceServer
 
-@Import(OAuth2ClientTestConfig::class, ClientConfig::class)
+@Import(ClientTestConfig::class, ClientConfig::class)
 @TestPropertySource(
     properties = [
-        "spring.http.serviceclient.amt-arrangor-tokenx.base-url=http://amt-arrangor-tokenx",
-        "spring.http.serviceclient.amt-arrangor-aad.base-url=http://amt-arrangor-aad",
-        "spring.http.serviceclient.amt-person-aad.base-url=http://amt-person-aad",
+        "spring.http.serviceclient.amt-arrangor-tokenx.base-url=http://localhost:8080",
+        "spring.http.serviceclient.amt-arrangor-aad.base-url=http://localhost:8080",
+        "spring.http.serviceclient.amt-person-aad.base-url=http://localhost:8080",
         "spring.test.restclient.mockrestserviceserver.enabled=false",
     ],
 )
@@ -20,7 +20,7 @@ abstract class RestClientTestBase(
     private val group: String,
 ) {
     @Autowired
-    private lateinit var testConfig: OAuth2ClientTestConfig
+    private lateinit var testConfig: ClientTestConfig
 
     lateinit var server: MockRestServiceServer
 
