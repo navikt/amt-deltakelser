@@ -55,9 +55,10 @@ class OAuth2ClientConfig {
 
         val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
             JWK.parse(registration.clientSecret)
-        }
-        jwtConverter.setJwtClientAssertionCustomizer { context ->
-            context.claims.notBefore(Instant.now().minusSeconds(5))
+        }.apply {
+            setJwtClientAssertionCustomizer {
+                it.claims.notBefore(Instant.now().minusSeconds(5))
+            }
         }
 
         addParametersConverter { grantRequest ->
