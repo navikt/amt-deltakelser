@@ -44,15 +44,6 @@ class OAuth2ClientConfig {
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     private fun tokenExchangeResponseClient() = RestClientTokenExchangeTokenResponseClient().apply {
-        addParametersConverter { grantRequest ->
-            val audience = grantRequest.clientRegistration.scopes.singleOrNull()
-                ?: throw IllegalArgumentException(
-                    "Expected exactly one scope for token exchange audience in client registration '${grantRequest.clientRegistration.registrationId}'",
-                )
-
-            LinkedMultiValueMap<String, String>().apply { add("audience", audience) }
-        }
-
         val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
             JWK.parse(registration.clientSecret)
         }.apply {
@@ -62,10 +53,20 @@ class OAuth2ClientConfig {
         }
 
         addParametersConverter { grantRequest ->
-            jwtConverter.convert(grantRequest)
+            val audience = grantRequest.clientRegistration.scopes.singleOrNull()
+                ?: throw IllegalArgumentException(
+                    "Expected exactly one scope for token exchange audience in client registration '${grantRequest.clientRegistration.registrationId}'",
+                )
+
+            val jwtParameters = jwtConverter.convert(grantRequest)
                 ?: throw IllegalArgumentException(
                     "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
                 )
+
+            LinkedMultiValueMap<String, String>().apply {
+                add("audience", audience)
+                addAll(jwtParameters)
+            }
         }
     }
 }
