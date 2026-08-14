@@ -3,6 +3,8 @@ spring:
     exclude: org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration
 
 management:
+  server:
+    port: 0
   endpoint:
     health:
       show-details: always
