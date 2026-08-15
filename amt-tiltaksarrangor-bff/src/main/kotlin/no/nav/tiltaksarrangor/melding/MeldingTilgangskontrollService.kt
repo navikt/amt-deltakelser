@@ -8,13 +8,11 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.service.AnsattService
 import no.nav.tiltaksarrangor.service.TilgangskontrollService
-import no.nav.tiltaksarrangor.service.TokenService
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
 class MeldingTilgangskontrollService(
-    private val tokenService: TokenService,
     private val ansattService: AnsattService,
     private val deltakerRepository: DeltakerRepository,
     private val tilgangskontrollService: TilgangskontrollService,
@@ -22,10 +20,10 @@ class MeldingTilgangskontrollService(
 ) {
     fun <T> medTilgangTilAnsattOgDeltaker(
         deltakerId: UUID,
+        personIdent: String,
         block: (ansatt: AnsattDbo, deltaker: DeltakerDbo, deltakerliste: DeltakerlisteDbo) -> T,
     ): T {
-        val personident = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        val ansatt = ansattService.getAnsattMedRoller(personident)
+        val ansatt = ansattService.getAnsattMedRoller(personIdent)
         val deltakerMedDeltakerliste = deltakerRepository
             .getDeltakerMedDeltakerliste(deltakerId)
             ?.takeIf { it.deltakerliste.erTilgjengeligForArrangor() }

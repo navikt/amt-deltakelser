@@ -3,9 +3,11 @@ package no.nav.tiltaksarrangor.api
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.service.TiltaksarrangorService
-import no.nav.tiltaksarrangor.service.TokenService
 import no.nav.tiltaksarrangor.utils.objectMapper
+import no.nav.tiltaksarrangor.utils.personIdent
 import no.nav.tiltaksarrangor.utils.writePolymorphicListAsString
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,7 +20,6 @@ import java.util.UUID
 @RestController
 @RequestMapping("/tiltaksarrangor")
 class TiltaksarrangorApi(
-    private val tokenService: TokenService,
     private val tiltaksarrangorService: TiltaksarrangorService,
 ) {
     @GetMapping("/meg/roller")
@@ -27,17 +28,21 @@ class TiltaksarrangorApi(
     @GetMapping("/deltaker/{deltakerId}")
     fun getDeltaker(
         @PathVariable deltakerId: UUID,
-    ): Deltaker {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return tiltaksarrangorService.getDeltaker(personIdent, deltakerId)
-    }
+        @AuthenticationPrincipal jwt: Jwt,
+    ): Deltaker = tiltaksarrangorService.getDeltaker(
+        personIdent = jwt.personIdent(),
+        deltakerId = deltakerId,
+    )
 
     @GetMapping("/deltaker/{deltakerId}/historikk")
     fun getDeltakerhistorikk(
         @PathVariable deltakerId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
     ): String {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
+        val historikk = tiltaksarrangorService.getDeltakerHistorikk(
+            personIdent = jwt.personIdent(),
+            deltakerId = deltakerId,
+        )
         return objectMapper.writePolymorphicListAsString(historikk)
     }
 
@@ -45,25 +50,36 @@ class TiltaksarrangorApi(
     fun markerSomLest(
         @PathVariable deltakerId: UUID,
         @PathVariable ulestEndringId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        tiltaksarrangorService.markerEndringSomLest(personIdent, deltakerId, ulestEndringId)
+        tiltaksarrangorService.markerEndringSomLest(
+            personIdent = jwt.personIdent(),
+            deltakerId = deltakerId,
+            ulestEndringId = ulestEndringId,
+        )
     }
 
     @PostMapping("/deltaker/{deltakerId}/vurdering")
     fun registrerVurdering(
         @PathVariable deltakerId: UUID,
         @RequestBody request: RegistrerVurderingRequest,
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        tiltaksarrangorService.registrerVurdering(personIdent, deltakerId, request)
+        tiltaksarrangorService.registrerVurdering(
+            personIdent = jwt.personIdent(),
+            deltakerId = deltakerId,
+            request = request,
+        )
     }
 
     @DeleteMapping("/deltaker/{deltakerId}")
     fun fjernDeltaker(
         @PathVariable deltakerId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        tiltaksarrangorService.fjernDeltaker(personIdent, deltakerId)
+        tiltaksarrangorService.fjernDeltaker(
+            personIdent = jwt.personIdent(),
+            deltakerId = deltakerId,
+        )
     }
 }

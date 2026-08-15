@@ -5,6 +5,9 @@ import no.nav.tiltaksarrangor.melding.endring.request.EndringFraArrangorRequest
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
+import no.nav.tiltaksarrangor.utils.personIdent
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,14 +25,32 @@ class EndringApi(
     fun leggTilOppstartsdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: LeggTilOppstartsdatoRequest,
-    ) = opprettEndring(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ) = opprettEndring(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     private fun opprettEndring(
         deltakerId: UUID,
         request: EndringFraArrangorRequest,
-    ) = tilgangskontrollService.medTilgangTilAnsattOgDeltaker(deltakerId) { ansatt, deltaker, deltakerliste ->
-        valider(request, deltaker, deltakerliste)
-        endringService.endreDeltaker(deltaker, deltakerliste, ansatt, request)
+        personIdent: String,
+    ) = tilgangskontrollService.medTilgangTilAnsattOgDeltaker(
+        deltakerId = deltakerId,
+        personIdent = personIdent,
+    ) { ansatt, deltaker, deltakerliste ->
+        valider(
+            request = request,
+            deltaker = deltaker,
+            deltakerliste = deltakerliste,
+        )
+        endringService.endreDeltaker(
+            deltaker = deltaker,
+            deltakerliste = deltakerliste,
+            ansatt = ansatt,
+            request = request,
+        )
     }
 
     private fun valider(

@@ -11,6 +11,9 @@ import no.nav.tiltaksarrangor.melding.forslag.request.IkkeAktuellRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.SluttarsakRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.SluttdatoRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.StartdatoRequest
+import no.nav.tiltaksarrangor.utils.personIdent
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -28,74 +31,130 @@ class ForslagApi(
     fun forleng(
         @PathVariable deltakerId: UUID,
         @RequestBody request: ForlengDeltakelseRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/avslutt")
     fun avslutt(
         @PathVariable deltakerId: UUID,
         @RequestBody request: AvsluttDeltakelseRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/endre-avslutning")
     fun avslutt(
         @PathVariable deltakerId: UUID,
         @RequestBody request: EndreAvslutningRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/ikke-aktuell")
     fun ikkeAktuell(
         @PathVariable deltakerId: UUID,
         @RequestBody request: IkkeAktuellRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/deltakelsesmengde")
     fun deltakelsesmengde(
         @PathVariable deltakerId: UUID,
         @RequestBody request: DeltakelsesmengdeRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/sluttdato")
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: SluttdatoRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/startdato")
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: StartdatoRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/sluttarsak")
     fun sluttdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: SluttarsakRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/fjern-oppstartsdato")
     fun fjernOppstartsdato(
         @PathVariable deltakerId: UUID,
         @RequestBody request: FjernOppstartsdatoRequest,
-    ): AktivtForslagResponse = opprettForslag(deltakerId, request)
+        @AuthenticationPrincipal jwt: Jwt,
+    ): AktivtForslagResponse = opprettForslag(
+        deltakerId = deltakerId,
+        request = request,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/{forslagId}/tilbakekall")
     fun tilbakekall(
         @PathVariable deltakerId: UUID,
         @PathVariable forslagId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
-        tilgangskontrollService.medTilgangTilAnsattOgDeltaker(deltakerId) { ansatt, _, _ ->
-            forslagService.tilbakekall(forslagId, ansatt)
+        tilgangskontrollService.medTilgangTilAnsattOgDeltaker(
+            deltakerId = deltakerId,
+            personIdent = jwt.personIdent(),
+        ) { ansatt, _, _ ->
+            forslagService.tilbakekall(
+                id = forslagId,
+                ansatt = ansatt,
+            )
         }
     }
 
     private fun opprettForslag(
         deltakerId: UUID,
         request: ForslagRequest,
-    ) = tilgangskontrollService.medTilgangTilAnsattOgDeltaker(deltakerId) { ansatt, deltaker, _ ->
+        personIdent: String,
+    ) = tilgangskontrollService.medTilgangTilAnsattOgDeltaker(
+        deltakerId = deltakerId,
+        personIdent = personIdent,
+    ) { ansatt, deltaker, _ ->
         val forslag = forslagService.opprettForslag(
-            request,
-            ansatt,
-            deltaker,
+            request = request,
+            ansatt = ansatt,
+            deltaker = deltaker,
         )
         forslag.tilAktivtForslagResponse()
     }
