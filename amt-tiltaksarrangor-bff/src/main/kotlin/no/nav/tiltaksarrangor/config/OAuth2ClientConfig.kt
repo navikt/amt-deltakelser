@@ -31,6 +31,8 @@ import java.time.Instant
  */
 @Configuration(proxyBeanMethods = false)
 class OAuth2ClientConfig {
+    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+
     /**
      * Oppretter en [OAuth2AuthorizedClientManager] med støtte for både `client_credentials` og
      * `token_exchange`.
@@ -99,6 +101,17 @@ class OAuth2ClientConfig {
                 ?: throw IllegalArgumentException(
                     "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
                 )
+
+            log.info(
+                "TokenX token exchange: registrationId={}, audience={}, " +
+                    "subjectTokenPresent={}, actorTokenPresent={}, subjectTokenIssuedAt={}, subjectTokenExpiresAt={}",
+                grantRequest.clientRegistration.registrationId,
+                audience,
+                grantRequest.subjectToken != null,
+                grantRequest.actorToken != null,
+                grantRequest.subjectToken.issuedAt,
+                grantRequest.subjectToken.expiresAt,
+            )
 
             LinkedMultiValueMap<String, String>().apply {
                 add("audience", audience)
