@@ -37,6 +37,8 @@ class OAuth2ClientConfig(
     @Value($$"${app.auth.tokenx.use-texas-token-exchange}")
     private val useTexasTokenExchange: Boolean,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+
     /**
      * Oppretter en [OAuth2AuthorizedClientManager] med støtte for både `client_credentials` og
      * `token_exchange`.
@@ -77,17 +79,29 @@ class OAuth2ClientConfig(
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     private fun tokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> = if (useTexasTokenExchange) {
+        log.debug("TokenX token exchange mode=texas")
         texasTokenExchangeResponseClient()
     } else {
+        log.debug("TokenX token exchange mode=legacy")
         legacyTokenExchangeResponseClient()
     }
 
     private fun texasTokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
         OAuth2AccessTokenResponseClient { grantRequest ->
             val audience = grantRequest.getAudienceOrThrow()
+            log.debug(
+                "TokenX token exchange via texas: registrationId={}, audience={}",
+                grantRequest.clientRegistration.registrationId,
+                audience,
+            )
             val tokenResponse = texasTokenExchangeClient.exchangeToken(
                 userToken = grantRequest.subjectToken.tokenValue,
                 target = audience,
+            )
+            log.debug(
+                "TokenX token exchange via texas succeeded: registrationId={}, expiresIn={}",
+                grantRequest.clientRegistration.registrationId,
+                tokenResponse.expiresIn,
             )
 
             OAuth2AccessTokenResponse
@@ -109,6 +123,11 @@ class OAuth2ClientConfig(
 
             addParametersConverter { grantRequest ->
                 val audience = grantRequest.getAudienceOrThrow()
+                log.debug(
+                    "TokenX token exchange via legacy: registrationId={}, audience={}",
+                    grantRequest.clientRegistration.registrationId,
+                    audience,
+                )
                 val jwtParameters = jwtConverter.convert(grantRequest)
                     ?: throw IllegalArgumentException(
                         "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
