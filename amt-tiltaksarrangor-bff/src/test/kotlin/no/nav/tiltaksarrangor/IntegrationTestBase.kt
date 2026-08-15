@@ -3,10 +3,10 @@ package no.nav.tiltaksarrangor
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import no.nav.amt.lib.kafka.Producer
+import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
-import no.nav.tiltaksarrangor.service.TexasTokenExchangeClient
 import no.nav.tiltaksarrangor.unleash.UnleashTestConfiguration
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired

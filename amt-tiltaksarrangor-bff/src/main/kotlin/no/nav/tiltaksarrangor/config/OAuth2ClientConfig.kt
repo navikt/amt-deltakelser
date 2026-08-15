@@ -1,7 +1,7 @@
 package no.nav.tiltaksarrangor.config
 
 import com.nimbusds.jose.jwk.JWK
-import no.nav.tiltaksarrangor.service.TexasTokenExchangeClient
+import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

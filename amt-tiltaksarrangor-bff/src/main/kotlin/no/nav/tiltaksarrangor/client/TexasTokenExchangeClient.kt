@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.service
+package no.nav.tiltaksarrangor.client
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value

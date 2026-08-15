@@ -7,7 +7,7 @@ import io.kotest.matchers.string.shouldNotBeBlank
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.tiltaksarrangor.service.TexasTokenExchangeClient
+import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.oauth2.client.endpoint.AbstractRestClientOAuth2AccessTokenResponseClient
