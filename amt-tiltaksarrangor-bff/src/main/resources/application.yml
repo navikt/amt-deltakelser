@@ -1,8 +1,3 @@
-logging:
-  level:
-    no.nav.tiltaksarrangor.config.OAuth2ClientConfig: DEBUG
-    org.springframework.security.oauth2.client: DEBUG
-
 spring:
   main:
     banner-mode: off
