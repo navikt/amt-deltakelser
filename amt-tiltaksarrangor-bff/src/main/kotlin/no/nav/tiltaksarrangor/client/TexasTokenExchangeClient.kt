@@ -1,6 +1,5 @@
 package no.nav.tiltaksarrangor.client
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException
@@ -9,6 +8,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.requiredBody
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.annotation.JsonNaming
 
 @Service
 class TexasTokenExchangeClient(
@@ -43,21 +44,17 @@ class TexasTokenExchangeClient(
         )
     }
 
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     private data class TokenExchangeRequest(
-        @param:JsonProperty("identity_provider")
         val identityProvider: String,
-        @param:JsonProperty("target")
         val target: String,
-        @param:JsonProperty("user_token")
         val userToken: String,
-        @param:JsonProperty("skip_cache")
         val skipCache: Boolean,
     )
 
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     data class TexasTokenExchangeResult(
-        @param:JsonProperty("access_token")
         val accessToken: String,
-        @param:JsonProperty("expires_in")
         val expiresIn: Long,
     )
 
