@@ -3,8 +3,11 @@ package no.nav.tiltaksarrangor.client
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
+import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.requiredBody
 
 @Service
@@ -19,19 +22,26 @@ class TexasTokenExchangeClient(
         userToken: String,
         target: String,
         skipCache: Boolean = false,
-    ): TexasTokenExchangeResult = restClient
-        .post()
-        .uri(tokenExchangeEndpoint)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-            TokenExchangeRequest(
-                identityProvider = TOKENX_IDENTITY_PROVIDER,
-                target = target,
-                userToken = userToken,
-                skipCache = skipCache,
-            ),
-        ).retrieve()
-        .requiredBody()
+    ): TexasTokenExchangeResult = try {
+        restClient
+            .post()
+            .uri(tokenExchangeEndpoint)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                TokenExchangeRequest(
+                    identityProvider = TOKENX_IDENTITY_PROVIDER,
+                    target = target,
+                    userToken = userToken,
+                    skipCache = skipCache,
+                ),
+            ).retrieve()
+            .requiredBody()
+    } catch (e: RestClientException) {
+        throw OAuth2AuthorizationException(
+            OAuth2Error("invalid_token_response"),
+            e,
+        )
+    }
 
     private data class TokenExchangeRequest(
         @param:JsonProperty("identity_provider")
