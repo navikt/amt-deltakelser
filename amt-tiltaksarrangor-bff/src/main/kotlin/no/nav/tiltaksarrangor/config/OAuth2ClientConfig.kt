@@ -102,21 +102,14 @@ class OAuth2ClientConfig {
                     "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
                 )
 
-            log.info(
-                "TokenX token exchange: registrationId={}, audience={}, " +
-                    "subjectTokenPresent={}, actorTokenPresent={}, subjectTokenIssuedAt={}, subjectTokenExpiresAt={}",
-                grantRequest.clientRegistration.registrationId,
-                audience,
-                grantRequest.subjectToken != null,
-                grantRequest.actorToken != null,
-                grantRequest.subjectToken.issuedAt,
-                grantRequest.subjectToken.expiresAt,
-            )
-
-            LinkedMultiValueMap<String, String>().apply {
-                add("audience", audience)
-                addAll(jwtParameters)
-            }
+            LinkedMultiValueMap<String, String>()
+                .apply {
+                    add("audience", audience)
+                    addAll(jwtParameters)
+                }.also {
+                    // TODO: Fjernes
+                    log.debug("TokenX token exchange: parameters={}", it)
+                }
         }
     }
 }
