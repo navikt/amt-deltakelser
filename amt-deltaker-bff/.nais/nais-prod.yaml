@@ -25,11 +25,10 @@ spec:
     path: /internal/health/liveness
 
   replicas:
-    min: 2
-    max: 3
-    scalingStrategy:
-      cpu:
-        thresholdPercentage: 200
+    disableAutoScaling: true
+    min: 0
+    max: 0
+
   resources:
     requests:
       cpu: 30m
@@ -116,13 +115,6 @@ spec:
         pointInTimeRecovery: true
         insights:
           enabled: true
-        flags:
-          - name: "cloudsql.enable_pgaudit"
-            value: "on"
-          - name: "pgaudit.log"
-            value: "write,ddl,role"
-          - name: "pgaudit.log_parameter"
-            value: "on"
 
   observability:
       autoInstrumentation:
