@@ -39,9 +39,11 @@ spec:
     timeout: 3
 
   replicas:
-    disableAutoScaling: true
-    min: 0
-    max: 0
+    min: 2
+    max: 3
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 300
 
   resources:
     requests:
