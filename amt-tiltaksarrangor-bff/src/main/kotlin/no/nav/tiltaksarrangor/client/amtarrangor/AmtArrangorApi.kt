@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.client.amtarrangor
 
+import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import org.springframework.http.ResponseEntity
@@ -13,7 +14,7 @@ import org.springframework.web.service.annotation.PostExchange
 import java.util.UUID
 
 @HttpExchange
-@ClientRegistrationId("amt-arrangor-tokenx")
+@ClientRegistrationId(AMT_ARRANGOR_TOKENX_CLIENT_ID)
 interface AmtArrangorApi {
     @GetExchange("/api/ansatt")
     fun getAnsatt(): ResponseEntity<AnsattDto>

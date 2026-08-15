@@ -7,6 +7,7 @@ import io.kotest.matchers.string.shouldNotBeBlank
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
 import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
@@ -104,7 +105,7 @@ class OAuth2ClientConfigTest {
 
     private fun tokenExchangeGrantRequest(scopes: Set<String>): TokenExchangeGrantRequest {
         val clientRegistrationBuilder = ClientRegistration
-            .withRegistrationId("amt-arrangor-tokenx")
+            .withRegistrationId(AMT_ARRANGOR_TOKENX_CLIENT_ID)
             .clientId("test-client")
             .clientSecret(readJwk())
             .clientAuthenticationMethod(ClientAuthenticationMethod.PRIVATE_KEY_JWT)

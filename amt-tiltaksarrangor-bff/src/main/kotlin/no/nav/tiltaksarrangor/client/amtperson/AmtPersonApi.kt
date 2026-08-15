@@ -1,6 +1,7 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.tiltaksarrangor.client.AMT_PERSON_AAD_CLIENT_ID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.PathVariable
@@ -11,7 +12,7 @@ import org.springframework.web.service.annotation.PostExchange
 import java.util.UUID
 
 @HttpExchange
-@ClientRegistrationId("amt-person-aad")
+@ClientRegistrationId(AMT_PERSON_AAD_CLIENT_ID)
 interface AmtPersonApi {
     @GetExchange("/api/nav-enhet/{id}")
     fun hentEnhet(
