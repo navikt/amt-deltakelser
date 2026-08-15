@@ -101,6 +101,9 @@ app:
   env:
     unleashUrl: ${UNLEASH_SERVER_API_URL}/api
     unleashApiToken: ${UNLEASH_SERVER_API_TOKEN}
+  auth:
+    tokenx:
+      use-texas-token-exchange: ${USE_TEXAS_TOKEN_EXCHANGE:true}
 
 kafka:
   auto-offset-reset: earliest

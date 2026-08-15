@@ -1,6 +1,8 @@
 package no.nav.tiltaksarrangor.config
 
 import com.nimbusds.jose.jwk.JWK
+import no.nav.tiltaksarrangor.service.TexasTokenExchangeClient
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
@@ -10,10 +12,13 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.TokenExchangeOAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.RestClientTokenExchangeTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.TokenExchangeGrantRequest
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.client.support.OAuth2RestClientHttpServiceGroupConfigurer
+import org.springframework.security.oauth2.core.OAuth2AccessToken
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse
 import org.springframework.util.LinkedMultiValueMap
 import java.time.Instant
 
@@ -24,13 +29,14 @@ import java.time.Instant
  * - `client_credentials` for maskin-til-maskin-kall uten brukerkontekst
  * - TokenX (`token_exchange`) for videresending av brukerkontekst mot downstream-tjenester
  *
- * For TokenX token exchange forventes det at hver `ClientRegistration` har nøyaktig ett scope, og at
- * dette scopet representerer audience som skal sendes til token-endepunktet.
- *
- * `clientSecret` tolkes som JWK for klientassertion (private_key_jwt).
+ * TokenX token exchange kan kjøres enten via Texas eller legacy token-endepunkt.
  */
 @Configuration(proxyBeanMethods = false)
-class OAuth2ClientConfig {
+class OAuth2ClientConfig(
+    private val texasTokenExchangeClient: TexasTokenExchangeClient,
+    @Value($$"${app.auth.tokenx.use-texas-token-exchange}")
+    private val useTexasTokenExchange: Boolean,
+) {
     /**
      * Oppretter en [OAuth2AuthorizedClientManager] med støtte for både `client_credentials` og
      * `token_exchange`.
@@ -70,41 +76,54 @@ class OAuth2ClientConfig {
     @Bean
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
-    /**
-     * Lager token response-klient for TokenX token exchange.
-     *
-     * Legger til:
-     * - `audience`-parameter basert på scope i client registration
-     * - signert klientassertion (private_key_jwt) med eksplisitt `nbf`-claim
-     *
-     * @return [RestClientTokenExchangeTokenResponseClient] konfigurert for token exchange.
-     */
-    private fun tokenExchangeResponseClient() = RestClientTokenExchangeTokenResponseClient().apply {
-        val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
-            JWK.parse(registration.clientSecret)
-        }.apply {
-            setJwtClientAssertionCustomizer {
-                // Token-endepunktet krever `nbf`; vi setter den litt tilbake i tid for å tåle små klokkeskjevheter.
-                it.claims.notBefore(Instant.now().minusSeconds(5))
+    private fun tokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> = if (useTexasTokenExchange) {
+        texasTokenExchangeResponseClient()
+    } else {
+        legacyTokenExchangeResponseClient()
+    }
+
+    private fun texasTokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
+        OAuth2AccessTokenResponseClient { grantRequest ->
+            val audience = grantRequest.getAudienceOrThrow()
+            val tokenResponse = texasTokenExchangeClient.exchangeToken(
+                userToken = grantRequest.subjectToken.tokenValue,
+                target = audience,
+            )
+
+            OAuth2AccessTokenResponse
+                .withToken(tokenResponse.accessToken)
+                .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                .expiresIn(tokenResponse.expiresIn)
+                .build()
+        }
+
+    private fun legacyTokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
+        RestClientTokenExchangeTokenResponseClient().apply {
+            val jwtConverter = NimbusJwtClientAuthenticationParametersConverter<TokenExchangeGrantRequest> { registration ->
+                JWK.parse(registration.clientSecret)
+            }.apply {
+                setJwtClientAssertionCustomizer {
+                    it.claims.notBefore(Instant.now().minusSeconds(5))
+                }
+            }
+
+            addParametersConverter { grantRequest ->
+                val audience = grantRequest.getAudienceOrThrow()
+                val jwtParameters = jwtConverter.convert(grantRequest)
+                    ?: throw IllegalArgumentException(
+                        "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
+                    )
+
+                LinkedMultiValueMap<String, String>()
+                    .apply {
+                        add("audience", audience)
+                        addAll(jwtParameters)
+                    }
             }
         }
 
-        addParametersConverter { grantRequest ->
-            val audience = grantRequest.clientRegistration.scopes.singleOrNull()
-                ?: throw IllegalArgumentException(
-                    "Expected exactly one scope for token exchange audience in client registration '${grantRequest.clientRegistration.registrationId}'",
-                )
-
-            val jwtParameters = jwtConverter.convert(grantRequest)
-                ?: throw IllegalArgumentException(
-                    "Could not create client assertion for '${grantRequest.clientRegistration.registrationId}'",
-                )
-
-            LinkedMultiValueMap<String, String>()
-                .apply {
-                    add("audience", audience)
-                    addAll(jwtParameters)
-                }
-        }
-    }
+    private fun TokenExchangeGrantRequest.getAudienceOrThrow(): String = this.clientRegistration.scopes.singleOrNull()
+        ?: throw IllegalArgumentException(
+            "Expected exactly one scope for token exchange audience in client registration '${this.clientRegistration.registrationId}'",
+        )
 }

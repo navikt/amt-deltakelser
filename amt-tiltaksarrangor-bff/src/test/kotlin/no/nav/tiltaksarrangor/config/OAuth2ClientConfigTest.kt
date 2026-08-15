@@ -4,9 +4,14 @@ import com.nimbusds.jwt.SignedJWT
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import no.nav.tiltaksarrangor.service.TexasTokenExchangeClient
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.oauth2.client.endpoint.AbstractRestClientOAuth2AccessTokenResponseClient
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.RestClientTokenExchangeTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.TokenExchangeGrantRequest
 import org.springframework.security.oauth2.client.registration.ClientRegistration
@@ -17,69 +22,84 @@ import org.springframework.util.MultiValueMap
 import java.time.Instant
 
 class OAuth2ClientConfigTest {
-    private val config = OAuth2ClientConfig()
+    private val texasTokenExchangeClient = mockk<TexasTokenExchangeClient>()
 
     @Test
-    fun `skal sette audience og client assertion ved token exchange`() {
-        // Arrange
-        val grantRequest = tokenExchangeGrantRequest(scopes = setOf("dev-gcp:amt:downstream"))
+    fun `skal hente token via texas ved token exchange nar toggle er pa`() {
+        val config = OAuth2ClientConfig(texasTokenExchangeClient, true)
+        every {
+            texasTokenExchangeClient.exchangeToken(
+                userToken = "subject-token",
+                target = "dev-gcp:amt:downstream",
+                skipCache = false,
+            )
+        } returns TexasTokenExchangeClient.TexasTokenExchangeResult(accessToken = "obo-token", expiresIn = 3599)
 
-        // Act
-        val parameters = requireNotNull(tokenExchangeParametersConverter().convert(grantRequest))
+        val response = tokenExchangeResponseClient(config).getTokenResponse(
+            tokenExchangeGrantRequest(scopes = setOf("dev-gcp:amt:downstream")),
+        )
 
-        // Assert
-        parameters.getFirst("audience") shouldBe "dev-gcp:amt:downstream"
-        val clientAssertion = parameters.getFirst("client_assertion")
-        clientAssertion.shouldNotBeBlank()
-        parameters.getFirst("client_assertion_type") shouldBe "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+        response.accessToken.tokenValue shouldBe "obo-token"
+        verify {
+            texasTokenExchangeClient.exchangeToken(
+                userToken = "subject-token",
+                target = "dev-gcp:amt:downstream",
+                skipCache = false,
+            )
+        }
     }
 
     @Test
-    fun `skal sette not before fem sekunder bak issued at i client assertion`() {
-        // Arrange
-        val grantRequest = tokenExchangeGrantRequest(scopes = setOf("dev-gcp:amt:downstream"))
-
-        // Act
-        val parameters = requireNotNull(tokenExchangeParametersConverter().convert(grantRequest))
-        val jwt = SignedJWT.parse(parameters.getFirst("client_assertion"))
+    fun `skal bruke legacy token exchange nar toggle er av`() {
+        val config = OAuth2ClientConfig(texasTokenExchangeClient, false)
+        val parameters = requireNotNull(
+            legacyTokenExchangeParametersConverter(config).convert(
+                tokenExchangeGrantRequest(scopes = setOf("dev-gcp:amt:downstream")),
+            ),
+        )
+        val clientAssertion = parameters.getFirst("client_assertion")
+        clientAssertion.shouldNotBeBlank()
+        val jwt = SignedJWT.parse(clientAssertion)
         val nbf = jwt.jwtClaimsSet.notBeforeTime.toInstant()
         val iat = jwt.jwtClaimsSet.issueTime.toInstant()
+        parameters.getFirst("audience") shouldBe "dev-gcp:amt:downstream"
 
-        // Assert
         nbf.plusSeconds(4).isBefore(iat) shouldBe true
     }
 
     @Test
     fun `skal feile nar token exchange klient ikke har nøyaktig ett scope`() {
-        // Arrange
+        val config = OAuth2ClientConfig(texasTokenExchangeClient, true)
         val withoutScope = tokenExchangeGrantRequest(scopes = emptySet())
         val withMultipleScopes = tokenExchangeGrantRequest(scopes = setOf("scope-a", "scope-b"))
         val expectedMessage =
             "Expected exactly one scope for token exchange audience in client registration 'amt-arrangor-tokenx'"
 
-        // Act + Assert
         shouldThrow<IllegalArgumentException> {
-            tokenExchangeParametersConverter().convert(withoutScope)
+            tokenExchangeResponseClient(config).getTokenResponse(withoutScope)
         }.message shouldBe expectedMessage
 
         shouldThrow<IllegalArgumentException> {
-            tokenExchangeParametersConverter().convert(withMultipleScopes)
+            tokenExchangeResponseClient(config).getTokenResponse(withMultipleScopes)
         }.message shouldBe expectedMessage
     }
 
-    private fun tokenExchangeParametersConverter(): Converter<TokenExchangeGrantRequest, MultiValueMap<String, String>> {
-        val responseClient = tokenExchangeResponseClient()
+    @Suppress("UNCHECKED_CAST")
+    private fun tokenExchangeResponseClient(config: OAuth2ClientConfig): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> {
+        val method = OAuth2ClientConfig::class.java.getDeclaredMethod("tokenExchangeResponseClient")
+        method.isAccessible = true
+        return method.invoke(config) as OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest>
+    }
+
+    private fun legacyTokenExchangeParametersConverter(
+        config: OAuth2ClientConfig,
+    ): Converter<TokenExchangeGrantRequest, MultiValueMap<String, String>> {
+        val responseClient = tokenExchangeResponseClient(config) as RestClientTokenExchangeTokenResponseClient
         val field = AbstractRestClientOAuth2AccessTokenResponseClient::class.java.getDeclaredField("parametersConverter")
         field.isAccessible = true
 
         @Suppress("UNCHECKED_CAST")
         return field.get(responseClient) as Converter<TokenExchangeGrantRequest, MultiValueMap<String, String>>
-    }
-
-    private fun tokenExchangeResponseClient(): RestClientTokenExchangeTokenResponseClient {
-        val method = OAuth2ClientConfig::class.java.getDeclaredMethod("tokenExchangeResponseClient")
-        method.isAccessible = true
-        return method.invoke(config) as RestClientTokenExchangeTokenResponseClient
     }
 
     private fun tokenExchangeGrantRequest(scopes: Set<String>): TokenExchangeGrantRequest {
