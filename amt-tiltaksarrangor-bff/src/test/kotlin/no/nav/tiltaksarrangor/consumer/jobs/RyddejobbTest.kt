@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.jobs.leaderelection.LeaderElection
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
@@ -24,7 +24,7 @@ class RyddejobbTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val ryddejobb: Ryddejobb,
     @MockkBean private val leaderElection: LeaderElection,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @BeforeEach
     fun setUp() {
         every { leaderElection.isLeader() } returns true

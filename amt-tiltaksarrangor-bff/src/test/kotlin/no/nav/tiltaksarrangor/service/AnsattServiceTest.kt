@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
@@ -29,7 +29,7 @@ class AnsattServiceTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val ansattService: AnsattService,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `oppdaterOgHentMineRoller - ansatt finnes ikke - lagres i database og returnerer riktige roller`() {
         val deltakerId = UUID.randomUUID()

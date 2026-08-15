@@ -1,10 +1,9 @@
 package no.nav.tiltaksarrangor.koordinator.api
 
-import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.tiltaksarrangor.koordinator.model.AdminDeltakerliste
 import no.nav.tiltaksarrangor.koordinator.service.DeltakerlisteAdminService
-import no.nav.tiltaksarrangor.service.TokenService
-import no.nav.tiltaksarrangor.utils.Issuer
+import no.nav.tiltaksarrangor.utils.personIdent
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,30 +14,31 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator/admin")
-@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class DeltakerlisteAdminApi(
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
-    private val tokenService: TokenService,
 ) {
     @GetMapping("/deltakerlister")
-    fun getAlleDeltakerlister(): List<AdminDeltakerliste> {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return deltakerlisteAdminService.getAlleDeltakerlister(personIdent)
-    }
+    fun getAlleDeltakerlister(
+        @AuthenticationPrincipal jwt: Jwt,
+    ) = deltakerlisteAdminService.getAlleDeltakerlister(
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/deltakerliste/{deltakerlisteId}")
     fun leggTilDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
-    ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return deltakerlisteAdminService.leggTilDeltakerliste(deltakerlisteId, personIdent)
-    }
+        @AuthenticationPrincipal jwt: Jwt,
+    ) = deltakerlisteAdminService.leggTilDeltakerliste(
+        deltakerlisteId = deltakerlisteId,
+        personIdent = jwt.personIdent(),
+    )
 
     @DeleteMapping("/deltakerliste/{deltakerlisteId}")
     fun fjernDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
-    ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return deltakerlisteAdminService.fjernDeltakerliste(deltakerlisteId, personIdent)
-    }
+        @AuthenticationPrincipal jwt: Jwt,
+    ) = deltakerlisteAdminService.fjernDeltakerliste(
+        deltakerlisteId = deltakerlisteId,
+        personIdent = jwt.personIdent(),
+    )
 }

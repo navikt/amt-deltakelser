@@ -1,14 +1,15 @@
 package no.nav.amt.aktivitetskort.client
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.person.service.clients.AMT_ARRANGOR_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -17,10 +18,9 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import java.util.UUID
 
 @RestClientTest(AmtArrangorClient::class)
-@TestPropertySource(properties = ["amt.arrangor.url=http://arrangor"])
 class AmtArrangorClientTest(
-    private val sut: AmtArrangorClient,
-) : RestClientTestBase() {
+    @Autowired private val sut: AmtArrangorClient,
+) : RestClientTestBase(AMT_ARRANGOR_CLIENT_ID) {
     @Test
     fun `hentArrangor - arrangor finnes - parser response og returnerer arrangor`() {
         val arrangorId = UUID.randomUUID()
@@ -28,9 +28,9 @@ class AmtArrangorClientTest(
         val orgnummer = "123456789"
 
         server
-            .expect(requestTo("http://arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-token"))
             .andRespond(
                 withSuccess(
                     """{
@@ -57,11 +57,30 @@ class AmtArrangorClientTest(
     }
 
     @Test
+    fun `hentArrangor - skal sende Nav-Consumer-Id og Accept-header`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(header("Nav-Consumer-Id", "amt-aktivitetskort-publisher"))
+            .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+            .andRespond(
+                withSuccess(
+                    """{"id":"$arrangorId","navn":"Test","organisasjonsnummer":"123","overordnetArrangor":null}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        sut.hentArrangor(arrangorId)
+        server.verify()
+    }
+
+    @Test
     fun `hentArrangor - arrangor finnes ikke - kaster RuntimeException`() {
         server
-            .expect(requestTo("http://arrangor/api/service/arrangor/organisasjonsnummer/foo"))
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         assertThrows<RuntimeException> {
@@ -74,9 +93,8 @@ class AmtArrangorClientTest(
         val arrangorId = UUID.randomUUID()
 
         server
-            .expect(requestTo("http://arrangor/api/service/arrangor/$arrangorId"))
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(
                 withSuccess(
                     """{

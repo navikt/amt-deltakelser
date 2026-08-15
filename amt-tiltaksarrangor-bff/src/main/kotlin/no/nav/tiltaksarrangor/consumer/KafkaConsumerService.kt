@@ -10,7 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
+import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.getGjennomforingstypeFromDeltakerJsonPayload
 import no.nav.tiltaksarrangor.consumer.model.AVSLUTTENDE_STATUSER
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
@@ -408,7 +408,7 @@ class KafkaConsumerService(
     @Transactional
     fun lagreNavEnhet(
         id: UUID,
-        enhet: NavEnhetDto,
+        enhet: NavEnhetResponse,
     ) {
         val opprinneligEnhet = navEnhetService.hentEnhet(id)
         if (opprinneligEnhet != null && opprinneligEnhet.navn != enhet.navn) {
@@ -424,7 +424,7 @@ class KafkaConsumerService(
     }
 }
 
-private fun NavEnhetDto.toModel() = NavEnhet(
+private fun NavEnhetResponse.toModel() = NavEnhet(
     id = id,
     enhetsnummer = enhetId,
     navn = navn,

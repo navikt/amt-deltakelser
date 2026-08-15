@@ -1,0 +1,19 @@
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration
+
+management:
+  server:
+    port: 0
+  endpoint:
+    health:
+      show-details: always
+
+kafka:
+  enabled: false
+
+veilederurl:
+  basepath: https://intern.veileder
+
+deltakerurl:
+  basepath: https://ekstern.deltaker

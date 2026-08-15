@@ -3,7 +3,7 @@ package no.nav.tiltaksarrangor.client.amtperson
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import java.util.UUID
 
-data class NavEnhetDto(
+data class NavEnhetResponse(
     val id: UUID,
     val enhetId: String,
     val navn: String,

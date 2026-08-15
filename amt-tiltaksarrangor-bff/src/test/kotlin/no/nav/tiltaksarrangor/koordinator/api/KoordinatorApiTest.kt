@@ -12,7 +12,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AdresseJsonDbo
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
@@ -50,7 +50,7 @@ class KoordinatorApiTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val arrangorRepository: ArrangorRepository,
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Nested
     inner class GetMineDeltakerlistersTests {
         @Test

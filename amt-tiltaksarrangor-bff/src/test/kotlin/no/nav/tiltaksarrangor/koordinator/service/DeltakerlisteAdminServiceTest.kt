@@ -12,7 +12,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
@@ -35,7 +35,7 @@ class DeltakerlisteAdminServiceTest(
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteAdminService: DeltakerlisteAdminService,
     @MockkBean(relaxed = true) private val metricsService: MetricsService,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `getAlleDeltakerlister - ansatt er ikke koordinator - returnerer unauthorized`() {
         val personIdent = "12345678910"

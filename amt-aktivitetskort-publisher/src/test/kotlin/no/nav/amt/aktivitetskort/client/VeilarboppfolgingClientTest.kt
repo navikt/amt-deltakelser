@@ -6,15 +6,16 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
+import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -26,10 +27,9 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 @RestClientTest(VeilarboppfolgingClient::class)
-@TestPropertySource(properties = ["veilarboppfolging.url=http://veilarboppfolging"])
 class VeilarboppfolgingClientTest(
-    private val sut: VeilarboppfolgingClient,
-) : RestClientTestBase() {
+    @Autowired private val sut: VeilarboppfolgingClient,
+) : RestClientTestBase(VEILARBOPPFOLGING_CLIENT_ID) {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `hentOppfolgingperiode - returnerer gyldig oppfolgingsperiode`(useEndDate: Boolean) {
@@ -49,7 +49,7 @@ class VeilarboppfolgingClientTest(
         server
             .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer veilarboppfolging-token"))
             .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON))
 
         val oppfolgingsperiode = sut.hentOppfolgingperiode("123456789")
@@ -71,7 +71,6 @@ class VeilarboppfolgingClientTest(
         server
             .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withNoContent())
 
         val result = sut.hentOppfolgingperiode("12345678910")
@@ -84,7 +83,6 @@ class VeilarboppfolgingClientTest(
         server
             .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer $TOKEN_IN_TEST"))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
         val thrown = shouldThrow<RuntimeException> {

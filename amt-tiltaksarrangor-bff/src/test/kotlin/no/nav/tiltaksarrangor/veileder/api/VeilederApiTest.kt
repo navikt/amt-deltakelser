@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AdresseJsonDbo
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.model.Veiledertype
@@ -36,7 +36,7 @@ class VeilederApiTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `getMineDeltakere - ikke autentisert - returnerer 401`() {
         mockMvc

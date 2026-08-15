@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.amt.aktivitetskort.IntegrationTest
+import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.database.TestData.toDto
@@ -36,7 +36,7 @@ class KafkaConsumerTest(
     private val deltakerRepository: DeltakerRepository,
     private val meldingRepository: MeldingRepository,
     private val kafkaConsumer: KafkaConsumer,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     private val offset: Long = 0
     private val ack: Acknowledgment = mockk(relaxed = true)
 

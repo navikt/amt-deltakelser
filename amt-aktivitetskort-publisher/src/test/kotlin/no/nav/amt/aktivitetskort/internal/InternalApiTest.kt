@@ -5,7 +5,7 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
-import no.nav.amt.aktivitetskort.IntegrationTest
+import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import org.junit.jupiter.api.Test
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -15,10 +15,10 @@ import org.springframework.test.web.servlet.post
 import java.util.UUID
 
 @AutoConfigureMockMvc
-class InternalAPITest(
+class InternalApiTest(
     private val mockMvc: MockMvc,
     @MockkBean private val aktivitetskortProducer: AktivitetskortProducer,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `slettAktivitetskort - kall fra intern ip - kaller producer med riktige parametre`() {
         val aktivitetskortId = UUID.randomUUID()

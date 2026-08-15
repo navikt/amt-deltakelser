@@ -3,31 +3,34 @@ package no.nav.tiltaksarrangor
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import no.nav.amt.lib.kafka.Producer
-import no.nav.security.mock.oauth2.MockOAuth2Server
-import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
-import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
 import no.nav.tiltaksarrangor.unleash.UnleashTestConfiguration
-import no.nav.tiltaksarrangor.utils.Issuer
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
+import org.springframework.security.oauth2.jwt.JwtClaimsSet
+import org.springframework.security.oauth2.jwt.JwtEncoder
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters
 import tools.jackson.databind.ObjectMapper
+import java.time.Instant
 import java.util.UUID
 
-@EnableMockOAuth2Server
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(UnleashTestConfiguration::class)
-abstract class IntegrationTest : RepositoryTestBase() {
+@Import(UnleashTestConfiguration::class, TestJwtConfig::class)
+abstract class IntegrationTestBase : RepositoryTestBase() {
     @Autowired
-    protected lateinit var mockOAuth2Server: MockOAuth2Server
+    protected lateinit var jwtEncoder: JwtEncoder
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
+
+    @MockkBean
+    protected lateinit var texasTokenExchangeClient: TexasTokenExchangeClient
 
     @MockkBean
     protected lateinit var amtArrangorClient: AmtArrangorClient
@@ -52,24 +55,21 @@ abstract class IntegrationTest : RepositoryTestBase() {
     fun getTokenxToken(
         fnr: String,
         audience: String = "amt-tiltaksarrangor-bff-client-id",
-        issuerId: String = Issuer.TOKEN_X,
         clientId: String = "amt-tiltaksarrangor-flate",
-        claims: Map<String, Any> = mapOf(
-            "acr" to "Level4",
-            "idp" to "idporten",
-            "client_id" to clientId,
-            "pid" to fnr,
-        ),
-    ): String = mockOAuth2Server
-        .issueToken(
-            issuerId,
-            clientId,
-            DefaultOAuth2TokenCallback(
-                issuerId = issuerId,
-                subject = UUID.randomUUID().toString(),
-                audience = listOf(audience),
-                claims = claims,
-                expiry = 3600,
-            ),
-        ).serialize()
+    ): String {
+        val claims = JwtClaimsSet
+            .builder()
+            .issuer("http://localhost:9999/tokenx")
+            .subject(UUID.randomUUID().toString())
+            .audience(listOf(audience))
+            .claim("acr", "Level4")
+            .claim("idp", "idporten")
+            .claim("client_id", clientId)
+            .claim("pid", fnr)
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(3600))
+            .build()
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).tokenValue
+    }
 }

@@ -16,48 +16,42 @@ import org.springframework.web.util.UriComponentsBuilder
 class ActuatorTest(
     @LocalManagementPort private val managementPort: Int,
     private val restTemplate: TestRestTemplate,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
     @ValueSource(strings = ["liveness", "readiness"])
     fun probe_skal_returnere_OK_og_status_UP(probeName: String) {
-        val uri =
-            UriComponentsBuilder
-                .fromUriString("http://localhost:{port}/internal/health/{probeName}")
-                .buildAndExpand(managementPort, probeName)
-                .toUri()
+        val uri = UriComponentsBuilder
+            .fromUriString("http://localhost:{port}/actuator/health/{probeName}")
+            .buildAndExpand(managementPort, probeName)
+            .toUri()
 
         val response = restTemplate.getForEntity<String>(uri)
 
-        assertSoftly(response) {
-            statusCode shouldBe HttpStatus.OK
-            body shouldBe "{\"status\":\"UP\"}"
+        response.statusCode shouldBe HttpStatus.OK
+
+        val body = objectMapper.readTree(response.body)
+
+        assertSoftly {
+            body["status"].asString() shouldBe "UP"
+
+            if (probeName == "readiness") {
+                body["components"]["readinessState"]["status"].asString() shouldBe "UP"
+                body["components"]["db"]["status"].asString() shouldBe "UP"
+            } else {
+                body["components"]["livenessState"]["status"].asString() shouldBe "UP"
+            }
         }
     }
 
     @Test
     fun `Prometheus-endepunktet skal returnere OK`() {
-        val uri =
-            UriComponentsBuilder
-                .fromUriString("http://localhost:{port}/internal/prometheus")
-                .buildAndExpand(managementPort)
-                .toUri()
+        val uri = UriComponentsBuilder
+            .fromUriString("http://localhost:{port}/actuator/prometheus")
+            .buildAndExpand(managementPort)
+            .toUri()
 
         val response = restTemplate.getForEntity<String>(uri)
 
         response.statusCode shouldBe HttpStatus.OK
-    }
-
-    @Test
-    fun `Metrics-endepunktet skal returnere NOT_FOUND`() {
-        val uri =
-            UriComponentsBuilder
-                .fromUriString("http://localhost:{port}/internal/metrics")
-                .buildAndExpand(managementPort)
-                .toUri()
-
-        val response = restTemplate.getForEntity<String>(uri)
-
-        // GlobalExceptionHandler er satt opp til å gi INTERNAL_SERVER_ERROR for NOT_FOUND
-        response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
     }
 }

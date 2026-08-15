@@ -10,10 +10,10 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetDto
+import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -66,14 +66,14 @@ class KafkaConsumerTest(
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val kafkaConsumer: KafkaConsumer,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     private val ack = Acknowledgment { }
 
     @BeforeEach
     fun setup() {
         val enhetIdSlot = slot<UUID>()
         every { amtPersonClient.hentEnhet(capture(enhetIdSlot)) } answers {
-            NavEnhetDto(
+            NavEnhetResponse(
                 id = enhetIdSlot.captured,
                 enhetId = "0000",
                 navn = "Ukjent enhet",
