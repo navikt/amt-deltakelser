@@ -1,3 +1,7 @@
+logging:
+  level:
+    org.springframework.security.oauth2.client: DEBUG
+
 spring:
   main:
     banner-mode: off
