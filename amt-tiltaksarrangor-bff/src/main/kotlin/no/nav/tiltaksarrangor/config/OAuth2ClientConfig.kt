@@ -79,17 +79,17 @@ class OAuth2ClientConfig(
     fun oauth2Configurer(manager: OAuth2AuthorizedClientManager) = OAuth2RestClientHttpServiceGroupConfigurer.from(manager)
 
     private fun tokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> = if (useTexasTokenExchange) {
-        log.debug("TokenX token exchange mode=texas")
+        log.info("TokenX token exchange mode=texas")
         texasTokenExchangeResponseClient()
     } else {
-        log.debug("TokenX token exchange mode=legacy")
+        log.info("TokenX token exchange mode=legacy")
         legacyTokenExchangeResponseClient()
     }
 
     private fun texasTokenExchangeResponseClient(): OAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
         OAuth2AccessTokenResponseClient { grantRequest ->
             val audience = grantRequest.getAudienceOrThrow()
-            log.debug(
+            log.info(
                 "TokenX token exchange via texas: registrationId={}, audience={}",
                 grantRequest.clientRegistration.registrationId,
                 audience,
@@ -98,7 +98,7 @@ class OAuth2ClientConfig(
                 userToken = grantRequest.subjectToken.tokenValue,
                 target = audience,
             )
-            log.debug(
+            log.info(
                 "TokenX token exchange via texas succeeded: registrationId={}, expiresIn={}",
                 grantRequest.clientRegistration.registrationId,
                 tokenResponse.expiresIn,
@@ -123,7 +123,7 @@ class OAuth2ClientConfig(
 
             addParametersConverter { grantRequest ->
                 val audience = grantRequest.getAudienceOrThrow()
-                log.debug(
+                log.info(
                     "TokenX token exchange via legacy: registrationId={}, audience={}",
                     grantRequest.clientRegistration.registrationId,
                     audience,
