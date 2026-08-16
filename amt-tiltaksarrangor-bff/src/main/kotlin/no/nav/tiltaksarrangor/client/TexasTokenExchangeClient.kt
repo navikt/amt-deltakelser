@@ -5,6 +5,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -43,9 +44,14 @@ class TexasTokenExchangeClient(
             description = "Texas token exchange feilet. Status=${e.statusCode.value()}",
             cause = e,
         )
-    } catch (e: RestClientException) {
+    } catch (e: ResourceAccessException) {
         throw invalidTokenResponseException(
             description = "Texas token exchange feilet før HTTP-respons ble mottatt",
+            cause = e,
+        )
+    } catch (e: RestClientException) {
+        throw invalidTokenResponseException(
+            description = "Texas token exchange returnerte ugyldig respons",
             cause = e,
         )
     }

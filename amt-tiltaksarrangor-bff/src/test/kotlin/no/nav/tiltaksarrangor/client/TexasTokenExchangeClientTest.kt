@@ -125,4 +125,29 @@ class TexasTokenExchangeClientTest(
 
         server.verify()
     }
+
+    @Test
+    fun `exchangeToken - kaster OAuth2AuthorizationException ved ugyldig responsformat`() {
+        server
+            .expect(requestTo("http://texas-token-exchange"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(
+                withSuccess(
+                    "not-json",
+                    MediaType.TEXT_PLAIN,
+                ),
+            )
+
+        val exception = shouldThrow<OAuth2AuthorizationException> {
+            sut.exchangeToken(
+                userToken = "subject-token",
+                target = "dev-gcp:amt:downstream",
+            )
+        }
+
+        exception.error.errorCode shouldBe "invalid_token_response"
+        exception.error.description shouldBe "Texas token exchange returnerte ugyldig respons"
+
+        server.verify()
+    }
 }
