@@ -16,7 +16,7 @@ spring:
         base-url: ${AMT_ARRANGOR_URL:http://amt-arrangor}
       amt-arrangor-aad:
         base-url: ${AMT_ARRANGOR_URL:http://amt-arrangor}/api/service/arrangor/organisasjonsnummer
-      amt-person-aad:
+      amt-person-service:
         base-url: ${AMT_PERSON_URL:http://amt-person-service}
 
   security:
@@ -49,7 +49,7 @@ spring:
             scope:
               - ${AMT_ARRANGOR_AAD_CLIENT_ID}
 
-          amt-person-aad:
+          amt-person-service:
             provider: azuread
             client-id: ${AZURE_APP_CLIENT_ID}
             client-secret: ${AZURE_APP_CLIENT_SECRET}

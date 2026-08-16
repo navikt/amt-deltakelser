@@ -110,9 +110,12 @@ class KafkaConsumerService(
             leggTilNavAnsattOgEnhetHistorikk(deltakerPayload)
 
             if (lagretDeltaker == null) {
-                val oppdatertKontaktinformasjon = amtPersonClient
-                    .hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
-                    .getOrDefault(deltakerPayload.personalia.kontaktinformasjon)
+                val oppdatertKontaktinformasjon = try {
+                    amtPersonClient.hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
+                } catch (error: RuntimeException) {
+                    log.error("Feil ved henting av oppdatert kontaktinformasjon for deltaker {}", deltakerId, error)
+                    deltakerPayload.personalia.kontaktinformasjon
+                }
 
                 deltakerRepository.insertOrUpdateDeltaker(
                     deltakerPayload

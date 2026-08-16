@@ -1,6 +1,7 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.tiltaksarrangor.client.AMT_PERSON_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.toExternalServiceException
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import org.springframework.stereotype.Service
@@ -16,7 +17,7 @@ class AmtPersonClient(
             ?: throw RuntimeException("Kunne ikke hente Nav-enhet fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
-            serviceName = SERVICE_NAME,
+            serviceName = AMT_PERSON_AAD_CLIENT_ID,
             action = "hente Nav-enhet",
             unauthorizedMessage = "Ikke tilgang til å hente Nav-enhet fra amt-person-service",
         )
@@ -27,24 +28,24 @@ class AmtPersonClient(
             ?: throw RuntimeException("Kunne ikke hente Nav-ansatt fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
-            serviceName = SERVICE_NAME,
+            serviceName = AMT_PERSON_AAD_CLIENT_ID,
             action = "hente Nav-ansatt",
             unauthorizedMessage = "Ikke tilgang til å hente Nav-ansatt fra amt-person-service",
         )
     }
 
-    fun hentOppdatertKontaktinfo(personident: String): Result<Kontaktinformasjon> =
-        hentOppdatertKontaktinfo(setOf(personident)).mapCatching {
-            it[personident] ?: throw NoSuchElementException("Klarte ikke hente kontaktinformasjon for person med ident")
-        }
-
-    fun hentOppdatertKontaktinfo(personidenter: Set<String>): Result<Map<String, Kontaktinformasjon>> = runCatching {
-        api.hentKontaktinformasjon(personidenter).body
-            ?: throw RuntimeException(KONTAKTINFO_ERROR_MSG)
+    fun hentOppdatertKontaktinfo(personident: String): Kontaktinformasjon = hentOppdatertKontaktinfo(setOf(personident)).let {
+        it[personident] ?: throw NoSuchElementException("Klarte ikke hente kontaktinformasjon for person med ident")
     }
 
-    companion object {
-        private const val SERVICE_NAME = "amt-person-service"
-        private const val KONTAKTINFO_ERROR_MSG = "Kunne ikke hente kontaktinformasjon fra amt-person-service."
+    fun hentOppdatertKontaktinfo(personidenter: Set<String>): Map<String, Kontaktinformasjon> = try {
+        api.hentKontaktinformasjon(personidenter).body
+            ?: throw RuntimeException("Kunne ikke hente kontaktinformasjon fra amt-person-service.")
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AMT_PERSON_AAD_CLIENT_ID,
+            action = "hente kontaktinformasjon",
+            unauthorizedMessage = "Ikke tilgang til å hente kontaktinformasjon fra amt-person-service",
+        )
     }
 }

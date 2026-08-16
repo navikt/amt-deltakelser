@@ -112,8 +112,8 @@ class KafkaConsumerServiceTest {
         every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
         every { ulestEndringRepository.insert(any(), any()) } returns mockk()
         coEvery { hentArrangorClient.getArrangor("88888888") } returns arrangor
-        coEvery { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } returns
-            Result.failure(RuntimeException("Oppdatert kontaktinformasjon ikke nødvendig for test"))
+        every { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } throws
+            RuntimeException("Oppdatert kontaktinformasjon ikke nødvendig for test")
     }
 
     @Test

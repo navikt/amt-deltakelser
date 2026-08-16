@@ -92,7 +92,7 @@ class KafkaConsumerTest(
         }
 
         every { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } answers {
-            Result.success(Kontaktinformasjon(epost = null, telefonnummer = null))
+            Kontaktinformasjon(epost = null, telefonnummer = null)
         }
 
         every { hentArrangorClient.getArrangor(any()) } returns ArrangorMedOverordnetArrangor(
