@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 
 class ClientExceptionMapperTest {
     @Test
-    fun `mapperer nettverksfeil til retrybar exception`() {
+    fun `mapper nettverksfeil til retrybar exception`() {
         val exception = ResourceAccessException("boom", IOException("boom"))
             .toExternalServiceException(AMT_ARRANGOR_CLIENT_ID, "hente arrangør")
 
@@ -23,7 +23,7 @@ class ClientExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer clientfeil til ikke-retrybar exception`() {
+    fun `mapper clientfeil til ikke-retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.NOT_FOUND,
@@ -37,7 +37,7 @@ class ClientExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer unauthorized til ikke-retrybar exception`() {
+    fun `mapper unauthorized til ikke-retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.UNAUTHORIZED,
@@ -51,7 +51,7 @@ class ClientExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer forbidden til ikke-retrybar exception`() {
+    fun `mapper forbidden til ikke-retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.FORBIDDEN,

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 
 class ExternalServiceExceptionMapperTest {
     @Test
-    fun `mapperer nettverksfeil til retrybar exception`() {
+    fun `mapper nettverksfeil til retrybar exception`() {
         val exception = ResourceAccessException("boom", IOException("boom"))
             .toExternalServiceException("amt-arrangor", "hente arrangør")
 
@@ -24,7 +24,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer clientfeil til ikke-retrybar exception`() {
+    fun `mapper clientfeil til ikke-retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.NOT_FOUND,
@@ -39,7 +39,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer 408 til retrybar exception`() {
+    fun `mapper 408 til retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.REQUEST_TIMEOUT,
@@ -54,7 +54,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer 429 til retrybar exception`() {
+    fun `mapper 429 til retrybar exception`() {
         val exception = HttpClientErrorException
             .create(
                 HttpStatus.TOO_MANY_REQUESTS,
@@ -69,7 +69,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer 501 til ikke-retrybar exception`() {
+    fun `mapper 501 til ikke-retrybar exception`() {
         val exception = HttpServerErrorException
             .create(
                 HttpStatus.NOT_IMPLEMENTED,
@@ -84,7 +84,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer 505 til ikke-retrybar exception`() {
+    fun `mapper 505 til ikke-retrybar exception`() {
         val exception = HttpServerErrorException
             .create(
                 HttpStatus.HTTP_VERSION_NOT_SUPPORTED,
@@ -117,7 +117,7 @@ class ExternalServiceExceptionMapperTest {
     }
 
     @Test
-    fun `mapperer andre restclientfeil til ikke-retrybar exception`() {
+    fun `mapper andre restclientfeil til ikke-retrybar exception`() {
         val exception = RestClientException("boom")
             .toExternalServiceException("amt-arrangor", "hente arrangør")
 
