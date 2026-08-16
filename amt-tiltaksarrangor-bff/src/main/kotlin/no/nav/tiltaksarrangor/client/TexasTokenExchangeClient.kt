@@ -45,7 +45,7 @@ class TexasTokenExchangeClient(
         )
     } catch (e: RestClientException) {
         throw invalidTokenResponseException(
-            description = "Texas token exchange feilet uten HTTP-respons",
+            description = "Texas token exchange feilet før HTTP-respons ble mottatt",
             cause = e,
         )
     }

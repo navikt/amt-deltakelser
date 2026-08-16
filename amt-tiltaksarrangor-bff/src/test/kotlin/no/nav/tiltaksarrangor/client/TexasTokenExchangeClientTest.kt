@@ -121,7 +121,7 @@ class TexasTokenExchangeClientTest(
         }
 
         exception.error.errorCode shouldBe "invalid_token_response"
-        exception.error.description shouldBe "Texas token exchange feilet uten HTTP-respons"
+        exception.error.description shouldBe "Texas token exchange feilet før HTTP-respons ble mottatt"
 
         server.verify()
     }
