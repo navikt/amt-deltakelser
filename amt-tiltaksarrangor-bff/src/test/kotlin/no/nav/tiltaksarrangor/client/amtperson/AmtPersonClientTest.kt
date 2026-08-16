@@ -76,7 +76,7 @@ class AmtPersonClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Ikke tilgang til å hente NAV-enhet fra amt-person-service"
+            }.message shouldBe "Ikke tilgang til å hente Nav-enhet fra amt-person-service"
         }
 
         @Test
@@ -92,7 +92,7 @@ class AmtPersonClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Ikke tilgang til å hente NAV-enhet fra amt-person-service"
+            }.message shouldBe "Ikke tilgang til å hente Nav-enhet fra amt-person-service"
         }
 
         @Test
@@ -108,7 +108,7 @@ class AmtPersonClientTest(
 
             shouldThrow<ExternalServiceNonRetryableException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente NAV-enhet. Status=404"
+            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=404"
         }
 
         @Test
@@ -124,7 +124,7 @@ class AmtPersonClientTest(
 
             shouldThrow<ExternalServiceRetryableException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente NAV-enhet. Status=500"
+            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=500"
         }
 
         @Test
@@ -140,7 +140,7 @@ class AmtPersonClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Kunne ikke hente NAV-enhet fra amt-person-service"
+            }.message shouldBe "Kunne ikke hente Nav-enhet fra amt-person-service"
         }
     }
 
@@ -225,7 +225,7 @@ class AmtPersonClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Ikke tilgang til å hente NAV-ansatt fra amt-person-service"
+            }.message shouldBe "Ikke tilgang til å hente Nav-ansatt fra amt-person-service"
         }
 
         @Test
@@ -241,7 +241,7 @@ class AmtPersonClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Ikke tilgang til å hente NAV-ansatt fra amt-person-service"
+            }.message shouldBe "Ikke tilgang til å hente Nav-ansatt fra amt-person-service"
         }
 
         @Test
@@ -257,7 +257,7 @@ class AmtPersonClientTest(
 
             shouldThrow<ExternalServiceNonRetryableException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente NAV-ansatt. Status=404"
+            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=404"
         }
 
         @Test
@@ -273,7 +273,7 @@ class AmtPersonClientTest(
 
             shouldThrow<ExternalServiceRetryableException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente NAV-ansatt. Status=500"
+            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=500"
         }
 
         @Test
@@ -289,7 +289,7 @@ class AmtPersonClientTest(
 
             shouldThrow<RuntimeException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Kunne ikke hente NAV-ansatt fra amt-person-service"
+            }.message shouldBe "Kunne ikke hente Nav-ansatt fra amt-person-service"
         }
     }
 

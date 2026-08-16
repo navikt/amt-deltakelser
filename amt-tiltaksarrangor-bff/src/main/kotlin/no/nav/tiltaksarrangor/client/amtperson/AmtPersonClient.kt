@@ -13,23 +13,23 @@ class AmtPersonClient(
 ) {
     fun hentEnhet(id: UUID): NavEnhet = try {
         api.hentEnhet(id).body?.toNavEnhet()
-            ?: throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service")
+            ?: throw RuntimeException("Kunne ikke hente Nav-enhet fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
             serviceName = SERVICE_NAME,
-            action = "hente NAV-enhet",
-            unauthorizedMessage = "Ikke tilgang til å hente NAV-enhet fra amt-person-service",
+            action = "hente Nav-enhet",
+            unauthorizedMessage = "Ikke tilgang til å hente Nav-enhet fra amt-person-service",
         )
     }
 
     fun hentNavAnsatt(id: UUID): NavAnsattResponse = try {
         api.hentNavAnsatt(id).body
-            ?: throw RuntimeException("Kunne ikke hente NAV-ansatt fra amt-person-service")
+            ?: throw RuntimeException("Kunne ikke hente Nav-ansatt fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
             serviceName = SERVICE_NAME,
-            action = "hente NAV-ansatt",
-            unauthorizedMessage = "Ikke tilgang til å hente NAV-ansatt fra amt-person-service",
+            action = "hente Nav-ansatt",
+            unauthorizedMessage = "Ikke tilgang til å hente Nav-ansatt fra amt-person-service",
         )
     }
 
