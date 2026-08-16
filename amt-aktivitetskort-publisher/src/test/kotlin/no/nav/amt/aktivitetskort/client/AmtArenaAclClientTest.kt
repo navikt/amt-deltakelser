@@ -42,7 +42,7 @@ class AmtArenaAclClientTest(
     }
 
     @Test
-    fun `getArenaIdForAmtId - kaster exception om arenahistid finnes`() {
+    fun `getArenaIdForAmtId - kaster HistoriskArenaDeltakerException når arenaHistId finnes`() {
         val amtId = UUID.randomUUID()
         val arenaHistId = 1L
         server

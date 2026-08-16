@@ -81,7 +81,7 @@ class AmtArrangorClientTest(
     }
 
     @Test
-    fun `hentArrangor - arrangor finnes ikke - kaster RuntimeException`() {
+    fun `hentArrangor - kaster ikke-retrybar exception ved 404`() {
         server
             .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
             .andExpect(method(HttpMethod.GET))
@@ -93,7 +93,7 @@ class AmtArrangorClientTest(
     }
 
     @Test
-    fun `hentArrangor - arrangor finnes ikke - kaster ikke-retrybar exception ved 401`() {
+    fun `hentArrangor - kaster ikke-retrybar exception ved 401`() {
         server
             .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
             .andExpect(method(HttpMethod.GET))
@@ -105,7 +105,7 @@ class AmtArrangorClientTest(
     }
 
     @Test
-    fun `hentArrangor - arrangor finnes ikke - kaster ikke-retrybar exception ved 403`() {
+    fun `hentArrangor - kaster ikke-retrybar exception ved 403`() {
         server
             .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
             .andExpect(method(HttpMethod.GET))

@@ -392,7 +392,7 @@ class KafkaConsumerServiceTest {
     }
 
     @Test
-    fun `lagreDeltaker - historikk inneholder svar pa forslag som  finnes i db - lagrer ikke endring i db`(): Unit = runBlocking {
+    fun `lagreDeltaker - historikk inneholder svar pa forslag som finnes i db - lagrer ikke endring i db`(): Unit = runBlocking {
         val forslag = DeltakerHistorikk.Forslag(
             forlengDeltakelseForslag(
                 status = Forslag.Status.Godkjent(
@@ -614,7 +614,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `endring fra tiltakskoordinator - DeltMedArrangor`() {
+        fun `lagreNyDeltakerUlestEndring - endring fra tiltakskoordinator - DeltMedArrangor`() {
             with(DeltakerDtoCtx()) {
                 val historikk = listOf(DeltakerHistorikk.EndringFraTiltakskoordinator(endringFraTiltakskoordinator = endringInTest))
                 medHistorikk(historikk)

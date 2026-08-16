@@ -83,7 +83,7 @@ class AmtArrangorClientTest(
         }
 
         @Test
-        fun `getAnsatt - kaster ikke NoSuchElementException ved 404`() {
+        fun `getAnsatt - returnerer null ved 404`() {
             server
                 .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
