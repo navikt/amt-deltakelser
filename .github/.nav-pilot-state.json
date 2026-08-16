@@ -1,8 +1,8 @@
 {
   "collection": "kotlin-backend",
-  "version": "2026.07.05-165716-b264d34",
+  "version": "2026.07.23-202645-36d5b37",
   "scope": "repo",
-  "source_sha": "6667d3c",
+  "source_sha": "d6f24d4",
   "installed_at": "2026-06-16T09:55:47Z",
   "files": [
     {
@@ -19,7 +19,7 @@
     },
     {
       "path": ".github/agents/nav-pilot.agent.md",
-      "hash": "09c7351bf3ceb03b"
+      "hash": "8ce02d89fd7a818a"
     },
     {
       "path": ".github/skills/api-design/",
@@ -63,7 +63,7 @@
     },
     {
       "path": ".github/skills/observability-debugging/",
-      "hash": "b01ef3cd48eca1aa"
+      "hash": "107a99f70451c01b"
     },
     {
       "path": ".github/skills/postgresql-review/",
