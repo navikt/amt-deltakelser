@@ -1,6 +1,5 @@
 package no.nav.amt.aktivitetskort.kafka.config
 
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
