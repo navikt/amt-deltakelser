@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
-import no.nav.tiltaksarrangor.client.AMT_PERSON_AAD_CLIENT_ID
+import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
@@ -29,7 +29,7 @@ import java.util.UUID
 @RestClientTest(AmtPersonClient::class)
 class AmtPersonClientTest(
     private val sut: AmtPersonClient,
-) : RestClientTestBase(AMT_PERSON_AAD_CLIENT_ID) {
+) : RestClientTestBase(AMT_PERSON_SERVICE_CLIENT_ID) {
     @Nested
     inner class HentEnhetTests {
         @Test

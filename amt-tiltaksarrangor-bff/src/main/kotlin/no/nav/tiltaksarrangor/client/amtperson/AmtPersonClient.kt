@@ -1,7 +1,7 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
-import no.nav.tiltaksarrangor.client.AMT_PERSON_AAD_CLIENT_ID
+import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.client.toExternalServiceException
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import org.springframework.stereotype.Service
@@ -17,7 +17,7 @@ class AmtPersonClient(
             ?: throw RuntimeException("Kunne ikke hente Nav-enhet fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
-            serviceName = AMT_PERSON_AAD_CLIENT_ID,
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
             action = "hente Nav-enhet",
             unauthorizedMessage = "Ikke tilgang til å hente Nav-enhet fra amt-person-service",
         )
@@ -28,7 +28,7 @@ class AmtPersonClient(
             ?: throw RuntimeException("Kunne ikke hente Nav-ansatt fra amt-person-service")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
-            serviceName = AMT_PERSON_AAD_CLIENT_ID,
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
             action = "hente Nav-ansatt",
             unauthorizedMessage = "Ikke tilgang til å hente Nav-ansatt fra amt-person-service",
         )
@@ -43,7 +43,7 @@ class AmtPersonClient(
             ?: throw RuntimeException("Kunne ikke hente kontaktinformasjon fra amt-person-service.")
     } catch (e: RestClientException) {
         throw e.toExternalServiceException(
-            serviceName = AMT_PERSON_AAD_CLIENT_ID,
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
             action = "hente kontaktinformasjon",
             unauthorizedMessage = "Ikke tilgang til å hente kontaktinformasjon fra amt-person-service",
         )
