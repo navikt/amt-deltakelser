@@ -1,9 +1,11 @@
 package no.nav.amt.aktivitetskort.client
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.amt.person.service.clients.AMT_ARRANGOR_CLIENT_ID
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
@@ -13,8 +15,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withException
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import java.io.IOException
 import java.util.UUID
 
 @RestClientTest(AmtArrangorClient::class)
@@ -83,7 +87,31 @@ class AmtArrangorClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-        assertThrows<RuntimeException> {
+        shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentArrangor("foo")
+        }
+    }
+
+    @Test
+    fun `hentArrangor - arrangor finnes ikke - kaster ikke-retrybar exception ved 401`() {
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+        shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentArrangor("foo")
+        }
+    }
+
+    @Test
+    fun `hentArrangor - arrangor finnes ikke - kaster ikke-retrybar exception ved 403`() {
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN))
+
+        shouldThrow<ExternalServiceNonRetryableException> {
             sut.hentArrangor("foo")
         }
     }
@@ -111,5 +139,81 @@ class AmtArrangorClientTest(
 
         result.id shouldBe arrangorId
         result.navn shouldBe "Test Arrangor"
+    }
+
+    @Test
+    fun `hentArrangor - by id - kaster ikke-retrybar exception ved 401`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+        shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentArrangor(arrangorId)
+        }
+    }
+
+    @Test
+    fun `hentArrangor - by id - kaster ikke-retrybar exception ved 403`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN))
+
+        shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentArrangor(arrangorId)
+        }
+    }
+
+    @Test
+    fun `hentArrangor - kaster retryable exception ved 500`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+
+        val thrown = shouldThrow<ExternalServiceRetryableException> {
+            sut.hentArrangor(arrangorId)
+        }
+
+        thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med id $arrangorId. Status=500"
+    }
+
+    @Test
+    fun `hentArrangor - kaster retryable exception ved ResourceAccessException`() {
+        val orgnummer = "123456789"
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withException(IOException("boom")))
+
+        val thrown = shouldThrow<ExternalServiceRetryableException> {
+            sut.hentArrangor(orgnummer)
+        }
+
+        thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med orgnummer $orgnummer"
+    }
+
+    @Test
+    fun `hentArrangor - by id - kaster retryable exception ved ResourceAccessException`() {
+        val arrangorId = UUID.randomUUID()
+
+        server
+            .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withException(IOException("boom")))
+
+        val thrown = shouldThrow<ExternalServiceRetryableException> {
+            sut.hentArrangor(arrangorId)
+        }
+
+        thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med id $arrangorId"
     }
 }

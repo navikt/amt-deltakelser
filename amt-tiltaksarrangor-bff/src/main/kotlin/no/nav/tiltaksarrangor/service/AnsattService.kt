@@ -31,7 +31,7 @@ class AnsattService(
             log.info("Bruker uten tilganger har logget inn")
         }
 
-        log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangør")
+        log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangor")
 
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
         log.info("Lagret eller oppdatert ansatt med id ${ansatt.id}")

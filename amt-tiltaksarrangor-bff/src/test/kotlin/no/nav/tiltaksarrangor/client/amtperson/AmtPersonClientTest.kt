@@ -4,8 +4,9 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldStartWith
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.tiltaksarrangor.client.AMT_PERSON_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
@@ -79,7 +80,39 @@ class AmtPersonClientTest(
         }
 
         @Test
-        fun `hentEnhet - kaster RuntimeException ved 500`() {
+        fun `hentEnhet - kaster UnauthorizedException ved 401`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-enhet/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+            shouldThrow<UnauthorizedException> {
+                sut.hentEnhet(id)
+            }.message shouldBe "Ikke tilgang til å hente NAV-enhet fra amt-person-service"
+        }
+
+        @Test
+        fun `hentEnhet - kaster ikke-retrybar exception ved 404`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-enhet/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+            shouldThrow<ExternalServiceNonRetryableException> {
+                sut.hentEnhet(id)
+            }.message shouldBe "amt-person-service: kunne ikke hente NAV-enhet. Status=404"
+        }
+
+        @Test
+        fun `hentEnhet - kaster retryable exception ved 500`() {
             val id = UUID.randomUUID()
 
             server
@@ -89,9 +122,25 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
+            shouldThrow<ExternalServiceRetryableException> {
+                sut.hentEnhet(id)
+            }.message shouldBe "amt-person-service: kunne ikke hente NAV-enhet. Status=500"
+        }
+
+        @Test
+        fun `hentEnhet - kaster RuntimeException ved no content`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-enhet/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
             shouldThrow<RuntimeException> {
                 sut.hentEnhet(id)
-            }.message shouldStartWith "Kunne ikke hente NAV-enhet fra amt-person-service"
+            }.message shouldBe "Kunne ikke hente NAV-enhet fra amt-person-service"
         }
     }
 
@@ -180,7 +229,39 @@ class AmtPersonClientTest(
         }
 
         @Test
-        fun `hentNavAnsatt - kaster RuntimeException ved 500`() {
+        fun `hentNavAnsatt - kaster UnauthorizedException ved 401`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-ansatt/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+            shouldThrow<UnauthorizedException> {
+                sut.hentNavAnsatt(id)
+            }.message shouldBe "Ikke tilgang til å hente NAV-ansatt fra amt-person-service"
+        }
+
+        @Test
+        fun `hentNavAnsatt - kaster ikke-retrybar exception ved 404`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-ansatt/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+            shouldThrow<ExternalServiceNonRetryableException> {
+                sut.hentNavAnsatt(id)
+            }.message shouldBe "amt-person-service: kunne ikke hente NAV-ansatt. Status=404"
+        }
+
+        @Test
+        fun `hentNavAnsatt - kaster retryable exception ved 500`() {
             val id = UUID.randomUUID()
 
             server
@@ -190,9 +271,25 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
+            shouldThrow<ExternalServiceRetryableException> {
+                sut.hentNavAnsatt(id)
+            }.message shouldBe "amt-person-service: kunne ikke hente NAV-ansatt. Status=500"
+        }
+
+        @Test
+        fun `hentNavAnsatt - kaster RuntimeException ved no content`() {
+            val id = UUID.randomUUID()
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-ansatt/$id"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
             shouldThrow<RuntimeException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldStartWith "Kunne ikke hente NAV-ansatt fra amt-person-service"
+            }.message shouldBe "Kunne ikke hente NAV-ansatt fra amt-person-service"
         }
     }
 
@@ -299,6 +396,23 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+
+            val result = sut.hentOppdatertKontaktinfo(personident)
+
+            result.isFailure shouldBe true
+        }
+
+        @Test
+        fun `hentOppdatertKontaktinfo - returnerer failure ved no content`() {
+            val personident = "12345678901"
+
+            server
+                .expect(requestTo("http://amt-person-aad/api/nav-bruker/kontaktinformasjon"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-person-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
             val result = sut.hentOppdatertKontaktinfo(personident)
 

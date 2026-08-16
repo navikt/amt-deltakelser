@@ -1,11 +1,13 @@
 package no.nav.tiltaksarrangor.client.amtarrangor
 
+import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
+import no.nav.tiltaksarrangor.client.toExternalServiceException
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
-import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 import java.util.UUID
 
@@ -17,17 +19,16 @@ class AmtArrangorClient(
 
     fun getAnsatt(): AnsattDto? = try {
         api.getAnsatt().body
-    } catch (e: RestClientResponseException) {
-        when (e.statusCode) {
-            HttpStatus.NOT_FOUND -> {
-                log.info("Ansatt ikke funnet")
-                null
-            }
-
-            HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                throw UnauthorizedException("Ikke tilgang til å hente ansatt fra amt-arrangør")
-
-            else -> throw RuntimeException("Kunne ikke hente ansatt fra amt-arrangør. Status=${e.statusCode.value()}", e)
+    } catch (e: RestClientException) {
+        if (e is RestClientResponseException && e.statusCode == HttpStatus.NOT_FOUND) {
+            log.info("Ansatt ikke funnet")
+            null
+        } else {
+            throw e.toExternalServiceException(
+                serviceName = AMT_ARRANGOR_TOKENX_CLIENT_ID,
+                action = "hente ansatt",
+                unauthorizedMessage = "Ikke tilgang til å hente ansatt fra amt-arrangor",
+            )
         }
     }
 
@@ -39,16 +40,12 @@ class AmtArrangorClient(
         try {
             api.leggTilDeltakerlisteForKoordinator(arrangorId, deltakerlisteId)
             log.info("Oppdatert amt-arrangor med deltakerliste $deltakerlisteId for ansatt $ansattId")
-        } catch (e: RestClientResponseException) {
-            when (e.statusCode) {
-                HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                    throw UnauthorizedException("Ikke tilgang til å legge til deltakerliste i amt-arrangør")
-
-                else -> throw RuntimeException(
-                    "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør. Status=${e.statusCode.value()}",
-                    e,
-                )
-            }
+        } catch (e: RestClientException) {
+            throw e.toExternalServiceException(
+                serviceName = AMT_ARRANGOR_TOKENX_CLIENT_ID,
+                action = "legge til deltakerliste $deltakerlisteId i amt-arrangor",
+                unauthorizedMessage = "Ikke tilgang til å legge til deltakerliste i amt-arrangor",
+            )
         }
     }
 
@@ -60,16 +57,12 @@ class AmtArrangorClient(
         try {
             api.fjernDeltakerlisteForKoordinator(arrangorId, deltakerlisteId)
             log.info("Fjernet amt-arrangor deltakerliste $deltakerlisteId for ansatt $ansattId")
-        } catch (e: RestClientResponseException) {
-            when (e.statusCode) {
-                HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                    throw UnauthorizedException("Ikke tilgang til å fjerne deltakerliste i amt-arrangør")
-
-                else -> throw RuntimeException(
-                    "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør. Status=${e.statusCode.value()}",
-                    e,
-                )
-            }
+        } catch (e: RestClientException) {
+            throw e.toExternalServiceException(
+                serviceName = AMT_ARRANGOR_TOKENX_CLIENT_ID,
+                action = "fjerne deltakerliste $deltakerlisteId i amt-arrangor",
+                unauthorizedMessage = "Ikke tilgang til å fjerne deltakerliste i amt-arrangor",
+            )
         }
     }
 
@@ -80,16 +73,12 @@ class AmtArrangorClient(
         try {
             api.oppdaterVeilederForDeltaker(deltakerId, oppdaterVeiledereForDeltakerRequest)
             log.info("Oppdatert amt-arrangor med veiledere for $deltakerId")
-        } catch (e: RestClientResponseException) {
-            when (e.statusCode) {
-                HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                    throw UnauthorizedException("Ikke tilgang til å oppdatere veiledere i amt-arrangør")
-
-                else -> throw RuntimeException(
-                    "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør. Status=${e.statusCode.value()}",
-                    e,
-                )
-            }
+        } catch (e: RestClientException) {
+            throw e.toExternalServiceException(
+                serviceName = AMT_ARRANGOR_TOKENX_CLIENT_ID,
+                action = "oppdatere veiledere for deltaker $deltakerId i amt-arrangor",
+                unauthorizedMessage = "Ikke tilgang til å oppdatere veiledere i amt-arrangor",
+            )
         }
     }
 }

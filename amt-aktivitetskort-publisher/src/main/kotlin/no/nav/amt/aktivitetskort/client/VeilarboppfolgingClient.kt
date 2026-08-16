@@ -3,9 +3,11 @@ package no.nav.amt.aktivitetskort.client
 import no.nav.amt.aktivitetskort.client.request.PersonRequest
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
+import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.RestClientException
 
 @Service
 class VeilarboppfolgingClient(
@@ -25,7 +27,10 @@ class VeilarboppfolgingClient(
                 )
             }
         }
-    } catch (e: RestClientResponseException) {
-        throw RuntimeException("Uventet status ved hent status-kall mot veilarboppfolging ${e.statusCode.value()}", e)
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = VEILARBOPPFOLGING_CLIENT_ID,
+            action = "hente oppfølgingsperiode",
+        )
     }
 }

@@ -1,8 +1,10 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.request.HentAktivitetIdRequest
+import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.person.service.clients.AKTIVITET_ARENA_ACL_CLIENT_ID
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.RestClientException
 import java.util.UUID
 
 /**
@@ -16,7 +18,10 @@ class AktivitetArenaAclClient(
 ) {
     fun getAktivitetIdForArenaId(arenaId: Long): UUID = try {
         api.getAktivitetIdForArenaId(HentAktivitetIdRequest(arenaId))
-    } catch (e: RestClientResponseException) {
-        throw RuntimeException("Klarte ikke å hente aktivitetId for ArenaId. Status: ${e.statusCode}", e)
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AKTIVITET_ARENA_ACL_CLIENT_ID,
+            action = "hente aktivitetId for Arena-ID $arenaId",
+        )
     }
 }

@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldStartWith
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
@@ -19,8 +19,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withException
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import java.io.IOException
 import java.util.UUID
 
 @RestClientTest(HentArrangorClient::class)
@@ -117,7 +119,7 @@ class HentArrangorClientTest(
 
             shouldThrow<NoSuchElementException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "Arrangør med orgnummer $orgnummer finnes ikke hos amt-arrangør."
+            }.message shouldBe "Arrangør med orgnummer $orgnummer finnes ikke hos amt-arrangor."
         }
 
         @Test
@@ -133,11 +135,27 @@ class HentArrangorClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør."
+            }.message shouldBe "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangor."
         }
 
         @Test
-        fun `getArrangor - kaster RuntimeException ved 500`() {
+        fun `getArrangor - kaster UnauthorizedException ved 401`() {
+            val orgnummer = "123456789"
+
+            server
+                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+            shouldThrow<UnauthorizedException> {
+                sut.getArrangor(orgnummer)
+            }.message shouldBe "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangor."
+        }
+
+        @Test
+        fun `getArrangor - kaster retryable exception ved 500`() {
             val orgnummer = "123456789"
 
             server
@@ -147,9 +165,25 @@ class HentArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldStartWith "Feil ved henting av arrangør med orgnummer $orgnummer fra amt-arrangør."
+            }.message shouldBe "amt-arrangor-aad: kunne ikke hente arrangør med orgnummer $orgnummer. Status=500"
+        }
+
+        @Test
+        fun `getArrangor - kaster retryable exception ved nettverksfeil`() {
+            val orgnummer = "123456789"
+
+            server
+                .expect(requestTo("http://amt-arrangor-aad/$orgnummer"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-aad-token"))
+                .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
+                .andRespond(withException(IOException("boom")))
+
+            shouldThrow<ExternalServiceRetryableException> {
+                sut.getArrangor(orgnummer)
+            }.message shouldBe "amt-arrangor-aad: kunne ikke hente arrangør med orgnummer $orgnummer"
         }
     }
 }

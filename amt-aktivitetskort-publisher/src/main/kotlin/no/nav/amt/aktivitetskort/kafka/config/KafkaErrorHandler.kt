@@ -1,5 +1,6 @@
 package no.nav.amt.aktivitetskort.kafka.config
 
+import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -18,6 +19,10 @@ class KafkaErrorHandler :
         },
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    init {
+        addNotRetryableExceptions(ExternalServiceNonRetryableException::class.java)
+    }
 
     override fun handleRemaining(
         thrownException: Exception,
