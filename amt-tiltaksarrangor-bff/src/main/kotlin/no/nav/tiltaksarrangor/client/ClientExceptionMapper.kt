@@ -7,7 +7,5 @@ import no.nav.amt.lib.spring.boot.client.toExternalServiceException as toSharedE
 internal fun RestClientException.toExternalServiceException(
     serviceName: String,
     action: String,
-    unauthorizedMessage: String? = null,
-): RuntimeException = toSharedExternalServiceException(serviceName, action) { _, _ ->
-    UnauthorizedException(unauthorizedMessage ?: "Ikke tilgang til $action fra $serviceName")
-}
+    unauthorizedMessage: String,
+): RuntimeException = toSharedExternalServiceException(serviceName, action) { _, _ -> UnauthorizedException(unauthorizedMessage) }
