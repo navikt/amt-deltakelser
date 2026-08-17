@@ -14,7 +14,7 @@ import org.springframework.test.web.client.MockRestServiceServer
     properties = [
         "spring.http.serviceclient.amt-arrangor-tokenx.base-url=http://amt-arrangor-tokenx",
         "spring.http.serviceclient.amt-arrangor-aad.base-url=http://amt-arrangor-aad",
-        "spring.http.serviceclient.amt-person-aad.base-url=http://amt-person-aad",
+        "spring.http.serviceclient.amt-person-service.base-url=http://amt-person-service",
         "spring.test.restclient.mockrestserviceserver.enabled=false",
     ],
 )

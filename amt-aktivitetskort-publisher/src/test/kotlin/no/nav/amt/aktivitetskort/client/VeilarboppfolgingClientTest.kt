@@ -6,6 +6,8 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
+import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -19,9 +21,11 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withException
 import org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import java.io.IOException
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -85,10 +89,66 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-        val thrown = shouldThrow<RuntimeException> {
+        val thrown = shouldThrow<ExternalServiceRetryableException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "Uventet status ved hent status-kall mot veilarboppfolging 500"
+        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=500"
+    }
+
+    @Test
+    fun `hentOppfolgingperiode - kaster ikke-retrybar feil ved 404 status`() {
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentOppfolgingperiode("12345678910")
+        }
+
+        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=404"
+    }
+
+    @Test
+    fun `hentOppfolgingperiode - kaster ikke-retrybar feil ved 401 status`() {
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
+
+        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentOppfolgingperiode("12345678910")
+        }
+
+        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=401"
+    }
+
+    @Test
+    fun `hentOppfolgingperiode - kaster ikke-retrybar feil ved 403 status`() {
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN))
+
+        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+            sut.hentOppfolgingperiode("12345678910")
+        }
+
+        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=403"
+    }
+
+    @Test
+    fun `hentOppfolgingperiode - kaster retryable feil ved transportfeil`() {
+        server
+            .expect(requestTo("http://veilarboppfolging/veilarboppfolging/api/v3/oppfolging/hent-gjeldende-periode"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withException(IOException("boom")))
+
+        val thrown = shouldThrow<ExternalServiceRetryableException> {
+            sut.hentOppfolgingperiode("12345678910")
+        }
+
+        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode"
     }
 }

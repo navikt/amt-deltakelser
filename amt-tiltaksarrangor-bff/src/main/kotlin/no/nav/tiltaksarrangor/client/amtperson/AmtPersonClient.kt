@@ -1,11 +1,11 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
+import no.nav.tiltaksarrangor.client.toExternalServiceException
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
-import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.RestClientException
 import java.util.UUID
 
 @Service
@@ -14,37 +14,38 @@ class AmtPersonClient(
 ) {
     fun hentEnhet(id: UUID): NavEnhet = try {
         api.hentEnhet(id).body?.toNavEnhet()
-            ?: throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service")
-    } catch (e: RestClientResponseException) {
-        when (e.statusCode) {
-            HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                throw UnauthorizedException("Ikke tilgang til å hente NAV-enhet fra amt-person-service")
-            else -> throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service. Status=${e.statusCode.value()}", e)
-        }
+            ?: throw RuntimeException("Kunne ikke hente Nav-enhet fra amt-person-service")
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
+            action = "hente Nav-enhet",
+            unauthorizedMessage = "Ikke tilgang til å hente Nav-enhet fra amt-person-service",
+        )
     }
 
     fun hentNavAnsatt(id: UUID): NavAnsattResponse = try {
         api.hentNavAnsatt(id).body
-            ?: throw RuntimeException("Kunne ikke hente NAV-ansatt fra amt-person-service")
-    } catch (e: RestClientResponseException) {
-        when (e.statusCode) {
-            HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN ->
-                throw UnauthorizedException("Ikke tilgang til å hente NAV-ansatt fra amt-person-service")
-            else -> throw RuntimeException("Kunne ikke hente NAV-ansatt fra amt-person-service. Status=${e.statusCode.value()}", e)
-        }
+            ?: throw RuntimeException("Kunne ikke hente Nav-ansatt fra amt-person-service")
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
+            action = "hente Nav-ansatt",
+            unauthorizedMessage = "Ikke tilgang til å hente Nav-ansatt fra amt-person-service",
+        )
     }
 
-    fun hentOppdatertKontaktinfo(personident: String): Result<Kontaktinformasjon> =
-        hentOppdatertKontaktinfo(setOf(personident)).mapCatching {
-            it[personident] ?: throw NoSuchElementException("Klarte ikke hente kontaktinformasjon for person med ident")
-        }
+    fun hentOppdatertKontaktinfo(personident: String): Kontaktinformasjon = hentOppdatertKontaktinfo(setOf(personident)).let {
+        it[personident] ?: throw NoSuchElementException("Klarte ikke hente kontaktinformasjon for person med ident")
+    }
 
-    fun hentOppdatertKontaktinfo(personidenter: Set<String>): Result<Map<String, Kontaktinformasjon>> = runCatching {
+    fun hentOppdatertKontaktinfo(personidenter: Set<String>): Map<String, Kontaktinformasjon> = try {
         api.hentKontaktinformasjon(personidenter).body
-            ?: throw RuntimeException(KONTAKTINFO_ERROR_MSG)
-    }
-
-    companion object {
-        private const val KONTAKTINFO_ERROR_MSG = "Kunne ikke hente kontaktinformasjon fra amt-person-service."
+            ?: throw RuntimeException("Kunne ikke hente kontaktinformasjon fra amt-person-service.")
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
+            action = "hente kontaktinformasjon",
+            unauthorizedMessage = "Ikke tilgang til å hente kontaktinformasjon fra amt-person-service",
+        )
     }
 }

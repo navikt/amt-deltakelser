@@ -5,8 +5,10 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.requiredBody
 import tools.jackson.databind.PropertyNamingStrategies
 import tools.jackson.databind.annotation.JsonNaming
@@ -37,10 +39,20 @@ class TexasTokenExchangeClient(
                 ),
             ).retrieve()
             .requiredBody()
+    } catch (e: RestClientResponseException) {
+        throw invalidTokenResponseException(
+            description = "Texas token exchange feilet. Status=${e.statusCode.value()}",
+            cause = e,
+        )
+    } catch (e: ResourceAccessException) {
+        throw invalidTokenResponseException(
+            description = "Texas token exchange feilet før HTTP-respons ble mottatt",
+            cause = e,
+        )
     } catch (e: RestClientException) {
-        throw OAuth2AuthorizationException(
-            OAuth2Error("invalid_token_response"),
-            e,
+        throw invalidTokenResponseException(
+            description = "Texas token exchange returnerte ugyldig respons",
+            cause = e,
         )
     }
 
@@ -61,4 +73,12 @@ class TexasTokenExchangeClient(
     private companion object {
         const val TOKENX_IDENTITY_PROVIDER = "tokenx"
     }
+
+    private fun invalidTokenResponseException(
+        description: String,
+        cause: Throwable,
+    ): OAuth2AuthorizationException = OAuth2AuthorizationException(
+        OAuth2Error("invalid_token_response", description, null),
+        cause,
+    )
 }

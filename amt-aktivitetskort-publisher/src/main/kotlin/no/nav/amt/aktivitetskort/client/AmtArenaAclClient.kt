@@ -1,9 +1,11 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
+import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.person.service.clients.AMT_ARENA_ACL_CLIENT_ID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.RestClientException
 import java.util.UUID
 
 @Service
@@ -29,8 +31,11 @@ class AmtArenaAclClient(
 
             log.warn("Fant ikke arenaId eller arenaHistId for deltaker med id $amtId")
             null
-        } catch (e: RestClientResponseException) {
-            throw RuntimeException("Klarte ikke å hente arenaId for AmtId $amtId. Status: ${e.statusCode}", e)
+        } catch (e: RestClientException) {
+            throw e.toExternalServiceException(
+                serviceName = AMT_ARENA_ACL_CLIENT_ID,
+                action = "hente arenaId for amtId $amtId",
+            )
         }
     }
 }

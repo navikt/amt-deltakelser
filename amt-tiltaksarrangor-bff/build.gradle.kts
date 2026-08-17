@@ -45,6 +45,7 @@ dependencies {
 
     implementation(libs.nav.common.rest)
 
+    implementation(project(":amt-lib:spring-boot"))
     implementation(project(":amt-felles:kafka"))
     implementation(project(":amt-lib:models"))
     implementation(project(":amt-lib:utils"))

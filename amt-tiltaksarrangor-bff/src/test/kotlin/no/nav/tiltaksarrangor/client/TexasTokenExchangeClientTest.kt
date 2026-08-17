@@ -16,8 +16,10 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withException
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import java.io.IOException
 
 @RestClientTest(TexasTokenExchangeClient::class)
 @TestPropertySource(properties = ["NAIS_TOKEN_EXCHANGE_ENDPOINT=http://texas-token-exchange"])
@@ -69,14 +71,17 @@ class TexasTokenExchangeClientTest(
         server
             .expect(requestTo("http://texas-token-exchange"))
             .andExpect(method(HttpMethod.POST))
-            .andRespond(withStatus(HttpStatus.FORBIDDEN))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN).body("forbidden"))
 
-        shouldThrow<OAuth2AuthorizationException> {
+        val exception = shouldThrow<OAuth2AuthorizationException> {
             sut.exchangeToken(
                 userToken = "subject-token",
                 target = "dev-gcp:amt:downstream",
             )
         }
+
+        exception.error.errorCode shouldBe "invalid_token_response"
+        exception.error.description shouldBe "Texas token exchange feilet. Status=403"
 
         server.verify()
     }
@@ -86,14 +91,62 @@ class TexasTokenExchangeClientTest(
         server
             .expect(requestTo("http://texas-token-exchange"))
             .andExpect(method(HttpMethod.POST))
-            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("boom"))
 
-        shouldThrow<OAuth2AuthorizationException> {
+        val exception = shouldThrow<OAuth2AuthorizationException> {
             sut.exchangeToken(
                 userToken = "subject-token",
                 target = "dev-gcp:amt:downstream",
             )
-        }.error.errorCode shouldBe "invalid_token_response"
+        }
+
+        exception.error.errorCode shouldBe "invalid_token_response"
+        exception.error.description shouldBe "Texas token exchange feilet. Status=500"
+
+        server.verify()
+    }
+
+    @Test
+    fun `exchangeToken - kaster OAuth2AuthorizationException ved transportfeil`() {
+        server
+            .expect(requestTo("http://texas-token-exchange"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withException(IOException("boom")))
+
+        val exception = shouldThrow<OAuth2AuthorizationException> {
+            sut.exchangeToken(
+                userToken = "subject-token",
+                target = "dev-gcp:amt:downstream",
+            )
+        }
+
+        exception.error.errorCode shouldBe "invalid_token_response"
+        exception.error.description shouldBe "Texas token exchange feilet før HTTP-respons ble mottatt"
+
+        server.verify()
+    }
+
+    @Test
+    fun `exchangeToken - kaster OAuth2AuthorizationException ved ugyldig responsformat`() {
+        server
+            .expect(requestTo("http://texas-token-exchange"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(
+                withSuccess(
+                    "not-json",
+                    MediaType.TEXT_PLAIN,
+                ),
+            )
+
+        val exception = shouldThrow<OAuth2AuthorizationException> {
+            sut.exchangeToken(
+                userToken = "subject-token",
+                target = "dev-gcp:amt:downstream",
+            )
+        }
+
+        exception.error.errorCode shouldBe "invalid_token_response"
+        exception.error.description shouldBe "Texas token exchange returnerte ugyldig respons"
 
         server.verify()
     }

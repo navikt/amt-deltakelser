@@ -301,7 +301,7 @@ class DeltakerRepository(
      * Henter deltakere for en deltakerliste, filtrert på skjuling og slutt-dato.
      *
      * NB:
-     *  - Denne metoden returnerer *ikke* informasjon om NAV-veileder.
+     *  - Denne metoden returnerer *ikke* informasjon om Nav-veileder.
      *  - Felt som navVeilederNavn/etc. fylles ikke ut her.
      *
      * Årsak:

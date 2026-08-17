@@ -19,6 +19,13 @@ class KafkaErrorHandler :
     ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+/*
+    Vurder denne når vi har mer oversikt over hvordan dette fungerer med DLQ
+    init {
+        addNotRetryableExceptions(ExternalServiceNonRetryableException::class.java)
+    }
+*/
+
     override fun handleRemaining(
         thrownException: Exception,
         records: MutableList<ConsumerRecord<*, *>>,

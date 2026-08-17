@@ -4,7 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldStartWith
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
@@ -83,7 +83,7 @@ class AmtArrangorClientTest(
         }
 
         @Test
-        fun `getAnsatt - kaster ikke NoSuchElementException ved 404`() {
+        fun `getAnsatt - returnerer null ved 404`() {
             server
                 .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
@@ -106,11 +106,11 @@ class AmtArrangorClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.getAnsatt()
-            }.message shouldBe "Ikke tilgang til å hente ansatt fra amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å hente ansatt fra amt-arrangor"
         }
 
         @Test
-        fun `getAnsatt - kaster RuntimeException ved 500`() {
+        fun `getAnsatt - kaster retryable exception ved 500`() {
             server
                 .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
@@ -118,9 +118,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.getAnsatt()
-            }.message shouldStartWith "Kunne ikke hente ansatt fra amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke hente ansatt. Status=500"
         }
     }
 
@@ -159,11 +159,11 @@ class AmtArrangorClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Ikke tilgang til å legge til deltakerliste i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å legge til deltakerliste i amt-arrangor"
         }
 
         @Test
-        fun `leggTilDeltakerlisteForKoordinator - kaster RuntimeException ved 500`() {
+        fun `leggTilDeltakerlisteForKoordinator - kaster retryable exception ved 500`() {
             val ansattId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val deltakerlisteId = UUID.randomUUID()
@@ -175,9 +175,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldStartWith "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
         }
     }
 
@@ -216,11 +216,11 @@ class AmtArrangorClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Ikke tilgang til å fjerne deltakerliste i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å fjerne deltakerliste i amt-arrangor"
         }
 
         @Test
-        fun `fjernDeltakerlisteForKoordinator - kaster RuntimeException ved 500`() {
+        fun `fjernDeltakerlisteForKoordinator - kaster retryable exception ved 500`() {
             val ansattId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val deltakerlisteId = UUID.randomUUID()
@@ -232,9 +232,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldStartWith "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
         }
     }
 
@@ -283,11 +283,11 @@ class AmtArrangorClientTest(
 
             shouldThrow<UnauthorizedException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldBe "Ikke tilgang til å oppdatere veiledere i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å oppdatere veiledere i amt-arrangor"
         }
 
         @Test
-        fun `oppdaterVeilederForDeltaker - kaster RuntimeException ved 500`() {
+        fun `oppdaterVeilederForDeltaker - kaster retryable exception ved 500`() {
             val deltakerId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val request = OppdaterVeiledereForDeltakerRequest(
@@ -303,9 +303,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldStartWith "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangor. Status=500"
         }
     }
 }

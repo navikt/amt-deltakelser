@@ -27,12 +27,12 @@ class OppdaterKontaktinfoJob(
         log.info("Oppdaterer kontaktinformasjon for ${personidenterForOppdatering.size} deltakere for time $currentHour")
 
         personidenterForOppdatering.chunked(250).forEach {
-            amtPersonClient
-                .hentOppdatertKontaktinfo(it.toSet())
-                .onSuccess { personIdentTilKontaktInfoMap -> repository.oppdaterKontaktinformasjon(personIdentTilKontaktInfoMap) }
-                .onFailure { error ->
-                    log.error("Feil ved oppdatering av kontaktinformasjon for deltakere: ${error.message}")
-                }
+            try {
+                val personIdentTilKontaktInfoMap = amtPersonClient.hentOppdatertKontaktinfo(it.toSet())
+                repository.oppdaterKontaktinformasjon(personIdentTilKontaktInfoMap)
+            } catch (error: RuntimeException) {
+                log.error("Feil ved oppdatering av kontaktinformasjon for deltakere: ${error.message}")
+            }
         }
 
         log.info("Ferdig med oppdatering av kontaktinformasjon for time $currentHour")
