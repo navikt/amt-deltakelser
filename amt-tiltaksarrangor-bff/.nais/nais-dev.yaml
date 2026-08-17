@@ -24,19 +24,15 @@ spec:
 
   prometheus:
     enabled: true
-    port: "8081"
     path: /actuator/prometheus
   startup:
-    port: 8081
     path: /actuator/health/liveness
     initialDelay: 5
     periodSeconds: 5
     failureThreshold: 10
   readiness:
-    port: 8081
     path: /actuator/health/readiness
   liveness:
-    port: 8081
     path: /actuator/health/liveness
 
   replicas:
