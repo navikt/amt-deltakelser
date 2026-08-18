@@ -8,7 +8,7 @@ import io.mockk.verify
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
@@ -20,7 +20,7 @@ import java.time.LocalDate
 class EndringServiceTest(
     private val endringService: EndringService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false

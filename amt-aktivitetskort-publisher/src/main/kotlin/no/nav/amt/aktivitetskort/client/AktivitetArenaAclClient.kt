@@ -1,12 +1,10 @@
 package no.nav.amt.aktivitetskort.client
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
+import no.nav.amt.aktivitetskort.client.request.HentAktivitetIdRequest
+import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.person.service.clients.AKTIVITET_ARENA_ACL_CLIENT_ID
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestClientResponseException
-import org.springframework.web.client.requiredBody
+import org.springframework.web.client.RestClientException
 import java.util.UUID
 
 /**
@@ -16,28 +14,14 @@ import java.util.UUID
  */
 @Service
 class AktivitetArenaAclClient(
-    @Value($$"${aktivitet.arena-acl.url}") baseUrl: String,
-    restClientBuilder: RestClient.Builder,
+    private val api: AktivitetArenaAclApi,
 ) {
-    private val restClient: RestClient = restClientBuilder
-        .baseUrl(baseUrl)
-        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build()
-
     fun getAktivitetIdForArenaId(arenaId: Long): UUID = try {
-        restClient
-            .post()
-            .uri("/api/translation/arenaid")
-            .body(HentAktivitetIdRequest(arenaId))
-            .retrieve()
-            .requiredBody<UUID>()
-    } catch (e: RestClientResponseException) {
-        throw RuntimeException("Klarte ikke å hente aktivitetId for ArenaId. Status: ${e.statusCode}", e)
+        api.getAktivitetIdForArenaId(HentAktivitetIdRequest(arenaId))
+    } catch (e: RestClientException) {
+        throw e.toExternalServiceException(
+            serviceName = AKTIVITET_ARENA_ACL_CLIENT_ID,
+            action = "hente aktivitetId for Arena-ID $arenaId",
+        )
     }
-
-    data class HentAktivitetIdRequest(
-        val arenaId: Long,
-        val aktivitetKategori: String = "TILTAKSAKTIVITET",
-    )
 }

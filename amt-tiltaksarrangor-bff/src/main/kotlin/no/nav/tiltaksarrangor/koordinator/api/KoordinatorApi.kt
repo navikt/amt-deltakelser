@@ -1,13 +1,13 @@
 package no.nav.tiltaksarrangor.koordinator.api
 
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.tiltaksarrangor.koordinator.model.Deltakerliste
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
 import no.nav.tiltaksarrangor.koordinator.model.MineDeltakerlister
 import no.nav.tiltaksarrangor.koordinator.model.TilgjengeligVeileder
 import no.nav.tiltaksarrangor.koordinator.service.KoordinatorService
-import no.nav.tiltaksarrangor.service.TokenService
-import no.nav.tiltaksarrangor.utils.Issuer
+import no.nav.tiltaksarrangor.utils.personIdent
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,39 +19,44 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor/koordinator")
-@ProtectedWithClaims(issuer = Issuer.TOKEN_X)
 class KoordinatorApi(
-    private val tokenService: TokenService,
     private val koordinatorService: KoordinatorService,
 ) {
     @GetMapping("/mine-deltakerlister")
-    fun getMineDeltakerlister(): MineDeltakerlister {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return koordinatorService.getMineDeltakerlister(personIdent)
-    }
+    fun getMineDeltakerlister(
+        @AuthenticationPrincipal jwt: Jwt,
+    ): MineDeltakerlister = koordinatorService.getMineDeltakerlister(
+        personIdent = jwt.personIdent(),
+    )
 
     @GetMapping("/deltakerliste/{deltakerlisteId}")
     fun getDeltakerliste(
         @PathVariable deltakerlisteId: UUID,
-    ): Deltakerliste {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return koordinatorService.getDeltakerliste(deltakerlisteId, personIdent)
-    }
+        @AuthenticationPrincipal jwt: Jwt,
+    ): Deltakerliste = koordinatorService.getDeltakerliste(
+        deltakerlisteId = deltakerlisteId,
+        personIdent = jwt.personIdent(),
+    )
 
     @GetMapping("/{deltakerlisteId}/veiledere")
     fun getTilgjengeligeVeiledere(
         @PathVariable deltakerlisteId: UUID,
-    ): List<TilgjengeligVeileder> {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        return koordinatorService.getTilgjengeligeVeiledere(deltakerlisteId, personIdent)
-    }
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<TilgjengeligVeileder> = koordinatorService.getTilgjengeligeVeiledere(
+        deltakerlisteId = deltakerlisteId,
+        personIdent = jwt.personIdent(),
+    )
 
     @PostMapping("/veiledere", params = ["deltakerId"])
     fun tildelVeiledereForDeltaker(
         @RequestParam("deltakerId") deltakerId: UUID,
         @RequestBody request: LeggTilVeiledereRequest,
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
-        val personIdent = tokenService.getPersonligIdentTilInnloggetAnsatt()
-        koordinatorService.tildelVeiledereForDeltaker(deltakerId, request, personIdent)
+        koordinatorService.tildelVeiledereForDeltaker(
+            deltakerId = deltakerId,
+            request = request,
+            personIdent = jwt.personIdent(),
+        )
     }
 }

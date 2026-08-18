@@ -19,31 +19,23 @@ spec:
         pointInTimeRecovery: true
         insights:
           enabled: true
-        flags:
-          - name: "cloudsql.enable_pgaudit"
-            value: "on"
-          - name: "pgaudit.log"
-            value: "write,ddl,role"
-          - name: "pgaudit.log_parameter"
-            value: "on"
 
   port: 8080
   ingresses:
     - https://amt-tiltaksarrangor-bff.intern.nav.no
+
   prometheus:
     enabled: true
-    path: /internal/prometheus
-
+    path: /actuator/prometheus
   startup:
-    path: /internal/health/liveness
+    path: /actuator/health/liveness
     initialDelay: 5
     periodSeconds: 5
-    failureThreshold: 30
+    failureThreshold: 10
   readiness:
-    path: /internal/health/readiness
+    path: /actuator/health/readiness
   liveness:
-    path: /internal/health/liveness
-    timeout: 3
+    path: /actuator/health/liveness
 
   replicas:
     min: 2
@@ -51,6 +43,7 @@ spec:
     scalingStrategy:
       cpu:
         thresholdPercentage: 300
+
   resources:
     requests:
       cpu: 30m

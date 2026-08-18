@@ -10,7 +10,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
@@ -37,7 +37,7 @@ class DeltakerlisteAdminApiTest(
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Nested
     inner class GetAlleDeltakerlisterTests {
         @Test

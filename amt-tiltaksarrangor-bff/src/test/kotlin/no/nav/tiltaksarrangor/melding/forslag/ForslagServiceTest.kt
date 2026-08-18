@@ -2,7 +2,7 @@ package no.nav.tiltaksarrangor.melding.forslag
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.melding.forslag.request.ForlengDeltakelseRequest
 import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.shouldBeCloseTo
 import org.junit.jupiter.api.Test
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 class ForslagServiceTest(
     private val repository: ForslagRepository,
     private val forslagService: ForslagService,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `opprettForslag - forlengelse - produserer og returnerer nytt forslag`() {
         with(ForslagCtx(applicationContext, forlengDeltakelseForslag())) {

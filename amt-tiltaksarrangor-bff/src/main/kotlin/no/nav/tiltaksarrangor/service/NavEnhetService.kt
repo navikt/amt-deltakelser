@@ -23,7 +23,7 @@ class NavEnhetService(
             ?.takeIf { it.sistEndret.isAfter(LocalDateTime.now().minusMonths(1)) }
             ?.let { return it.toNavEnhet() }
 
-        log.info("Fant ikke oppdatert nav-enhet med nummer $id, henter fra amt-person-service")
+        log.info("Fant ikke oppdatert Nav-enhet med nummer $id, henter fra amt-person-service")
         return fetchEnhet(id)
     }
 
@@ -31,7 +31,7 @@ class NavEnhetService(
         val enhet = amtPersonClient.hentEnhet(id)
 
         repository.upsert(enhet)
-        log.info("Lagret nav-enhet $id")
+        log.info("Lagret Nav-enhet $id")
 
         return enhet
     }

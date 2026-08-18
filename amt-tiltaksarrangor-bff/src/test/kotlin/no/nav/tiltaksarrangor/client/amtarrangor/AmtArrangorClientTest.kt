@@ -4,23 +4,20 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.tiltaksarrangor.client.ClientTestConfig
+import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
+import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.VeilederAnsatt
 import no.nav.tiltaksarrangor.model.Veiledertype
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -28,18 +25,10 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.util.UUID
 
-@ActiveProfiles("test")
 @RestClientTest(AmtArrangorClient::class)
-@Import(ClientTestConfig::class)
-@TestPropertySource(
-    properties = [
-        "amt-arrangor.default.url=http://amt-arrangor",
-    ],
-)
 class AmtArrangorClientTest(
-    @Autowired private val sut: AmtArrangorClient,
-    @Autowired private val server: MockRestServiceServer,
-) {
+    private val sut: AmtArrangorClient,
+) : RestClientTestBase(AMT_ARRANGOR_TOKENX_CLIENT_ID) {
     @Nested
     inner class GetAnsattTests {
         @Test
@@ -50,10 +39,10 @@ class AmtArrangorClientTest(
             val deltakerId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andRespond(
                     withSuccess(
                         """
@@ -94,11 +83,11 @@ class AmtArrangorClientTest(
         }
 
         @Test
-        fun `getAnsatt - kaster ikke NoSuchElementException ved 404`() {
+        fun `getAnsatt - returnerer null ved 404`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
@@ -109,29 +98,29 @@ class AmtArrangorClientTest(
         @Test
         fun `getAnsatt - kaster UnauthorizedException ved 403`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
             shouldThrow<UnauthorizedException> {
                 sut.getAnsatt()
-            }.message shouldBe "Ikke tilgang til å hente ansatt fra amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å hente ansatt fra amt-arrangor"
         }
 
         @Test
-        fun `getAnsatt - kaster RuntimeException ved 500`() {
+        fun `getAnsatt - kaster retryable exception ved 500`() {
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.getAnsatt()
-            }.message shouldBe "Kunne ikke hente ansatt fra amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke hente ansatt. Status=500"
         }
     }
 
@@ -144,10 +133,10 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andRespond(withSuccess())
 
             sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
@@ -162,33 +151,33 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
             shouldThrow<UnauthorizedException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Ikke tilgang til å legge til deltakerliste i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å legge til deltakerliste i amt-arrangor"
         }
 
         @Test
-        fun `leggTilDeltakerlisteForKoordinator - kaster RuntimeException ved 500`() {
+        fun `leggTilDeltakerlisteForKoordinator - kaster retryable exception ved 500`() {
             val ansattId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
         }
     }
 
@@ -201,10 +190,10 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andRespond(withSuccess())
 
             sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
@@ -219,33 +208,33 @@ class AmtArrangorClientTest(
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
             shouldThrow<UnauthorizedException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Ikke tilgang til å fjerne deltakerliste i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å fjerne deltakerliste i amt-arrangor"
         }
 
         @Test
-        fun `fjernDeltakerlisteForKoordinator - kaster RuntimeException ved 500`() {
+        fun `fjernDeltakerlisteForKoordinator - kaster retryable exception ved 500`() {
             val ansattId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val deltakerlisteId = UUID.randomUUID()
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/koordinator/$arrangorId/$deltakerlisteId"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "Kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
         }
     }
 
@@ -263,10 +252,10 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withSuccess())
 
@@ -286,19 +275,19 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
             shouldThrow<UnauthorizedException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldBe "Ikke tilgang til å oppdatere veiledere i amt-arrangør"
+            }.message shouldBe "Ikke tilgang til å oppdatere veiledere i amt-arrangor"
         }
 
         @Test
-        fun `oppdaterVeilederForDeltaker - kaster RuntimeException ved 500`() {
+        fun `oppdaterVeilederForDeltaker - kaster retryable exception ved 500`() {
             val deltakerId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
             val request = OppdaterVeiledereForDeltakerRequest(
@@ -308,15 +297,15 @@ class AmtArrangorClientTest(
             )
 
             server
-                .expect(requestTo("http://amt-arrangor/api/ansatt/veiledere/$deltakerId"))
+                .expect(requestTo("http://amt-arrangor-tokenx/api/ansatt/veiledere/$deltakerId"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer amt-arrangor-tokenx-token"))
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<ExternalServiceRetryableException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldBe "Kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangør."
+            }.message shouldBe "amt-arrangor-tokenx: kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangor. Status=500"
         }
     }
 }

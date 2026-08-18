@@ -8,6 +8,7 @@ include(
     "amt-felles:intern-api-kontrakter",
     "amt-felles:ktor",
     "amt-felles:ktor-test",
+    "amt-lib:spring-boot",
     "amt-felles:archunit-test",
     "amt-felles:typegenerering",
     "amt-felles:kafka",

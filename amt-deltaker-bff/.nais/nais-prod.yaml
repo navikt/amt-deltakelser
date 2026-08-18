@@ -30,6 +30,7 @@ spec:
     scalingStrategy:
       cpu:
         thresholdPercentage: 200
+
   resources:
     requests:
       cpu: 30m
@@ -116,13 +117,6 @@ spec:
         pointInTimeRecovery: true
         insights:
           enabled: true
-        flags:
-          - name: "cloudsql.enable_pgaudit"
-            value: "on"
-          - name: "pgaudit.log"
-            value: "write,ddl,role"
-          - name: "pgaudit.log_parameter"
-            value: "on"
 
   observability:
       autoInstrumentation:

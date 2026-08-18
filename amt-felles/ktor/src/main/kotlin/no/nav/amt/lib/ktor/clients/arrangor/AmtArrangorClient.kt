@@ -19,10 +19,10 @@ class AmtArrangorClient(
         azureAdTokenClient = azureAdTokenClient,
     ) {
     suspend fun hentArrangor(orgnummer: String): ArrangorResponse = performGet("api/service/arrangor/organisasjonsnummer/$orgnummer")
-        .failIfNotSuccess("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangør.")
+        .failIfNotSuccess("Kunne ikke hente arrangør med orgnummer $orgnummer fra amt-arrangor.")
         .body()
 
     suspend fun hentArrangor(id: UUID): ArrangorResponse = performGet("api/service/arrangor/$id")
-        .failIfNotSuccess("Kunne ikke hente arrangør med id $id fra amt-arrangør.")
+        .failIfNotSuccess("Kunne ikke hente arrangør med id $id fra amt-arrangor.")
         .body()
 }

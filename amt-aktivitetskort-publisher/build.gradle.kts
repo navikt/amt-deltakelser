@@ -35,12 +35,13 @@ dependencies {
 
     implementation(libs.nav.common.log)
 
-    implementation(libs.token.validation.spring)
-    implementation(libs.token.client.spring)
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     implementation(libs.unleash)
 
     implementation(project(":amt-felles:visningsnavn"))
+    implementation(project(":amt-lib:spring-boot"))
     implementation(project(":amt-lib:models"))
     implementation(project(":amt-lib:utils"))
 
@@ -59,7 +60,6 @@ dependencies {
 
     testImplementation(libs.mockk)
     testImplementation(libs.springmockk)
-    testImplementation(libs.token.validation.spring.test)
 }
 
 kotlin {

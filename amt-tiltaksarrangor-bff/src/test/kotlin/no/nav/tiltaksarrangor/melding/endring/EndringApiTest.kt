@@ -1,7 +1,7 @@
 package no.nav.tiltaksarrangor.melding.endring
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.melding.endring.request.LeggTilOppstartsdatoRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
@@ -18,7 +18,7 @@ import java.util.UUID
 @AutoConfigureMockMvc
 class EndringApiTest(
     private val mockMvc: MockMvc,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     private val leggTilOppstartsdatoRequest = LeggTilOppstartsdatoRequest(LocalDate.now(), LocalDate.now().plusMonths(3))
 
     @Test

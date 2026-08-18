@@ -1,0 +1,112 @@
+spring:
+  main:
+    banner-mode: off
+  threads:
+    virtual:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 10s
+    serviceclient:
+      amt-arrangor-tokenx:
+        base-url: ${AMT_ARRANGOR_URL:http://amt-arrangor}
+      amt-arrangor-aad:
+        base-url: ${AMT_ARRANGOR_URL:http://amt-arrangor}/api/service/arrangor/organisasjonsnummer
+      amt-person-service:
+        base-url: ${AMT_PERSON_URL:http://amt-person-service}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_X_ISSUER}
+          audiences: ${TOKEN_X_CLIENT_ID}
+      client:
+        provider:
+          tokenx:
+            token-uri: ${TOKEN_X_TOKEN_ENDPOINT}
+          azuread:
+            token-uri: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+        registration:
+          amt-arrangor-tokenx:
+            provider: tokenx
+            client-id: ${TOKEN_X_CLIENT_ID}
+            client-secret: ${TOKEN_X_PRIVATE_JWK}
+            client-authentication-method: private_key_jwt
+            authorization-grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+            scope:
+              - ${AMT_ARRANGOR_TOKENX_CLIENT_ID}
+
+          amt-arrangor-aad:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_ARRANGOR_AAD_CLIENT_ID}
+
+          amt-person-service:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_PERSON_AAD_CLIENT_ID}
+
+  datasource:
+    url: ${DB_JDBC_URL}
+    hikari:
+      maximum-pool-size: 3
+
+  flyway:
+    postgresql:
+      transactional-lock: false
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8080
+  endpoint:
+    prometheus:
+      access: read_only
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - livenessState
+        readiness:
+          include:
+            - readinessState
+            - db
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - health
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+app:
+  env:
+    unleashUrl: ${UNLEASH_SERVER_API_URL}/api
+    unleashApiToken: ${UNLEASH_SERVER_API_TOKEN}
+  auth:
+    tokenx:
+      use-texas-token-exchange: ${USE_TEXAS_TOKEN_EXCHANGE:true}
+
+kafka:
+  auto-offset-reset: earliest
+
+rest:
+  include-stacktrace: false

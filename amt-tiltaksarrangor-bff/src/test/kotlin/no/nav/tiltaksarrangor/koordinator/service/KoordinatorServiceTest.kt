@@ -17,7 +17,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
-import no.nav.tiltaksarrangor.IntegrationTest
+import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.VeilederAnsatt
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.koordinator.model.LeggTilVeiledereRequest
@@ -68,7 +68,7 @@ class KoordinatorServiceTest(
     private val koordinatorService: KoordinatorService,
     @MockkBean(relaxed = true) private val metricsService: MetricsService,
     @MockkBean private val unleashToggle: CommonUnleashToggle,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @BeforeEach
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false

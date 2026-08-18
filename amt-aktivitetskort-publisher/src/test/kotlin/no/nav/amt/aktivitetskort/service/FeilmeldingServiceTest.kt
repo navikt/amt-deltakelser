@@ -1,7 +1,7 @@
 package no.nav.amt.aktivitetskort.service
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.aktivitetskort.IntegrationTest
+import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.kafka.consumer.SOURCE
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.AktivitetskortFeilmelding
 import org.junit.jupiter.api.Test
@@ -10,7 +10,7 @@ import java.util.UUID
 
 class FeilmeldingServiceTest(
     private val feilmeldingService: FeilmeldingService,
-) : IntegrationTest() {
+) : IntegrationTestBase() {
     @Test
     fun `handleFeilmelding - feilmelding med TEAM_KOMET som source - feilmelding lagres`() {
         val key = UUID.randomUUID()
