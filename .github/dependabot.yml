@@ -32,9 +32,16 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+      day: tuesday
+      time: "03:00"
+      timezone: Europe/Oslo
     cooldown:
       default-days: 7
     open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker"
     directory: "/amt-pdfgen"
