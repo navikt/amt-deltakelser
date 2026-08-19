@@ -121,7 +121,7 @@ class DeltakerResponseBuilder(
         includeOpplaringKategorisering: Boolean,
         historikk: List<DeltakerHistorikk> = emptyList(),
     ): GjennomforingResponse {
-        val resolvedPrisinformasjon = GjennomforingPrisinformasjon.hent(
+        val prisinformasjon = GjennomforingPrisinformasjon.hent(
             deltakerliste = deltakerliste,
             includeOpplaringKategorisering = includeOpplaringKategorisering,
             historikk = historikk,
@@ -131,8 +131,8 @@ class DeltakerResponseBuilder(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
-            prisinformasjon = resolvedPrisinformasjon?.prisinformasjon,
-            prisinformasjonTilGodkjenning = resolvedPrisinformasjon?.prisinformasjonTilGodkjenning,
+            prisinformasjon = prisinformasjon.prisinformasjon,
+            prisinformasjonTilGodkjenning = prisinformasjon.prisinformasjonTilGodkjenning,
         )
     }
 
