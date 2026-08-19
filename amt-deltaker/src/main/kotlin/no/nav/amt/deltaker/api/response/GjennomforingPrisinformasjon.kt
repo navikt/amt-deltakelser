@@ -3,8 +3,9 @@ package no.nav.amt.deltaker.api.response
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndrePrisinfo
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.Endring
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import java.util.UUID
@@ -71,29 +72,20 @@ object GjennomforingPrisinformasjon {
         prisinformasjonId: UUID?,
         historikk: List<DeltakerHistorikk>,
     ): PrisinformasjonDto? {
-        val begrunnelse = finnPrisinformasjonBegrunnelse(prisinformasjonId, historikk)
+        if (prisinformasjon == null || prisinformasjonId == null) {
+            return null
+        }
+        val begrunnelse = historikk
+            .asReversed()
+            .filterIsInstance<Endring>()
+            .mapNotNull { it.endring.endring as? EndrePrisinfo }
+            .firstOrNull { it.prisinformasjonId == prisinformasjonId }
+            ?.begrunnelse
 
         return when (prisinformasjon) {
-            null -> null
             is PrisinformasjonDto.Anskaffelse -> prisinformasjon.copy(begrunnelse = begrunnelse)
             is PrisinformasjonDto.Tilskudd -> prisinformasjon.copy(begrunnelse = begrunnelse)
             is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse)
         }
-    }
-
-    private fun finnPrisinformasjonBegrunnelse(
-        prisinformasjonId: UUID?,
-        historikk: List<DeltakerHistorikk>,
-    ): String? {
-        if (prisinformasjonId == null) return null
-
-        return historikk
-            .asReversed()
-            .asSequence()
-            .filterIsInstance<DeltakerHistorikk.Endring>()
-            .mapNotNull { it.endring.endring as? DeltakerEndring.Endring.EndrePrisinfo }
-            .firstOrNull { it.prisinformasjonId == prisinformasjonId }
-            ?.begrunnelse
-            ?.takeIf { it.isNotBlank() }
     }
 }
