@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -230,7 +231,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `buildGjennomforingResponse - setter begrunnelse kun på matchende prisinformasjonTilGodkjenning`() {
+    fun `buildGjennomforingResponse - setter begrunnelse på matchende prisinformasjonTilGodkjenning`() {
         // Arrange
         val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
         val gjeldendePrisinfo = Anskaffelse(pris = 10000)
@@ -241,7 +242,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         val historikk = listOf(
             DeltakerHistorikk.Endring(
-                no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+                lagDeltakerEndring(
                     deltakerId = UUID.randomUUID(),
                     endring = DeltakerEndring.Endring.EndrePrisinfo(
                         prisinfo = Anskaffelse(pris = 99999),
@@ -251,7 +252,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 ),
             ),
             DeltakerHistorikk.Endring(
-                no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+                lagDeltakerEndring(
                     deltakerId = UUID.randomUUID(),
                     endring = DeltakerEndring.Endring.EndrePrisinfo(
                         prisinfo = prisinfoTilGodkjenning,
@@ -464,7 +465,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             gyldigFra: LocalDate,
             endret: LocalDateTime,
         ) = DeltakerHistorikk.Endring(
-            no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring(
+            lagDeltakerEndring(
                 deltakerId = deltakerId,
                 endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
                     deltakelsesprosent = deltakelsesprosent,
