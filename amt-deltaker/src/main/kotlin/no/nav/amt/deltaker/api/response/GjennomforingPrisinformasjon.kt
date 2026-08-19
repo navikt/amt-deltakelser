@@ -28,7 +28,7 @@ object GjennomforingPrisinformasjon {
 
         if (!skalHenteEnkeltplassValg) return Funnet(null, null)
 
-        val funnetPrisinfo = hentPrisinfoPair(deltakerliste.id)
+        val funnetPrisinfo = finnPrisInfo(deltakerliste.id)
 
         val prisinformasjonTilGodkjenningMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(
             prisinformasjon = funnetPrisinfo.tilGodkjenning,
@@ -53,7 +53,7 @@ object GjennomforingPrisinformasjon {
      *
      * @param gjennomforingId Deltakerliste-ID
      */
-    fun hentPrisinfoPair(gjennomforingId: UUID): Funnet {
+    fun finnPrisInfo(gjennomforingId: UUID): Funnet {
         val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
         if (prisinfoMap.isEmpty()) return Funnet(null, null)

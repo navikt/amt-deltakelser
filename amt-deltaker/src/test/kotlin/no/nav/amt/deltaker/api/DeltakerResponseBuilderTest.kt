@@ -927,7 +927,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
             funnet.gjeldende shouldBe null
@@ -942,7 +942,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
             funnet.gjeldende shouldBe null
@@ -957,7 +957,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             } returns mapOf(PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo)
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
             funnet.gjeldende shouldBe gjeldendePrisinfo
@@ -975,7 +975,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
             funnet.gjeldende shouldBe gjeldendePrisinfo
