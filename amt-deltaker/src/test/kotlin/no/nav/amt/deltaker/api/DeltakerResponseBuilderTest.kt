@@ -921,50 +921,50 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         fun teardown() = unmockkObject(PrisinfoRepoAdapter)
 
         @Test
-        fun `ingen prisinfo - returnerer Pair(null, null)`() {
+        fun `ingen prisinfo - returnerer Funnet(null, null)`() {
             // Arrange
             every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
             // Act
-            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
-            first shouldBe null
-            second shouldBe null
+            funnet.gjeldende shouldBe null
+            funnet.tilGodkjenning shouldBe null
         }
 
         @Test
-        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Pair(endring, null)`() {
+        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Funnet(null, endring)`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
             } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
-            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
-            first shouldBe endringPrisinfo
-            second shouldBe null
+            funnet.gjeldende shouldBe null
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
 
         @Test
-        fun `kun GJELDENDE finnes - returnerer Pair(gjeldende, null)`() {
+        fun `kun GJELDENDE finnes - returnerer Funnet(gjeldende, null)`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
             } returns mapOf(PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo)
 
             // Act
-            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
-            first shouldBe gjeldendePrisinfo
-            second shouldBe null
+            funnet.gjeldende shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe null
         }
 
         @Test
-        fun `GJELDENDE og ENDRING finnes - returnerer Pair(gjeldende, endring)`() {
+        fun `GJELDENDE og ENDRING finnes - returnerer Funnet(gjeldende, endring)`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
@@ -974,11 +974,11 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
-            first shouldBe gjeldendePrisinfo
-            second shouldBe endringPrisinfo
+            funnet.gjeldende shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
     }
 }

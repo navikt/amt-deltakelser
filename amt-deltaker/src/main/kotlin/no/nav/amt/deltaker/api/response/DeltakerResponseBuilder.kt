@@ -131,8 +131,9 @@ class DeltakerResponseBuilder(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
-            prisinformasjon = prisinformasjon.prisinformasjon,
-            prisinformasjonTilGodkjenning = prisinformasjon.prisinformasjonTilGodkjenning,
+            // For KLADD/UTKAST there is only ENDRING, which is shown as prisinformasjon.
+            prisinformasjon = prisinformasjon.gjeldende ?: prisinformasjon.tilGodkjenning,
+            prisinformasjonTilGodkjenning = if (prisinformasjon.gjeldende != null) prisinformasjon.tilGodkjenning else null,
         )
     }
 

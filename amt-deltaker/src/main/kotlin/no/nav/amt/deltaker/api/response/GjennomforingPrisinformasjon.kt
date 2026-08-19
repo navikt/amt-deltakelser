@@ -11,8 +11,8 @@ import java.util.UUID
 
 object GjennomforingPrisinformasjon {
     data class Funnet(
-        val prisinformasjon: PrisinformasjonDto?,
-        val prisinformasjonTilGodkjenning: PrisinformasjonDto?,
+        val gjeldende: PrisinformasjonDto?,
+        val tilGodkjenning: PrisinformasjonDto?,
     )
 
     fun hent(
@@ -27,17 +27,17 @@ object GjennomforingPrisinformasjon {
 
         if (!skalHenteEnkeltplassValg) return Funnet(null, null)
 
-        val (prisinformasjon, prisinformasjonTilGodkjenning) = hentPrisinfoPair(deltakerliste.id)
+        val funnetPrisinfo = hentPrisinfoPair(deltakerliste.id)
 
         val prisinformasjonTilGodkjenningMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(
-            prisinformasjon = prisinformasjonTilGodkjenning,
+            prisinformasjon = funnetPrisinfo.tilGodkjenning,
             prisinformasjonId = PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id),
             historikk = historikk,
         )
 
         return Funnet(
-            prisinformasjon = prisinformasjon,
-            prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
+            gjeldende = funnetPrisinfo.gjeldende,
+            tilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
         )
     }
 
@@ -45,26 +45,25 @@ object GjennomforingPrisinformasjon {
      * Henter gjeldende- og prisinfo til endring.
      *
      * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo.
-     * first i pair vil da inneholde gjeldende prisinfo, og second vil inneholde endring om det finnes.
+     * gjeldende vil da inneholde gjeldende prisinfo, og tilGodkjenning vil inneholde endring om det finnes.
      *
      * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING)
-     * first i pair vil da inneholde endring og second vil alltid inneholde null.
+     * gjeldende vil da inneholde null og tilGodkjenning vil inneholde endring.
      *
      * @param gjennomforingId Deltakerliste-ID
      */
-    fun hentPrisinfoPair(gjennomforingId: UUID): Pair<PrisinformasjonDto?, PrisinformasjonDto?> {
+    fun hentPrisinfoPair(gjennomforingId: UUID): Funnet {
         val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
-        if (prisinfoMap.isEmpty()) return Pair(null, null)
+        if (prisinfoMap.isEmpty()) return Funnet(null, null)
 
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
         val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
-        return if (gjeldendePrisinfo == null) {
-            Pair(prisinfoTilGodkjenning, null)
-        } else {
-            Pair(gjeldendePrisinfo, prisinfoTilGodkjenning)
-        }
+        return Funnet(
+            gjeldende = gjeldendePrisinfo,
+            tilGodkjenning = prisinfoTilGodkjenning,
+        )
     }
 
     private fun leggTilPrisinformasjonBegrunnelse(
