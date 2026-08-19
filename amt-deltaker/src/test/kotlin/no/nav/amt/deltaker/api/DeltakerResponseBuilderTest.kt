@@ -10,6 +10,7 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.api.response.GjennomforingPrisinformasjon
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -925,7 +926,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
             // Act
-            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
             first shouldBe null
@@ -940,7 +941,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
-            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
             first shouldBe endringPrisinfo
@@ -955,7 +956,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             } returns mapOf(PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo)
 
             // Act
-            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
             first shouldBe gjeldendePrisinfo
@@ -973,7 +974,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val (first, second) = deltakerResponseBuilder.hentPrisinfoPair(gjennomforingId)
+            val (first, second) = GjennomforingPrisinformasjon.hentPrisinfoPair(gjennomforingId)
 
             // Assert
             first shouldBe gjeldendePrisinfo
