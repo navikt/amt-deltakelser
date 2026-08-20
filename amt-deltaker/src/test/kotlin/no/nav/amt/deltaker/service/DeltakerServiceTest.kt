@@ -19,8 +19,8 @@ import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
@@ -38,8 +38,8 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
@@ -950,7 +950,8 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 .endring
                 .shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()
 
-            val pendingPrisinfoId = PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id)
+            val pendingPrisinfoId = PrisinfoRepoAdapter
+                .hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id)
                 .shouldNotBeNull()
 
             lagretEndring.prisinformasjonId shouldBe pendingPrisinfoId
