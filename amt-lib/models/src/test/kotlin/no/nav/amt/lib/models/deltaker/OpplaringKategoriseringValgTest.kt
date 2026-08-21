@@ -2,6 +2,7 @@ package no.nav.amt.lib.models.deltaker
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -27,6 +28,20 @@ class OpplaringKategoriseringValgTest {
             val resultat = valg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID)
 
             resultat shouldBe listOf("Verdi 1", "Verdi 2")
+        }
+
+        @Test
+        fun `hentVerdier skal returnere sertifiseringer`() {
+            val valg = OpplaringKategoriseringValg(
+                valgteKategoriseringer = emptySet(),
+                valgteSertifiseringer = setOf(
+                    SertifiseringValg(1, "~sertifisering~"),
+                ),
+            )
+
+            val resultat = valg.hentVerdier(OpplaringKategoriseringType.SERTIFISERINGER)
+
+            resultat shouldBe listOf("~sertifisering~")
         }
 
         @Test

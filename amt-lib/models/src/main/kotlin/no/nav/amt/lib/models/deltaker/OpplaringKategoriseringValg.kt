@@ -28,12 +28,16 @@ data class OpplaringKategoriseringValg(
         representerer: OpplaringKategoriseringType,
         throwIfEmpty: Boolean = true,
     ): List<String> {
-        val verdier = valgteKategoriseringer
-            .singleOrNull { it.representerer == representerer }
-            ?.valg
-            ?.values
-            ?.toList()
-            ?: emptyList()
+        val verdier = if (representerer == OpplaringKategoriseringType.SERTIFISERINGER) {
+            valgteSertifiseringer.map { it.navn }
+        } else {
+            valgteKategoriseringer
+                .singleOrNull { it.representerer == representerer }
+                ?.valg
+                ?.values
+                ?.toList()
+                ?: emptyList()
+        }
 
         if (verdier.isEmpty() && throwIfEmpty) {
             throw IllegalArgumentException("Ingen verdier funnet for representerer: $representerer")
