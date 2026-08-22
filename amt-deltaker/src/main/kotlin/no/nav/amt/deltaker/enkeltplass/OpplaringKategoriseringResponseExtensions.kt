@@ -37,7 +37,6 @@ fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
     OpplaringKategoriseringValg(
         valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer
             .flatMap { it.tilValgteFelt() }
-            .filter { it.valg.isNotEmpty() }
             .toSet(),
         valgteSertifiseringer = sertifiseringValg,
     )
