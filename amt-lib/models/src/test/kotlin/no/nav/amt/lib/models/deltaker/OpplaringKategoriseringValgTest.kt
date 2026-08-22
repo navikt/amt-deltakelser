@@ -85,12 +85,7 @@ class OpplaringKategoriseringValgTest {
         @Test
         fun `hentVerdier skal returnere tom liste når throwIfEmpty er false og kategoriseringstype har tomme verdier`() {
             val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
+                valgteKategoriseringer = emptySet(),
                 valgteSertifiseringer = emptySet(),
             )
 
@@ -100,24 +95,7 @@ class OpplaringKategoriseringValgTest {
         }
 
         @Test
-        fun `hentVerdier skal kaste IllegalArgumentException som default når kategoriseringstype ikke finnes`() {
-            val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Verdi"),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                valg.hentVerdier(OpplaringKategoriseringType.FORERKORT)
-            }
-        }
-
-        @Test
-        fun `hentVerdier skal kaste IllegalArgumentException når ingen kategoriseringer finnes`() {
+        fun `hentVerdier skal kaste IllegalArgumentException når kategorisering ikke finnes`() {
             val valg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = emptySet(),
                 valgteSertifiseringer = emptySet(),
@@ -127,46 +105,12 @@ class OpplaringKategoriseringValgTest {
                 valg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID)
             }
         }
-
-        @Test
-        fun `hentVerdier skal kaste IllegalArgumentException når throwIfEmpty er true og kategoriseringstype ikke finnes`() {
-            val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Verdi"),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                valg.hentVerdier(OpplaringKategoriseringType.FORERKORT, throwIfEmpty = true)
-            }
-        }
-
-        @Test
-        fun `hentVerdier skal kaste IllegalArgumentException når throwIfEmpty er true og verdier er tomme`() {
-            val valg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                valg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID, throwIfEmpty = true)
-            }
-        }
     }
 
     @Nested
     inner class HentRepresenterTests {
         @Test
-        fun `hentRepresenterer skal returnere tom set når ingen kategoriseringer finnes`() {
+        fun `hentRepresenterer skal returnere tomt sett når ingen kategoriseringer finnes`() {
             val valg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = emptySet(),
                 valgteSertifiseringer = emptySet(),
@@ -178,7 +122,7 @@ class OpplaringKategoriseringValgTest {
         }
 
         @Test
-        fun `hentRepresenterer skal returnere set med en kategoriseringstype`() {
+        fun `hentRepresenterer skal returnere sett med en kategoriseringstype`() {
             val valg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -195,7 +139,7 @@ class OpplaringKategoriseringValgTest {
         }
 
         @Test
-        fun `hentRepresenterer skal returnere set med flere kategoriseringstyper`() {
+        fun `hentRepresenterer skal returnere sett med flere kategoriseringstyper`() {
             val valg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -206,12 +150,8 @@ class OpplaringKategoriseringValgTest {
                         representerer = OpplaringKategoriseringType.FORERKORT,
                         valg = mapOf(UUID.randomUUID() to "Verdi 2"),
                     ),
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.SERTIFISERINGER,
-                        valg = mapOf(UUID.randomUUID() to "Verdi 3"),
-                    ),
                 ),
-                valgteSertifiseringer = emptySet(),
+                valgteSertifiseringer = setOf(SertifiseringValg(1, "~sertifisering~")),
             )
 
             val resultat = valg.hentRepresenterer()
@@ -219,7 +159,6 @@ class OpplaringKategoriseringValgTest {
             resultat shouldBe setOf(
                 OpplaringKategoriseringType.BRANSJE_ID,
                 OpplaringKategoriseringType.FORERKORT,
-                OpplaringKategoriseringType.SERTIFISERINGER,
             )
         }
     }

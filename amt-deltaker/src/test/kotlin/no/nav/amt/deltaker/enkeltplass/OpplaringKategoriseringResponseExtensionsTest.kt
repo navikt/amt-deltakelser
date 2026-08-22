@@ -288,7 +288,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `kun utdanning valgt - returnerer utdanningsprogram og tomme larefag`() {
+    fun `kun utdanning valgt - returnerer kun valgt utdanningsprogram`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
 
         val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
@@ -338,10 +338,6 @@ class OpplaringKategoriseringResponseExtensionsTest {
             OpplaringKategoriseringValg.ValgteFelt(
                 representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
                 valg = mapOf(valgtUtdanningsprogramId to "Valgt Program"),
-            ),
-            OpplaringKategoriseringValg.ValgteFelt(
-                representerer = OpplaringKategoriseringType.LAREFAG,
-                valg = emptyMap(),
             ),
         )
     }

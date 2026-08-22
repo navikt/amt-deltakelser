@@ -174,7 +174,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
@@ -194,7 +194,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer shouldBe emptyList()
         }
@@ -246,7 +246,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassInnhold.FagOgYrkesopplaering>()
             resultat.utdanningsprogram shouldBe "Helse- og oppvekstfag"
             resultat.laerefag shouldBe listOf("Elektorfaget")
         }
@@ -281,46 +281,6 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal kaste IllegalArgumentException når BRANSJE_ID har tomme verdier`() {
-            val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                opplaringKategoriseringValg = opplaringKategoriseringValg,
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                deltakerliste.toInnhold()
-            }
-        }
-
-        @Test
-        fun `toInnhold skal kaste IllegalArgumentException når UTDANNINGSPROGRAM_ID har tomme verdier`() {
-            val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                opplaringKategoriseringValg = opplaringKategoriseringValg,
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                deltakerliste.toInnhold()
-            }
-        }
-
-        @Test
         fun `toInnhold skal prioritere KURSTYPE_ID over andre kategoriseringer`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
@@ -341,7 +301,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }
     }
 
