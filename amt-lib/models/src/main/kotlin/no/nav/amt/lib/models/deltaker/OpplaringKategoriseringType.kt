@@ -18,7 +18,7 @@ enum class OpplaringKategoriseringType {
     UTDANNINGSPROGRAM_ID,
     LAREFAG,
 
-    // Ikke i bruk hos Komet men er tatt med for kompabilitet med Valp
+    // Ikke i bruk hos Komet men er tatt med for kompatibilitet med Valp
     INNHOLDSELEMENTER,
     NORSKPROVE,
 }
