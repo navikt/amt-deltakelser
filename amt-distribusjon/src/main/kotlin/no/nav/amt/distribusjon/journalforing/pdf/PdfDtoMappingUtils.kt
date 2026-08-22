@@ -9,6 +9,7 @@ import no.nav.amt.distribusjon.utils.formatDateWithMonthName
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseDeltaker.Deltakerliste.Arrangor.Companion.UKJENT_VIRKSOMHET
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
@@ -76,18 +77,32 @@ fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisnin
     gjennomforingsnavn = navn,
     gjennomforingType = if (erEnkeltplass == true) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe,
     erKladd = false,
-    arrangorNavn = arrangor.visningsnavn(),
+    arrangorNavn = this.arrangorVisningsnavn(),
     opplaringKategoriseringValg = opplaringKategoriseringValg,
 )
 
-fun HendelseDeltaker.Deltakerliste.Arrangor.visningsnavn(): String = with(overordnetArrangor) {
-    val visningsnavn = if (this == null || this.navn == "Ukjent Virksomhet") {
-        navn
+/**
+ * Henter det faktiske arrangørnavnet som skal vises for deltakerlisten.
+ *
+ * For enkeltplasser brukes arrangørens navn. For øvrige deltakerlister brukes
+ * navnet til den overordnede arrangøren dersom denne finnes og har et kjent navn.
+ * Hvis overordnet arrangør mangler eller har navnet "Ukjent Virksomhet", brukes
+ * arrangørens navn.
+ *
+ * @return det faktiske arrangørnavnet i visningsformat.
+ */
+fun HendelseDeltaker.Deltakerliste.arrangorVisningsnavn(): String {
+    val faktiskArrangornavn = if (erEnkeltplass == true) {
+        arrangor.navn
     } else {
-        this.navn
+        val overordnetArrangorNavn = arrangor.overordnetArrangor
+            ?.takeUnless { it.navn == UKJENT_VIRKSOMHET }
+            ?.navn
+
+        overordnetArrangorNavn ?: arrangor.navn
     }
 
-    return visningsnavn.toTitleCase()
+    return faktiskArrangornavn.toTitleCase()
 }
 
 fun HendelseDeltaker.Deltakerliste.harKlagerett() = !(

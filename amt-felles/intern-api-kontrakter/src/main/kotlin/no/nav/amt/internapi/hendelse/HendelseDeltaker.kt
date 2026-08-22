@@ -36,7 +36,11 @@ data class HendelseDeltaker(
             val organisasjonsnummer: String,
             val navn: String,
             val overordnetArrangor: Arrangor?,
-        )
+        ) {
+            companion object {
+                const val UKJENT_VIRKSOMHET = "Ukjent Virksomhet"
+            }
+        }
 
         data class Tiltak(
             val navn: String,
