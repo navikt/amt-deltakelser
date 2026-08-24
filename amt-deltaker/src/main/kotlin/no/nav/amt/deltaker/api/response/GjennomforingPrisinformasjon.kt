@@ -11,7 +11,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import java.util.UUID
 
 object GjennomforingPrisinformasjon {
-    data class Funnet(
+    data class PrisinformasjonData(
         val gjeldende: PrisinformasjonDto?,
         val tilGodkjenning: PrisinformasjonDto?,
     )
@@ -20,13 +20,13 @@ object GjennomforingPrisinformasjon {
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
         historikk: List<DeltakerHistorikk>,
-    ): Funnet {
+    ): PrisinformasjonData {
         val skalHenteEnkeltplassValg =
             includeOpplaringKategorisering &&
                 deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        if (!skalHenteEnkeltplassValg) return Funnet(null, null)
+        if (!skalHenteEnkeltplassValg) return PrisinformasjonData(null, null)
 
         val funnetPrisinfo = finnPrisInfo(deltakerliste.id)
 
@@ -36,7 +36,7 @@ object GjennomforingPrisinformasjon {
             historikk = historikk,
         )
 
-        return Funnet(
+        return PrisinformasjonData(
             gjeldende = funnetPrisinfo.gjeldende,
             tilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
         )
@@ -53,15 +53,15 @@ object GjennomforingPrisinformasjon {
      *
      * @param gjennomforingId Deltakerliste-ID
      */
-    fun finnPrisInfo(gjennomforingId: UUID): Funnet {
+    fun finnPrisInfo(gjennomforingId: UUID): PrisinformasjonData {
         val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
-        if (prisinfoMap.isEmpty()) return Funnet(null, null)
+        if (prisinfoMap.isEmpty()) return PrisinformasjonData(null, null)
 
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
         val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
-        return Funnet(
+        return PrisinformasjonData(
             gjeldende = gjeldendePrisinfo,
             tilGodkjenning = prisinfoTilGodkjenning,
         )
