@@ -86,9 +86,10 @@ object GjennomforingPrisinformasjon {
             return null
         }
         val begrunnelse = historikk
-            .asReversed()
+            .sortedByDescending { it.sistEndret }
             .filterIsInstance<Endring>()
-            .mapNotNull { it.endring.endring as? EndrePrisinfo }
+            .map { it.endring.endring }
+            .filterIsInstance<EndrePrisinfo>()
             .firstOrNull { it.prisinformasjonId == prisinformasjonId }
             ?.begrunnelse
 

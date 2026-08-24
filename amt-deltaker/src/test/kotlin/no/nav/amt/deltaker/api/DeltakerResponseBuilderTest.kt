@@ -935,7 +935,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Funnet(null, endring)`() {
+        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Funnet(endring, null)`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
@@ -945,8 +945,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe null
-            funnet?.tilGodkjenning shouldBe endringPrisinfo
+            funnet?.aktiv shouldBe endringPrisinfo
+            funnet?.tilGodkjenning shouldBe null
         }
 
         @Test
