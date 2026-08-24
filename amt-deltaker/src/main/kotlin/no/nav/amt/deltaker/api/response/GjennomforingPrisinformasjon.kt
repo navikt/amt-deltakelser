@@ -12,7 +12,7 @@ import java.util.UUID
 
 object GjennomforingPrisinformasjon {
     data class PrisinformasjonData(
-        val gjeldende: PrisinformasjonDto?,
+        val aktiv: PrisinformasjonDto,
         val tilGodkjenning: PrisinformasjonDto?,
     )
 
@@ -20,15 +20,15 @@ object GjennomforingPrisinformasjon {
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
         historikk: List<DeltakerHistorikk>,
-    ): PrisinformasjonData {
+    ): PrisinformasjonData? {
         val skalHenteEnkeltplassValg =
             includeOpplaringKategorisering &&
                 deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
                 !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
 
-        if (!skalHenteEnkeltplassValg) return PrisinformasjonData(null, null)
+        if (!skalHenteEnkeltplassValg) return null
 
-        val funnetPrisinfo = finnPrisInfo(deltakerliste.id)
+        val funnetPrisinfo = finnPrisInfo(deltakerliste.id) ?: return null
 
         val prisinformasjonTilGodkjenningMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(
             prisinformasjon = funnetPrisinfo.tilGodkjenning,
@@ -37,7 +37,7 @@ object GjennomforingPrisinformasjon {
         )
 
         return PrisinformasjonData(
-            gjeldende = funnetPrisinfo.gjeldende,
+            aktiv = funnetPrisinfo.aktiv,
             tilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
         )
     }
@@ -45,26 +45,36 @@ object GjennomforingPrisinformasjon {
     /**
      * Henter gjeldende- og prisinfo til endring.
      *
-     * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo.
-     * gjeldende vil da inneholde gjeldende prisinfo, og tilGodkjenning vil inneholde endring om det finnes.
+     * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo (GJELDENDE i databasen).
+     * `aktiv` vil da inneholde gjeldende prisinfo, og `tilGodkjenning` vil inneholde endring om det finnes.
      *
-     * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING)
-     * gjeldende vil da inneholde null og tilGodkjenning vil inneholde endring.
+     * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING i databasen).
+     * `aktiv` vil da inneholde endringen.
      *
      * @param gjennomforingId Deltakerliste-ID
      */
-    fun finnPrisInfo(gjennomforingId: UUID): PrisinformasjonData {
+    fun finnPrisInfo(gjennomforingId: UUID): PrisinformasjonData? {
         val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
-        if (prisinfoMap.isEmpty()) return PrisinformasjonData(null, null)
+        if (prisinfoMap.isEmpty()) return null
 
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
         val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
-        return PrisinformasjonData(
-            gjeldende = gjeldendePrisinfo,
-            tilGodkjenning = prisinfoTilGodkjenning,
-        )
+        if (gjeldendePrisinfo == null) {
+            if (prisinfoTilGodkjenning == null) {
+                return null
+            }
+            return PrisinformasjonData(
+                aktiv = prisinfoTilGodkjenning,
+                tilGodkjenning = null,
+            )
+        } else {
+            return PrisinformasjonData(
+                aktiv = gjeldendePrisinfo,
+                tilGodkjenning = prisinfoTilGodkjenning,
+            )
+        }
     }
 
     private fun leggTilPrisinformasjonBegrunnelse(

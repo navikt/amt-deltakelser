@@ -12,7 +12,6 @@ import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -61,8 +60,7 @@ internal object SharedResponseMappers {
         deltakerliste: Deltakerliste,
         arrangorService: ArrangorService,
         opplaringKategoriseringValg: OpplaringKategoriseringValg?,
-        prisinformasjon: PrisinformasjonDto? = null,
-        prisinformasjonTilGodkjenning: PrisinformasjonDto? = null,
+        prisinformasjon: GjennomforingPrisinformasjon.PrisinformasjonData?,
     ) = GjennomforingResponse(
         id = deltakerliste.id,
         tiltakstype = deltakerliste.tiltakstype,
@@ -87,8 +85,8 @@ internal object SharedResponseMappers {
         pameldingstype = deltakerliste.pameldingstype,
         type = deltakerliste.gjennomforingstype,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
-        prisinformasjon = prisinformasjon,
-        prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
+        prisinformasjon = prisinformasjon?.aktiv,
+        prisinformasjonTilGodkjenning = prisinformasjon?.tilGodkjenning,
     )
 
     fun buildVedtaksinformasjonResponse(

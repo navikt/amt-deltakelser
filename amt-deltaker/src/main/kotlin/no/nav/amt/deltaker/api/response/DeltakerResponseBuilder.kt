@@ -131,9 +131,7 @@ class DeltakerResponseBuilder(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
-            // For deltakerstatus KLADD/UTKAST ønsker vi å vise prisinformasjon som teknisk sett er til godkjenning som om den er gjeldende.
-            prisinformasjon = prisinformasjon.gjeldende ?: prisinformasjon.tilGodkjenning,
-            prisinformasjonTilGodkjenning = if (prisinformasjon.gjeldende != null) prisinformasjon.tilGodkjenning else null,
+            prisinformasjon = prisinformasjon,
         )
     }
 

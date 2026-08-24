@@ -930,8 +930,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet.gjeldende shouldBe null
-            funnet.tilGodkjenning shouldBe null
+            funnet?.aktiv shouldBe null
+            funnet?.tilGodkjenning shouldBe null
         }
 
         @Test
@@ -945,8 +945,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet.gjeldende shouldBe null
-            funnet.tilGodkjenning shouldBe endringPrisinfo
+            funnet?.aktiv shouldBe null
+            funnet?.tilGodkjenning shouldBe endringPrisinfo
         }
 
         @Test
@@ -960,8 +960,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet.gjeldende shouldBe gjeldendePrisinfo
-            funnet.tilGodkjenning shouldBe null
+            funnet?.aktiv shouldBe gjeldendePrisinfo
+            funnet?.tilGodkjenning shouldBe null
         }
 
         @Test
@@ -978,8 +978,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet.gjeldende shouldBe gjeldendePrisinfo
-            funnet.tilGodkjenning shouldBe endringPrisinfo
+            funnet?.aktiv shouldBe gjeldendePrisinfo
+            funnet?.tilGodkjenning shouldBe endringPrisinfo
         }
     }
 }
