@@ -91,20 +91,27 @@ private fun Alternativ.UtdanningGruppe.tilValgteFeltInternal(): Set<OpplaringKat
     val valgtUtdanningsgruppe = utdanninger
         .firstOrNull { utdanningValg ->
             utdanningValg.valgt || utdanningValg.larefag.alternativer.any { verdi -> verdi.valgt }
-        }
-        ?: return emptySet()
+        } ?: return emptySet()
 
     val valgtUtdanningsprogram = OpplaringKategoriseringValg.ValgteFelt(
         representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
         valg = mapOf(valgtUtdanningsgruppe.id to valgtUtdanningsgruppe.visningsnavn),
     )
 
-    val valgteLarefag = OpplaringKategoriseringValg.ValgteFelt(
-        representerer = OpplaringKategoriseringType.LAREFAG,
-        valg = valgtUtdanningsgruppe.larefag.alternativer
-            .filter { verdi -> verdi.valgt }
-            .associate { verdi -> verdi.id to verdi.visningsnavn },
-    )
+    val valgteLarefag = valgtUtdanningsgruppe.larefag.alternativer
+        .filter { it.valgt }
+        .associate { it.id to it.visningsnavn }
 
-    return setOf(valgtUtdanningsprogram, valgteLarefag)
+    return buildSet {
+        add(valgtUtdanningsprogram)
+
+        if (valgteLarefag.isNotEmpty()) {
+            add(
+                OpplaringKategoriseringValg.ValgteFelt(
+                    representerer = OpplaringKategoriseringType.LAREFAG,
+                    valg = valgteLarefag,
+                ),
+            )
+        }
+    }
 }
