@@ -1,7 +1,6 @@
 package no.nav.amt.distribusjon.varsel.model
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.distribusjon.journalforing.pdf.arrangorVisningsnavn
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype

@@ -9,7 +9,6 @@ import no.nav.amt.distribusjon.utils.formatDateWithMonthName
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
-import no.nav.amt.internapi.hendelse.HendelseDeltaker.Deltakerliste.Arrangor.Companion.UKJENT_VIRKSOMHET
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
@@ -26,7 +25,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.amt.lib.utils.toTitleCase
 
 fun HendelseAnsvarlig.getAvsendernavn() = when (this) {
     is HendelseAnsvarlig.NavVeileder -> navn
@@ -80,30 +78,6 @@ fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisnin
     arrangorNavn = this.arrangorVisningsnavn(),
     opplaringKategoriseringValg = opplaringKategoriseringValg,
 )
-
-/**
- * Henter det faktiske arrangørnavnet som skal vises for deltakerlisten.
- *
- * For enkeltplasser brukes arrangørens navn. For øvrige deltakerlister brukes
- * navnet til den overordnede arrangøren dersom denne finnes og har et kjent navn.
- * Hvis overordnet arrangør mangler eller har navnet "Ukjent Virksomhet", brukes
- * arrangørens navn.
- *
- * @return det faktiske arrangørnavnet i visningsformat.
- */
-fun HendelseDeltaker.Deltakerliste.arrangorVisningsnavn(): String {
-    val faktiskArrangornavn = if (erEnkeltplass == true) {
-        arrangor.navn
-    } else {
-        val overordnetArrangorNavn = arrangor.overordnetArrangor
-            ?.takeUnless { it.navn == UKJENT_VIRKSOMHET }
-            ?.navn
-
-        overordnetArrangorNavn ?: arrangor.navn
-    }
-
-    return faktiskArrangornavn.toTitleCase()
-}
 
 fun HendelseDeltaker.Deltakerliste.harKlagerett() = !(
     this.tiltak.tiltakskode in setOf(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING, Tiltakskode.ARBEIDSMARKEDSOPPLAERING) &&
