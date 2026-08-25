@@ -65,15 +65,32 @@ class GjennomforingUpserter(
         deltaker: Deltaker,
         endretAvNavIdent: String,
     ) {
-        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-            gjennomforingId = deltaker.deltakerliste.id,
-            prisinformasjon = prisinfo,
-        )
+        val totrinnskontrollId = lagrePrisinfoEndring(prisinfo, deltaker)
 
+        produserPrisinfoEndring(
+            deltaker = deltaker,
+            endretAvNavIdent = endretAvNavIdent,
+            prisinformasjonId = totrinnskontrollId,
+        )
+    }
+
+    fun lagrePrisinfoEndring(
+        prisinfo: PrisinformasjonDto,
+        deltaker: Deltaker,
+    ): UUID = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+        gjennomforingId = deltaker.deltakerliste.id,
+        prisinformasjon = prisinfo,
+    )
+
+    fun produserPrisinfoEndring(
+        deltaker: Deltaker,
+        endretAvNavIdent: String,
+        prisinformasjonId: UUID,
+    ) {
         val endrePrisinfoPayload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
             gjennomforingId = deltaker.deltakerliste.id,
             totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                id = totrinnskontrollId,
+                id = prisinformasjonId,
                 behandletAv = endretAvNavIdent,
             ),
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(

@@ -7,8 +7,6 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -22,13 +20,11 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
-import java.util.UUID
 
 class DeltakerResponseBuilder(
     private val arrangorService: ArrangorService,
@@ -72,6 +68,7 @@ class DeltakerResponseBuilder(
             gjennomforing = buildGjennomforingResponse(
                 deltakerliste = deltaker.deltakerliste,
                 includeOpplaringKategorisering = includeOpplaringKategorisering,
+                historikk = historikk,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -122,51 +119,20 @@ class DeltakerResponseBuilder(
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
+        historikk: List<DeltakerHistorikk> = emptyList(),
     ): GjennomforingResponse {
-        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && deltakerliste.nyForskriftOpplaring
-
-        val (prisinformasjon, prisinformasjonTilGodkjenning) = if (skalHenteEnkeltplassValg) {
-            hentPrisinfoPair(deltakerliste.id)
-        } else {
-            Pair(null, null)
-        }
+        val prisinformasjon = GjennomforingPrisinformasjon.hent(
+            deltakerliste = deltakerliste,
+            includeOpplaringKategorisering = includeOpplaringKategorisering,
+            historikk = historikk,
+        )
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
             arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
             prisinformasjon = prisinformasjon,
-            prisinformasjonTilGodkjenning = prisinformasjonTilGodkjenning,
         )
-    }
-
-    /**
-     * Henter gjeldende- og prisinfo til endring.
-     *
-     * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo.
-     * first i pair vil da inneholde gjeldende prisinfo, og second vil inneholde endring om det finnes.
-     *
-     * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING)
-     * first i pair vil da inneholde endring og second vil alltid inneholde null.
-     *
-     * @param gjennomforingId Deltakerliste-ID
-     */
-    internal fun hentPrisinfoPair(gjennomforingId: UUID): Pair<PrisinformasjonDto?, PrisinformasjonDto?> {
-        val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
-
-        if (prisinfoMap.isEmpty()) return Pair(null, null)
-
-        val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
-        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
-
-        return if (gjeldendePrisinfo == null) {
-            // deltakerstatus er KLADD eller UTKAST
-            Pair(prisinfoTilGodkjenning, null)
-        } else {
-            // deltakerstatus er SOKT_INN eller senere
-            // skal alltid ha gjeldendePrisinfo
-            Pair(gjeldendePrisinfo, prisinfoTilGodkjenning)
-        }
     }
 
     internal fun buildVedtaksinformasjonResponse(

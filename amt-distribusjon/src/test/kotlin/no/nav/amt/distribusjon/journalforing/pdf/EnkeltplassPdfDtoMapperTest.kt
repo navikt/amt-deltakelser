@@ -1,5 +1,6 @@
 package no.nav.amt.distribusjon.journalforing.pdf
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -21,6 +22,7 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -172,7 +174,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
@@ -192,7 +194,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer shouldBe emptyList()
         }
@@ -209,12 +211,8 @@ class EnkeltplassPdfDtoMapperTest {
                         representerer = OpplaringKategoriseringType.FORERKORT,
                         valg = mapOf(UUID.randomUUID() to "CE", UUID.randomUUID() to "D"),
                     ),
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.SERTIFISERINGER,
-                        valg = mapOf(UUID.randomUUID() to "Sikkerhetskurs"),
-                    ),
                 ),
-                valgteSertifiseringer = emptySet(),
+                valgteSertifiseringer = setOf(SertifiseringValg(2, "Sikkerhetskurs")),
             )
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
@@ -222,7 +220,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
             resultat.forerkortOgSertifiseringer.size shouldBe 3
         }
@@ -248,7 +246,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.EnkeltplassInnhold.FagOgYrkesopplaering>()
+            resultat.shouldBeInstanceOf<EnkeltplassInnhold.FagOgYrkesopplaering>()
             resultat.utdanningsprogram shouldBe "Helse- og oppvekstfag"
             resultat.laerefag shouldBe listOf("Elektorfaget")
         }
@@ -283,46 +281,6 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal kaste IllegalArgumentException når BRANSJE_ID har tomme verdier`() {
-            val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                opplaringKategoriseringValg = opplaringKategoriseringValg,
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                deltakerliste.toInnhold()
-            }
-        }
-
-        @Test
-        fun `toInnhold skal kaste IllegalArgumentException når UTDANNINGSPROGRAM_ID har tomme verdier`() {
-            val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
-                        valg = emptyMap(),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                opplaringKategoriseringValg = opplaringKategoriseringValg,
-            )
-
-            shouldThrow<IllegalArgumentException> {
-                deltakerliste.toInnhold()
-            }
-        }
-
-        @Test
         fun `toInnhold skal prioritere KURSTYPE_ID over andre kategoriseringer`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
@@ -343,7 +301,7 @@ class EnkeltplassPdfDtoMapperTest {
 
             val resultat = deltakerliste.toInnhold()
 
-            resultat shouldBe EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }
     }
 
@@ -526,10 +484,14 @@ class EnkeltplassPdfDtoMapperTest {
                     valgteKategoriseringer = setOf(
                         OpplaringKategoriseringValg.ValgteFelt(
                             representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                            valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
+                            valg = mapOf(UUID.randomUUID() to "~bransje~"),
+                        ),
+                        OpplaringKategoriseringValg.ValgteFelt(
+                            representerer = OpplaringKategoriseringType.FORERKORT,
+                            valg = mapOf(UUID.randomUUID() to "~forerkort~"),
                         ),
                     ),
-                    valgteSertifiseringer = setOf(),
+                    valgteSertifiseringer = setOf(SertifiseringValg(1, "~sertifisering~")),
                 ),
             ),
         )
@@ -551,7 +513,7 @@ class EnkeltplassPdfDtoMapperTest {
             val deltaker = createValidDeltaker()
             val utkast = createValidUtkast()
 
-            val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
+            val enkeltplassPdfDto = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
                 veileder = veileder,
@@ -559,8 +521,15 @@ class EnkeltplassPdfDtoMapperTest {
                 utkast = utkast,
             )
 
-            resultat.deltaker.fornavn shouldBe navBruker.fornavn
-            resultat.deltaker.personident shouldBe deltaker.personident
+            assertSoftly(enkeltplassPdfDto) {
+                it.deltaker.fornavn shouldBe navBruker.fornavn
+                it.deltaker.personident shouldBe deltaker.personident
+
+                assertSoftly(it.innhold.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()) {
+                    bransje shouldBe "~bransje~"
+                    forerkortOgSertifiseringer shouldBe listOf("~forerkort~", "~sertifisering~")
+                }
+            }
         }
 
         @Test

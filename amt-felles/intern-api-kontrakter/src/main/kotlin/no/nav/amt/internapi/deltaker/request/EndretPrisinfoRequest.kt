@@ -8,9 +8,11 @@ data class EndretPrisinfoRequest(
     override val endretAvEnhet: String,
     val prisinfo: PrisinformasjonDto,
     val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
+    val prisinformasjonId: java.util.UUID? = null,
 ) : EndringRequest {
     override fun toEndring(): DeltakerEndring.Endring = DeltakerEndring.Endring.EndrePrisinfo(
         prisinfo = prisinfo,
         begrunnelse = begrunnelse,
+        prisinformasjonId = prisinformasjonId,
     )
 }

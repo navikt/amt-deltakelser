@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -147,8 +148,18 @@ class DeltakerService(
             erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != updateResult.deltaker.sluttdato,
             nesteStatus = updateResult.nesteStatus,
             beforeUpsert = { deltaker ->
+                val endringRequestMedPrisinformasjonId = if (endringRequest is EndretPrisinfoRequest) {
+                    val nyPrisinformasjonId = gjennomforingUpserter.lagrePrisinfoEndring(
+                        prisinfo = endringRequest.prisinfo,
+                        deltaker = eksisterendeDeltaker,
+                    )
+                    endringRequest.copy(prisinformasjonId = nyPrisinformasjonId)
+                } else {
+                    endringRequest
+                }
+
                 deltakerEndringService.upsertEndring(
-                    endringRequest = endringRequest,
+                    endringRequest = endringRequestMedPrisinformasjonId,
                     endringResultat = updateResult,
                     endretAvNavAnsatt = navAnsatt,
                 )
@@ -158,10 +169,12 @@ class DeltakerService(
             afterUpsert = {
                 when (endringRequest) {
                     is ReaktiverDeltakelseRequest -> slettKladdIfExists(updateResult.deltaker)
-                    is EndretPrisinfoRequest -> gjennomforingUpserter.lagreOgProduserPrisinfoEndring(
-                        prisinfo = endringRequest.prisinfo,
+                    is EndretPrisinfoRequest -> gjennomforingUpserter.produserPrisinfoEndring(
                         deltaker = eksisterendeDeltaker,
                         endretAvNavIdent = endringRequest.endretAv,
+                        prisinformasjonId = PrisinfoRepoAdapter
+                            .hentPrisinformasjonIdForEndring(eksisterendeDeltaker.deltakerliste.id)
+                            ?: error("PrisinformasjonId mangler for endret prisinfo"),
                     )
 
                     else -> Unit
