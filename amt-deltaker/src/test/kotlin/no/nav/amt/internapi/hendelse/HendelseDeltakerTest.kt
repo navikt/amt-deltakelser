@@ -30,6 +30,29 @@ class HendelseDeltakerTest {
         }
 
         @Test
+        fun `arrangorVisningsnavn - enkeltplass Arena - bruker overordnet arrangor`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste(
+                navn = "deltakerlistenavn",
+                arrangor = lagArrangor(
+                    navn = "Underordnet Arrangor AS",
+                    overordnetArrangor = lagArrangor(
+                        navn = "Overordnet Arrangor AS",
+                    ),
+                ),
+            ).copy(
+                erEnkeltplass = true,
+                tiltak = lagTiltak(tiltakskode = Tiltakskode.HOYERE_UTDANNING),
+            )
+
+            // Act
+            val resultat = deltakerliste.arrangorVisningsnavn()
+
+            // Assert
+            resultat shouldBe "Overordnet Arrangor AS"
+        }
+
+        @Test
         fun `arrangorVisningsnavn - gruppe bruker overordnet arrangor nar den finnes`() {
             // Arrange
             val deltakerliste = lagDeltakerliste(

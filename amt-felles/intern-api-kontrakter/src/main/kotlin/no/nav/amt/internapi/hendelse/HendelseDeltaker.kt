@@ -61,7 +61,7 @@ data class HendelseDeltaker(
          * @return det faktiske arrangørnavnet i visningsformat.
          */
         fun arrangorVisningsnavn(): String {
-            val faktiskArrangornavn = if (erEnkeltplass == true) {
+            val faktiskArrangornavn = if (erEnkeltplass == true && !tiltak.tiltakskode.erArenaEnkeltplass()) {
                 arrangor.navn
             } else {
                 val overordnetArrangorNavn = arrangor.overordnetArrangor
