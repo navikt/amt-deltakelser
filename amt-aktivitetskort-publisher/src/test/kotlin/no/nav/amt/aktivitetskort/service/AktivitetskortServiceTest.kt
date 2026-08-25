@@ -29,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.test.context.TestPropertySource
@@ -370,5 +371,63 @@ class AktivitetskortServiceTest {
         verify(exactly = 0) { meldingRepository.upsert(any()) }
 
         aktivitetskort shouldHaveSize 0
+    }
+
+    @Nested
+    inner class GetArrangorForAktivitetskortTests {
+        @Test
+        fun `getArrangorForAktivitetskort - enkeltplassopplaering - bruker arrangor`() {
+            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
+            val overordnetArrangor = TestData.lagArrangor(navn = "Overordnet arrangor")
+
+            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
+                arrangor = arrangor,
+                overordnetArrangor = overordnetArrangor,
+                erEnkeltplassOpplaring = true,
+            )
+
+            valgtArrangor shouldBe arrangor
+        }
+
+        @Test
+        fun `getArrangorForAktivitetskort - gruppeopplaering med gyldig overordnet arrangor - bruker overordnet arrangor`() {
+            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
+            val overordnetArrangor = TestData.lagArrangor(navn = "Overordnet arrangor")
+
+            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
+                arrangor = arrangor,
+                overordnetArrangor = overordnetArrangor,
+                erEnkeltplassOpplaring = false,
+            )
+
+            valgtArrangor shouldBe overordnetArrangor
+        }
+
+        @Test
+        fun `getArrangorForAktivitetskort - gruppeopplaering uten overordnet arrangor - bruker arrangor`() {
+            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
+
+            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
+                arrangor = arrangor,
+                overordnetArrangor = null,
+                erEnkeltplassOpplaring = false,
+            )
+
+            valgtArrangor shouldBe arrangor
+        }
+
+        @Test
+        fun `getArrangorForAktivitetskort - gruppeopplaering med ukjent virksomhet som overordnet arrangor - bruker arrangor`() {
+            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
+            val overordnetArrangor = TestData.lagArrangor(navn = "ukjent virksomhet")
+
+            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
+                arrangor = arrangor,
+                overordnetArrangor = overordnetArrangor,
+                erEnkeltplassOpplaring = false,
+            )
+
+            valgtArrangor shouldBe arrangor
+        }
     }
 }

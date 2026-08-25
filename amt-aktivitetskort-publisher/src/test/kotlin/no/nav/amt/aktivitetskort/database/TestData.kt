@@ -30,6 +30,7 @@ import no.nav.amt.lib.models.deltaker.Navn
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -173,7 +174,16 @@ object TestData {
         tiltak: Tiltak = lagTiltak(navn = "Oppfølging", tiltakskode = Tiltakskode.OPPFOLGING),
         navn: String = "~deltakerlistenavn~",
         arrangorId: UUID = UUID.randomUUID(),
-    ) = Deltakerliste(id, tiltak, navn, arrangorId)
+    ) = Deltakerliste(
+        id = id,
+        tiltak = tiltak,
+        navn = navn,
+        arrangorId = arrangorId,
+        gjennomforingstype = GjennomforingType.Gruppe,
+        status = GjennomforingStatusType.GJENNOMFORES,
+        oppstart = Oppstartstype.LOPENDE,
+        pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
+    )
 
     fun lagEnkeltplassDeltakerlistePayload(
         arrangor: Arrangor = lagArrangor(),

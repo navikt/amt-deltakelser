@@ -92,6 +92,7 @@ class KafkaConsumerService(
         if (value == null) {
             log.info("Mottok tombstone for gjennomføring: $id")
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(id)
+
             if (id !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 deltakerlisteRepository.delete(id)
             } else {
@@ -100,6 +101,7 @@ class KafkaConsumerService(
                         "Deltakerliste er svartelistet eller har deltakere. Antall deltakere: $antallDeltakere",
                 )
             }
+
             return
         }
 

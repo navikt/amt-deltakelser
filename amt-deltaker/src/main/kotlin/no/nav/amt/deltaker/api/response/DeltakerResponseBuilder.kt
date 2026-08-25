@@ -24,7 +24,6 @@ import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -124,9 +123,7 @@ class DeltakerResponseBuilder(
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
     ): GjennomforingResponse {
-        val skalHenteEnkeltplassValg =
-            includeOpplaringKategorisering && deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
+        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && deltakerliste.nyForskriftOpplaring
 
         val (prisinformasjon, prisinformasjonTilGodkjenning) = if (skalHenteEnkeltplassValg) {
             hentPrisinfoPair(deltakerliste.id)

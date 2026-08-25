@@ -4,6 +4,10 @@ import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.Tiltak
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.aktivitetskort.utils.sqlParameters
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -22,18 +26,43 @@ class DeltakerlisteRepository(
         val new = template
             .query(
                 """
-                INSERT INTO deltakerliste(id, tiltaksnavn, tiltakstype, navn, arrangor_id)
-                VALUES (:id,
-                		:tiltaksnavn,
-                		:tiltakstype,
-                		:navn,
-                		:arrangor_id
-                		)
+                INSERT INTO deltakerliste(
+                    id, 
+                    tiltaksnavn, 
+                    tiltakstype, 
+                    navn, 
+                    arrangor_id,
+                    
+                    gjennomforingstype,
+                    status,
+                    oppstart,
+                    pameldingstype
+                )
+                VALUES (
+                    :id,
+                    :tiltaksnavn,
+                    :tiltakstype,
+                    :navn,
+                    :arrangor_id,
+                                            
+                    :gjennomforingstype,
+                    :status,
+                    :oppstart,
+                    :pameldingstype        
+                )
                 ON CONFLICT (id) DO UPDATE SET
-                	tiltaksnavn = :tiltaksnavn,
-                	tiltakstype = :tiltakstype,
-                    navn = :navn,
-                	arrangor_id = :arrangor_id
+                	tiltaksnavn = EXCLUDED.tiltaksnavn,
+                	tiltakstype = EXCLUDED.tiltakstype,
+                    navn = EXCLUDED.navn,
+                	arrangor_id = EXCLUDED.arrangor_id,
+                
+                    gjennomforingstype = EXCLUDED.gjennomforingstype,
+                    status = EXCLUDED.status,
+                    oppstart = EXCLUDED.oppstart,
+                    pameldingstype = EXCLUDED.pameldingstype,
+                
+                    modified_at             = NOW()
+                    
                 RETURNING *
                 """.trimIndent(),
                 sqlParameters(
@@ -42,6 +71,10 @@ class DeltakerlisteRepository(
                     "tiltakstype" to deltakerliste.tiltak.tiltakskode.name,
                     "navn" to deltakerliste.navn,
                     "arrangor_id" to deltakerliste.arrangorId,
+                    "gjennomforingstype" to deltakerliste.gjennomforingstype?.name,
+                    "status" to deltakerliste.status?.name,
+                    "oppstart" to deltakerliste.oppstart?.name,
+                    "pameldingstype" to deltakerliste.pameldingstype?.name,
                 ),
                 rowMapper,
             ).first()
@@ -53,7 +86,21 @@ class DeltakerlisteRepository(
 
     fun get(id: UUID): Deltakerliste? = template
         .query(
-            "SELECT id,tiltaksnavn,tiltakstype,navn,arrangor_id FROM deltakerliste WHERE id = :id",
+            """
+            SELECT 
+                id,
+                tiltaksnavn,
+                tiltakstype,
+                navn,
+                arrangor_id,
+                 
+                gjennomforingstype,
+                status,
+                oppstart,
+                pameldingstype
+            FROM deltakerliste 
+            WHERE id = :id 
+            """.trimIndent(),
             sqlParameters("id" to id),
             rowMapper,
         ).firstOrNull()
@@ -75,6 +122,10 @@ class DeltakerlisteRepository(
                 ),
                 navn = rs.getString("navn"),
                 arrangorId = UUID.fromString(rs.getString("arrangor_id")),
+                gjennomforingstype = rs.getString("gjennomforingstype")?.let { GjennomforingType.valueOf(it) },
+                status = rs.getString("status")?.let { GjennomforingStatusType.valueOf(it) },
+                oppstart = rs.getString("oppstart")?.let { Oppstartstype.valueOf(it) },
+                pameldingstype = rs.getString("pameldingstype")?.let { GjennomforingPameldingType.valueOf(it) },
             )
         }
     }
