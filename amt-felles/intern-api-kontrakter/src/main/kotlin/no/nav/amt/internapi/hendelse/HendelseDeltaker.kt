@@ -65,7 +65,7 @@ data class HendelseDeltaker(
                 arrangor.navn
             } else {
                 val overordnetArrangorNavn = arrangor.overordnetArrangor
-                    ?.takeUnless { it.navn == UKJENT_VIRKSOMHET }
+                    ?.takeUnless { it.navn.equals(UKJENT_VIRKSOMHET, true) }
                     ?.navn
 
                 overordnetArrangorNavn ?: arrangor.navn
