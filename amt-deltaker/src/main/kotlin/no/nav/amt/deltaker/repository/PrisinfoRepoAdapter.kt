@@ -27,6 +27,9 @@ import java.util.UUID
  * 4. `hentPrisinfo()` → returnerer GJELDENDE dersom den finnes, ellers ENDRING
  */
 object PrisinfoRepoAdapter {
+    fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
+        Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
+
     /**
      * Godkjenner prisinfo for økonomi.
      *

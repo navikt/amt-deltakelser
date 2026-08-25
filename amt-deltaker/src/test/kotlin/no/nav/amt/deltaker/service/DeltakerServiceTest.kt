@@ -11,13 +11,16 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
@@ -27,6 +30,7 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
@@ -35,6 +39,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
@@ -909,6 +914,59 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 deltaker.id,
                 Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - endret prisinfo - lagret historikk-id matcher pending prisinfo-id og produsert request-id`() = runTest {
+            // Arrange
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                status = no.nav.amt.deltaker.utils.data.TestData
+                    .lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+
+            val endringsrequest = EndretPrisinfoRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000),
+                begrunnelse = "Oppdatert prisgrunnlag",
+            )
+
+            // Act
+            deltakerService.upsertEndretDeltaker(
+                deltakerId = deltaker.id,
+                endringRequest = endringsrequest,
+            )
+
+            // Assert
+            val lagretEndring = deltakerEndringRepository
+                .getForDeltaker(deltaker.id)
+                .first()
+                .endring
+                .shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()
+
+            val pendingPrisinfoId = PrisinfoRepoAdapter
+                .hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id)
+                .shouldNotBeNull()
+
+            lagretEndring.prisinformasjonId shouldBe pendingPrisinfoId
+
+            verify(exactly = 1) {
+                outboxService.insertRecord(
+                    key = deltaker.deltakerliste.id,
+                    value = match {
+                        it is GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon &&
+                            it.totrinnskontroll.id == pendingPrisinfoId
+                    },
+                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+                    suppressOutsideTxWarning = any(),
+                )
+            }
         }
 
         @Test

@@ -8,11 +8,13 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 sealed interface PrisinformasjonResponse {
     data class Anskaffelse(
         val pris: Int,
+        val begrunnelse: String?,
     ) : PrisinformasjonResponse
 
     data class Tilskudd(
         val tilskudd: List<TilskuddInfo>,
         val tilleggsopplysninger: String?,
+        val begrunnelse: String?,
     ) : PrisinformasjonResponse {
         data class TilskuddInfo(
             val type: PrisinformasjonDto.Tilskudd.Tilskuddstype,
@@ -28,19 +30,25 @@ sealed interface PrisinformasjonResponse {
     data class IngenKostnader(
         val aarsak: PrisinformasjonDto.IngenKostnader.Aarsak,
         val tilleggsopplysninger: String?,
+        val begrunnelse: String?,
     ) : PrisinformasjonResponse
 
     companion object {
         fun fromModel(model: PrisinformasjonDto) = when (model) {
-            is PrisinformasjonDto.Anskaffelse -> Anskaffelse(model.pris)
+            is PrisinformasjonDto.Anskaffelse -> Anskaffelse(
+                pris = model.pris,
+                begrunnelse = model.begrunnelse,
+            )
             is PrisinformasjonDto.Tilskudd -> Tilskudd(
                 tilskudd = model.tilskudd.map(::TilskuddInfo),
                 tilleggsopplysninger = model.tilleggsopplysninger,
+                begrunnelse = model.begrunnelse,
             )
 
             is PrisinformasjonDto.IngenKostnader -> IngenKostnader(
                 aarsak = model.aarsak,
                 tilleggsopplysninger = model.tilleggsopplysninger,
+                begrunnelse = model.begrunnelse,
             )
         }
     }

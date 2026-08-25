@@ -17,12 +17,15 @@ const val INGENKOSTNADER_SUB_TYPE = "IngenKostnader"
     JsonSubTypes.Type(value = IngenKostnader::class, name = INGENKOSTNADER_SUB_TYPE),
 )
 sealed interface PrisinformasjonDto {
+    val begrunnelse: String?
+
     fun validate(): List<String>
 
     fun sanitize(): PrisinformasjonDto
 
     data class Anskaffelse(
         val pris: Int,
+        override val begrunnelse: String? = null,
     ) : PrisinformasjonDto {
         override fun validate(): List<String> = if (pris <= 0) listOf(POSITIV_PRIS_REQUIRED_MSG) else emptyList()
 
@@ -32,6 +35,7 @@ sealed interface PrisinformasjonDto {
     data class Tilskudd(
         val tilskudd: List<TilskuddInfo>,
         val tilleggsopplysninger: String?,
+        override val begrunnelse: String? = null,
     ) : PrisinformasjonDto {
         data class TilskuddInfo(
             val type: Tilskuddstype,
@@ -75,6 +79,7 @@ sealed interface PrisinformasjonDto {
     data class IngenKostnader(
         val aarsak: Aarsak,
         val tilleggsopplysninger: String?,
+        override val begrunnelse: String? = null,
     ) : PrisinformasjonDto {
         enum class Aarsak {
             OPPLAERINGEN_ER_KOSTNADSFRI,
