@@ -2,6 +2,10 @@ plugins {
     kotlin("jvm")
 }
 
+kotlin {
+    jvmToolchain(25)
+}
+
 repositories {
     mavenCentral()
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
