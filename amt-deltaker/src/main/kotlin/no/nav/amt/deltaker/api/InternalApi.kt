@@ -4,10 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.server.util.getOrFail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,7 +13,6 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -24,14 +21,11 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
-import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.ktor.auth.requireInternal
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.Logger
@@ -44,7 +38,6 @@ fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
     kladdService: KladdService,
     deltakerProducerService: DeltakerProducerService,
-    vedtakService: VedtakService,
     innsokRepository: InnsokRepository,
     vurderingRepository: VurderingRepository,
     distribuerEndringService: DistribuerEndringService,
@@ -85,36 +78,6 @@ fun Routing.registerInternalApi(
     }
 
     route("/internal") {
-        post("/sett-ikke-aktuell/{fra-status}") {
-            requireInternal(call.request.local.remoteAddress)
-            scope.launch {
-                val fraStatus = DeltakerStatus.Type.valueOf(call.parameters["fra-status"]!!)
-                log.info("Mottatt forespørsel for å endre deltakere med status $fraStatus til IKKE_AKTUELL.")
-                val deltakerIder = deltakerRepository.getDeltakereMedStatus(fraStatus)
-
-                deltakerIder.forEach {
-                    val deltaker = deltakerRepository.get(it).getOrThrow()
-                    deltakerService.upsertAndProduceDeltaker(
-                        deltaker.copy(
-                            status = DeltakerStatus(
-                                id = UUID.randomUUID(),
-                                type = DeltakerStatus.Type.IKKE_AKTUELL,
-                                aarsak = null,
-                                gyldigFra = LocalDateTime.now(),
-                                gyldigTil = null,
-                                opprettet = LocalDateTime.now(),
-                            ),
-                        ),
-                        erDeltakerSluttdatoEndret = false,
-                        forceProduce = true,
-                    )
-                }
-
-                log.info("Oppdatert status til IKKE_AKTUELL for ${deltakerIder.size} deltakere med status $fraStatus.")
-            }
-            call.respond(HttpStatusCode.OK)
-        }
-
         post("/feilregistrer/{deltakerId}") {
             requireInternal(call.request.local.remoteAddress)
             deltakerService.feilregistrerDeltaker(call.getDeltakerId())
@@ -243,26 +206,6 @@ fun Routing.registerInternalApi(
                 log.info("slett-kladd: Fullført sletting av ${request.deltakere.size} kladder")
             }
             call.respond(HttpStatusCode.OK)
-        }
-
-        get("/avbryt-utkast/{deltakerId}") {
-            requireInternal(call.request.local.remoteAddress)
-            val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
-            val status = nyDeltakerStatus(
-                DeltakerStatus.Type.AVBRUTT_UTKAST,
-                DeltakerStatus.Aarsak(
-                    type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-                    beskrivelse = null,
-                ),
-            )
-            deltakerService.upsertAndProduceDeltaker(
-                deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
-                erDeltakerSluttdatoEndret = false,
-                beforeUpsert = { deltaker ->
-                    val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
-                    deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
-                },
-            )
         }
 
         post("/relast/hendelse-fra-tiltakskoordinator") {
