@@ -1,7 +1,6 @@
 package no.nav.amt.distribusjon.varsel.model
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.distribusjon.journalforing.pdf.visningsnavn
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -12,8 +11,7 @@ class VarselTeksterTest {
     fun `oppgaveTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         oppgaveTekst(hendelse) shouldBe
             "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn. Svar på spørsmålet her."
@@ -30,8 +28,7 @@ class VarselTeksterTest {
             ),
         )
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         oppgaveTekst(hendelse) shouldBe
             "Du har mottatt et utkast til søknad på arbeidsmarkedstiltaket $tiltakNavn hos $arrangorNavn. Svar på spørsmålet her."
@@ -41,8 +38,7 @@ class VarselTeksterTest {
     fun `beskjedTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         beskjedTekst(hendelse) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
     }
@@ -58,8 +54,7 @@ class VarselTeksterTest {
             ),
         )
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         beskjedTekst(hendelse) shouldBe "Du er søkt inn på arbeidsmarkedstiltaket $tiltakNavn hos $arrangorNavn."
     }
@@ -75,8 +70,7 @@ class VarselTeksterTest {
             ),
         )
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         val hendelse2 = Hendelsesdata.hendelse(
             HendelseTypeData.endreDeltakelsesmengde(),
@@ -87,8 +81,7 @@ class VarselTeksterTest {
             ),
         )
         val tiltakNavn2 = hendelse2.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn2 = hendelse2.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn2 = hendelse2.deltaker.deltakerliste.arrangorVisningsnavn()
 
         beskjedTekst(hendelse) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
         beskjedTekst(hendelse2) shouldBe "Ny endring på arbeidsmarkedstiltaket: $tiltakNavn2 hos $arrangorNavn2."
@@ -105,8 +98,7 @@ class VarselTeksterTest {
             ),
         )
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
-        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor
-            .visningsnavn()
+        val arrangorNavn = hendelse.deltaker.deltakerliste.arrangorVisningsnavn()
 
         beskjedTekst(hendelse) shouldBe "Du er meldt på arbeidsmarkedstiltaket: $tiltakNavn hos $arrangorNavn."
     }

@@ -25,7 +25,6 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.amt.lib.utils.toTitleCase
 
 fun HendelseAnsvarlig.getAvsendernavn() = when (this) {
     is HendelseAnsvarlig.NavVeileder -> navn
@@ -76,19 +75,9 @@ fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisnin
     gjennomforingsnavn = navn,
     gjennomforingType = if (erEnkeltplass == true) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe,
     erKladd = false,
-    arrangorNavn = arrangor.visningsnavn(),
+    arrangorNavn = this.arrangorVisningsnavn(),
     opplaringKategoriseringValg = opplaringKategoriseringValg,
 )
-
-fun HendelseDeltaker.Deltakerliste.Arrangor.visningsnavn(): String = with(overordnetArrangor) {
-    val visningsnavn = if (this == null || this.navn == "Ukjent Virksomhet") {
-        navn
-    } else {
-        this.navn
-    }
-
-    return visningsnavn.toTitleCase()
-}
 
 fun HendelseDeltaker.Deltakerliste.harKlagerett() = !(
     this.tiltak.tiltakskode in setOf(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING, Tiltakskode.ARBEIDSMARKEDSOPPLAERING) &&

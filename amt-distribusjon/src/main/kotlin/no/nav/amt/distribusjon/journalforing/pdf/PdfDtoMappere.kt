@@ -51,9 +51,7 @@ fun lagHovedvedtakPdfDto(
             navn = visningsnavn.tittel,
             tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
             ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "", // skal fases ut for innholdV2
-            arrangor = HovedvedtakPdfDto.ArrangorDto(
-                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-            ),
+            arrangor = HovedvedtakPdfDto.ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
             oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
         ),
@@ -94,9 +92,7 @@ fun lagHovedopptakForTildeltPlass(
             sluttdato = deltaker.deltakerliste.sluttdato,
             forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
             harKursetStartet = deltaker.deltakerliste.startdato?.isBefore(LocalDate.now()) == true,
-            arrangor = ArrangorDto(
-                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-            ),
+            arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
             harKlagerett = deltaker.deltakerliste.harKlagerett(),
             oppstartstype = deltaker.deltakerliste.oppstartstype!!,
@@ -129,7 +125,7 @@ fun lagInnsokingsbrevPdfDto(
             navn = visningsnavn.tittel,
             tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
             ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-            arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangor.visningsnavn()),
+            arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             startdato = deltaker.deltakerliste.startdato,
             sluttdato = deltaker.deltakerliste.sluttdato,
             oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
@@ -163,9 +159,7 @@ fun lagVentelistebrevPdfDto(
         deltakerliste = VentelistebrevPdfDto.DeltakerlisteDto(
             tittelNavn = visningsnavn.tittel,
             ingressNavn = visningsnavn.ingressTekst,
-            arrangor = ArrangorDto(
-                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-            ),
+            arrangor = ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             startdato = deltaker.deltakerliste.startdato,
             sluttdato = deltaker.deltakerliste.sluttdato,
             oppmoteSted = deltaker.deltakerliste.oppmoteSted?.trimOgFjernAvsluttendePunktum(),
@@ -200,9 +194,7 @@ fun lagEndringsvedtakPdfDto(
         deltakerliste = EndringsvedtakPdfDto.DeltakerlisteDto(
             navn = visningsnavn.tittel,
             ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
-            arrangor = EndringsvedtakPdfDto.ArrangorDto(
-                navn = deltaker.deltakerliste.arrangor.visningsnavn(),
-            ),
+            arrangor = EndringsvedtakPdfDto.ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
             pameldingstype = deltaker.deltakerliste.pameldingstype
                 ?: throw IllegalStateException("deltakerliste ${deltaker.deltakerliste.id} må ha påmeldingstype for å lage endringsvedtak"),

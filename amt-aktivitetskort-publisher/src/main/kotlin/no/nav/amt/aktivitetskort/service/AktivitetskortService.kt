@@ -194,12 +194,21 @@ class AktivitetskortService(
                     "før nåværende oppfølgingsperiode startet ${oppfolgingsperiode.startDato}",
             )
         }
-        val aktivitetskortId = meldingId ?: getAktivitetskortId(deltaker, oppfolgingsperiode)
+
+        val aktivitetskortId = meldingId ?: getAktivitetskortId(
+            deltaker = deltaker,
+            oppfolgingsperiode = oppfolgingsperiode,
+        )
+
         val aktivitetskort = lagAktivitetskort(
-            aktivitetskortId,
-            deltaker,
-            deltakerliste,
-            getArrangorForAktivitetskort(arrangor = arrangor, overordnetArrangor = overordnetArrangor),
+            id = aktivitetskortId,
+            deltaker = deltaker,
+            deltakerliste = deltakerliste,
+            arrangor = getArrangorForAktivitetskort(
+                arrangor = arrangor,
+                overordnetArrangor = overordnetArrangor,
+                erEnkeltplassOpplaring = deltakerliste.nyForskriftOpplaring,
+            ),
         )
 
         val melding = Melding(
@@ -220,17 +229,16 @@ class AktivitetskortService(
         return melding
     }
 
-    private fun getArrangorForAktivitetskort(
+    internal fun getArrangorForAktivitetskort(
         arrangor: Arrangor,
         overordnetArrangor: Arrangor?,
-    ) = if (overordnetArrangor == null) {
+        erEnkeltplassOpplaring: Boolean,
+    ): Arrangor = if (erEnkeltplassOpplaring) {
         arrangor
     } else {
-        if (overordnetArrangor.navn == "Ukjent Virksomhet") {
-            arrangor
-        } else {
-            overordnetArrangor
-        }
+        overordnetArrangor
+            ?.takeUnless { it.navn.equals("Ukjent Virksomhet", true) }
+            ?: arrangor
     }
 
     private fun lagAktivitetskort(

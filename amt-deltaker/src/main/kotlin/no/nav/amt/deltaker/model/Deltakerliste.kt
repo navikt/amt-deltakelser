@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -32,11 +33,23 @@ data class Deltakerliste(
 
     fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == GjennomforingStatusType.AVSLUTTET
 
+    // enkeltplass opplæring etter ny forskrift
+    @get:JsonIgnore
+    val nyForskriftOpplaring get() = gjennomforingstype == GjennomforingType.Enkeltplass &&
+        !tiltakstype.tiltakskode.erArenaEnkeltplass()
+
+    @get:JsonIgnore
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
+
+    @get:JsonIgnore
     val deltakelserMaaGodkjennes get() = pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
 
+    @get:JsonIgnore
     val avslutningstype get() = if (erFellesOppstart || tiltakstype.erOpplaeringstiltak) Avslutningstype.FELLES else Avslutningstype.LOPENDE
 
+    @get:JsonIgnore
     val harFellesAvslutning = avslutningstype == Avslutningstype.FELLES
+
+    @get:JsonIgnore
     val erDeltMedValp get() = status != GjennomforingStatusType.KLADD
 }
