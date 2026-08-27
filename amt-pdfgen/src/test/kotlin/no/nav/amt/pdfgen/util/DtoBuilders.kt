@@ -87,6 +87,7 @@ object DtoBuilders {
         etternavn = "Nordmann",
         personident = "12345678910",
         opprettetDato = fixedDate,
+        visVedtakOgKlage = true,
     )
 
     fun endringsvedtakDeltakerliste(
