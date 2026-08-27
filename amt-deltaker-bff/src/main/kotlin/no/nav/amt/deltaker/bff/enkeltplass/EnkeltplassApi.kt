@@ -195,6 +195,7 @@ fun Routing.registerEnkeltplassApi(
                 }
             }
 
+            // TODO: fjern
             post("/tilbakekall-prisendring/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
 

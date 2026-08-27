@@ -42,6 +42,7 @@ import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.OpplaringKategoriseringValgRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -223,6 +224,53 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             ) shouldBe nyPrisinfo
             deltakerEndringRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
+        }
+
+        @Test
+        fun `tilbakekalt prisinfo lagrer historikk med status=tilbakekalt og prisinformasjonen persistert`() = runTest {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insertAll(deltaker, vedtak)
+            val prisinfoTilGodkjenning = PrisinformasjonDto.Anskaffelse(pris = 6000)
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltaker.deltakerliste.id,
+                prisinformasjon = prisinfoTilGodkjenning,
+            )
+            val request = TilbakekaltPrisendringRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+            )
+
+            veilederEndringService.upsertEndretDeltaker(
+                deltakerId = deltaker.id,
+                endringRequest = request,
+            )
+
+            PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id).shouldBeNull()
+
+            val endring = deltakerEndringRepository
+                .getForDeltaker(deltaker.id)
+                .first()
+                .endring
+                .shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()
+
+            endring.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
+            endring.prisinfo shouldBe prisinfoTilGodkjenning
+            endring.prisinformasjonId shouldBe prisinformasjonId
+
+            outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
+            outboxService.assertProduced<GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon>(
+                expectedKey = deltaker.deltakerliste.id,
+                expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+            )
         }
     }
 

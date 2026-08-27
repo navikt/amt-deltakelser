@@ -6,6 +6,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -134,6 +135,38 @@ class EndringRequestMapperTest {
             opplaringKategoriseringValg = emptySet(),
             sertifiseringValg = emptySet(),
             pavirkerPris = false,
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            EndringRequestMapper.toEndring(request)
+        }
+    }
+
+    @Test
+    fun `tilbakekalt prisinfo - mapper status og prisinformasjonId`() {
+        val prisinformasjonId = UUID.randomUUID()
+        val request = TilbakekaltPrisendringRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            prisinformasjonId = prisinformasjonId,
+        )
+        val prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000)
+
+        val endring = EndringRequestMapper.toEndring(
+            request = request,
+            prisinfo = prisinfo,
+        ) as DeltakerEndring.Endring.EndrePrisinfo
+
+        endring.prisinfo shouldBe prisinfo
+        endring.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
+        endring.prisinformasjonId shouldBe prisinformasjonId
+    }
+
+    @Test
+    fun `tilbakekalt prisinfo - uten prisinfo - kaster IllegalArgumentException`() {
+        val request = TilbakekaltPrisendringRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
         )
 
         shouldThrow<IllegalArgumentException> {

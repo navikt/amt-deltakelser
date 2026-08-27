@@ -4,7 +4,9 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerTestUtils
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertProducedForslag
@@ -22,12 +24,14 @@ import no.nav.amt.internapi.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.internapi.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.testing.utils.TestData
@@ -261,6 +265,55 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         }
 
         outboxService.assertProducedHendelse<HendelseType.FjernOppstartsdato>(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndring - tilbakekalt prisinfo - lagrer status=tilbakekalt med prisinfo persistert`() {
+        val deltaker = lagDeltaker()
+        TestRepository.insert(deltaker)
+        val prisinfo = PrisinformasjonDto.Anskaffelse(pris = 7500)
+        val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+            gjennomforingId = deltaker.deltakerliste.id,
+            prisinformasjon = prisinfo,
+        )
+        val endringsrequest = TilbakekaltPrisendringRequest(
+            endretAv = navAnsattInTest.navIdent,
+            endretAvEnhet = navEnhetInTest.enhetsnummer,
+            prisinformasjonId = prisinformasjonId,
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(
+            endringResultat = VellykketEndring(deltaker),
+            endringRequest = endringsrequest,
+            endretAvNavAnsatt = navAnsattInTest,
+        )
+
+        assertSoftly(resultat.endring.shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()) {
+            this.prisinfo shouldBe prisinfo
+            this.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
+            this.prisinformasjonId shouldBe prisinformasjonId
+        }
+    }
+
+    @Test
+    fun `upsertEndring - tilbakekalt prisinfo med ukjent id - kaster IllegalArgumentException`() {
+        val deltaker = lagDeltaker()
+        TestRepository.insert(deltaker)
+
+        val exception = kotlin
+            .runCatching {
+                deltakerEndringService.upsertEndring(
+                    endringResultat = VellykketEndring(deltaker),
+                    endringRequest = TilbakekaltPrisendringRequest(
+                        endretAv = navAnsattInTest.navIdent,
+                        endretAvEnhet = navEnhetInTest.enhetsnummer,
+                        prisinformasjonId = UUID.randomUUID(),
+                    ),
+                    endretAvNavAnsatt = navAnsattInTest,
+                )
+            }.exceptionOrNull()
+
+        exception.shouldBeInstanceOf<IllegalArgumentException>().message shouldStartWith "Fant ingen matchende prisinformasjon"
     }
 
     @Test

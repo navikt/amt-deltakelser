@@ -13,6 +13,7 @@ sealed interface EndringRequest {
 
     fun kanIverksettesUtenAktivOppfolging() = when (this) {
         is EndretPrisinfoRequest,
+        is TilbakekaltPrisendringRequest,
         is EndretOpplaringKategoriseringRequest,
         is BakgrunnsinformasjonRequest,
         is DeltakelsesmengdeRequest,

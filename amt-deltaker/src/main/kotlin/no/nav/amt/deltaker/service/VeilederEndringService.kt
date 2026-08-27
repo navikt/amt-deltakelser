@@ -16,6 +16,7 @@ import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringReques
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -107,6 +108,15 @@ class VeilederEndringService(
                         endringRequest.copy(prisinformasjonId = prisinformasjonId)
                     }
 
+                    is TilbakekaltPrisendringRequest -> {
+                        val prisinformasjonId = gjennomforingUpserter.produserTilbakekallPrisendring(
+                            deltakerId = deltaker.id,
+                            endretAvNavIdent = endringRequest.endretAv,
+                        )
+
+                        endringRequest.copy(prisinformasjonId = prisinformasjonId)
+                    }
+
                     else -> endringRequest
                 }
 
@@ -132,6 +142,8 @@ class VeilederEndringService(
      *
      * For requests som endrer gjennomføringen direkte ([EndretOpplaringKategoriseringRequest],
      * [EndretPrisinfoRequest]) returneres `null` hvis requesten ikke endrer noe.
+     * [TilbakekaltPrisendringRequest] endrer ikke deltakerobjektet direkte, men skal fortsatt
+     * gi historikk og melding, derfor returneres uendret deltaker som vellykket endring.
      * For kategorisering der kun kodeverk-valg er endret (men ikke beskrivelse), fortsetter
      * flyten med uendret deltaker slik at beforeUpsert lagrer de nye valgene.
      *
@@ -172,6 +184,8 @@ class VeilederEndringService(
             ) {
                 return null
             }
+
+            is TilbakekaltPrisendringRequest -> return VellykketEndring(eksisterendeDeltaker)
 
             else -> Unit
         }

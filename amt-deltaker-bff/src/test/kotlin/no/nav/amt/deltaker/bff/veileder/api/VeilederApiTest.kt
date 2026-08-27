@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
@@ -76,6 +77,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 "POST" to "/deltaker/$id",
                 "GET" to "/deltaker/$id/historikk",
                 "POST" to "/deltaker/$id/endre-prisinfo",
+                "POST" to "/deltaker/$id/tilbakekall-prisendring",
                 "POST" to "/deltaker/$id/endre-innhold-kodeverk",
                 "POST" to "/deltaker/$id/bakgrunnsinformasjon",
                 "POST" to "/deltaker/$id/innhold",
@@ -125,6 +127,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 { httpClient.post("/deltaker/$id") { createPostRequest(deltakerRequest) } },
                 { httpClient.get("/deltaker/$id/historikk") { noBodyRequest() } },
                 { httpClient.post("/deltaker/$id/endre-prisinfo") { createPostRequest(endrePrisinfoRequest) } },
+                { httpClient.post("/deltaker/$id/tilbakekall-prisendring") { createPostRequest(tilbakekallPrisendringRequest) } },
                 { httpClient.post("/deltaker/$id/endre-innhold-kodeverk") { createPostRequest(endreOpplaringKategoriseringRequest) } },
                 { httpClient.post("/deltaker/$id/bakgrunnsinformasjon") { createPostRequest(bakgrunnsinformasjonRequest) } },
                 { httpClient.post("/deltaker/$id/innhold") { createPostRequest(innholdRequest) } },
@@ -436,6 +439,42 @@ class VeilederApiTest : IntegrationTestBase() {
                         }
                 }
             }
+
+            @Test
+            fun `tilbakekall prisendring - har tilgang - returnerer deltaker`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                val expected = setupMocksLocal(deltaker, deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/tilbakekall-prisendring") {
+                            createPostRequest(tilbakekallPrisendringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                        }
+                }
+            }
+
+            @Test
+            fun `tilbakekall prisendring - uten prisinfo til godkjenning - returnerer 400`() {
+                val deltaker = lagDeltakerResponse(
+                    id = UUID.randomUUID(),
+                    deltakerliste = lagDeltakerResponse().gjennomforing.copy(prisinformasjonTilGodkjenning = null),
+                )
+
+                setupMocks(lagDeltakerOld(id = deltaker.id))
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns deltaker
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/tilbakekall-prisendring") {
+                            createPostRequest(tilbakekallPrisendringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                        }
+                }
+            }
         }
 
         // ---- startdato ----
@@ -687,6 +726,7 @@ class VeilederApiTest : IntegrationTestBase() {
         ),
         begrunnelse = "begrunnelse",
     )
+    private val tilbakekallPrisendringRequest = TilbakekallPrisendringRequest()
 
     private val endreOpplaringKategoriseringRequest = EndreOpplaringKategoriseringRequest(
         opplaringKategoriseringValg = setOf(
