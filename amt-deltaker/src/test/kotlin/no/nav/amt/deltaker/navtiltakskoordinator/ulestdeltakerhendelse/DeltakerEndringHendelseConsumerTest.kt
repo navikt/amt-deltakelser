@@ -8,6 +8,7 @@ import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.utils.IntegrationTestBase
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.internapi.hendelse.Hendelse
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
@@ -89,6 +90,7 @@ class DeltakerEndringHendelseConsumerTest : IntegrationTestBase() {
                 oppmoteSted = "Oslo",
                 erEnkeltplass = false,
             ),
+            status = lagDeltakerStatus(),
             forsteVedtakFattet = null,
             opprettetDato = null,
         ),

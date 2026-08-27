@@ -1,6 +1,7 @@
 package no.nav.amt.internapi.journalforing.pdf
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import java.time.LocalDate
 
@@ -21,6 +22,7 @@ data class EndringsvedtakPdfDto(
         val etternavn: String,
         val personident: String,
         val opprettetDato: LocalDate?,
+        val visVedtakOgKlage: Boolean,
     )
 
     data class DeltakerlisteDto(

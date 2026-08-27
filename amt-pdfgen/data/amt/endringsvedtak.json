@@ -4,7 +4,8 @@
     "mellomnavn": null,
     "etternavn": "Navnersen",
     "personident": "12345678910",
-    "opprettetDato": "2025-04-04"
+    "opprettetDato": "2025-04-04",
+    "visVedtakOgKlage": true
   },
   "deltakerliste": {
     "navn": "Arbeidsforberedende trening hos Muligheter AS",
