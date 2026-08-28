@@ -10,10 +10,10 @@ data class NavBruker(
     val mellomnavn: String?,
     val etternavn: String,
     val navEnhet: NavEnhet?,
-    val harFalskIdentitet: Boolean,
     val oppfolgingsperioder: List<Oppfolgingsperiode>,
     val adressebeskyttelse: Adressebeskyttelse?,
     val adresse: Adresse?,
+    val harFalskIdentitet: Boolean,
 ) {
     fun getAktivOppfolgingsperiode(): Oppfolgingsperiode? = oppfolgingsperioder.find { it.erAktiv() }
 
