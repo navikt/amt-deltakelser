@@ -19,7 +19,7 @@ $$
         SELECT rolname
         INTO STRICT app_user
         FROM pg_roles
-        WHERE rolname LIKE 'amt-%'
+        WHERE rolname LIKE 'amt-deltaker%'
           AND rolcanlogin;
 
         RAISE NOTICE 'Changing table owners to %', app_user;
