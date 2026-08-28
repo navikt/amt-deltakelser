@@ -216,7 +216,7 @@ fun lagEndringsvedtakPdfDto(
             navn = ansvarlig.getAvsendernavn(),
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
-        visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status.type, endringer),
+        visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status?.type, endringer),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = visningsnavn.tittel,
@@ -226,7 +226,7 @@ fun lagEndringsvedtakPdfDto(
 }
 
 private fun skalViseVedtakOgKlageForEndring(
-    statusType: DeltakerStatus.Type,
+    statusType: DeltakerStatus.Type?,
     endringer: List<HendelseType>,
 ): Boolean = statusType != DeltakerStatus.Type.SOKT_INN ||
     endringer.any { it is HendelseType.IkkeAktuell }

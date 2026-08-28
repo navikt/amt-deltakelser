@@ -146,6 +146,53 @@ class PdfUtilsTest {
         }
 
         @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true nar status er null`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = null,
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = emptyList(),
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe true
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for status sokt inn med ikke-aktuell endring`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+            val arsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT)
+            val hendelser: List<Hendelse> = listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.ikkeAktuell(arsak),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe true
+        }
+
+        @Test
         fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er false for sokt inn uten ikke-aktuell endring`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
