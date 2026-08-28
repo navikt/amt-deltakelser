@@ -394,8 +394,8 @@ class JournalforingServiceTest : IntegrationTestBase() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
         val journalforingstatus = Journalforingstatus(
             hendelseId = hendelse.id,
-            journalpostId = null,
-            bestillingsId = null,
+            journalpostId = "journalpost-123",
+            bestillingsId = UUID.randomUUID(),
             kanIkkeDistribueres = null,
             kanIkkeJournalfores = null,
         )
@@ -414,8 +414,8 @@ class JournalforingServiceTest : IntegrationTestBase() {
 
         // Assert
         assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
-            journalpostId shouldBe null
-            bestillingsId shouldBe null
+            journalpostId shouldBe "journalpost-123"
+            bestillingsId shouldBe journalforingstatus.bestillingsId
             kanIkkeDistribueres shouldBe true
             kanIkkeJournalfores shouldBe true
         }

@@ -361,11 +361,12 @@ class JournalforingService(
 
         if (navBruker.harFalskIdentitet) {
             hendelseMedJournalforingstatuser.forEach {
+                val status = it.journalforingstatus
                 journalforingstatusRepository.upsert(
                     Journalforingstatus(
                         hendelseId = it.hendelse.id,
-                        journalpostId = null,
-                        bestillingsId = null,
+                        journalpostId = status.journalpostId,
+                        bestillingsId = status.bestillingsId,
                         kanIkkeDistribueres = true,
                         kanIkkeJournalfores = true,
                     ),
