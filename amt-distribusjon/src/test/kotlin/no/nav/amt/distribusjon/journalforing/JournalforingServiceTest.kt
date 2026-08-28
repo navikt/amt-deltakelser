@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -375,6 +376,52 @@ class JournalforingServiceTest : IntegrationTestBase() {
             kanIkkeDistribueres shouldBe false
             kanIkkeJournalfores shouldBe false
         }
+    }
+
+    @Test
+    fun `journalforOgDistribuerEndringsvedtak - tom liste - gjør ingenting`() = runTest {
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(emptyList())
+
+        // Assert
+        coVerify(exactly = 0) { amtPersonClient.hentNavBruker(any()) }
+        coVerify(exactly = 0) { pdfgenClient.endringsvedtak(any()) }
+    }
+
+    @Test
+    fun `journalforOgDistribuerEndringsvedtak - falsk identitet - journalforer ikke eller distribuerer`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
+        val journalforingstatus = Journalforingstatus(
+            hendelseId = hendelse.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatus)
+
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns Persondata.lagNavBruker(
+            harFalskIdentitet = true,
+        )
+
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            listOf(
+                HendelseMedJournalforingstatus(hendelse, journalforingstatus),
+            ),
+        )
+
+        // Assert
+        assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
+            journalpostId shouldBe null
+            bestillingsId shouldBe null
+            kanIkkeDistribueres shouldBe false
+            kanIkkeJournalfores shouldBe false
+        }
+        coVerify(exactly = 0) { pdfgenClient.endringsvedtak(any()) }
+        coVerify(exactly = 0) { dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { dokdistfordelingClient.distribuerJournalpost(any<String>(), any(), any()) }
     }
 
     @Test
