@@ -102,7 +102,7 @@ spec:
 
   gcp:
     sqlInstances:
-      - name: amt-deltaker-2
+      - name: amt-deltaker
         collation: nb_NO.UTF8
         tier: db-f1-micro
         type: POSTGRES_17
