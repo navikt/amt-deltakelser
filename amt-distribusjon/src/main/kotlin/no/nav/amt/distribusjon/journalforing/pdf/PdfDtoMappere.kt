@@ -192,7 +192,6 @@ fun lagEndringsvedtakPdfDto(
             etternavn = navBruker.etternavn,
             personident = deltaker.personident,
             opprettetDato = deltaker.opprettetDato,
-            visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status.type, endringer),
         ),
         deltakerliste = EndringsvedtakPdfDto.DeltakerlisteDto(
             navn = visningsnavn.tittel,
@@ -217,6 +216,7 @@ fun lagEndringsvedtakPdfDto(
             navn = ansvarlig.getAvsendernavn(),
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
+        visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status.type, endringer),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = visningsnavn.tittel,

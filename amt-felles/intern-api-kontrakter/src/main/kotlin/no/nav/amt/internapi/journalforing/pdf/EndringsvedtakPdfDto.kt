@@ -15,6 +15,7 @@ data class EndringsvedtakPdfDto(
     val sidetittel: String,
     val ingressnavn: String,
     val opprettetDato: LocalDate,
+    val visVedtakOgKlage: Boolean,
 ) {
     data class DeltakerDto(
         val fornavn: String,
@@ -22,7 +23,6 @@ data class EndringsvedtakPdfDto(
         val etternavn: String,
         val personident: String,
         val opprettetDato: LocalDate?,
-        val visVedtakOgKlage: Boolean,
     )
 
     data class DeltakerlisteDto(
