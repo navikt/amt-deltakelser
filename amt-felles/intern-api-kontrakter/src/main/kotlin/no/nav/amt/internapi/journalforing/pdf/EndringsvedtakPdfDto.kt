@@ -1,7 +1,6 @@
 package no.nav.amt.internapi.journalforing.pdf
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import java.time.LocalDate
 
