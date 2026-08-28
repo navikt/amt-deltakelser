@@ -416,9 +416,10 @@ class JournalforingServiceTest : IntegrationTestBase() {
         assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
             journalpostId shouldBe null
             bestillingsId shouldBe null
-            kanIkkeDistribueres shouldBe false
-            kanIkkeJournalfores shouldBe false
+            kanIkkeDistribueres shouldBe true
+            kanIkkeJournalfores shouldBe true
         }
+        hendelseRepository.hentIkkeJournalforteHendelser().none { it.hendelse.id == hendelse.id } shouldBe true
         coVerify(exactly = 0) { pdfgenClient.endringsvedtak(any()) }
         coVerify(exactly = 0) { dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any()) }
         coVerify(exactly = 0) { dokdistfordelingClient.distribuerJournalpost(any<String>(), any(), any()) }

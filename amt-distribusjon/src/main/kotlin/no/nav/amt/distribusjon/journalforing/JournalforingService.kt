@@ -360,6 +360,17 @@ class JournalforingService(
         val navBruker = amtPersonClient.hentNavBruker(sisteHendelse.hendelse.deltaker.personident)
 
         if (navBruker.harFalskIdentitet) {
+            hendelseMedJournalforingstatuser.forEach {
+                journalforingstatusRepository.upsert(
+                    Journalforingstatus(
+                        hendelseId = it.hendelse.id,
+                        journalpostId = null,
+                        bestillingsId = null,
+                        kanIkkeDistribueres = true,
+                        kanIkkeJournalfores = true,
+                    ),
+                )
+            }
             log.warn("Kan ikke journalføre brev for ${sisteHendelse.hendelse.deltaker.id} fordi den har falsk identitet")
             return
         }
