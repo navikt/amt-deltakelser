@@ -392,10 +392,11 @@ class JournalforingServiceTest : IntegrationTestBase() {
     fun `journalforOgDistribuerEndringsvedtak - falsk identitet - journalforer ikke eller distribuerer`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
+        hendelseRepository.insert(hendelse)
         val journalforingstatus = Journalforingstatus(
             hendelseId = hendelse.id,
-            journalpostId = "journalpost-123",
-            bestillingsId = UUID.randomUUID(),
+            journalpostId = null,
+            bestillingsId = null,
             kanIkkeDistribueres = null,
             kanIkkeJournalfores = null,
         )
@@ -414,8 +415,8 @@ class JournalforingServiceTest : IntegrationTestBase() {
 
         // Assert
         assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
-            journalpostId shouldBe "journalpost-123"
-            bestillingsId shouldBe journalforingstatus.bestillingsId
+            journalpostId shouldBe null
+            bestillingsId shouldBe null
             kanIkkeDistribueres shouldBe true
             kanIkkeJournalfores shouldBe true
         }
