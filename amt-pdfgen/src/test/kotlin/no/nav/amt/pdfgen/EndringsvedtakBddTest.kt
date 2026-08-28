@@ -255,6 +255,7 @@ class EndringsvedtakBddTest :
             etternavn = "Nordmann",
             personident = "12345678910",
             opprettetDato = fixedDate,
+            visVedtakOgKlage = true,
         )
 
         private fun baseDeltakerliste(
