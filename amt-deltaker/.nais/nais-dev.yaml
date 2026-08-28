@@ -105,6 +105,7 @@ spec:
       - name: amt-deltaker
         collation: nb_NO.UTF8
         tier: db-f1-micro
+        diskSize: 15
         type: POSTGRES_17
         databases:
           - name: amt-deltaker
