@@ -1,11 +1,13 @@
 package no.nav.amt.internapi.hendelse
 
+import no.nav.amt.internapi.hendelse.HendelseDeltaker.Deltakerliste.Arrangor.Companion.UKJENT_VIRKSOMHET
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 import java.util.UUID
 
@@ -38,12 +40,40 @@ data class HendelseDeltaker(
             val organisasjonsnummer: String,
             val navn: String,
             val overordnetArrangor: Arrangor?,
-        )
+        ) {
+            companion object {
+                const val UKJENT_VIRKSOMHET = "Ukjent Virksomhet"
+            }
+        }
 
         data class Tiltak(
             val navn: String,
             val ledetekst: String?,
             val tiltakskode: Tiltakskode,
         )
+
+        /**
+         * Henter det faktiske arrangørnavnet som skal vises for deltakerlisten.
+         *
+         * For enkeltplasser brukes arrangørens navn. For øvrige deltakerlister brukes
+         * navnet til den overordnede arrangøren dersom denne finnes og har et kjent navn.
+         * Hvis overordnet arrangør mangler eller har navnet "Ukjent Virksomhet", brukes
+         * arrangørens navn.
+         *
+         * @return det faktiske arrangørnavnet i visningsformat.
+         */
+        fun arrangorVisningsnavn(): String {
+            val faktiskArrangornavn = if (erEnkeltplass == true && !tiltak.tiltakskode.erArenaEnkeltplass()) {
+                arrangor.navn
+            } else {
+                val overordnetArrangorNavn = arrangor.overordnetArrangor
+                    ?.takeUnless { it.navn.equals(UKJENT_VIRKSOMHET, true) }
+                    ?.navn
+
+                overordnetArrangorNavn ?: arrangor.navn
+            }
+
+            return faktiskArrangornavn.toTitleCase()
+        }
     }
 }
