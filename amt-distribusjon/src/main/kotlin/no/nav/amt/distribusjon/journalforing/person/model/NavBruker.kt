@@ -13,6 +13,7 @@ data class NavBruker(
     val oppfolgingsperioder: List<Oppfolgingsperiode>,
     val adressebeskyttelse: Adressebeskyttelse?,
     val adresse: Adresse?,
+    val harFalskIdentitet: Boolean,
 ) {
     fun getAktivOppfolgingsperiode(): Oppfolgingsperiode? = oppfolgingsperioder.find { it.erAktiv() }
 

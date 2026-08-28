@@ -357,12 +357,30 @@ class JournalforingService(
             throw IllegalArgumentException("Alle hendelser må tilhøre samme deltaker!")
         }
 
+        val navBruker = amtPersonClient.hentNavBruker(sisteHendelse.hendelse.deltaker.personident)
+
+        if (navBruker.harFalskIdentitet) {
+            hendelseMedJournalforingstatuser.forEach {
+                val status = it.journalforingstatus
+                journalforingstatusRepository.upsert(
+                    Journalforingstatus(
+                        hendelseId = it.hendelse.id,
+                        journalpostId = status.journalpostId,
+                        bestillingsId = status.bestillingsId,
+                        kanIkkeDistribueres = true,
+                        kanIkkeJournalfores = true,
+                    ),
+                )
+            }
+            log.warn("Kan ikke journalføre brev for ${sisteHendelse.hendelse.deltaker.id} fordi den har falsk identitet")
+            return
+        }
+
         val journalforteHendelser = hendelseMedJournalforingstatuser.filter { it.journalforingstatus.erJournalfort() }
         val ikkeJournalforteHendelser = hendelseMedJournalforingstatuser
             .filter { !it.journalforingstatus.erJournalfort() }
             .map { it.hendelse }
 
-        val navBruker = amtPersonClient.hentNavBruker(sisteHendelse.hendelse.deltaker.personident)
         if (ikkeJournalforteHendelser.isNotEmpty()) {
             val journalpostId = journalforEndringsvedtak(ikkeJournalforteHendelser, navBruker) ?: return
             sendBrev(

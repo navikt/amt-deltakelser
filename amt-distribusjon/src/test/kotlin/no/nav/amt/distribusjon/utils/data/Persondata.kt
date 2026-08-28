@@ -50,7 +50,17 @@ object Persondata {
         oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
         adressebeskyttelse: Adressebeskyttelse? = null,
         adresse: Adresse? = lagAdresse(),
-    ) = NavBruker(fornavn, mellomnavn, etternavn, navEnhet, oppfolgingsperioder, adressebeskyttelse, adresse)
+        harFalskIdentitet: Boolean = false,
+    ) = NavBruker(
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        etternavn = etternavn,
+        navEnhet = navEnhet,
+        oppfolgingsperioder = oppfolgingsperioder,
+        adressebeskyttelse = adressebeskyttelse,
+        adresse = adresse,
+        harFalskIdentitet = harFalskIdentitet,
+    )
 
     fun lagOppfolgingsperiode(
         id: UUID = UUID.randomUUID(),
