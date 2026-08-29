@@ -163,12 +163,23 @@ sealed interface DeltakerEndringEndringResponse {
         )
     }
 
+    data class EndreOpplaringKategorisering(
+        val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse,
+        val beskrivelse: String,
+    ) : DeltakerEndringEndringResponse {
+        constructor(model: DeltakerEndring.Endring.EndreOpplaringKategorisering) : this(
+            opplaringKategoriseringValg = OpplaringKategoriseringValgResponse.fromModel(model.opplaringKategoriseringValg),
+            beskrivelse = model.beskrivelse,
+        )
+    }
+
     companion object {
         fun fromModel(
             model: DeltakerEndring.Endring,
             oppstartstype: Oppstartstype,
         ): DeltakerEndringEndringResponse = when (model) {
             is DeltakerEndring.Endring.EndrePrisinfo -> EndrePrisinfo(model)
+            is DeltakerEndring.Endring.EndreOpplaringKategorisering -> EndreOpplaringKategorisering(model)
             is DeltakerEndring.Endring.AvsluttDeltakelse -> AvsluttDeltakelse(model, oppstartstype)
             is DeltakerEndring.Endring.EndreAvslutning -> EndreAvslutning(model)
             is DeltakerEndring.Endring.AvbrytDeltakelse -> AvsluttDeltakelse(model, oppstartstype)

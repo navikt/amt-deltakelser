@@ -41,6 +41,7 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
@@ -69,6 +70,7 @@ fun Application.configureRouting(
     kladdService: KladdService,
     enkeltplassService: EnkeltplassService,
     deltakerService: DeltakerService,
+    veilederEndringService: VeilederEndringService,
     tiltakskoordinatorService: TiltakskoordinatorService,
     deltakerRepository: DeltakerRepository,
     deltakerlisteRepository: DeltakerlisteRepository,
@@ -135,6 +137,7 @@ fun Application.configureRouting(
         registerVeilederApi(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
+            veilederEndringService = veilederEndringService,
             historikkService = deltakerHistorikkService,
             deltakerResponseBuilder = deltakerResponseBuilder,
             navAnsattService = navAnsattService,

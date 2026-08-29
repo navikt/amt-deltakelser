@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.repository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
+import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
@@ -281,4 +282,43 @@ object PrisinfoRepoAdapter {
             ingenkostnaderAarsak = this.aarsak,
         )
     }
+
+    /**
+     * Sjekker om en prisinfo-endring er identisk med lagret data.
+     *
+     * Prioritet:
+     * 1. Bruk ENDRING-prisinfo hvis den finnes og ikke er RETURNERT
+     * 2. Ellers bruk GJELDENDE-prisinfo
+     *
+     * RETURNERT behandles som "ikke aktiv" fordi en ny innsending skal kunne opprette
+     * ny totrinnskontroll selv om det finnes en tidligere, returnert endring.
+     */
+    fun erUendretPrisinfo(
+        gjennomforingId: UUID,
+        endringRequest: EndretPrisinfoRequest,
+    ): Boolean {
+        val eksisterendePrisinfo = PrisinfoRepository
+            .hentPrisinfo(
+                gjennomforingId = gjennomforingId,
+                rolle = PrisinfoDbo.Rolle.ENDRING,
+            )?.takeUnless { it.status == PrisinfoDbo.PrisinfoStatus.RETURNERT }
+            ?.toPrisinformasjonDto()
+            ?: hentPrisinfo(
+                gjennomforingId = gjennomforingId,
+                rolle = PrisinfoDbo.Rolle.GJELDENDE,
+            )
+
+        return eksisterendePrisinfo?.normalisert() == endringRequest.prisinfo.normalisert()
+    }
+}
+
+private fun PrisinformasjonDto.normalisert(): PrisinformasjonDto = when (this) {
+    is Anskaffelse -> sanitize()
+    is IngenKostnader -> sanitize()
+    is Tilskudd -> copy(
+        tilleggsopplysninger = tilleggsopplysninger
+            ?.trim()
+            ?.take(PrisinformasjonDto.MAX_LENGTH_TILLEGGSOPPLYSNINGER),
+        tilskudd = tilskudd.sortedBy { it.type.sortOrder },
+    )
 }

@@ -1,6 +1,5 @@
 package no.nav.amt.internapi.deltaker.request
 
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.util.UUID
 
 data class FjernOppstartsdatoRequest(
@@ -8,8 +7,4 @@ data class FjernOppstartsdatoRequest(
     override val endretAvEnhet: String,
     override val forslagId: UUID?,
     val begrunnelse: String?,
-) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.FjernOppstartsdato(
-        begrunnelse = this.begrunnelse,
-    )
-}
+) : EndringForslagRequest

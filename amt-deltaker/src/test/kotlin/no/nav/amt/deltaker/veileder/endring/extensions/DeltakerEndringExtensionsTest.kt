@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.internapi.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer

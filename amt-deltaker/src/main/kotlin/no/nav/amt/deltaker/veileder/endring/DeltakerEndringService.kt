@@ -4,10 +4,13 @@ import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
+import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
+import no.nav.amt.internapi.deltaker.request.EndringRequestMapper
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -59,10 +62,12 @@ class DeltakerEndringService(
             )
         }
 
+        val endring = hentEndringFraRequest(endringRequest, endringResultat.deltaker)
+
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
             deltakerId = endringResultat.deltaker.id,
-            endring = endringRequest.toEndring(endringResultat.deltaker.deltakerliste.tiltakstype),
+            endring = endring,
             endretAv = endretAvNavAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now(),
@@ -86,6 +91,23 @@ class DeltakerEndringService(
         return deltakerEndring
     }
 
+    fun hentEndringFraRequest(
+        endringRequest: EndringRequest,
+        deltaker: Deltaker,
+    ): DeltakerEndring.Endring {
+        val opplaringKategoriseringValg = if (endringRequest is EndretOpplaringKategoriseringRequest) {
+            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+        } else {
+            null
+        }
+
+        return EndringRequestMapper.toEndring(
+            request = endringRequest,
+            tiltakstype = deltaker.deltakerliste.tiltakstype,
+            opplaringKategoriseringValg = opplaringKategoriseringValg,
+        )
+    }
+
     fun behandleLagretDeltakelsesmengde(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
@@ -100,21 +122,20 @@ class DeltakerEndringService(
 
         val logMessage = "Behandler endring: ${deltakerEndring.id}, deltaker: ${deltaker.id}"
 
-        val utfall =
-            if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
-                log.info("$logMessage, utfall: Vellykket")
-                Result.success(
-                    VellykketEndring(
-                        deltaker.copy(
-                            deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
-                            dagerPerUke = deltakelsesmengde.dagerPerUke,
-                        ),
+        val utfall = if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
+            log.info("$logMessage, utfall: Vellykket")
+            Result.success(
+                VellykketEndring(
+                    deltaker.copy(
+                        deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                        dagerPerUke = deltakelsesmengde.dagerPerUke,
                     ),
-                )
-            } else {
-                log.info("$logMessage, utfall: Ikke vellykket")
-                Result.failure(IllegalStateException("Endringen er ikke lenger gyldig"))
-            }
+                ),
+            )
+        } else {
+            log.info("$logMessage, utfall: Ikke vellykket")
+            Result.failure(IllegalStateException("Endringen er ikke lenger gyldig"))
+        }
 
         deltakerEndringRepository.upsert(deltakerEndring, LocalDateTime.now())
 

@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreOpplaringKategoriseringRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndrePrisinfoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
@@ -44,6 +45,7 @@ import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
+import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
@@ -154,6 +156,21 @@ fun Routing.registerVeilederApi(
                         endretAvEnhet = call.getEnhetsnummer(),
                         prisinfo = request.prisinformasjon,
                         begrunnelse = request.begrunnelse,
+                    ),
+                )
+            }
+
+            post("/endre-innhold-kodeverk") {
+                val request = call.receive<EndreOpplaringKategoriseringRequest>()
+                call.handleEndring(
+                    frontendRequest = request,
+                    amtDeltakerRequest = EndretOpplaringKategoriseringRequest(
+                        endretAv = call.getNavIdent(),
+                        endretAvEnhet = call.getEnhetsnummer(),
+                        opplaringKategoriseringValg = request.opplaringKategoriseringValg,
+                        sertifiseringValg = request.sertifiseringValg,
+                        beskrivelse = request.beskrivelse,
+                        pavirkerPris = request.pavirkerPris,
                     ),
                 )
             }

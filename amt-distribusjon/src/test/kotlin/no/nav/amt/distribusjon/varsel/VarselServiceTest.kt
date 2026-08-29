@@ -108,6 +108,42 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `enkeltplassEndreOpplaringKategorisering - inaktiverer oppgave og oppretter ekstern beskjed`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val oppgave = Varselsdata.varsel(
+                type = Varsel.Type.OPPGAVE,
+                status = Varsel.Status.AKTIV,
+                deltakerId = deltakerId,
+            )
+            varselRepository.upsert(oppgave)
+
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.enkeltplassEndreOpplaringKategorisering(),
+                deltaker = Hendelsesdata.lagDeltaker(deltakerId),
+            )
+
+            setupMocks(hendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.OPPGAVE).shouldBeSuccess()) {
+                status shouldBe Varsel.Status.INAKTIVERT
+            }
+
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldBeSuccess()) {
+                type shouldBe Varsel.Type.BESKJED
+                status shouldBe Varsel.Status.AKTIV
+                erEksterntVarsel shouldBe true
+                revarsles.shouldNotBeNull()
+            }
+
+            verify { outboxService.insertRecord(oppgave.id, any(), any()) }
+        }
+
+        @Test
         fun `deltakerSistBesokt - siste besøk er før beskjed var sendt - inaktiverer ikke`() {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(

@@ -141,6 +141,13 @@ object HendelseTypeData {
 
     fun navGodkjennUtkast(utkast: UtkastDto = utkast()) = HendelseType.NavGodkjennUtkast(utkast)
 
+    fun enkeltplassEndreOpplaringKategorisering(
+        opplaringKategoriseringValg: OpplaringKategoriseringValg = OpplaringKategoriseringValg(
+            valgteKategoriseringer = setOf(),
+            valgteSertifiseringer = setOf(),
+        ),
+    ) = HendelseType.EnkeltplassEndreOpplaringKategorisering(opplaringKategoriseringValg)
+
     fun endreInnhold(innhold: List<InnholdDto> = listOf(innhold())) = HendelseType.EndreInnhold(innhold)
 
     fun endreDeltakelsesmengde(

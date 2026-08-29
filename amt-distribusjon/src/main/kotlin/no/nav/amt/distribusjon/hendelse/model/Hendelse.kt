@@ -34,6 +34,7 @@ data class Hendelse(
 
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EndreSluttarsak,
@@ -60,6 +61,7 @@ data class Hendelse(
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EndreSluttarsak,
         is HendelseType.EndreUtkast,
@@ -90,6 +92,7 @@ data class Hendelse(
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EndreUtkast,
         is HendelseType.OpprettUtkast,
         is HendelseType.AvbrytUtkast,

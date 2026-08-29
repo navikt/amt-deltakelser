@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
@@ -28,6 +29,7 @@ import java.time.ZonedDateTime
 fun Routing.registerVeilederApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
+    veilederEndringService: VeilederEndringService,
     historikkService: DeltakerHistorikkService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     navAnsattService: NavAnsattService,
@@ -88,7 +90,7 @@ fun Routing.registerVeilederApi(
             }
 
             post("/endre-deltaker") {
-                val deltaker = deltakerService.upsertEndretDeltaker(
+                val deltaker = veilederEndringService.upsertEndretDeltaker(
                     deltakerId = call.getDeltakerId(),
                     endringRequest = call.receive<EndringRequest>(),
                 )

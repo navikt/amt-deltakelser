@@ -9,9 +9,4 @@ data class SluttarsakRequest(
     override val forslagId: UUID?,
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
-) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.EndreSluttarsak(
-        aarsak = aarsak,
-        begrunnelse = begrunnelse,
-    )
-}
+) : EndringForslagRequest

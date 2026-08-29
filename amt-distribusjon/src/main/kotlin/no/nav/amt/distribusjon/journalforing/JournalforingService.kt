@@ -60,6 +60,10 @@ class JournalforingService(
                 // TODO
             }
 
+            is HendelseType.EnkeltplassEndreOpplaringKategorisering -> {
+                // TODO
+            }
+
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,

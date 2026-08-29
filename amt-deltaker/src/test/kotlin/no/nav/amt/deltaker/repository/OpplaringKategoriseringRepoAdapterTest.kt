@@ -8,6 +8,8 @@ import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter.Companion.toMulighe
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
+import no.nav.amt.internapi.deltaker.request.OpplaringKategoriseringValgRequest
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -406,6 +408,153 @@ class OpplaringKategoriseringRepoAdapterTest {
 
             val result2 = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltakerliste2.id)
             result2.valgteKategoriseringer.first().representerer shouldBe OpplaringKategoriseringType.FORERKORT
+        }
+    }
+
+    @Nested
+    inner class ErUendretValgTests {
+        @Test
+        fun `returnerer true nar valg er identisk`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val bransjeId = UUID.randomUUID()
+            val sertifiseringer = setOf(
+                SertifiseringValg(id = 1, navn = "Truckfører T1"),
+            )
+
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+                gjennomforingId = deltakerliste.id,
+                valgteVerdier = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(bransjeId to "Bygg og anlegg"),
+                    ),
+                ),
+                valgteSertifiseringer = sertifiseringer,
+            )
+
+            val request = EndretOpplaringKategoriseringRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                beskrivelse = "begrunnelse",
+                opplaringKategoriseringValg = setOf(
+                    OpplaringKategoriseringValgRequest(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valgteIder = setOf(bransjeId),
+                    ),
+                ),
+                sertifiseringValg = sertifiseringer,
+                pavirkerPris = false,
+            )
+
+            // Act + Assert
+            OpplaringKategoriseringRepoAdapter.erUendretValg(deltakerliste.id, request) shouldBe true
+        }
+
+        @Test
+        fun `returnerer false nar sertifiseringer er tomme og eksisterende har verdier`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val bransjeId = UUID.randomUUID()
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+                gjennomforingId = deltakerliste.id,
+                valgteVerdier = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(bransjeId to "Bygg og anlegg"),
+                    ),
+                ),
+                valgteSertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1")),
+            )
+
+            val request = EndretOpplaringKategoriseringRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                beskrivelse = "begrunnelse",
+                opplaringKategoriseringValg = setOf(
+                    OpplaringKategoriseringValgRequest(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valgteIder = setOf(bransjeId),
+                    ),
+                ),
+                sertifiseringValg = emptySet(),
+                pavirkerPris = false,
+            )
+
+            // Act + Assert
+            OpplaringKategoriseringRepoAdapter.erUendretValg(deltakerliste.id, request) shouldBe false
+        }
+
+        @Test
+        fun `returnerer false nar kategoriseringer er tomme og eksisterende har verdier`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val bransjeId = UUID.randomUUID()
+            val sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1"))
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+                gjennomforingId = deltakerliste.id,
+                valgteVerdier = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(bransjeId to "Bygg og anlegg"),
+                    ),
+                ),
+                valgteSertifiseringer = sertifiseringer,
+            )
+
+            val request = EndretOpplaringKategoriseringRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                beskrivelse = "begrunnelse",
+                opplaringKategoriseringValg = emptySet(),
+                sertifiseringValg = sertifiseringer,
+                pavirkerPris = false,
+            )
+
+            // Act + Assert
+            OpplaringKategoriseringRepoAdapter.erUendretValg(deltakerliste.id, request) shouldBe false
+        }
+
+        @Test
+        fun `returnerer false nar sertifiseringer er forskjellige`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val bransjeId = UUID.randomUUID()
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+                gjennomforingId = deltakerliste.id,
+                valgteVerdier = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(bransjeId to "Bygg og anlegg"),
+                    ),
+                ),
+                valgteSertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1")),
+            )
+
+            val request = EndretOpplaringKategoriseringRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                beskrivelse = "begrunnelse",
+                opplaringKategoriseringValg = setOf(
+                    OpplaringKategoriseringValgRequest(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valgteIder = setOf(bransjeId),
+                    ),
+                ),
+                sertifiseringValg = setOf(SertifiseringValg(id = 2, navn = "Truckfører T2")),
+                pavirkerPris = false,
+            )
+
+            // Act + Assert
+            OpplaringKategoriseringRepoAdapter.erUendretValg(deltakerliste.id, request) shouldBe false
         }
     }
 }

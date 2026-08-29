@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.enkeltplass
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -122,6 +124,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
                     kilde = OpplaringKategoriseringResponse.Alternativ.VerdigruppeSok.Kilde.JANZZ_SERTIFISERING,
                 ),
             ),
+            sertifiseringValg = sertifiseringValg,
         )
 
         // Act
@@ -288,7 +291,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `kun utdanning valgt - returnerer kun valgt utdanningsprogram`() {
+    fun `kun utdanningsprogram valgt - returnerer utdanningsprogram`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
 
         val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
@@ -618,5 +621,81 @@ class OpplaringKategoriseringResponseExtensionsTest {
                 valg = mapOf(valgtLaerefagId to "Valgt larefag"),
             ),
         )
+    }
+
+    @Test
+    fun `ugyldig kategoriserings-id - kaster exception`() {
+        // Arrange
+        val gyldigId = UUID.randomUUID()
+        val ugyldigId = UUID.randomUUID()
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            alternativer = listOf(
+                OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Bransje",
+                    pakrevd = true,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                    seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
+                    alternativer = listOf(
+                        OpplaringKategoriseringResponse.Alternativ.Verdi(
+                            id = gyldigId,
+                            visningsnavn = "Bygg og anlegg",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        // Act
+        val exception = shouldThrow<IllegalArgumentException> {
+            opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+                kategoriseringValg = setOf(ugyldigId),
+                sertifiseringValg = emptySet(),
+            )
+        }
+
+        // Assert
+        exception.message shouldContain "Ugyldig kategoriseringsvalg"
+    }
+
+    @Test
+    fun `flere valg i enkeltvalggruppe - kaster exception`() {
+        // Arrange
+        val bransje1 = UUID.randomUUID()
+        val bransje2 = UUID.randomUUID()
+        val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            alternativer = listOf(
+                OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
+                    id = UUID.randomUUID(),
+                    visningsnavn = "Bransje",
+                    pakrevd = true,
+                    representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                    seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
+                    alternativer = listOf(
+                        OpplaringKategoriseringResponse.Alternativ.Verdi(
+                            id = bransje1,
+                            visningsnavn = "Bygg og anlegg",
+                        ),
+                        OpplaringKategoriseringResponse.Alternativ.Verdi(
+                            id = bransje2,
+                            visningsnavn = "Helse og omsorg",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        // Act
+        val exception = shouldThrow<IllegalArgumentException> {
+            opplaringKategoriseringResponse.toOpplaringKategoriseringValg(
+                kategoriseringValg = setOf(bransje1, bransje2),
+                sertifiseringValg = emptySet(),
+            )
+        }
+
+        // Assert
+        exception.message shouldContain "Ugyldig kategoriseringsvalg"
     }
 }

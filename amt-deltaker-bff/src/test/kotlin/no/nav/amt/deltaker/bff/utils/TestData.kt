@@ -809,6 +809,7 @@ object TestData {
 fun Deltaker.endre(deltakerEndring: DeltakerEndring): Deltaker {
     val deltaker = when (val endring = deltakerEndring.endring) {
         is DeltakerEndring.Endring.EndrePrisinfo -> this
+        is DeltakerEndring.Endring.EndreOpplaringKategorisering -> this
 
         is DeltakerEndring.Endring.AvsluttDeltakelse -> this.copy(
             sluttdato = endring.sluttdato,

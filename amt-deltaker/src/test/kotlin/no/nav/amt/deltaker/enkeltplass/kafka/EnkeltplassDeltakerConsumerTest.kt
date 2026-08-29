@@ -69,17 +69,12 @@ class EnkeltplassDeltakerConsumerTest {
         deltakerProducerService = deltakerProducerService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerEndringRepository = mockk(),
-        deltakerEndringService = mockk(),
-        navAnsattService = mockk(),
         vedtakRepository = mockk(),
         vedtakService = mockk(),
         distribuerEndringService = mockk(),
         endringFraArrangorRepository = mockk(),
-        deltakerHistorikkService = mockk(),
         endringFraTiltakskoordinatorRepository = mockk(),
         forslagRepository = mockk(),
-        unleashToggle = mockk(),
-        gjennomforingUpserter = mockk(),
     )
 
     private val consumer = EnkeltplassDeltakerConsumer(

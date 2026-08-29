@@ -18,12 +18,19 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
             VellykketEndring(deltaker)
         }
 
-        is DeltakerEndring.Endring.AvsluttDeltakelse ->
+        is DeltakerEndring.Endring.EndreOpplaringKategorisering -> {
             handleEndring(
                 deltaker = deltaker,
-                hasChanges = DeltakerEndring.Endring.AvsluttDeltakelse::hasChanges,
-                apply = DeltakerEndring.Endring.AvsluttDeltakelse::avsluttDeltakelse,
+                hasChanges = DeltakerEndring.Endring.EndreOpplaringKategorisering::hasChanges,
+                apply = DeltakerEndring.Endring.EndreOpplaringKategorisering::endreOpplaringKategorisering,
             )
+        }
+
+        is DeltakerEndring.Endring.AvsluttDeltakelse -> handleEndring(
+            deltaker = deltaker,
+            hasChanges = DeltakerEndring.Endring.AvsluttDeltakelse::hasChanges,
+            apply = DeltakerEndring.Endring.AvsluttDeltakelse::avsluttDeltakelse,
+        )
 
         is DeltakerEndring.Endring.EndreAvslutning -> handleEndring(
             deltaker = deltaker,
