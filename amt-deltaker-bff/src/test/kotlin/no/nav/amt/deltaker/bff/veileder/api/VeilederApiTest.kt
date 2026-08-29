@@ -375,11 +375,13 @@ class VeilederApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `oppdater opplæringskategorisering - beskrivelse over maks lengde - returnerer 400`() {
+            fun `oppdater opplæringskategorisering - beskrivelse over maks lengde - sanitiseres til 250`() {
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
-                setupMocks(deltaker)
-                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
-                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+                val expected = setupMocksLocal(
+                    deltaker = deltaker,
+                    oppdatert = deltaker,
+                    gjennomforingType = GjennomforingType.Enkeltplass,
+                )
 
                 val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "a".repeat(251))
 
@@ -388,7 +390,7 @@ class VeilederApiTest : IntegrationTestBase() {
                         .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
                             createPostRequest(request)
                         }.apply {
-                            status shouldBe HttpStatusCode.BadRequest
+                            status shouldBe HttpStatusCode.OK
                         }
                 }
             }

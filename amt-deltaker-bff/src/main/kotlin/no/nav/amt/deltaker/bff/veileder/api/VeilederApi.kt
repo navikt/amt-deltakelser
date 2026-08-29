@@ -51,6 +51,7 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.enkeltplass.sanitizeBeskrivelse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
@@ -162,15 +163,16 @@ fun Routing.registerVeilederApi(
 
             post("/endre-innhold-kodeverk") {
                 val request = call.receive<EndreOpplaringKategoriseringRequest>()
+                val sanitizedRequest = request.copy(beskrivelse = request.beskrivelse.sanitizeBeskrivelse())
                 call.handleEndring(
-                    frontendRequest = request,
+                    frontendRequest = sanitizedRequest,
                     amtDeltakerRequest = EndretOpplaringKategoriseringRequest(
                         endretAv = call.getNavIdent(),
                         endretAvEnhet = call.getEnhetsnummer(),
-                        opplaringKategoriseringValg = request.opplaringKategoriseringValg,
-                        sertifiseringValg = request.sertifiseringValg,
-                        beskrivelse = request.beskrivelse,
-                        pavirkerPris = request.pavirkerPris,
+                        opplaringKategoriseringValg = sanitizedRequest.opplaringKategoriseringValg,
+                        sertifiseringValg = sanitizedRequest.sertifiseringValg,
+                        beskrivelse = sanitizedRequest.beskrivelse,
+                        pavirkerPris = sanitizedRequest.pavirkerPris,
                     ),
                 )
             }
