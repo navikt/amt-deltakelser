@@ -354,6 +354,44 @@ class VeilederApiTest : IntegrationTestBase() {
                         }
                 }
             }
+
+            @Test
+            fun `oppdater opplæringskategorisering - tom beskrivelse - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+
+                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "  ")
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(request)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - beskrivelse over maks lengde - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+
+                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "a".repeat(251))
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(request)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                        }
+                }
+            }
         }
 
         @Nested
@@ -634,7 +672,7 @@ class VeilederApiTest : IntegrationTestBase() {
             }
         }
     }
-    // ---- Hjelpefunksjoner ----
+// ---- Hjelpefunksjoner ----
 
     private val deltakerRequest = DeltakerRequest("1234")
     private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest("Oppdatert bakgrunnsinformasjon")

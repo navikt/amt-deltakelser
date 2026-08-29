@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.request
 
 import no.nav.amt.deltaker.bff.model.DeltakerModel
-import no.nav.amt.deltaker.bff.veileder.api.utils.validerBegrunnelse
+import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_ANNET_INNHOLD_LENGDE
 import no.nav.amt.deltaker.bff.veileder.api.utils.validerDeltakerKanEndres
 import no.nav.amt.internapi.deltaker.request.OpplaringKategoriseringValgRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -14,13 +14,14 @@ data class EndreOpplaringKategoriseringRequest(
     val pavirkerPris: Boolean,
 ) : EndringRequestFromFrontend {
     override fun valider(deltaker: DeltakerModel) {
-        // merk at begrunnelse påkrevd i frontend, men følger samme mønster som i øvrige klasser
-        require(beskrivelse.isNotBlank()) { "Begrunnelse kan ikke være tom" }
+        require(beskrivelse.isNotBlank()) { "Beskrivelse kan ikke være tom" }
+        require(beskrivelse.length <= MAX_ANNET_INNHOLD_LENGDE) {
+            "Beskrivelse kan ikke være lengre enn $MAX_ANNET_INNHOLD_LENGDE"
+        }
         validerSertifiseringInput(sertifiseringValg)
         require(deltaker.gjennomforing.erEnkeltplass) {
             "Kan ikke endre opplæringskategorisering for deltakere som ikke er på enkeltplass"
         }
-        validerBegrunnelse(beskrivelse)
 
         validerDeltakerKanEndres(
             request = this,
