@@ -231,7 +231,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
         private val kodeverkId = UUID.randomUUID()
         private val sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1"))
 
-        private fun mockKategoriseringKlient(tiltakskode: no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode) {
+        private fun mockKategoriseringKlient(tiltakskode: Tiltakskode) {
             coEvery {
                 opplaringKategoriseringClient.hentOpplaringKategorisering(tiltakskode)
             } returns OpplaringKategoriseringResponse(
