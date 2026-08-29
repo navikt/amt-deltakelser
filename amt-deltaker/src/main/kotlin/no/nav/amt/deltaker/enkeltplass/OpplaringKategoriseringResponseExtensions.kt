@@ -36,11 +36,6 @@ fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
         valgteSertifiseringer = sertifiseringValg,
     )
 
-    validerAtAlleValgteKategoriseringerBleBrukt(
-        valgteKategoriseringIder = kategoriseringValg,
-        opplaringKategoriseringValg = resultat,
-    )
-
     return resultat
 }
 
@@ -136,16 +131,6 @@ private fun OpplaringKategoriseringResponse.gyldigeKategoriseringIder(): Set<UUI
         }
     }.toSet()
 
-private fun validerAtAlleValgteKategoriseringerBleBrukt(
-    valgteKategoriseringIder: Set<UUID>,
-    opplaringKategoriseringValg: OpplaringKategoriseringValg,
-) {
-    val ikkeValgteKategoriseringer = valgteKategoriseringIder - opplaringKategoriseringValg.valgteKategoriseringIder()
-    require(ikkeValgteKategoriseringer.isEmpty()) {
-        "Ugyldig kategoriseringsvalg. Noen valgte ID-er kunne ikke brukes: $ikkeValgteKategoriseringer"
-    }
-}
-
 private fun OpplaringKategoriseringResponse.validerEnkeltvalg(kategoriseringValg: Set<UUID>) {
     alternativer
         .filterIsInstance<Alternativ.Verdigruppe>()
@@ -157,7 +142,3 @@ private fun OpplaringKategoriseringResponse.validerEnkeltvalg(kategoriseringValg
             }
         }
 }
-
-private fun OpplaringKategoriseringValg.valgteKategoriseringIder(): Set<UUID> = valgteKategoriseringer
-    .flatMap { it.valg.keys }
-    .toSet()
