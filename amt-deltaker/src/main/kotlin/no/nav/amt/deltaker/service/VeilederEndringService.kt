@@ -41,7 +41,7 @@ class VeilederEndringService(
      * Flyten er:
      * 1. Validerer at deltakeren kan endres ([validerIkkeFeilregistrert], unleash-toggle, aktiv oppfølging)
      * 2. Beregner ny deltakerstate via [beregnUpdateResult] — returnerer tidlig hvis deltakeren er uendret
-     * 3. Henter suspend-avhengigheter (Nav-ansatt, opplæringskategorisering) utenfor db-transaksjonen
+     * 3. Henter Nav-ansatt og eventuell opplæringskategorisering utenfor db-transaksjonen (suspend-kall)
      * 4. Persisterer endringen og produserer Kafka-melding via [DeltakerService.upsertAndProduceDeltaker]
      *
      * @param deltakerId id på deltakeren som skal endres
@@ -132,7 +132,11 @@ class VeilederEndringService(
      *
      * For requests som endrer gjennomføringen direkte ([EndretOpplaringKategoriseringRequest],
      * [EndretPrisinfoRequest]) returneres `null` hvis requesten ikke endrer noe.
-     * Selve lagringen håndteres i beforeUpsert-blokken i [upsertEndretDeltaker].
+     * For kategorisering der kun kodeverk-valg er endret (men ikke beskrivelse), fortsetter
+     * flyten med uendret deltaker slik at beforeUpsert lagrer de nye valgene.
+     *
+     * For øvrige endringstyper anvendes endringen på deltakeren. Hvis deltakeren er uendret
+     * og det finnes et godkjent forslag, godkjennes forslaget uten å oppdatere deltaker.
      *
      * @param endringRequest requesten som beskriver ønsket endring
      * @param eksisterendeDeltaker deltakerens nåværende tilstand
