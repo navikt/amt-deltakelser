@@ -414,7 +414,7 @@ class OpplaringKategoriseringRepoAdapterTest {
     @Nested
     inner class ErUendretValgTests {
         @Test
-        fun `returnerer true nar valg er identisk`() {
+        fun `returnerer true når valg er identisk`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -454,7 +454,7 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer false nar sertifiseringer er tomme og eksisterende har verdier`() {
+        fun `returnerer false når sertifiseringer er tomme og eksisterende har verdier`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -490,7 +490,7 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer false nar kategoriseringer er tomme og eksisterende har verdier`() {
+        fun `returnerer false når kategoriseringer er tomme og eksisterende har verdier`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -522,7 +522,7 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer false nar sertifiseringer er forskjellige`() {
+        fun `returnerer false når sertifiseringer er forskjellige`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)

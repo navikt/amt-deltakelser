@@ -279,7 +279,7 @@ class PrisinfoRepoAdapterTest {
     @Nested
     inner class ErUendretPrisinfoTests {
         @Test
-        fun `returnerer true nar pending prisinfo er identisk`() {
+        fun `returnerer true når pending prisinfo er identisk`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -301,7 +301,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer true nar kun gjeldende prisinfo er identisk`() {
+        fun `returnerer true når kun gjeldende prisinfo er identisk`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -332,7 +332,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer false nar pending prisinfo er forskjellig selv om gjeldende er lik`() {
+        fun `returnerer false når pending prisinfo er forskjellig selv om gjeldende er lik`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 

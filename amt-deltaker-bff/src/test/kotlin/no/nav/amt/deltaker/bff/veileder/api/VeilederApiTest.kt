@@ -336,7 +336,7 @@ class VeilederApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `oppdater opplæringskategorisering - gruppegjennomforing - returnerer 400`() {
+            fun `oppdater opplæringskategorisering - gruppegjennomføring - returnerer 400`() {
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
                 setupMocks(deltaker)
                 coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
