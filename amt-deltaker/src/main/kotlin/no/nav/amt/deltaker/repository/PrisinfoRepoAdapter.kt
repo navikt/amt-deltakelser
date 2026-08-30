@@ -308,17 +308,6 @@ object PrisinfoRepoAdapter {
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
-        return eksisterendePrisinfo?.normalisert() == endringRequest.prisinfo.normalisert()
+        return eksisterendePrisinfo?.sanitize() == endringRequest.prisinfo.sanitize()
     }
-}
-
-private fun PrisinformasjonDto.normalisert(): PrisinformasjonDto = when (this) {
-    is Anskaffelse -> sanitize()
-    is IngenKostnader -> sanitize()
-    is Tilskudd -> copy(
-        tilleggsopplysninger = tilleggsopplysninger
-            ?.trim()
-            ?.take(PrisinformasjonDto.MAX_LENGTH_TILLEGGSOPPLYSNINGER),
-        tilskudd = tilskudd.sortedBy { it.type.sortOrder },
-    )
 }

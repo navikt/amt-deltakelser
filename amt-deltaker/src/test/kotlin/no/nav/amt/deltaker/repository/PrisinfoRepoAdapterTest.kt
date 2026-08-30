@@ -297,7 +297,10 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Act + Assert
-            PrisinfoRepoAdapter.erUendretPrisinfo(gjennomforingInTest.id, request) shouldBe true
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
         }
 
         @Test
@@ -328,7 +331,10 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Act + Assert
-            PrisinfoRepoAdapter.erUendretPrisinfo(gjennomforingInTest.id, request) shouldBe true
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
         }
 
         @Test
@@ -360,7 +366,10 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Act + Assert
-            PrisinfoRepoAdapter.erUendretPrisinfo(gjennomforingInTest.id, request) shouldBe false
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe false
         }
 
         @Test
@@ -396,7 +405,10 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Act + Assert
-            PrisinfoRepoAdapter.erUendretPrisinfo(gjennomforingInTest.id, request) shouldBe true
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
         }
     }
 
