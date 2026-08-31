@@ -57,11 +57,11 @@ class JournalforingService(
             }
 
             is HendelseType.EnkeltplassEndrePrisinfo -> {
-                // TODO
+                // TODO, se Trello https://trello.com/c/MfIDK2pq
             }
 
             is HendelseType.EnkeltplassEndreOpplaringKategorisering -> {
-                // TODO
+                // TODO, ennå ikke opprettet kort i Trello
             }
 
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
