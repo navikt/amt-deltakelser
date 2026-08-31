@@ -34,7 +34,12 @@ class DeltakerV2Consumer(
     private val consumer = KafkaConsumerFactory.buildManagedKafkaConsumer(
         topic = Environment.AMT_DELTAKERV2_TOPIC,
         consumeFunc = ::consume,
-        skipFilter = { record -> record.offset() == 38317863L },
+        skipFilter = { record ->
+            record.offset() in setOf(
+                38317863L,
+                38308450L, // Fant eldre deltakelser med aktiv status: Nyeste deltaker c49f3fa7-be3f-4e29-bb3d-34b1edc7d7f1
+            )
+        },
     )
 
     suspend fun consume(
