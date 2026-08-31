@@ -55,6 +55,11 @@ data class DeltakerEndring(
             val prisinformasjonId: UUID? = null,
         ) : Endring
 
+        data class EndreOpplaringKategorisering(
+            val opplaringKategoriseringValg: OpplaringKategoriseringValg,
+            val beskrivelse: String,
+        ) : Endring
+
         data class EndreInnhold(
             val ledetekst: String?,
             val innhold: List<Innhold>,

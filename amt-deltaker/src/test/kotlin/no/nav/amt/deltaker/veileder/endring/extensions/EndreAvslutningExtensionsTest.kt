@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.internapi.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring

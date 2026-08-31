@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.repository.dbo.OpplaeringKategoriseringValgDbo
+import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg.ValgteFelt
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
@@ -62,5 +63,20 @@ object OpplaringKategoriseringRepoAdapter {
                 )
             }
         }
+    }
+
+    fun erUendretValg(
+        gjennomforingId: UUID,
+        endringRequest: EndretOpplaringKategoriseringRequest,
+    ): Boolean {
+        val eksisterendeValg = hentOpplaringKategoriseringValg(gjennomforingId)
+        val eksisterendeKategoriseringIder = eksisterendeValg.valgteKategoriseringer
+            .flatMap { it.valg.keys }
+            .toSet()
+
+        val kodeverkErUendret = eksisterendeKategoriseringIder == endringRequest.kodeverkValg()
+        val sertifiseringerErUendret = eksisterendeValg.valgteSertifiseringer == endringRequest.sertifiseringValg
+
+        return kodeverkErUendret && sertifiseringerErUendret
     }
 }

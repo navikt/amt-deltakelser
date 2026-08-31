@@ -9,9 +9,4 @@ data class IkkeAktuellRequest(
     override val forslagId: UUID?,
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
-) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.IkkeAktuell(
-        aarsak = this.aarsak,
-        begrunnelse = this.begrunnelse,
-    )
-}
+) : EndringForslagRequest

@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreOpplaringKategoriseringRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndrePrisinfoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
@@ -44,11 +45,13 @@ import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.EndretInnholdRequest
+import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.enkeltplass.sanitizeBeskrivelse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicListAsString
 import org.slf4j.Logger
@@ -154,6 +157,22 @@ fun Routing.registerVeilederApi(
                         endretAvEnhet = call.getEnhetsnummer(),
                         prisinfo = request.prisinformasjon,
                         begrunnelse = request.begrunnelse,
+                    ),
+                )
+            }
+
+            post("/endre-innhold-kodeverk") {
+                val request = call.receive<EndreOpplaringKategoriseringRequest>()
+                val sanitizedRequest = request.copy(beskrivelse = request.beskrivelse.sanitizeBeskrivelse())
+                call.handleEndring(
+                    frontendRequest = sanitizedRequest,
+                    amtDeltakerRequest = EndretOpplaringKategoriseringRequest(
+                        endretAv = call.getNavIdent(),
+                        endretAvEnhet = call.getEnhetsnummer(),
+                        opplaringKategoriseringValg = sanitizedRequest.opplaringKategoriseringValg,
+                        sertifiseringValg = sanitizedRequest.sertifiseringValg,
+                        beskrivelse = sanitizedRequest.beskrivelse,
+                        pavirkerPris = sanitizedRequest.pavirkerPris,
                     ),
                 )
             }

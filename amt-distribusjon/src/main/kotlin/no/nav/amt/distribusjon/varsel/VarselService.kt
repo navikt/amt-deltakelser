@@ -34,6 +34,7 @@ class VarselService(
             is HendelseType.NavGodkjennUtkast,
             is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
             is HendelseType.EnkeltplassEndrePrisinfo,
+            is HendelseType.EnkeltplassEndreOpplaringKategorisering,
             -> {
                 inaktiverOppgave(hendelse.deltaker)
                 val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
@@ -263,6 +264,7 @@ fun Hendelse.skalVarslesEksternt() = when (payload) {
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
+    is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.OpprettUtkast,
     is HendelseType.AvsluttDeltakelse,
     is HendelseType.AvbrytDeltakelse,

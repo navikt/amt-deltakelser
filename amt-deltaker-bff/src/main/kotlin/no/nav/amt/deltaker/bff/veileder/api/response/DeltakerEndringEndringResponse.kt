@@ -159,6 +159,16 @@ sealed interface DeltakerEndringEndringResponse {
         )
     }
 
+    data class EndreOpplaringKategorisering(
+        val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse,
+        val beskrivelse: String,
+    ) : DeltakerEndringEndringResponse {
+        constructor(model: DeltakerEndring.Endring.EndreOpplaringKategorisering) : this(
+            opplaringKategoriseringValg = OpplaringKategoriseringValgResponse.fromModel(model.opplaringKategoriseringValg),
+            beskrivelse = model.beskrivelse,
+        )
+    }
+
     data class AarsakResponse(
         val type: DeltakerEndring.Aarsak.Type,
         val beskrivelse: String? = null,
@@ -181,6 +191,7 @@ sealed interface DeltakerEndringEndringResponse {
             is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> EndreBakgrunnsinformasjon(model)
             is DeltakerEndring.Endring.EndreDeltakelsesmengde -> EndreDeltakelsesmengde(model)
             is DeltakerEndring.Endring.EndreInnhold -> EndreInnhold(model)
+            is DeltakerEndring.Endring.EndreOpplaringKategorisering -> EndreOpplaringKategorisering(model)
             is DeltakerEndring.Endring.EndreSluttarsak -> EndreSluttarsak(model)
             is DeltakerEndring.Endring.EndreSluttdato -> EndreSluttdato(model)
             is DeltakerEndring.Endring.EndreStartdato -> EndreStartdato(model)

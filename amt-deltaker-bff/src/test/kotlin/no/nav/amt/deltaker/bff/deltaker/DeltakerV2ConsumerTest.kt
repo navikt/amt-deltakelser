@@ -381,6 +381,11 @@ class DeltakerV2ConsumerTest {
                         // so we just verify the endring was applied without errors
                     }
 
+                    is DeltakerEndring.Endring.EndreOpplaringKategorisering -> {
+                        // opplæring kategorisering is stored at gjennomforing level, not deltaker level
+                        // so we just verify the endring was applied without errors
+                    }
+
                     is DeltakerEndring.Endring.EndreBakgrunnsinformasjon ->
                         deltakerFraDb.bakgrunnsinformasjon shouldBe endring.bakgrunnsinformasjon
 

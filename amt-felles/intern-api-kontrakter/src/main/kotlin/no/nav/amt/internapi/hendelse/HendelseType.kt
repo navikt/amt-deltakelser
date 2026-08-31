@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Aarsak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
@@ -56,6 +57,10 @@ sealed interface HendelseType {
 
     data class EnkeltplassEndrePrisinfo(
         val prisinfo: PrisinformasjonDto,
+    ) : HendelseType
+
+    data class EnkeltplassEndreOpplaringKategorisering(
+        val opplaringKategoriseringValg: OpplaringKategoriseringValg,
     ) : HendelseType
 
     data class InnbyggerGodkjennUtkast(
@@ -186,109 +191,101 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         endring.prisinfo,
     )
 
-    is Endring.AvsluttDeltakelse ->
-        HendelseType.AvsluttDeltakelse(
-            aarsak = endring.aarsak,
-            sluttdato = endring.sluttdato,
-            harFullfort = endring.harFullfort,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreOpplaringKategorisering -> HendelseType.EnkeltplassEndreOpplaringKategorisering(
+        opplaringKategoriseringValg = endring.opplaringKategoriseringValg,
+    )
 
-    is Endring.EndreAvslutning ->
-        HendelseType.EndreAvslutning(
-            aarsak = endring.aarsak,
-            harFullfort = endring.harFullfort,
-            sluttdato = endring.sluttdato,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(
+        aarsak = endring.aarsak,
+        sluttdato = endring.sluttdato,
+        harFullfort = endring.harFullfort,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.AvbrytDeltakelse ->
-        HendelseType.AvbrytDeltakelse(
-            aarsak = endring.aarsak,
-            sluttdato = endring.sluttdato,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreAvslutning -> HendelseType.EndreAvslutning(
+        aarsak = endring.aarsak,
+        harFullfort = endring.harFullfort,
+        sluttdato = endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
+
+    is Endring.AvbrytDeltakelse -> HendelseType.AvbrytDeltakelse(
+        aarsak = endring.aarsak,
+        sluttdato = endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
     is Endring.EndreBakgrunnsinformasjon -> HendelseType.EndreBakgrunnsinformasjon(
         endring.bakgrunnsinformasjon,
     )
 
-    is Endring.EndreDeltakelsesmengde ->
-        HendelseType.EndreDeltakelsesmengde(
-            endring.deltakelsesprosent,
-            endring.dagerPerUke,
-            endring.gyldigFra,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreDeltakelsesmengde -> HendelseType.EndreDeltakelsesmengde(
+        endring.deltakelsesprosent,
+        endring.dagerPerUke,
+        endring.gyldigFra,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.EndreInnhold ->
-        HendelseType.EndreInnhold(
-            endring.innhold.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) },
-        )
+    is Endring.EndreInnhold -> HendelseType.EndreInnhold(
+        endring.innhold.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) },
+    )
 
-    is Endring.EndreSluttarsak ->
-        HendelseType.EndreSluttarsak(
-            endring.aarsak,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreSluttarsak -> HendelseType.EndreSluttarsak(
+        endring.aarsak,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.EndreSluttdato ->
-        HendelseType.EndreSluttdato(
-            endring.sluttdato,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreSluttdato -> HendelseType.EndreSluttdato(
+        endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.EndreStartdato ->
-        HendelseType.EndreStartdato(
-            endring.startdato,
-            endring.sluttdato,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.EndreStartdato -> HendelseType.EndreStartdato(
+        endring.startdato,
+        endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.ForlengDeltakelse ->
-        HendelseType.ForlengDeltakelse(
-            sluttdato = endring.sluttdato,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
+        sluttdato = endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.IkkeAktuell ->
-        HendelseType.IkkeAktuell(
-            aarsak = endring.aarsak,
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
+        aarsak = endring.aarsak,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.FjernOppstartsdato ->
-        HendelseType.FjernOppstartsdato(
-            begrunnelseFraNav = endring.begrunnelse,
-            begrunnelseFraArrangor = forslag?.begrunnelse,
-            endringFraForslag = forslag?.endring,
-        )
+    is Endring.FjernOppstartsdato -> HendelseType.FjernOppstartsdato(
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
 
-    is Endring.ReaktiverDeltakelse ->
-        utkast?.let {
-            HendelseType.ReaktiverDeltakelse(
-                utkast,
-                endring.begrunnelse,
-            )
-        } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
+    is Endring.ReaktiverDeltakelse -> utkast?.let {
+        HendelseType.ReaktiverDeltakelse(
+            utkast,
+            endring.begrunnelse,
+        )
+    } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
 }
 
 fun EndringFraArrangor.toHendelseEndring() = when (val endring = this.endring) {

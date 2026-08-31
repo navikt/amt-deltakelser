@@ -70,6 +70,7 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorConsumer
@@ -367,19 +368,25 @@ fun Application.module() {
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringRepository = deltakerEndringRepository,
-        deltakerEndringService = deltakerEndringService,
         deltakerProducerService = deltakerProducerService,
         vedtakRepository = vedtakRepository,
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
         endringFraArrangorRepository = endringFraArrangorRepository,
         importertFraArenaRepository = importertFraArenaRepository,
-        deltakerHistorikkService = deltakerHistorikkService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-        navAnsattService = navAnsattService,
         forslagRepository = forslagRepository,
+    )
+
+    val veilederEndringService = VeilederEndringService(
+        deltakerService = deltakerService,
+        deltakerRepository = deltakerRepository,
+        deltakerEndringService = deltakerEndringService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        navAnsattService = navAnsattService,
         unleashToggle = unleashToggle,
         gjennomforingUpserter = gjennomforingUpserter,
+        opplaringKategoriseringClient = opplaringKategoriseringClient,
     )
 
     val endringFraArrangorService = EndringFraArrangorService(
@@ -544,6 +551,7 @@ fun Application.module() {
         tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
+        veilederEndringService = veilederEndringService,
         arrangorService = arrangorService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         tiltakskoordinatorService = tiltakskoordinatorService,

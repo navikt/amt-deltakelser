@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
+import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
@@ -33,7 +34,8 @@ class EndreSluttarsakExtensionsTest {
 
     @Test
     fun `kaller sluttarsak direkte med extension-metode`() {
-        val resultat = endringsrequest.toEndring().endreSluttarsak(deltaker)
+        val resultat = (endringsrequest.toEndring() as DeltakerEndring.Endring.EndreSluttarsak)
+            .endreSluttarsak(deltaker)
 
         val oppdatertDeltaker = resultat.deltaker
 

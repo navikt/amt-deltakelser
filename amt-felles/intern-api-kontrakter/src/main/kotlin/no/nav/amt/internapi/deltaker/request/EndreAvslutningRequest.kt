@@ -12,11 +12,4 @@ data class EndreAvslutningRequest(
     val begrunnelse: String?,
     val sluttdato: LocalDate?,
     val harFullfort: Boolean?,
-) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.EndreAvslutning(
-        aarsak = aarsak,
-        harFullfort = harFullfort,
-        sluttdato = sluttdato,
-        begrunnelse = begrunnelse,
-    )
-}
+) : EndringForslagRequest

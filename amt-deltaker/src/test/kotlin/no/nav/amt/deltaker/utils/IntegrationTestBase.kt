@@ -55,6 +55,7 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
@@ -283,6 +284,19 @@ abstract class IntegrationTestBase {
         )
     }
 
+    protected open val veilederEndringService: VeilederEndringService by lazy {
+        VeilederEndringService(
+            deltakerService = deltakerService,
+            deltakerRepository = deltakerRepository,
+            deltakerEndringService = deltakerEndringService,
+            deltakerHistorikkService = deltakerHistorikkService,
+            navAnsattService = navAnsattService,
+            unleashToggle = unleashToggle,
+            gjennomforingUpserter = gjennomforingUpserter,
+            opplaringKategoriseringClient = opplaringKategoriseringClient,
+        )
+    }
+
     protected open val deltakerEndringService: DeltakerEndringService by lazy {
         DeltakerEndringService(
             deltakerEndringRepository = deltakerEndringRepository,
@@ -298,19 +312,14 @@ abstract class IntegrationTestBase {
         DeltakerService(
             deltakerRepository = deltakerRepository,
             vedtakRepository = vedtakRepository,
-            deltakerHistorikkService = deltakerHistorikkService,
             deltakerProducerService = deltakerProducerService,
             vedtakService = vedtakService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             deltakerEndringRepository = deltakerEndringRepository,
             distribuerEndringService = distribuerEndringService,
-            deltakerEndringService = deltakerEndringService,
-            navAnsattService = navAnsattService,
             forslagRepository = forslagRepository,
             endringFraArrangorRepository = endringFraArrangorRepository,
             importertFraArenaRepository = importertFraArenaRepository,
-            unleashToggle = unleashToggle,
-            gjennomforingUpserter = gjennomforingUpserter,
         )
     }
     protected open val tiltakskoordinatorService: TiltakskoordinatorService by lazy {
@@ -478,6 +487,7 @@ abstract class IntegrationTestBase {
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                     deltakerlisteRepository = deltakerlisteRepository,
                     arrangorService = arrangorService,
+                    veilederEndringService = veilederEndringService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
                     tiltakskoordinatorService = tiltakskoordinatorService,
                     forslagService = forslagService,

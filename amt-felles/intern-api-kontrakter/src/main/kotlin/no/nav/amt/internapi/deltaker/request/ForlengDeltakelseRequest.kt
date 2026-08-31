@@ -1,6 +1,5 @@
 package no.nav.amt.internapi.deltaker.request
 
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.time.LocalDate
 import java.util.UUID
 
@@ -10,9 +9,4 @@ data class ForlengDeltakelseRequest(
     override val forslagId: UUID?,
     val sluttdato: LocalDate,
     val begrunnelse: String?,
-) : EndringForslagRequest {
-    override fun toEndring() = DeltakerEndring.Endring.ForlengDeltakelse(
-        sluttdato = sluttdato,
-        begrunnelse = begrunnelse,
-    )
-}
+) : EndringForslagRequest

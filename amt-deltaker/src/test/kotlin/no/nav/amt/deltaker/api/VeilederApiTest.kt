@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -37,6 +38,7 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -59,6 +61,7 @@ import java.util.UUID
 
 class VeilederApiTest : IntegrationTestBase() {
     override val deltakerService: DeltakerService = mockk()
+    override val veilederEndringService: VeilederEndringService = mockk()
     override val forslagService: ForslagService = mockk()
     override val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
@@ -198,7 +201,8 @@ class VeilederApiTest : IntegrationTestBase() {
                 gyldigFra = LocalDate.now(),
             )
 
-            val deltakelsesmengdeEndring = deltakelsesmengdeRequest.toEndring()
+            val deltakelsesmengdeEndring =
+                deltakelsesmengdeRequest.toEndring() as DeltakerEndring.Endring.EndreDeltakelsesmengde
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = deltakelsesmengdeEndring)))
             val deltaker = lagDeltaker(
                 deltakelsesprosent = deltakelsesmengdeEndring.deltakelsesprosent,
@@ -500,7 +504,7 @@ class VeilederApiTest : IntegrationTestBase() {
         historikk: List<DeltakerHistorikk.Endring>,
     ) {
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
-        coEvery { deltakerService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
+        coEvery { veilederEndringService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
@@ -513,6 +517,6 @@ class VeilederApiTest : IntegrationTestBase() {
             response.bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerResponse)
         }
 
-        coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }
+        coVerify { veilederEndringService.upsertEndretDeltaker(deltaker.id, request) }
     }
 }

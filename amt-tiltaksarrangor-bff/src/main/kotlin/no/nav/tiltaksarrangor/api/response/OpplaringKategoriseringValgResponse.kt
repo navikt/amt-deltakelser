@@ -1,10 +1,11 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.tiltaksarrangor.api.response
 
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import java.util.UUID
 
+// kopiert fra amt-deltaker-bff
 data class OpplaringKategoriseringValgResponse(
     val valgteKategoriseringer: Set<Kategorisering>,
     val valgteSertifiseringer: Set<SertifiseringValgResponse>,

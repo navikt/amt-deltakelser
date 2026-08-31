@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
+import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload.UpsertEnkeltplass
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -11,9 +12,11 @@ import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.service.VedtakService
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -56,52 +59,72 @@ class GjennomforingUpserter(
      * og kobles til gjennomføringen som ENDRING. Deretter produseres en Kafka-melding
      * med totrinnskontroll-ID slik at ekstern behandler kan godkjenne eller returnere endringen.
      *
+     * @param gjennomforingId gjennomføring-ID som prisinformasjonen skal knyttes til.
      * @param prisinfo Ny prisinformasjon som skal sendes til behandling.
-     * @param deltaker Deltakeren tilknyttet gjennomføringen.
      * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
      */
     fun lagreOgProduserPrisinfoEndring(
+        gjennomforingId: UUID,
         prisinfo: PrisinformasjonDto,
-        deltaker: Deltaker,
         endretAvNavIdent: String,
-    ) {
-        val totrinnskontrollId = lagrePrisinfoEndring(prisinfo, deltaker)
-
-        produserPrisinfoEndring(
-            deltaker = deltaker,
-            endretAvNavIdent = endretAvNavIdent,
-            prisinformasjonId = totrinnskontrollId,
+    ): UUID {
+        val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+            gjennomforingId = gjennomforingId,
+            prisinformasjon = prisinfo,
         )
-    }
 
-    fun lagrePrisinfoEndring(
-        prisinfo: PrisinformasjonDto,
-        deltaker: Deltaker,
-    ): UUID = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-        gjennomforingId = deltaker.deltakerliste.id,
-        prisinformasjon = prisinfo,
-    )
-
-    fun produserPrisinfoEndring(
-        deltaker: Deltaker,
-        endretAvNavIdent: String,
-        prisinformasjonId: UUID,
-    ) {
         val endrePrisinfoPayload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = gjennomforingId,
             totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                id = prisinformasjonId,
+                id = totrinnskontrollId,
                 behandletAv = endretAvNavIdent,
             ),
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
-                    gjennomforingId = deltaker.deltakerliste.id,
+                    gjennomforingId = gjennomforingId,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
-                ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
+                ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring $gjennomforingId"),
             ),
         )
 
         gjennomforingRequestProducer.produce(endrePrisinfoPayload)
+
+        return totrinnskontrollId
+    }
+
+    /**
+     * Lagrer endringer i innhold/kodeverk og publiserer oppdatert kategorisering til Mulighetsrommet.
+     *
+     * @param gjennomforingId Gjennomføring-ID som kategorisering skal knyttes til.
+     * @param kodeverkValg Kodeverkverdier som skal lagres.
+     * @param sertifiseringValg Sertifiseringer som skal lagres.
+     * @param kategoriseringForTiltak Alle tilgjengelig kategoriseringsvalg for gjennomføringen.
+     */
+    fun lagreOgProduserEnkeltplassEndreInnhold(
+        gjennomforingId: UUID,
+        kodeverkValg: Set<UUID>?,
+        sertifiseringValg: Set<SertifiseringValg>?,
+        kategoriseringForTiltak: OpplaringKategoriseringResponse,
+    ) {
+        val opplaringKategoriseringValg = kategoriseringForTiltak.toOpplaringKategoriseringValg(
+            kategoriseringValg = kodeverkValg ?: emptySet(),
+            sertifiseringValg = sertifiseringValg ?: emptySet(),
+        )
+
+        OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+            gjennomforingId = gjennomforingId,
+            valgteVerdier = kodeverkValg?.let { opplaringKategoriseringValg.valgteKategoriseringer },
+            valgteSertifiseringer = sertifiseringValg?.let { opplaringKategoriseringValg.valgteSertifiseringer },
+        )
+
+        val endreInnholdPayload = GjennomforingRequestPayload.EnkeltplassEndreInnhold(
+            gjennomforingId = gjennomforingId,
+            payload = OpplaringKategoriseringRepoAdapter
+                .hentOpplaringKategoriseringValg(gjennomforingId)
+                .toMulighetsrommetKategorisering(),
+        )
+
+        gjennomforingRequestProducer.produce(endreInnholdPayload)
     }
 
     /**
@@ -188,7 +211,7 @@ class GjennomforingUpserter(
         deltaker: Deltaker,
         opprettetAvNavIdent: String,
         ansvarligEnhet: String,
-    ) = GjennomforingRequestPayload.UpsertEnkeltplass(
+    ) = UpsertEnkeltplass(
         tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
         organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
             ?: error("Organisasjonsnummer kan ikke være null"),
@@ -215,7 +238,7 @@ class GjennomforingUpserter(
      */
     internal fun buildGjennomforingRequestPayload(
         deltaker: Deltaker,
-        upsertPayload: GjennomforingRequestPayload.UpsertEnkeltplass,
+        upsertPayload: UpsertEnkeltplass,
         behandletAv: String,
     ) = when (val statusType = deltaker.status.type) {
         DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
@@ -243,10 +266,9 @@ class GjennomforingUpserter(
     }
 
     companion object {
-        internal fun OpplaringKategoriseringValg.toMulighetsrommetKategorisering() =
-            GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
-                sertifiseringer = valgteSertifiseringer,
-                verdier = valgteKategoriseringer.associate { it.representerer to it.valg.keys },
-            )
+        internal fun OpplaringKategoriseringValg.toMulighetsrommetKategorisering() = UpsertEnkeltplass.OpplaringKategorisering(
+            sertifiseringer = valgteSertifiseringer,
+            verdier = valgteKategoriseringer.associate { it.representerer to it.valg.keys },
+        )
     }
 }

@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
@@ -116,44 +117,6 @@ class PrisinfoRepoAdapterTest {
             val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
 
             result shouldBe pendingPrisinfo
-        }
-
-        @Test
-        fun `prioriterer gjeldende når begge finnes`() {
-            // Arrange
-            TestRepository.insert(gjennomforingInTest)
-
-            val gjeldende = Tilskudd(
-                tilleggsopplysninger = "Godkjent",
-                tilskudd = listOf(
-                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 10000),
-                ),
-            )
-            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = gjeldende,
-            )
-            PrisinfoRepoAdapter.godkjennOkonomi(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjonId = prisinformasjonId,
-            )
-
-            val endring = Tilskudd(
-                tilleggsopplysninger = "Pending",
-                tilskudd = listOf(
-                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 5000),
-                ),
-            )
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = endring,
-            )
-
-            // Act
-            val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
-
-            // Assert
-            result shouldBe gjeldende
         }
 
         @Test
@@ -310,6 +273,142 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             result shouldBe godkjentPrisinfo
+        }
+    }
+
+    @Nested
+    inner class ErUendretPrisinfoTests {
+        @Test
+        fun `returnerer true når pending prisinfo er identisk`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfo = Anskaffelse(pris = 15000)
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = prisinfo,
+            )
+
+            val request = EndretPrisinfoRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                prisinfo = prisinfo,
+                begrunnelse = "begrunnelse",
+            )
+
+            // Act + Assert
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `returnerer true når kun gjeldende prisinfo er identisk`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfo = Tilskudd(
+                tilleggsopplysninger = "Godkjent",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 5000),
+                ),
+            )
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = prisinfo,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
+
+            val request = EndretPrisinfoRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                prisinfo = prisinfo,
+                begrunnelse = "begrunnelse",
+            )
+
+            // Act + Assert
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `returnerer false når pending prisinfo er forskjellig selv om gjeldende er lik`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = gjeldendePrisinfo,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = prisinformasjonId,
+            )
+
+            val annenPrisinfo = Anskaffelse(pris = 20000)
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = annenPrisinfo,
+            )
+
+            val request = EndretPrisinfoRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                prisinfo = gjeldendePrisinfo,
+                begrunnelse = "begrunnelse",
+            )
+
+            // Act + Assert
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe false
+        }
+
+        @Test
+        fun `ignorerer pending med status RETURNERT og sammenligner mot gjeldende`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+            val gjeldendePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = gjeldendePrisinfo,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = gjeldendePrisinfoId,
+            )
+
+            val returnertPrisinfo = Anskaffelse(pris = 20000)
+            val returnertPrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = returnertPrisinfo,
+            )
+            PrisinfoRepository.oppdaterStatus(
+                prisinformasjonId = returnertPrisinfoId,
+                status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
+            )
+
+            val request = EndretPrisinfoRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                prisinfo = gjeldendePrisinfo,
+                begrunnelse = "begrunnelse",
+            )
+
+            // Act + Assert
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
         }
     }
 

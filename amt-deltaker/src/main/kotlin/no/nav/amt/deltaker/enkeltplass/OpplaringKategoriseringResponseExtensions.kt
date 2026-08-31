@@ -14,8 +14,6 @@ import java.util.UUID
  * Mapper hierarkiet av valgte alternativer (verdigrupper, utdanningsprogrammer, lærefag)
  * til et flatt sett av ValgteFelt-objekter som representerer brukerens valg.
  *
- * Early-return med bare sertifiseringer hvis ingen verdier er valgt.
- *
  * @param kategoriseringValg settet med valgte IDer
  * @param sertifiseringValg settet med valgte sertifiseringer
  * @return OpplaringKategoriseringValg med alle valgte kategoriseringer og sertifiseringer
@@ -23,23 +21,22 @@ import java.util.UUID
 fun OpplaringKategoriseringResponse.toOpplaringKategoriseringValg(
     kategoriseringValg: Set<UUID>,
     sertifiseringValg: Set<SertifiseringValg>,
-): OpplaringKategoriseringValg = if (kategoriseringValg.isEmpty()) {
-    OpplaringKategoriseringValg(
-        valgteKategoriseringer = emptySet(),
-        valgteSertifiseringer = sertifiseringValg,
-    )
-} else {
-    val kategoriseringResponseMedValgteElementer = settValg(
+): OpplaringKategoriseringValg {
+    validerAtKategoriseringIderFinnes(kategoriseringValg)
+    validerEnkeltvalg(kategoriseringValg)
+
+    val responsMedValg = settValg(
         verdivalg = kategoriseringValg,
         sertifiseringValg = sertifiseringValg,
     )
-
-    OpplaringKategoriseringValg(
-        valgteKategoriseringer = kategoriseringResponseMedValgteElementer.alternativer
+    val resultat = OpplaringKategoriseringValg(
+        valgteKategoriseringer = responsMedValg.alternativer
             .flatMap { it.tilValgteFelt() }
             .toSet(),
         valgteSertifiseringer = sertifiseringValg,
     )
+
+    return resultat
 }
 
 /**
@@ -114,4 +111,34 @@ private fun Alternativ.UtdanningGruppe.tilValgteFeltInternal(): Set<OpplaringKat
             )
         }
     }
+}
+
+private fun OpplaringKategoriseringResponse.validerAtKategoriseringIderFinnes(kategoriseringValg: Set<UUID>) {
+    val ugyldigeKategoriseringIder = kategoriseringValg - gyldigeKategoriseringIder()
+    require(ugyldigeKategoriseringIder.isEmpty()) {
+        "Ugyldig kategoriseringsvalg. Følgende ID-er finnes ikke for tiltaket: $ugyldigeKategoriseringIder"
+    }
+}
+
+private fun OpplaringKategoriseringResponse.gyldigeKategoriseringIder(): Set<UUID> = alternativer
+    .flatMap { alternativ ->
+        when (alternativ) {
+            is Alternativ.Verdigruppe -> alternativ.alternativer.map { it.id }
+            is Alternativ.VerdigruppeSok -> emptyList()
+            is Alternativ.UtdanningGruppe -> alternativ.utdanninger.flatMap { utdanning ->
+                listOf(utdanning.id) + utdanning.larefag.alternativer.map { it.id }
+            }
+        }
+    }.toSet()
+
+private fun OpplaringKategoriseringResponse.validerEnkeltvalg(kategoriseringValg: Set<UUID>) {
+    alternativer
+        .filterIsInstance<Alternativ.Verdigruppe>()
+        .filter { it.seleksjonstype == OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG }
+        .forEach { verdigruppe ->
+            val valgteIGruppe = verdigruppe.alternativer.count { it.id in kategoriseringValg }
+            require(valgteIGruppe <= 1) {
+                "Ugyldig kategoriseringsvalg. Kun ett valg er tillatt for ${verdigruppe.representerer}"
+            }
+        }
 }

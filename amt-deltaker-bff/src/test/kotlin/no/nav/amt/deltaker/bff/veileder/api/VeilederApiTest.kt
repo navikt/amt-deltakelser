@@ -30,6 +30,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreAvslutningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreBakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreInnholdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.EndreOpplaringKategoriseringRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndrePrisinfoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttarsakRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.EndreSluttdatoRequest
@@ -43,10 +44,14 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.internapi.PersonIdentResponse
+import no.nav.amt.internapi.deltaker.request.OpplaringKategoriseringValgRequest
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
@@ -71,6 +76,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 "POST" to "/deltaker/$id",
                 "GET" to "/deltaker/$id/historikk",
                 "POST" to "/deltaker/$id/endre-prisinfo",
+                "POST" to "/deltaker/$id/endre-innhold-kodeverk",
                 "POST" to "/deltaker/$id/bakgrunnsinformasjon",
                 "POST" to "/deltaker/$id/innhold",
                 "POST" to "/deltaker/$id/deltakelsesmengde",
@@ -119,6 +125,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 { httpClient.post("/deltaker/$id") { createPostRequest(deltakerRequest) } },
                 { httpClient.get("/deltaker/$id/historikk") { noBodyRequest() } },
                 { httpClient.post("/deltaker/$id/endre-prisinfo") { createPostRequest(endrePrisinfoRequest) } },
+                { httpClient.post("/deltaker/$id/endre-innhold-kodeverk") { createPostRequest(endreOpplaringKategoriseringRequest) } },
                 { httpClient.post("/deltaker/$id/bakgrunnsinformasjon") { createPostRequest(bakgrunnsinformasjonRequest) } },
                 { httpClient.post("/deltaker/$id/innhold") { createPostRequest(innholdRequest) } },
                 { httpClient.post("/deltaker/$id/deltakelsesmengde") { createPostRequest(deltakelsesmengdeRequest) } },
@@ -232,9 +239,12 @@ class VeilederApiTest : IntegrationTestBase() {
         fun setupMocksLocal(
             deltaker: Deltaker,
             oppdatert: Deltaker? = null,
+            gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
         ): DeltakerResponse {
             val foerResponse = lagDeltakerResponse(deltaker)
+                .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = gjennomforingType))
             val etterResponse = lagDeltakerResponse(oppdatert ?: deltaker)
+                .copy(gjennomforing = lagDeltakerResponse(oppdatert ?: deltaker).gjennomforing.copy(type = gjennomforingType))
 
             // handleEndring henter deltakeren via amtDeltakerClient både før (til validering)
             // og etter oppdateringen. `returnsMany` gir forskjellig svar på de to kallene.
@@ -261,6 +271,128 @@ class VeilederApiTest : IntegrationTestBase() {
                         status shouldBe HttpStatusCode.OK
                         bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
                     }
+            }
+        }
+
+        @Nested
+        inner class OppdaterOpplaringKategoriseringTests {
+            @Test
+            fun `oppdater opplæringskategorisering - har tilgang - returnerer deltaker`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                val expected = setupMocksLocal(
+                    deltaker = deltaker,
+                    oppdatert = deltaker,
+                    gjennomforingType = GjennomforingType.Enkeltplass,
+                )
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(endreOpplaringKategoriseringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - status utkast til påmelding - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(endreOpplaringKategoriseringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            bodyAsText().contains(
+                                "Kan ikke endre opplæringskategorisering for deltaker med status UTKAST_TIL_PAMELDING",
+                            ) shouldBe
+                                true
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - status kladd - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(endreOpplaringKategoriseringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            bodyAsText().contains("Kan ikke endre opplæringskategorisering for deltaker med status KLADD") shouldBe true
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - gruppegjennomføring - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(endreOpplaringKategoriseringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            bodyAsText().contains(
+                                "Kan ikke endre opplæringskategorisering for deltakere som ikke er på enkeltplass",
+                            ) shouldBe
+                                true
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - tom beskrivelse - returnerer 400`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+                    .copy(gjennomforing = lagDeltakerResponse(deltaker).gjennomforing.copy(type = GjennomforingType.Enkeltplass))
+
+                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "  ")
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(request)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater opplæringskategorisering - beskrivelse over maks lengde - sanitiseres til 250`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                val expected = setupMocksLocal(
+                    deltaker = deltaker,
+                    oppdatert = deltaker,
+                    gjennomforingType = GjennomforingType.Enkeltplass,
+                )
+
+                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "a".repeat(251))
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-innhold-kodeverk") {
+                            createPostRequest(request)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                        }
+                }
             }
         }
 
@@ -542,11 +674,12 @@ class VeilederApiTest : IntegrationTestBase() {
             }
         }
     }
-    // ---- Hjelpefunksjoner ----
+// ---- Hjelpefunksjoner ----
 
     private val deltakerRequest = DeltakerRequest("1234")
     private val bakgrunnsinformasjonRequest = EndreBakgrunnsinformasjonRequest("Oppdatert bakgrunnsinformasjon")
     private val innholdRequest = EndreInnholdRequest(emptyList())
+
     private val endrePrisinfoRequest = EndrePrisinfoRequest(
         prisinformasjon = PrisinformasjonDto.IngenKostnader(
             aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
@@ -554,6 +687,19 @@ class VeilederApiTest : IntegrationTestBase() {
         ),
         begrunnelse = "begrunnelse",
     )
+
+    private val endreOpplaringKategoriseringRequest = EndreOpplaringKategoriseringRequest(
+        opplaringKategoriseringValg = setOf(
+            OpplaringKategoriseringValgRequest(
+                representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                valgteIder = setOf(UUID.randomUUID()),
+            ),
+        ),
+        sertifiseringValg = setOf(SertifiseringValg(id = 1, navn = "Truckførerbevis")),
+        beskrivelse = "begrunnelse",
+        pavirkerPris = false,
+    )
+
     private val deltakelsesmengdeRequest = EndreDeltakelsesmengdeRequest(
         deltakelsesprosent = 50,
         dagerPerUke = 3,

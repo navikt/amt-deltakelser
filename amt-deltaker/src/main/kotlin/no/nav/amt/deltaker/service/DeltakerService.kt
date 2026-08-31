@@ -1,34 +1,21 @@
 package no.nav.amt.deltaker.service
 
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
-import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
-import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
-import no.nav.amt.deltaker.veileder.endring.extensions.anvendPaaDeltaker
-import no.nav.amt.deltaker.veileder.endring.extensions.validerGyldigFra
-import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
-import no.nav.amt.internapi.deltaker.request.EndringRequest
-import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -38,7 +25,6 @@ import java.util.UUID
 class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerEndringRepository: DeltakerEndringRepository,
-    private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducerService: DeltakerProducerService,
     private val vedtakRepository: VedtakRepository,
     private val vedtakService: VedtakService,
@@ -46,13 +32,36 @@ class DeltakerService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val forslagRepository: ForslagRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val deltakerHistorikkService: DeltakerHistorikkService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
-    private val navAnsattService: NavAnsattService,
-    private val unleashToggle: CommonUnleashToggle,
-    private val gjennomforingUpserter: GjennomforingUpserter,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun transactionalDeltakerUpsert(
+        deltaker: Deltaker,
+        erDeltakerSluttdatoEndret: Boolean,
+        nesteStatus: DeltakerStatus? = null,
+        beforeDeltakerUpsert: (Deltaker) -> Deltaker = { it },
+        afterDeltakerUpsert: (Deltaker) -> Deltaker = { it },
+    ): Result<Deltaker> = runCatching {
+        Database.transaction {
+            val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
+
+            deltakerRepository.upsert(deltakerToUpsert)
+            val gjeldendeDeltakerStatus = lagreDeltakerStatus(
+                deltakerId = deltakerToUpsert.id,
+                nyDeltakerStatus = deltakerToUpsert.status,
+                erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
+            )
+
+            nesteStatus?.let {
+                DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
+            }
+
+            afterDeltakerUpsert(
+                deltakerToUpsert.copy(status = gjeldendeDeltakerStatus),
+            )
+        }
+    }
 
     fun upsertAndProduceDeltaker(
         deltaker: Deltaker,
@@ -98,124 +107,6 @@ class DeltakerService(
             erDeltakerSluttdatoEndret = false,
         )
         log.info("Feilregistrert deltaker med id $deltakerId")
-    }
-
-    suspend fun upsertEndretDeltaker(
-        deltakerId: UUID,
-        endringRequest: EndringRequest,
-    ): Deltaker {
-        val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        validerIkkeFeilregistrert(eksisterendeDeltaker)
-
-        require(unleashToggle.erKometMasterForTiltakstype(eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode)) {
-            "Kan ikke utføre endring på deltaker $deltakerId på tiltakstype ${eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode} som komet ikke eier"
-        }
-
-        require(eksisterendeDeltaker.navBruker.harAktivOppfolgingsperiode || endringRequest.kanIverksettesUtenAktivOppfolging()) {
-            "Kan ikke utføre endring ${endringRequest.javaClass.simpleName} på deltaker $deltakerId uten aktiv oppfølgingsperiode"
-        }
-        val endring = endringRequest.toEndring(eksisterendeDeltaker.deltakerliste.tiltakstype)
-
-        // Valider gyldigFra utenfor runCatching slik at ugyldige datoer gir 400 Bad Request
-        if (endring is DeltakerEndring.Endring.EndreDeltakelsesmengde) {
-            endring.validerGyldigFra(eksisterendeDeltaker)
-        }
-
-        val updateResult = endring
-            .anvendPaaDeltaker(
-                deltaker = eksisterendeDeltaker,
-                getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-            ).getOrElse {
-                log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
-                )
-
-                // hvis forslag er godkjent og deltaker er uendret
-                endringRequest.getForslagId()?.let {
-                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
-                }
-
-                return eksisterendeDeltaker
-            }
-
-        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
-
-        // hent eller opprett Nav-ansatt før transaksjonen starter
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endringRequest.endretAv)
-
-        return upsertAndProduceDeltaker(
-            deltaker = updateResult.deltaker,
-            erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != updateResult.deltaker.sluttdato,
-            nesteStatus = updateResult.nesteStatus,
-            beforeUpsert = { deltaker ->
-                val endringRequestMedPrisinformasjonId = if (endringRequest is EndretPrisinfoRequest) {
-                    val nyPrisinformasjonId = gjennomforingUpserter.lagrePrisinfoEndring(
-                        prisinfo = endringRequest.prisinfo,
-                        deltaker = eksisterendeDeltaker,
-                    )
-                    endringRequest.copy(prisinformasjonId = nyPrisinformasjonId)
-                } else {
-                    endringRequest
-                }
-
-                deltakerEndringService.upsertEndring(
-                    endringRequest = endringRequestMedPrisinformasjonId,
-                    endringResultat = updateResult,
-                    endretAvNavAnsatt = navAnsatt,
-                )
-
-                deltaker
-            },
-            afterUpsert = {
-                when (endringRequest) {
-                    is ReaktiverDeltakelseRequest -> slettKladdIfExists(updateResult.deltaker)
-                    is EndretPrisinfoRequest -> gjennomforingUpserter.produserPrisinfoEndring(
-                        deltaker = eksisterendeDeltaker,
-                        endretAvNavIdent = endringRequest.endretAv,
-                        prisinformasjonId = PrisinfoRepoAdapter
-                            .hentPrisinformasjonIdForEndring(eksisterendeDeltaker.deltakerliste.id)
-                            ?: error("PrisinformasjonId mangler for endret prisinfo"),
-                    )
-
-                    else -> Unit
-                }
-            },
-        )
-    }
-
-    private fun slettKladdIfExists(deltaker: Deltaker) {
-        deltakerRepository
-            .getKladdForDeltakerliste(
-                deltakerlisteId = deltaker.deltakerliste.id,
-                personident = deltaker.navBruker.personident,
-            ).onSuccess { deltaker -> deleteDeltaker(deltaker.id) }
-    }
-
-    fun transactionalDeltakerUpsert(
-        deltaker: Deltaker,
-        erDeltakerSluttdatoEndret: Boolean,
-        nesteStatus: DeltakerStatus? = null,
-        beforeDeltakerUpsert: (Deltaker) -> Deltaker = { it },
-        afterDeltakerUpsert: (Deltaker) -> Deltaker = { it },
-    ): Result<Deltaker> = runCatching {
-        Database.transaction {
-            val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
-
-            deltakerRepository.upsert(deltakerToUpsert)
-            val gjeldendeDeltakerStatus = lagreDeltakerStatus(
-                deltakerId = deltakerToUpsert.id,
-                nyDeltakerStatus = deltakerToUpsert.status,
-                erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
-            )
-
-            nesteStatus?.let {
-                DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
-            }
-
-            afterDeltakerUpsert(
-                deltakerToUpsert.copy(status = gjeldendeDeltakerStatus),
-            )
-        }
     }
 
     fun lagreDeltakerStatus(

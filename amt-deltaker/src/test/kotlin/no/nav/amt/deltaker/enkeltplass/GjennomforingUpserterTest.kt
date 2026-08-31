@@ -26,11 +26,14 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -78,6 +81,9 @@ class GjennomforingUpserterTest {
             valgteKategoriseringer = emptySet(),
             valgteSertifiseringer = emptySet(),
         )
+        every {
+            OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(any(), any(), any())
+        } just Runs
 
         mockkObject(PrisinfoRepository)
         every {
@@ -122,8 +128,8 @@ class GjennomforingUpserterTest {
 
             // Act
             sut.lagreOgProduserPrisinfoEndring(
+                gjennomforingId = deltaker.deltakerliste.id,
                 prisinfo = nyPrisinfo,
-                deltaker = deltaker,
                 endretAvNavIdent = "Z123456",
             )
 
@@ -155,8 +161,8 @@ class GjennomforingUpserterTest {
             // Act & Assert
             shouldThrow<IllegalStateException> {
                 sut.lagreOgProduserPrisinfoEndring(
+                    gjennomforingId = deltaker.deltakerliste.id,
                     prisinfo = nyPrisinfo,
-                    deltaker = deltaker,
                     endretAvNavIdent = "Z123456",
                 )
             }
@@ -173,8 +179,8 @@ class GjennomforingUpserterTest {
 
             // Act
             sut.lagreOgProduserPrisinfoEndring(
+                gjennomforingId = deltaker.deltakerliste.id,
                 prisinfo = nyPrisinfo,
-                deltaker = deltaker,
                 endretAvNavIdent = endretAv,
             )
 
@@ -182,6 +188,127 @@ class GjennomforingUpserterTest {
             val produced = slot.captured
             (produced as GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon).totrinnskontroll.behandletAv shouldBe endretAv
             produced.gjennomforingId shouldBe deltaker.deltakerliste.id
+        }
+    }
+
+    @Nested
+    inner class LagreOgProduserInnholdKodeverkEndringTests {
+        @Test
+        fun `lagrer kodeverk og produserer EnkeltplassEndreInnhold`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            val kodeverkId = UUID.randomUUID()
+            val sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1"))
+
+            val kategoriseringForTiltak = OpplaringKategoriseringResponse(
+                tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                alternativer = listOf(
+                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
+                        id = UUID.randomUUID(),
+                        visningsnavn = "Bransje",
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        pakrevd = true,
+                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
+                        alternativer = listOf(
+                            OpplaringKategoriseringResponse.Alternativ.Verdi(
+                                id = kodeverkId,
+                                visningsnavn = "Bygg og anlegg",
+                            ),
+                            OpplaringKategoriseringResponse.Alternativ.Verdi(
+                                id = UUID.randomUUID(),
+                                visningsnavn = "Helse og omsorg",
+                            ),
+                        ),
+                    ),
+                ),
+                sertifiseringValg = sertifiseringer,
+            )
+
+            val lagretKategorisering = OpplaringKategoriseringValg(
+                valgteKategoriseringer = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        valg = mapOf(kodeverkId to "Bygg og anlegg"),
+                    ),
+                ),
+                valgteSertifiseringer = sertifiseringer,
+            )
+
+            val slot = slot<GjennomforingRequestPayload>()
+
+            every {
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+            } returns lagretKategorisering
+            every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
+
+            // Act
+            sut.lagreOgProduserEnkeltplassEndreInnhold(
+                gjennomforingId = deltaker.deltakerliste.id,
+                kodeverkValg = setOf(kodeverkId),
+                sertifiseringValg = sertifiseringer,
+                kategoriseringForTiltak = kategoriseringForTiltak,
+            )
+
+            // Assert
+            verify {
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+            }
+
+            verify {
+                OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    valgteVerdier = lagretKategorisering.valgteKategoriseringer,
+                    valgteSertifiseringer = sertifiseringer,
+                )
+            }
+
+            slot.captured shouldBe GjennomforingRequestPayload.EnkeltplassEndreInnhold(
+                gjennomforingId = deltaker.deltakerliste.id,
+                payload = lagretKategorisering.toMulighetsrommetKategorisering(),
+            )
+        }
+
+        @Test
+        fun `ugyldig kodeverkvalg - kaster exception og lagrer ikke`() {
+            // Arrange
+            val deltaker = createUtkastDeltaker()
+            val ugyldigKodeverkId = UUID.randomUUID()
+            val kategoriseringForTiltak = OpplaringKategoriseringResponse(
+                tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                alternativer = listOf(
+                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
+                        id = UUID.randomUUID(),
+                        visningsnavn = "Bransje",
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        pakrevd = true,
+                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.ENKELTVALG,
+                        alternativer = listOf(
+                            OpplaringKategoriseringResponse.Alternativ.Verdi(
+                                id = UUID.randomUUID(),
+                                visningsnavn = "Bygg og anlegg",
+                            ),
+                        ),
+                    ),
+                ),
+                sertifiseringValg = emptySet(),
+            )
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                sut.lagreOgProduserEnkeltplassEndreInnhold(
+                    gjennomforingId = deltaker.deltakerliste.id,
+                    kodeverkValg = setOf(ugyldigKodeverkId),
+                    sertifiseringValg = emptySet(),
+                    kategoriseringForTiltak = kategoriseringForTiltak,
+                )
+            }
+
+            verify(exactly = 0) {
+                OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(any(), any(), any())
+            }
+            verify(exactly = 0) {
+                gjennomforingRequestProducer.produce(any())
+            }
         }
     }
 
