@@ -40,7 +40,6 @@ import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
-import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.service.VeilederEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -78,7 +77,6 @@ fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
     deltakerProducerService: DeltakerProducerService,
-    vedtakService: VedtakService,
     unleashToggle: CommonUnleashToggle,
     innsokRepository: InnsokRepository,
     vurderingRepository: VurderingRepository,
@@ -156,7 +154,6 @@ fun Application.configureRouting(
             deltakerService,
             kladdService,
             deltakerProducerService,
-            vedtakService,
             innsokRepository,
             vurderingRepository,
             distribuerEndringService,
