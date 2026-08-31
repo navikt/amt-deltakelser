@@ -38,6 +38,7 @@ class DeltakerV2Consumer(
             record.offset() in setOf(
                 38317863L,
                 38308450L, // Fant eldre deltakelser med aktiv status: Nyeste deltaker c49f3fa7-be3f-4e29-bb3d-34b1edc7d7f1
+                38308485L, // Fant eldre deltakelser med aktiv status: Nyeste deltaker c49f3fa7-be3f-4e29-bb3d-34b1edc7d7f1
             )
         },
     )
