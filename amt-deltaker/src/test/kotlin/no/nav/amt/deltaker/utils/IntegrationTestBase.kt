@@ -466,7 +466,6 @@ abstract class IntegrationTestBase {
                     tilgangskontrollService = tilgangskontrollService,
                     deltakelserResponseMapper = deltakelserResponseMapper,
                     deltakerProducerService = deltakerProducerService,
-                    vedtakService = vedtakService,
                     unleashToggle = unleashToggle,
                     innsokRepository = innsokRepository,
                     vurderingRepository = vurderingRepository,
