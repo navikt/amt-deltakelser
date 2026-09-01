@@ -1,6 +1,7 @@
 package no.nav.amt.internapi.hendelse
 
 import no.nav.amt.internapi.hendelse.HendelseDeltaker.Deltakerliste.Arrangor.Companion.UKJENT_VIRKSOMHET
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -18,6 +19,7 @@ data class HendelseDeltaker(
     val opprettetDato: LocalDate?,
     val startdato: LocalDate? = null,
     val sluttdato: LocalDate? = null,
+    val status: DeltakerStatus? = null,
 ) {
     data class Deltakerliste(
         val id: UUID,

@@ -4,6 +4,7 @@ import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.ArrangorDto
 import no.nav.amt.internapi.journalforing.pdf.AvsenderDto
@@ -13,6 +14,7 @@ import no.nav.amt.internapi.journalforing.pdf.HovedvedtakVedTildeltPlassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.InnsokingsbrevPdfDto
 import no.nav.amt.internapi.journalforing.pdf.VentelistebrevPdfDto
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.time.LocalDate
@@ -214,6 +216,7 @@ fun lagEndringsvedtakPdfDto(
             navn = ansvarlig.getAvsendernavn(),
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
+        visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status?.type, endringer),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = visningsnavn.tittel,
@@ -221,3 +224,9 @@ fun lagEndringsvedtakPdfDto(
         opprettetDato = opprettetDato,
     )
 }
+
+private fun skalViseVedtakOgKlageForEndring(
+    statusType: DeltakerStatus.Type?,
+    endringer: List<HendelseType>,
+): Boolean = statusType != DeltakerStatus.Type.SOKT_INN ||
+    endringer.any { it is HendelseType.IkkeAktuell }

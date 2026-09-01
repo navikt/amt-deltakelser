@@ -11,6 +11,7 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -82,6 +83,24 @@ object Hendelsesdata {
         opprettetDato = opprettet,
         startdato = LocalDate.now().plusDays(1),
         sluttdato = LocalDate.now().plusDays(10),
+        status = lagDeltakerStatus(),
+    )
+
+    fun lagDeltakerStatus(
+        statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
+        id: UUID = UUID.randomUUID(),
+        aarsakType: DeltakerStatus.Aarsak.Type? = null,
+        beskrivelse: String? = null,
+        gyldigFra: LocalDateTime = LocalDate.now().atStartOfDay(),
+        gyldigTil: LocalDateTime? = null,
+        opprettet: LocalDateTime = LocalDateTime.now(),
+    ) = DeltakerStatus(
+        id,
+        statusType,
+        aarsakType?.let { DeltakerStatus.Aarsak(it, beskrivelse) },
+        gyldigFra,
+        gyldigTil,
+        opprettet,
     )
 
     fun lagDeltakerliste(

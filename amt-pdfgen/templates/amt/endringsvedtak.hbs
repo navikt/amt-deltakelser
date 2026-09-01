@@ -29,9 +29,11 @@
             {{> sections/endring/endring-listeelement}}
         {{/each}}
 
-        {{> sections/dette-er-et-vedtak}}
+        {{#if this.visVedtakOgKlage}}
+            {{> sections/dette-er-et-vedtak}}
 
-        {{> sections/klagerett}}
+            {{> sections/klagerett}}
+        {{/if}}
 
         {{> sections/sporsmal}}
 

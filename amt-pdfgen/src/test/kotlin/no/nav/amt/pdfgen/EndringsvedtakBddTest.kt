@@ -108,6 +108,24 @@ class EndringsvedtakBddTest :
             }
         }
 
+        Given("visVedtakOgKlage") {
+            forAll(
+                row(a = true),
+                row(a = false),
+            ) { visVedtakOgKlage ->
+
+                When("visVedtakOgKlage er $visVedtakOgKlage") {
+                    val payload = endringsvedtak().copy(visVedtakOgKlage = visVedtakOgKlage)
+                    val doc = renderEndringsvedtak(payload)
+
+                    Then("skal vedtak- og klageinformasjon være ${if (visVedtakOgKlage) "synlig" else "skjult"}") {
+                        doc.select("h2").any { it.text() == "Dette er et vedtak" } shouldBe visVedtakOgKlage
+                        doc.select("h2").any { it.text() == "Du har rett til å klage" } shouldBe visVedtakOgKlage
+                    }
+                }
+            }
+        }
+
         Given("EndreDeltakelsesmengde") {
             val baseEndring =
                 EndringDto.EndreDeltakelsesmengde(
@@ -283,6 +301,7 @@ class EndringsvedtakBddTest :
             deltakerliste = baseDeltakerliste(pameldingstype, klagerett),
             endringer = endringer,
             avsender = baseAvsender(),
+            visVedtakOgKlage = true,
             vedtaksdato = fixedDate,
             forsteVedtakFattet = fixedDate.minusDays(10),
             sidetittel = "Endring i tiltak",

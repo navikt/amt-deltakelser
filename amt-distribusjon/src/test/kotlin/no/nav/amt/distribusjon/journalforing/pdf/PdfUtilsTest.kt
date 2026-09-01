@@ -14,6 +14,7 @@ import no.nav.amt.distribusjon.utils.formatDateWithMonthName
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -126,6 +127,91 @@ class PdfUtilsTest {
         }
 
         @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for deltakere som ikke er sokt inn`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = emptyList(),
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe true
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true nar status er null`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = null,
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = emptyList(),
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe true
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for status sokt inn med ikke-aktuell endring`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+            val arsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.IKKE_MOTT)
+            val hendelser: List<Hendelse> = listOf(
+                Hendelsesdata.hendelse(
+                    HendelseTypeData.ikkeAktuell(arsak),
+                    deltaker = deltaker,
+                    ansvarlig = ansvarligNavVeileder,
+                    opprettet = LocalDateTime.now().minusMinutes(20),
+                ),
+            )
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = hendelser,
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe true
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er false for sokt inn uten ikke-aktuell endring`() {
+            val deltaker = Hendelsesdata.lagDeltaker().copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+            val navBruker = Persondata.lagNavBruker()
+            val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
+
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarligNavVeileder,
+                hendelser = emptyList(),
+                opprettetDato = LocalDate.now(),
+            )
+
+            pdfDto.visVedtakOgKlage shouldBe false
+        }
+
+        @Test
         fun `lagEndringsvedtakPdfDto - IkkeAktuell - inneholder arsak som string`() {
             val deltaker = Hendelsesdata.lagDeltaker()
             val navBruker = Persondata.lagNavBruker()
@@ -150,6 +236,7 @@ class PdfUtilsTest {
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.IkkeAktuell).aarsak shouldBe arsak.visningsnavn()
+            pdfDto.visVedtakOgKlage shouldBe true
         }
 
         @Test
