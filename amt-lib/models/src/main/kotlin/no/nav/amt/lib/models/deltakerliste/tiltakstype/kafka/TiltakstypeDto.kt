@@ -5,6 +5,7 @@ import no.nav.amt.lib.models.deltaker.toV1
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakstypeSystem
 import java.util.UUID
 
 data class TiltakstypeDto(
@@ -13,6 +14,7 @@ data class TiltakstypeDto(
     val tiltakskode: Tiltakskode,
     val innsatsgrupper: Set<InnsatsgruppeV2>,
     val deltakerRegistreringInnhold: DeltakerRegistreringInnhold?,
+    val system: TiltakstypeSystem? = null, // ny 01.09.2026
 ) {
     fun toModel(): Tiltakstype = Tiltakstype(
         id = id,

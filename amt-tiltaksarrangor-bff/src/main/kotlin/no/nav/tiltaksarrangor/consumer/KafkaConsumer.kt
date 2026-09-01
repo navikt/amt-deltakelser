@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.consumer
 
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
 import no.nav.tiltaksarrangor.consumer.model.TiltakstypePayload
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
@@ -53,9 +54,17 @@ class KafkaConsumer(
             )
 
             TILTAKSTYPE_TOPIC ->
-                objectMapper
-                    .readValue<TiltakstypePayload>(consumerRecord.value())
-                    .let { tiltakstypeRepository.upsert(it.toModel()) }
+                consumerRecord
+                    .value()
+                    .takeIf { json ->
+                        skalKometLagreTiltakstype(
+                            tiltakAsJson = json,
+                            objectMapper = objectMapper,
+                        )
+                    }?.let { json ->
+                        val tiltakstype = objectMapper.readValue<TiltakstypePayload>(json)
+                        tiltakstypeRepository.upsert(tiltakstype.toModel())
+                    }
 
             DELTAKER_TOPIC -> kafkaConsumerService.lagreDeltaker(
                 UUID.fromString(consumerRecord.key()),
