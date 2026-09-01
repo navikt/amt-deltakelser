@@ -53,6 +53,7 @@ class EndringsvedtakTest :
                             begrunnelseFraNav = "Begrunnelse",
                             forslagFraArrangor = null,
                             tittel = "Startdato tittel",
+                            pavirkerPris = false,
                         ),
                         EndringDto.EndreSluttdato(
                             begrunnelseFraNav = "Begrunnelse",
@@ -63,6 +64,7 @@ class EndringsvedtakTest :
                             begrunnelseFraNav = "Begrunnelse",
                             forslagFraArrangor = null,
                             tittel = "Tittel",
+                            pavirkerPris = false,
                         ),
                         EndringDto.IkkeAktuell(
                             aarsak = "Årsak",
@@ -101,6 +103,47 @@ class EndringsvedtakTest :
                             innholdBeskrivelse = "Beskrivelse",
                         ),
                     )
+
+                describe("pavirkerPris-tekst") {
+                    val tekst =
+                        "Endringen forutsetter at endringer i pris eller betalingsbetingelser blir godkjent. Du vil bli informert om dette i et eget vedtak."
+
+                    it("viser teksten når pavirkerPris er true på endringstype som støtter feltet") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EndreStartdato(
+                                            begrunnelseFraNav = "Begrunnelse",
+                                            forslagFraArrangor = null,
+                                            pavirkerPris = true,
+                                            tittel = "Startdato tittel",
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldContain tekst
+                    }
+
+                    it("viser ikke teksten når pavirkerPris er false på endringstype som støtter feltet") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EndreStartdato(
+                                            begrunnelseFraNav = "Begrunnelse",
+                                            forslagFraArrangor = null,
+                                            pavirkerPris = false,
+                                            tittel = "Startdato tittel",
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldNotContain tekst
+                    }
+                }
 
                 endringer.forEach { endring ->
 

@@ -133,6 +133,7 @@ class EndringsvedtakBddTest :
                     begrunnelseFraNav = null,
                     forslagFraArrangor = null,
                     gyldigFra = null,
+                    pavirkerPris = false,
                 )
 
             val baseForslag =
@@ -177,6 +178,7 @@ class EndringsvedtakBddTest :
                     tittel = "Startdato er endret",
                     begrunnelseFraNav = null,
                     forslagFraArrangor = null,
+                    pavirkerPris = false,
                 )
 
             val baseForslag = ForslagDto.EndreStartdato(startdato = null, begrunnelseFraArrangor = null)
@@ -217,6 +219,7 @@ class EndringsvedtakBddTest :
                     begrunnelseFraNav = null,
                     forslagFraArrangor = null,
                     sluttdato = "1.1.2023",
+                    pavirkerPris = false,
                 )
 
             val baseForslag =
@@ -265,6 +268,7 @@ class EndringsvedtakBddTest :
             begrunnelseFraNav = "Begrunnelse",
             forslagFraArrangor = null,
             gyldigFra = fixedDate,
+            pavirkerPris = false,
         )
 
         private fun baseDeltaker() = EndringsvedtakPdfDto.DeltakerDto(

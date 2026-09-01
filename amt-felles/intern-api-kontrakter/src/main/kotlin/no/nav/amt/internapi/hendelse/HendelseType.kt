@@ -83,6 +83,7 @@ sealed interface HendelseType {
         val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
         val gyldigFra: LocalDate?,
+        val pavirkerPris: Boolean? = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -91,6 +92,7 @@ sealed interface HendelseType {
     data class EndreStartdato(
         val startdato: LocalDate?,
         val sluttdato: LocalDate? = null,
+        val pavirkerPris: Boolean? = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -105,6 +107,7 @@ sealed interface HendelseType {
 
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
+        val pavirkerPris: Boolean? = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,

@@ -176,10 +176,12 @@ object HendelseTypeData {
         begrunnelseFraNav: String? = "begrunnelse",
         begrunnelseFraArrangor: String? = "Begrunnelse fra arrangør",
         endringFraForslag: Forslag.Endring? = Forslag.Deltakelsesmengde(50, 3, LocalDate.now()),
+        pavirkerPris: Boolean? = false,
     ) = HendelseType.EndreDeltakelsesmengde(
         deltakelsesprosent,
         dagerPerUke,
         gyldigFra,
+        pavirkerPris,
         begrunnelseFraNav,
         begrunnelseFraArrangor,
         endringFraForslag,
@@ -191,7 +193,8 @@ object HendelseTypeData {
         begrunnelseFraNav: String? = "begrunnelse",
         begrunnelseFraArrangor: String? = "Begrunnelse fra arrangør",
         endringFraForslag: Forslag.Endring? = Forslag.Startdato(LocalDate.now().plusDays(5), null),
-    ) = HendelseType.EndreStartdato(startdato, sluttdato, begrunnelseFraNav, begrunnelseFraArrangor, endringFraForslag)
+        pavirkerPris: Boolean? = false,
+    ) = HendelseType.EndreStartdato(startdato, sluttdato, pavirkerPris, begrunnelseFraNav, begrunnelseFraArrangor, endringFraForslag)
 
     fun endreSluttdato(
         sluttdato: LocalDate = LocalDate.now().plusDays(7),
@@ -205,7 +208,8 @@ object HendelseTypeData {
         begrunnelseFraNav: String? = "begrunnelse",
         begrunnelseFraArrangor: String? = "Begrunnelse fra arrangør",
         endringFraForslag: Forslag.Endring? = Forslag.ForlengDeltakelse(sluttdato),
-    ) = HendelseType.ForlengDeltakelse(sluttdato, begrunnelseFraNav, begrunnelseFraArrangor, endringFraForslag)
+        pavirkerPris: Boolean? = false,
+    ) = HendelseType.ForlengDeltakelse(sluttdato, pavirkerPris, begrunnelseFraNav, begrunnelseFraArrangor, endringFraForslag)
 
     fun ikkeAktuell(
         aarsak: DeltakerEndring.Aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
