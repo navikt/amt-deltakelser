@@ -33,6 +33,42 @@ class EndringRequestMapperTest {
 
         endring.sluttdato shouldBe request.sluttdato
         endring.begrunnelse shouldBe request.begrunnelse
+        endring.pavirkerPris shouldBe request.pavirkerPris
+    }
+
+    @Test
+    fun `startdato - mapper pavirkerPris`() {
+        val request = StartdatoRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusWeeks(2),
+            begrunnelse = "begrunnelse",
+            pavirkerPris = true,
+        )
+
+        val endring = EndringRequestMapper.toEndring(request) as DeltakerEndring.Endring.EndreStartdato
+
+        endring.pavirkerPris shouldBe true
+    }
+
+    @Test
+    fun `deltakelsesmengde - mapper pavirkerPris`() {
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now(),
+            pavirkerPris = true,
+        )
+
+        val endring = EndringRequestMapper.toEndring(request) as DeltakerEndring.Endring.EndreDeltakelsesmengde
+
+        endring.pavirkerPris shouldBe true
     }
 
     @Test

@@ -58,6 +58,7 @@ data class DeltakerEndring(
         data class EndreOpplaringKategorisering(
             val opplaringKategoriseringValg: OpplaringKategoriseringValg,
             val beskrivelse: String,
+            // TODO val pavirkerPris: Boolean? = null, her og?
         ) : Endring
 
         data class EndreInnhold(
@@ -70,12 +71,14 @@ data class DeltakerEndring(
             val dagerPerUke: Float?,
             val gyldigFra: LocalDate?,
             val begrunnelse: String?,
+            val pavirkerPris: Boolean? = null,
         ) : Endring
 
         data class EndreStartdato(
             val startdato: LocalDate?,
             val sluttdato: LocalDate?,
             val begrunnelse: String?,
+            val pavirkerPris: Boolean? = null,
         ) : Endring
 
         data class EndreSluttdato(
@@ -86,6 +89,7 @@ data class DeltakerEndring(
         data class ForlengDeltakelse(
             val sluttdato: LocalDate,
             val begrunnelse: String?,
+            val pavirkerPris: Boolean? = null,
         ) : Endring
 
         data class IkkeAktuell(

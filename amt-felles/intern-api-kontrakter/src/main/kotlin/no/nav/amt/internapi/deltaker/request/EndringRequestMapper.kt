@@ -59,6 +59,7 @@ object EndringRequestMapper {
             dagerPerUke = request.dagerPerUke?.toFloat(),
             begrunnelse = request.begrunnelse,
             gyldigFra = request.gyldigFra,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is EndreAvslutningRequest -> EndreAvslutning(
@@ -99,6 +100,7 @@ object EndringRequestMapper {
         is ForlengDeltakelseRequest -> ForlengDeltakelse(
             sluttdato = request.sluttdato,
             begrunnelse = request.begrunnelse,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is IkkeAktuellRequest -> IkkeAktuell(
@@ -125,6 +127,7 @@ object EndringRequestMapper {
             startdato = request.startdato,
             sluttdato = request.sluttdato,
             begrunnelse = request.begrunnelse,
+            pavirkerPris = request.pavirkerPris,
         )
     }
 }

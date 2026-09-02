@@ -232,6 +232,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         endring.deltakelsesprosent,
         endring.dagerPerUke,
         endring.gyldigFra,
+        pavirkerPris = endring.pavirkerPris,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
         endringFraForslag = forslag?.endring,
@@ -258,6 +259,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
     is Endring.EndreStartdato -> HendelseType.EndreStartdato(
         endring.startdato,
         endring.sluttdato,
+        pavirkerPris = endring.pavirkerPris,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
         endringFraForslag = forslag?.endring,
@@ -265,6 +267,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
 
     is Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
         sluttdato = endring.sluttdato,
+        pavirkerPris = endring.pavirkerPris,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
         endringFraForslag = forslag?.endring,
