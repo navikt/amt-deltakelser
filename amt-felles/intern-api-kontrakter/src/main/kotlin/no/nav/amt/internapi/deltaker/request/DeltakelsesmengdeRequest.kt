@@ -11,4 +11,5 @@ data class DeltakelsesmengdeRequest(
     val dagerPerUke: Int?,
     val begrunnelse: String?,
     val gyldigFra: LocalDate?,
+    val pavirkerPris: Boolean?,
 ) : EndringForslagRequest

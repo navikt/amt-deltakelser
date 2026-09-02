@@ -213,6 +213,7 @@ fun Routing.registerVeilederApi(
                         dagerPerUke = request.dagerPerUke,
                         gyldigFra = request.gyldigFra,
                         begrunnelse = request.begrunnelse,
+                        pavirkerPris = request.pavirkerPris,
                     ),
                 )
             }
@@ -228,6 +229,7 @@ fun Routing.registerVeilederApi(
                         startdato = request.startdato,
                         sluttdato = request.sluttdato,
                         begrunnelse = request.begrunnelse,
+                        pavirkerPris = request.pavirkerPris,
                     ),
                 )
             }
@@ -372,6 +374,7 @@ fun Routing.registerVeilederApi(
                         forslagId = request.forslagId,
                         sluttdato = request.sluttdato,
                         begrunnelse = request.begrunnelse,
+                        pavirkerPris = request.pavirkerPris,
                     ),
                 )
             }

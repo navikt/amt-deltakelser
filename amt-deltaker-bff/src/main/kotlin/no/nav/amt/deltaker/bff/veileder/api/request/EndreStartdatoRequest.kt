@@ -12,6 +12,7 @@ data class EndreStartdatoRequest(
     val startdato: LocalDate?,
     val sluttdato: LocalDate? = null,
     val begrunnelse: String?,
+    val pavirkerPris: Boolean?,
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
     override fun valider(deltaker: DeltakerModel) {

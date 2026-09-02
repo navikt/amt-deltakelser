@@ -36,6 +36,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().plusDays(10),
             sluttdato = opprinneligSluttdato,
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -72,6 +73,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusDays(2),
             sluttdato = opprinneligSluttdato,
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -99,6 +101,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -126,6 +129,7 @@ class EndreStartdatoExtensionsTest {
             startdato = null,
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -152,6 +156,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -182,6 +187,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().plusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -208,6 +214,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().plusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -239,6 +246,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 
@@ -274,6 +282,7 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusMonths(2),
             sluttdato = null,
             begrunnelse = null,
+            pavirkerPris = null,
             forslagId = null,
         )
 

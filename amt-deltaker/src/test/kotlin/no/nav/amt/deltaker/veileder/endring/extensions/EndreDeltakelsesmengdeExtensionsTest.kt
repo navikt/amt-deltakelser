@@ -29,6 +29,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = null,
             begrunnelse = null,
             gyldigFra = startdato,
+            pavirkerPris = false,
         )
 
         request
@@ -55,6 +56,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = null,
             begrunnelse = null,
             gyldigFra = LocalDate.now(),
+            pavirkerPris = false,
         )
 
         request
@@ -80,6 +82,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = null,
             begrunnelse = null,
             gyldigFra = LocalDate.now().minusMonths(2),
+            pavirkerPris = false,
         )
 
         request
@@ -106,6 +109,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = null,
             begrunnelse = null,
             gyldigFra = sluttdato,
+            pavirkerPris = false,
         )
 
         request
@@ -132,6 +136,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = 3,
             begrunnelse = null,
             gyldigFra = LocalDate.now(),
+            pavirkerPris = false,
         )
 
         val resultat = request
@@ -160,6 +165,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = null,
             begrunnelse = null,
             gyldigFra = LocalDate.now().plusDays(10),
+            pavirkerPris = false,
         )
 
         val resultat = request
@@ -190,6 +196,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             dagerPerUke = 3,
             begrunnelse = null,
             gyldigFra = startdato,
+            pavirkerPris = false,
         )
 
         val resultat = request

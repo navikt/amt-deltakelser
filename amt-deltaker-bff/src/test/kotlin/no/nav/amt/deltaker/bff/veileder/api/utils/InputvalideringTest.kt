@@ -339,6 +339,7 @@ class InputvalideringTest {
             dagerPerUke = null,
             begrunnelse = "begrunnelse",
             gyldigFra = startdato,
+            pavirkerPris = false,
             forslagId = null,
         )
 
@@ -358,6 +359,7 @@ class InputvalideringTest {
             dagerPerUke = null,
             begrunnelse = "begrunnelse",
             gyldigFra = startdato.minusDays(1),
+            pavirkerPris = false,
             forslagId = null,
         )
 
@@ -376,6 +378,7 @@ class InputvalideringTest {
             dagerPerUke = null,
             begrunnelse = "begrunnelse",
             gyldigFra = LocalDate.now().minusMonths(2),
+            pavirkerPris = false,
             forslagId = null,
         )
 
@@ -395,6 +398,7 @@ class InputvalideringTest {
             dagerPerUke = null,
             begrunnelse = "begrunnelse",
             gyldigFra = sluttdato.plusDays(1),
+            pavirkerPris = false,
             forslagId = null,
         )
 

@@ -29,6 +29,7 @@ class ForlengDeltakelseExtensionsTest {
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
+            pavirkerPris = null,
         )
 
         val resultat = endringsrequest
@@ -57,6 +58,7 @@ class ForlengDeltakelseExtensionsTest {
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = "begrunnelse",
+            pavirkerPris = null,
         )
 
         val resultat = endringsrequest
@@ -85,6 +87,7 @@ class ForlengDeltakelseExtensionsTest {
             forslagId = null,
             sluttdato = sluttdato, // Samme som nåværende
             begrunnelse = null,
+            pavirkerPris = null,
         )
 
         endringsrequest

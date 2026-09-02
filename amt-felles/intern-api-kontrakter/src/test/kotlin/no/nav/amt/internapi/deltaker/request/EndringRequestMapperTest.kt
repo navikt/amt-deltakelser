@@ -26,6 +26,7 @@ class EndringRequestMapperTest {
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = "begrunnelse",
+            pavirkerPris = false,
         )
 
         val endring = EndringRequestMapper.toEndring(request) as DeltakerEndring.Endring.ForlengDeltakelse
