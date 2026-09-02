@@ -4,6 +4,7 @@ import no.nav.amt.aktivitetskort.kafka.consumer.dto.TiltakstypePayload
 import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.service.FeilmeldingService
 import no.nav.amt.aktivitetskort.service.KafkaConsumerService
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -28,40 +29,39 @@ class KafkaConsumer(
         ack: Acknowledgment,
     ) {
         when (record.topic()) {
-            ARRANGOR_TOPIC -> {
-                kafkaConsumerService.arrangorHendelse(
-                    UUID.fromString(record.key()),
-                    record.value()?.let { objectMapper.readValue(it) },
-                )
-            }
+            ARRANGOR_TOPIC -> kafkaConsumerService.arrangorHendelse(
+                UUID.fromString(record.key()),
+                record.value()?.let { objectMapper.readValue(it) },
+            )
 
-            TILTAKSTYPE_TOPIC -> {
-                objectMapper
-                    .readValue<TiltakstypePayload>(record.value())
-                    .let { tiltakstypeRepository.upsert(it.toModel()) }
-            }
+            TILTAKSTYPE_TOPIC ->
+                record
+                    .value()
+                    .takeIf { json ->
+                        skalKometLagreTiltakstype(
+                            tiltakAsJson = json,
+                            objectMapper = objectMapper,
+                        )
+                    }?.let { json ->
+                        val tiltakstype = objectMapper.readValue<TiltakstypePayload>(json)
+                        tiltakstypeRepository.upsert(tiltakstype.toModel())
+                    }
 
-            DELTAKERLISTE_V2_TOPIC -> {
-                kafkaConsumerService.deltakerlisteHendelse(
-                    id = UUID.fromString(record.key()),
-                    value = record.value(),
-                )
-            }
+            DELTAKERLISTE_V2_TOPIC -> kafkaConsumerService.deltakerlisteHendelse(
+                id = UUID.fromString(record.key()),
+                value = record.value(),
+            )
 
-            DELTAKER_TOPIC -> {
-                kafkaConsumerService.deltakerHendelse(
-                    id = UUID.fromString(record.key()),
-                    deltaker = record.value()?.let { objectMapper.readValue(it) },
-                    offset = record.offset(),
-                )
-            }
+            DELTAKER_TOPIC -> kafkaConsumerService.deltakerHendelse(
+                id = UUID.fromString(record.key()),
+                deltaker = record.value()?.let { objectMapper.readValue(it) },
+                offset = record.offset(),
+            )
 
-            FEIL_TOPIC -> {
-                feilmeldingService.handleFeilmelding(
-                    UUID.fromString(record.key()),
-                    record.value()?.let { objectMapper.readValue(it) },
-                )
-            }
+            FEIL_TOPIC -> feilmeldingService.handleFeilmelding(
+                UUID.fromString(record.key()),
+                record.value()?.let { objectMapper.readValue(it) },
+            )
         }
 
         ack.acknowledge()

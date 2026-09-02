@@ -1,13 +1,14 @@
 package no.nav.tiltaksarrangor.consumer
 
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
 import no.nav.tiltaksarrangor.consumer.model.TiltakstypePayload
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -16,6 +17,7 @@ class KafkaConsumer(
     private val kafkaConsumerService: KafkaConsumerService,
     private val deltakerlisteConsumerService: DeltakerlisteConsumerService,
     private val tiltakstypeRepository: TiltakstypeRepository,
+    private val objectMapper: ObjectMapper,
 ) {
     @KafkaListener(
         topics = [
@@ -53,9 +55,17 @@ class KafkaConsumer(
             )
 
             TILTAKSTYPE_TOPIC ->
-                objectMapper
-                    .readValue<TiltakstypePayload>(consumerRecord.value())
-                    .let { tiltakstypeRepository.upsert(it.toModel()) }
+                consumerRecord
+                    .value()
+                    .takeIf { json ->
+                        skalKometLagreTiltakstype(
+                            tiltakAsJson = json,
+                            objectMapper = objectMapper,
+                        )
+                    }?.let { json ->
+                        val tiltakstype = objectMapper.readValue<TiltakstypePayload>(json)
+                        tiltakstypeRepository.upsert(tiltakstype.toModel())
+                    }
 
             DELTAKER_TOPIC -> kafkaConsumerService.lagreDeltaker(
                 UUID.fromString(consumerRecord.key()),

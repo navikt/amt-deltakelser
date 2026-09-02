@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.tiltak
 import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
@@ -21,14 +22,15 @@ class TiltakConsumer(
         key: UUID,
         value: String?,
     ) {
-        value?.let { handterTiltakstype(objectMapper.readValue(it)) }
+        if (value == null || !skalKometLagreTiltakstype(value, objectMapper)) {
+            return
+        }
+
+        val tiltakstypeDto = objectMapper.readValue<TiltakstypeDto>(value)
+        repository.upsert(tiltakstypeDto.toModel())
     }
 
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
-
-    private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        repository.upsert(tiltakstype.toModel())
-    }
 }
