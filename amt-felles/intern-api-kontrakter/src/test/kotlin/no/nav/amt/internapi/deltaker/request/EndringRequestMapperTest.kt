@@ -112,7 +112,7 @@ class EndringRequestMapperTest {
                 ),
             ),
             sertifiseringValg = emptySet(),
-            pavirkerPris = false,
+            pavirkerPris = true,
         )
 
         val endring = EndringRequestMapper.toEndring(
@@ -122,6 +122,7 @@ class EndringRequestMapperTest {
 
         endring.opplaringKategoriseringValg shouldBe kategoriseringValg
         endring.beskrivelse shouldBe request.beskrivelse
+        endring.pavirkerPris shouldBe true
     }
 
     @Test
