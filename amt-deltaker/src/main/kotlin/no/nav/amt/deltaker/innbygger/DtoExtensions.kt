@@ -33,6 +33,7 @@ fun Deltaker.toHendelseDeltaker(
     opprettetDato = opprettet.toLocalDate(),
     startdato = startdato,
     sluttdato = sluttdato,
+    status = status,
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,

@@ -74,6 +74,7 @@ object DtoBuilders {
         ),
         endringer = endringer,
         avsender = endringsvedtakAvsender(),
+        visVedtakOgKlage = true,
         vedtaksdato = fixedDate,
         forsteVedtakFattet = fixedDate.minusDays(10),
         sidetittel = "Endring i tiltak",

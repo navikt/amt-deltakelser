@@ -8,6 +8,9 @@ plugins {
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.dependency.management)
 }
+kotlin {
+    jvmToolchain(25)
+}
 
 repositories {
     mavenCentral()
