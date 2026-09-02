@@ -222,7 +222,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 startdato = LocalDate.now().minusDays(2),
                 sluttdato = LocalDate.now().plusMonths(2),
                 begrunnelse = "begrunnelse",
-                pavirkerPris = null,
+                pavirkerPris = false,
             )
 
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = startdatoRequest.toEndring())))
@@ -279,7 +279,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 forslagId = null,
                 sluttdato = LocalDate.now().plusWeeks(2),
                 begrunnelse = "begrunnelse",
-                pavirkerPris = null,
+                pavirkerPris = false,
             )
 
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = forlengDeltakelseRequest.toEndring())))

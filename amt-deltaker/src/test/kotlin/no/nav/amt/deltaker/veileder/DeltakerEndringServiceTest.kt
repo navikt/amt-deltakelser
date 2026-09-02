@@ -142,7 +142,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
             endretAvEnhet = navEnhetInTest.enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
             begrunnelse = "begrunnelse",
-            pavirkerPris = null,
+            pavirkerPris = false,
             forslagId = forslag.id,
         )
 

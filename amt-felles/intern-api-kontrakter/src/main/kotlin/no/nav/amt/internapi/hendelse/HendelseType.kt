@@ -61,6 +61,7 @@ sealed interface HendelseType {
 
     data class EnkeltplassEndreOpplaringKategorisering(
         val opplaringKategoriseringValg: OpplaringKategoriseringValg,
+        val pavirkerPris: Boolean = false,
     ) : HendelseType
 
     data class InnbyggerGodkjennUtkast(
@@ -83,7 +84,7 @@ sealed interface HendelseType {
         val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
         val gyldigFra: LocalDate?,
-        val pavirkerPris: Boolean? = false,
+        val pavirkerPris: Boolean = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -92,7 +93,7 @@ sealed interface HendelseType {
     data class EndreStartdato(
         val startdato: LocalDate?,
         val sluttdato: LocalDate? = null,
-        val pavirkerPris: Boolean? = false,
+        val pavirkerPris: Boolean = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -107,7 +108,7 @@ sealed interface HendelseType {
 
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
-        val pavirkerPris: Boolean? = false,
+        val pavirkerPris: Boolean = false,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -196,6 +197,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
 
     is Endring.EndreOpplaringKategorisering -> HendelseType.EnkeltplassEndreOpplaringKategorisering(
         opplaringKategoriseringValg = endring.opplaringKategoriseringValg,
+        pavirkerPris = endring.pavirkerPris,
     )
 
     is Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(

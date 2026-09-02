@@ -712,7 +712,7 @@ class VeilederApiTest : IntegrationTestBase() {
         LocalDate.now().plusWeeks(1),
         sluttdato = LocalDate.now().plusMonths(2),
         "begrunnelse",
-        null,
+        false,
         null,
     )
     private val sluttdatoRequest = EndreSluttdatoRequest(LocalDate.now().minusDays(1), "begrunnelse", null)
@@ -730,7 +730,7 @@ class VeilederApiTest : IntegrationTestBase() {
     private val forlengDeltakelseRequest = ForlengDeltakelseRequest(
         sluttdato = LocalDate.now().plusWeeks(3),
         begrunnelse = "begrunnelse",
-        pavirkerPris = null,
+        pavirkerPris = false,
         forslagId = null,
     )
     private val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(

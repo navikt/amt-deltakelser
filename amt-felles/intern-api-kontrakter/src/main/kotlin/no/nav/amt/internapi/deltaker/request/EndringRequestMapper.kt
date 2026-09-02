@@ -85,6 +85,7 @@ object EndringRequestMapper {
                 "${request::class.simpleName} krever opplaringKategoriseringValg"
             },
             beskrivelse = request.beskrivelse,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is EndretPrisinfoRequest -> EndrePrisinfo(

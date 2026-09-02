@@ -9,5 +9,5 @@ data class ForlengDeltakelseRequest(
     override val forslagId: UUID?,
     val sluttdato: LocalDate,
     val begrunnelse: String?,
-    val pavirkerPris: Boolean? = null,
+    val pavirkerPris: Boolean = false,
 ) : EndringForslagRequest

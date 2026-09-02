@@ -617,7 +617,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 endretAvEnhet = navEnhetInTest.enhetsnummer,
                 sluttdato = LocalDate.now().plusMonths(1),
                 begrunnelse = "~begrunnelse~",
-                pavirkerPris = null,
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -920,7 +920,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 startdato = LocalDate.now().minusWeeks(1),
                 sluttdato = LocalDate.now().plusWeeks(4),
                 begrunnelse = null,
-                pavirkerPris = null,
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -974,7 +974,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 startdato = LocalDate.now().minusWeeks(2),
                 sluttdato = deltakersSluttdato,
                 begrunnelse = null,
-                pavirkerPris = null,
+                pavirkerPris = false,
                 forslagId = null,
             )
 

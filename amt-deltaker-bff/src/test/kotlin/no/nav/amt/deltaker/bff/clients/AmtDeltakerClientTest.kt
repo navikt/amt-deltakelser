@@ -231,7 +231,7 @@ class AmtDeltakerClientTest {
                         dagerPerUke = null,
                         gyldigFra = null,
                         begrunnelse = null,
-                        pavirkerPris = null,
+                        pavirkerPris = false,
                         forslagId = null,
                     ),
                 )
@@ -272,7 +272,7 @@ class AmtDeltakerClientTest {
                         startdato = null,
                         sluttdato = null,
                         begrunnelse = null,
-                        pavirkerPris = null,
+                        pavirkerPris = false,
                         forslagId = null,
                     ),
                 )
@@ -393,7 +393,7 @@ class AmtDeltakerClientTest {
                         endretAvEnhet = "~endretAvEnhet~",
                         sluttdato = LocalDate.now(),
                         begrunnelse = null,
-                        pavirkerPris = null,
+                        pavirkerPris = false,
                         forslagId = null,
                     ),
                 )
