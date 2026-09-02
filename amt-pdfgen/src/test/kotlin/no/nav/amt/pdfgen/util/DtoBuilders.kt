@@ -108,7 +108,7 @@ object DtoBuilders {
         begrunnelseFraNav = "Begrunnelse",
         forslagFraArrangor = null,
         gyldigFra = fixedDate,
-        pavirkerPris = true
+        pavirkerPris = null
     )
 
     fun endringsvedtakAvsender() = EndringsvedtakPdfDto.AvsenderDto(
