@@ -51,14 +51,14 @@ sealed interface EndringDto {
         val begrunnelseFraNav: String?,
         val forslagFraArrangor: ForslagDto?,
         val gyldigFra: LocalDate?,
-        val pavirkerPris: Boolean?,
+        val pavirkerPris: Boolean? = null,
         override val tittel: String,
     ) : EndringDto
 
     data class EndreStartdato(
         val begrunnelseFraNav: String?,
         val forslagFraArrangor: ForslagDto?,
-        val pavirkerPris: Boolean?,
+        val pavirkerPris: Boolean? = null,
         override val tittel: String,
     ) : EndringDto
 
@@ -66,7 +66,7 @@ sealed interface EndringDto {
         val sluttdato: String,
         val begrunnelseFraNav: String?,
         val forslagFraArrangor: ForslagDto?,
-        val pavirkerPris: Boolean?,
+        val pavirkerPris: Boolean? = null,
         override val tittel: String,
     ) : EndringDto
 
@@ -79,7 +79,7 @@ sealed interface EndringDto {
     data class ForlengDeltakelse(
         val begrunnelseFraNav: String?,
         val forslagFraArrangor: ForslagDto?,
-        val pavirkerPris: Boolean?,
+        val pavirkerPris: Boolean? = null,
         override val tittel: String,
     ) : EndringDto
 

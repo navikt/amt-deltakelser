@@ -14,7 +14,7 @@ data class EndreDeltakelsesmengdeRequest(
     val dagerPerUke: Int?,
     val begrunnelse: String?,
     val gyldigFra: LocalDate = LocalDate.now(),
-    val pavirkerPris: Boolean?,
+    val pavirkerPris: Boolean? = null,
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
     override fun valider(deltaker: DeltakerModel) {
