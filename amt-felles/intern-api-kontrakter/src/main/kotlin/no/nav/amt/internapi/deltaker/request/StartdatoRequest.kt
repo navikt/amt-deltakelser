@@ -10,4 +10,5 @@ data class StartdatoRequest(
     val startdato: LocalDate?,
     val sluttdato: LocalDate? = null,
     val begrunnelse: String?,
+    val pavirkerPris: Boolean = false,
 ) : EndringForslagRequest

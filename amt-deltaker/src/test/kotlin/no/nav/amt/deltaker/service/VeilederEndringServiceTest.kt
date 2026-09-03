@@ -617,6 +617,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 endretAvEnhet = navEnhetInTest.enhetsnummer,
                 sluttdato = LocalDate.now().plusMonths(1),
                 begrunnelse = "~begrunnelse~",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -805,6 +806,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 forslagId = null,
                 begrunnelse = "begrunnelse",
                 gyldigFra = LocalDate.now(),
+                pavirkerPris = false,
             )
 
             // Act
@@ -853,6 +855,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 forslagId = null,
                 begrunnelse = "begrunnelse",
                 gyldigFra = LocalDate.now().plusDays(1),
+                pavirkerPris = false,
             )
 
             // Act
@@ -886,6 +889,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 forslagId = null,
                 begrunnelse = "begrunnelse",
                 gyldigFra = sluttdato.plusDays(1),
+                pavirkerPris = false,
             )
 
             // Act & Assert
@@ -916,6 +920,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 startdato = LocalDate.now().minusWeeks(1),
                 sluttdato = LocalDate.now().plusWeeks(4),
                 begrunnelse = null,
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -969,6 +974,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 startdato = LocalDate.now().minusWeeks(2),
                 sluttdato = deltakersSluttdato,
                 begrunnelse = null,
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -1147,6 +1153,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 dagerPerUke = 3,
                 begrunnelse = "Oppdaterer deltakelsesmengde",
                 gyldigFra = LocalDate.now().minusDays(1),
+                pavirkerPris = false,
             )
 
             // Act & Assert

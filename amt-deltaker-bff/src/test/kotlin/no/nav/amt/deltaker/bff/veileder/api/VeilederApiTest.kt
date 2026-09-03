@@ -705,12 +705,14 @@ class VeilederApiTest : IntegrationTestBase() {
         dagerPerUke = 3,
         begrunnelse = "begrunnelse",
         gyldigFra = LocalDate.now(),
+        pavirkerPris = false,
         forslagId = null,
     )
     private val startdatoRequest = EndreStartdatoRequest(
         LocalDate.now().plusWeeks(1),
         sluttdato = LocalDate.now().plusMonths(2),
         "begrunnelse",
+        false,
         null,
     )
     private val sluttdatoRequest = EndreSluttdatoRequest(LocalDate.now().minusDays(1), "begrunnelse", null)
@@ -725,7 +727,12 @@ class VeilederApiTest : IntegrationTestBase() {
         null,
     )
     private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest("begrunnelse")
-    private val forlengDeltakelseRequest = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(3), "begrunnelse", null)
+    private val forlengDeltakelseRequest = ForlengDeltakelseRequest(
+        sluttdato = LocalDate.now().plusWeeks(3),
+        begrunnelse = "begrunnelse",
+        pavirkerPris = false,
+        forslagId = null,
+    )
     private val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(
         aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB),
         sluttdato = LocalDate.now(),

@@ -12,6 +12,7 @@ import java.util.UUID
 data class ForlengDeltakelseRequest(
     val sluttdato: LocalDate,
     val begrunnelse: String?,
+    val pavirkerPris: Boolean = false,
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
     override fun valider(deltaker: DeltakerModel) {

@@ -59,6 +59,7 @@ object EndringRequestMapper {
             dagerPerUke = request.dagerPerUke?.toFloat(),
             begrunnelse = request.begrunnelse,
             gyldigFra = request.gyldigFra,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is EndreAvslutningRequest -> EndreAvslutning(
@@ -84,6 +85,7 @@ object EndringRequestMapper {
                 "${request::class.simpleName} krever opplaringKategoriseringValg"
             },
             beskrivelse = request.beskrivelse,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is EndretPrisinfoRequest -> EndrePrisinfo(
@@ -99,6 +101,7 @@ object EndringRequestMapper {
         is ForlengDeltakelseRequest -> ForlengDeltakelse(
             sluttdato = request.sluttdato,
             begrunnelse = request.begrunnelse,
+            pavirkerPris = request.pavirkerPris,
         )
 
         is IkkeAktuellRequest -> IkkeAktuell(
@@ -125,6 +128,7 @@ object EndringRequestMapper {
             startdato = request.startdato,
             sluttdato = request.sluttdato,
             begrunnelse = request.begrunnelse,
+            pavirkerPris = request.pavirkerPris,
         )
     }
 }

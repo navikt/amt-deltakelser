@@ -208,6 +208,7 @@ fun tilEndringDto(
             )
         }",
         gyldigFra = hendelseType.gyldigFra,
+        pavirkerPris = hendelseType.pavirkerPris,
     )
 
     is HendelseType.EndreSluttdato -> EndringDto.EndreSluttdato(
@@ -240,6 +241,7 @@ fun tilEndringDto(
                     )
                 },
                 tittel = tittel,
+                pavirkerPris = hendelseType.pavirkerPris,
             )
         } else {
             EndringDto.EndreStartdato(
@@ -252,6 +254,7 @@ fun tilEndringDto(
                     )
                 },
                 tittel = tittel,
+                pavirkerPris = hendelseType.pavirkerPris,
             )
         }
     }
@@ -266,6 +269,7 @@ fun tilEndringDto(
             )
         },
         tittel = "Deltakelsen er forlenget til ${hendelseType.sluttdato.formatDateWithMonthName()}",
+        pavirkerPris = hendelseType.pavirkerPris,
     )
 
     is HendelseType.IkkeAktuell -> EndringDto.IkkeAktuell(

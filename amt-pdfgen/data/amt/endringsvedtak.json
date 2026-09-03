@@ -21,16 +21,23 @@
     {
       "tittel": "Deltakelsen er endret til 80 % fordelt på 3 dager i uka",
       "begrunnelseFraNav": "Bla bla",
-      "gyldigFra": "2024-12-01"
+      "gyldigFra": "2024-12-01",
+      "pavirkerPris": null
+    },
+    {
+      "tittel": "Deltakelsen er forlenget til 4. juli 2024",
+      "begrunnelseFraNav": "Se samtalereferat",
+      "forslagFraArrangor": {
+        "type": "Forleng deltakelse",
+        "sluttdato": "2024-07-07",
+        "begrunnelseFraArrangor": "Tiltaket har god effekt og bør forlenges."
+      },
+      "pavirkerPris": null
     },
     {
       "tittel": "Deltakelsen er forlenget til 3. juli 2024",
       "begrunnelseFraNav": "Se samtalereferat",
-      "forslagFraArrangor": {
-        "type": "Forleng deltakelse",
-        "sluttdato": "2024-07-02",
-        "begrunnelseFraArrangor": "Tiltaket har god effekt og bør forlenges."
-      }
+      "pavirkerPris": true
     },
     {
       "tittel": "Ny sluttdato er 28. mai 2024",

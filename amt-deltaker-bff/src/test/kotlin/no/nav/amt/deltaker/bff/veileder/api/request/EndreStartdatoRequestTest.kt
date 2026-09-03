@@ -26,6 +26,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = null,
                 begrunnelse = "Ny startdato for enkeltplass",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -49,6 +50,7 @@ class EndreStartdatoRequestTest {
                 startdato = startdato,
                 sluttdato = sluttdato,
                 begrunnelse = "Ingen endring",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -72,6 +74,7 @@ class EndreStartdatoRequestTest {
                 startdato = startdato,
                 sluttdato = startdato.minusDays(1),
                 begrunnelse = "Endring for enkeltplass",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -92,6 +95,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = null,
                 begrunnelse = "Ny startdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -111,6 +115,7 @@ class EndreStartdatoRequestTest {
                 startdato = null,
                 sluttdato = LocalDate.now().plusMonths(1),
                 begrunnelse = "Ny sluttdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -130,6 +135,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = LocalDate.now().plusMonths(2),
                 begrunnelse = "Endrer både start og slutt",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -152,6 +158,7 @@ class EndreStartdatoRequestTest {
                 startdato = startdato,
                 sluttdato = sluttdato,
                 begrunnelse = "Ingen endring",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -171,6 +178,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = null,
                 begrunnelse = "Ny startdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -192,6 +200,7 @@ class EndreStartdatoRequestTest {
                 startdato = gjennomforingStartDato.minusDays(1),
                 sluttdato = null,
                 begrunnelse = "For tidlig startdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -212,6 +221,7 @@ class EndreStartdatoRequestTest {
                 startdato = null,
                 sluttdato = LocalDate.now().plusMonths(1),
                 begrunnelse = "Setter ny sluttdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -231,6 +241,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now().plusDays(7),
                 sluttdato = null,
                 begrunnelse = "Utsetter oppstart",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -251,6 +262,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now().minusMonths(2),
                 sluttdato = null,
                 begrunnelse = "Endre avbrutt deltaker",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -270,6 +282,7 @@ class EndreStartdatoRequestTest {
                 startdato = null,
                 sluttdato = LocalDate.now().plusDays(1),
                 begrunnelse = "Forlenger sluttdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -290,6 +303,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now().minusMonths(1),
                 sluttdato = null,
                 begrunnelse = "Justering av fullfort deltaker",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -311,6 +325,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now().minusMonths(2),
                 sluttdato = null,
                 begrunnelse = "Justering av sluttdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -331,6 +346,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = null,
                 begrunnelse = "Justerer startdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -351,6 +367,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = null,
                 begrunnelse = "Justerer startdato",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -375,6 +392,7 @@ class EndreStartdatoRequestTest {
                 startdato = gjennomforingStartDato.minusDays(10),
                 sluttdato = null,
                 begrunnelse = "Endring for enkeltplass",
+                pavirkerPris = false,
                 forslagId = null,
             )
 
@@ -397,6 +415,7 @@ class EndreStartdatoRequestTest {
                 startdato = LocalDate.now(),
                 sluttdato = gjennomforingSluttDato.plusDays(1),
                 begrunnelse = "Endring for enkeltplass",
+                pavirkerPris = false,
                 forslagId = null,
             )
 

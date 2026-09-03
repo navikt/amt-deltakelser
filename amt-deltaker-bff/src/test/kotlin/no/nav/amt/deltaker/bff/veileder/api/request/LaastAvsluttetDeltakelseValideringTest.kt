@@ -70,17 +70,20 @@ class LaastAvsluttetDeltakelseValideringTest {
                 dagerPerUke = null,
                 gyldigFra = LocalDate.now().minusDays(1),
                 begrunnelse = null,
+                pavirkerPris = false,
                 forslagId = null,
             ),
             EndreStartdatoRequest(
                 startdato = LocalDate.now().minusMonths(2),
                 sluttdato = sluttdatoIGaar,
                 begrunnelse = null,
+                pavirkerPris = false,
                 forslagId = null,
             ),
             ForlengDeltakelseRequest(
                 sluttdato = LocalDate.now().plusMonths(1),
                 begrunnelse = null,
+                pavirkerPris = false,
                 forslagId = null,
             ),
             // EndreSluttdatoRequest er ikke tillatt for låste deltakere – frontend eksponerer det ikke
