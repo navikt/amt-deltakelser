@@ -31,8 +31,6 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt as lagNavAnsattTestData
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet as lagNavEnhetTestData
 import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -41,6 +39,8 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt as lagNavAnsattTestData
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet as lagNavEnhetTestData
 
 class TotrinnskontrollConsumerTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
