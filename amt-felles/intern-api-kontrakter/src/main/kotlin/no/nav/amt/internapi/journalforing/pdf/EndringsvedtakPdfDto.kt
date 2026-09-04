@@ -1,6 +1,7 @@
 package no.nav.amt.internapi.journalforing.pdf
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import java.time.LocalDate
 
@@ -125,6 +126,14 @@ sealed interface EndringDto {
     data class EndreInnhold(
         val innhold: List<String>,
         val innholdBeskrivelse: String?,
+        override val tittel: String = "Innholdet er endret",
+    ) : EndringDto
+
+    data class EnkeltplassEndreOpplaringKategorisering(
+        val innholdFritekst: String,
+        val innhold: EnkeltplassInnhold,
+        val pavirkerPris: Boolean = false,
+        val erEnkeltplassinnhold: Boolean,
         override val tittel: String = "Innholdet er endret",
     ) : EndringDto
 

@@ -133,7 +133,6 @@ fun tilEndringDto(
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
-    is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.EndreSluttarsak,
     is HendelseType.EndreUtkast,
@@ -294,6 +293,13 @@ fun tilEndringDto(
         } else {
             null
         },
+    )
+
+    is HendelseType.EnkeltplassEndreOpplaringKategorisering -> EndringDto.EnkeltplassEndreOpplaringKategorisering(
+        erEnkeltplassinnhold = true,
+        innhold = hendelseType.opplaringKategoriseringValg.toEnkeltplassInnhold(),
+        innholdFritekst = hendelseType.innholdFritekst,
+        pavirkerPris = hendelseType.pavirkerPris,
     )
 
     is HendelseType.EndreBakgrunnsinformasjon -> EndringDto.EndreBakgrunnsinformasjon(

@@ -107,45 +107,8 @@ object EnkeltplassPdfDtoMapper {
         }
     }
 
-    internal fun HendelseDeltaker.Deltakerliste.toInnhold(): EnkeltplassInnhold {
-        val opplaringKategoriseringValg = this.opplaringKategoriseringValg
-            ?: throw IllegalStateException("Deltakerliste ${this.id} må ha opplæring kategorisering for å lage enkeltplass innsøkingsbrev")
-
-        val representerSet = opplaringKategoriseringValg.hentRepresenterer()
-
-        return when {
-            // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
-            representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
-
-            // Tilfeller som skal ha ekstra innhold i PDF
-            representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
-                bransje = opplaringKategoriseringValg.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).single(),
-                forerkortOgSertifiseringer = opplaringKategoriseringValg
-                    .hentVerdier(
-                        representerer = OpplaringKategoriseringType.FORERKORT,
-                        throwIfEmpty = false,
-                    ).plus(
-                        opplaringKategoriseringValg.hentVerdier(
-                            representerer = OpplaringKategoriseringType.SERTIFISERINGER,
-                            throwIfEmpty = false,
-                        ),
-                    ),
-            )
-
-            representerSet.contains(OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID) -> {
-                EnkeltplassInnhold.FagOgYrkesopplaering(
-                    utdanningsprogram = opplaringKategoriseringValg
-                        .hentVerdier(OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID)
-                        .single(),
-                    laerefag = opplaringKategoriseringValg
-                        .hentVerdier(OpplaringKategoriseringType.LAREFAG),
-                )
-            }
-
-            // Øvrige tilfeller som ikke skal ha ekstra innhold
-            else -> EnkeltplassInnhold.UtenInnhold
-        }
-    }
+    internal fun HendelseDeltaker.Deltakerliste.toInnhold(): EnkeltplassInnhold = opplaringKategoriseringValg?.toEnkeltplassInnhold()
+        ?: throw IllegalStateException("Deltakerliste ${this.id} må ha opplæring kategorisering for å lage enkeltplass innsøkingsbrev")
 
     internal fun HendelseDeltaker.Deltakerliste.tiltakskodenavn(): String = when (tiltak.tiltakskode) {
         Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {
@@ -172,5 +135,42 @@ object EnkeltplassPdfDtoMapper {
         Tiltakskode.HOYERE_UTDANNING -> "Høyere utdanning"
 
         else -> throw IllegalArgumentException("Ukjent enkeltplass tiltakstype: ${tiltak.tiltakskode}")
+    }
+}
+
+internal fun no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg.toEnkeltplassInnhold(): EnkeltplassInnhold {
+    val representerSet = this.hentRepresenterer()
+
+    return when {
+        // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
+        representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
+
+        // Tilfeller som skal ha ekstra innhold i PDF
+        representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+            bransje = this.hentVerdier(OpplaringKategoriseringType.BRANSJE_ID).single(),
+            forerkortOgSertifiseringer = this
+                .hentVerdier(
+                    representerer = OpplaringKategoriseringType.FORERKORT,
+                    throwIfEmpty = false,
+                ).plus(
+                    this.hentVerdier(
+                        representerer = OpplaringKategoriseringType.SERTIFISERINGER,
+                        throwIfEmpty = false,
+                    ),
+                ),
+        )
+
+        representerSet.contains(OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID) -> {
+            EnkeltplassInnhold.FagOgYrkesopplaering(
+                utdanningsprogram = this
+                    .hentVerdier(OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID)
+                    .single(),
+                laerefag = this
+                    .hentVerdier(OpplaringKategoriseringType.LAREFAG),
+            )
+        }
+
+        // Øvrige tilfeller som ikke skal ha ekstra innhold
+        else -> EnkeltplassInnhold.UtenInnhold
     }
 }

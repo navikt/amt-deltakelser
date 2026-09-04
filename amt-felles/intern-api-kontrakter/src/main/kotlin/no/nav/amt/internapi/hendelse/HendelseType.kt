@@ -61,6 +61,7 @@ sealed interface HendelseType {
 
     data class EnkeltplassEndreOpplaringKategorisering(
         val opplaringKategoriseringValg: OpplaringKategoriseringValg,
+        val innholdFritekst: String = "",
         val pavirkerPris: Boolean = false,
     ) : HendelseType
 
@@ -197,6 +198,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
 
     is Endring.EndreOpplaringKategorisering -> HendelseType.EnkeltplassEndreOpplaringKategorisering(
         opplaringKategoriseringValg = endring.opplaringKategoriseringValg,
+        innholdFritekst = endring.beskrivelse,
         pavirkerPris = endring.pavirkerPris,
     )
 
