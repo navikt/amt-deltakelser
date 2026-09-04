@@ -83,7 +83,7 @@ class TotrinnskontrollConsumer(
      * @param key Kafka-key for meldingen
      * @param value rå payload fra Kafka (kan være `null` ved tombstone)
      */
-    suspend fun consume(
+    fun consume(
         key: UUID,
         value: String?,
     ) {
