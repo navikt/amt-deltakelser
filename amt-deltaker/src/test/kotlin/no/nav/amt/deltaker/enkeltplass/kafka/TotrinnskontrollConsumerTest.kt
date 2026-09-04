@@ -31,6 +31,8 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -39,8 +41,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt as lagNavAnsattTestData
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet as lagNavEnhetTestData
 
 class TotrinnskontrollConsumerTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
@@ -1128,14 +1128,14 @@ class TotrinnskontrollConsumerTest {
         private fun lagNavAnsatt(
             navIdent: String = "Z654321",
             navEnhetId: UUID = UUID.randomUUID(),
-        ) = lagNavAnsattTestData(
+        ) = lagNavAnsatt(
             id = UUID.randomUUID(),
             navIdent = navIdent,
             navn = "Saksbehandler",
             navEnhetId = navEnhetId,
         )
 
-        private fun lagNavEnhet(id: UUID = UUID.randomUUID()) = lagNavEnhetTestData(
+        private fun lagNavEnhet(id: UUID = UUID.randomUUID()) = lagNavEnhet(
             id = id,
             enhetsnummer = "1234",
             navn = "NAV Test",
