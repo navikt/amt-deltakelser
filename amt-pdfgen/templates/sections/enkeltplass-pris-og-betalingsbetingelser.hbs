@@ -1,7 +1,8 @@
 <section>
-    {{#unless hideHeading}}                                                                                                                                                                                     ┃
+    {{#if hideHeading}}                                                                                                                                                                                         ┃
+    {{else}}                                                                                                                                                                                                    ┃
         <h2>Pris og betalingsbetingelser</h2>                                                                                                                                                                   ┃
-    {{/unless}}
+    {{/if}}
 
     {{#eq prisinformasjon.type "Anskaffelse"}}
         <p class="margins-1-rem">
