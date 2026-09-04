@@ -30,6 +30,10 @@
         <p>Endringen forutsetter at endringer i pris eller betalingsbetingelser blir godkjent. Du vil bli informert om dette i et eget vedtak.</p>
     {{/if}}
 
+    {{#if this.prisinformasjon}}
+        {{> sections/enkeltplass-pris-og-betalingsbetingelser}}
+    {{/if}}
+
     {{#if this.harDeltatt}}
         <p>Har personen deltatt? {{this.harDeltatt}}</p>
     {{/if}}

@@ -48,17 +48,11 @@ class JournalforingService(
             return
         }
         when (hendelse.payload) {
-            is HendelseType.EnkeltplassOkonomiGodkjennUtkast -> {
-                journalforHovedvedtak(
-                    hendelse = hendelse,
-                    utkast = hendelse.payload.utkast,
-                    journalforingstatus = journalforingstatus,
-                )
-            }
-
-            is HendelseType.EnkeltplassEndrePrisinfo -> {
-                // TODO, se Trello https://trello.com/c/MfIDK2pq
-            }
+            is HendelseType.EnkeltplassOkonomiGodkjennUtkast -> journalforHovedvedtak(
+                hendelse = hendelse,
+                utkast = hendelse.payload.utkast,
+                journalforingstatus = journalforingstatus,
+            )
 
             is HendelseType.EnkeltplassEndreOpplaringKategorisering -> {
                 // TODO, ennå ikke opprettet kort i Trello
@@ -77,9 +71,9 @@ class JournalforingService(
             )
 
             is HendelseType.ReaktiverDeltakelse -> handleUtkastGodkjent(
-                hendelse,
-                hendelse.payload.utkast,
-                journalforingstatus,
+                hendelse = hendelse,
+                utkast = hendelse.payload.utkast,
+                journalforingstatus = journalforingstatus,
             )
 
             is HendelseType.AvsluttDeltakelse,
@@ -94,18 +88,26 @@ class JournalforingService(
             is HendelseType.EndreBakgrunnsinformasjon,
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
-            -> handleEndringsvedtak(hendelse, journalforingstatus)
+            is HendelseType.EnkeltplassGodkjennPrisendring,
+            -> handleEndringsvedtak(
+                hendelse = hendelse,
+                journalforingstatus = journalforingstatus,
+            )
 
             is HendelseType.EndreSluttarsak,
             is HendelseType.EndreUtkast,
             is HendelseType.OpprettUtkast,
             is HendelseType.AvbrytUtkast,
             is HendelseType.DeltakerSistBesokt,
+            is HendelseType.EnkeltplassEndrePrisinfo, // håndteres med EnkeltplassGodkjennPrisendring
             -> Unit
 
             is HendelseType.SettPaaVenteliste -> journalforOgSendVentelisteBrev(hendelse, journalforingstatus)
             is HendelseType.TildelPlass -> journalforHovedvedtakForTildeltPlass(hendelse, journalforingstatus)
-            is HendelseType.Avslag -> journalforAvslag(hendelse, journalforingstatus)
+            is HendelseType.Avslag -> journalforAvslag(
+                hendelse = hendelse,
+                journalforingstatus = journalforingstatus,
+            )
         }
     }
 

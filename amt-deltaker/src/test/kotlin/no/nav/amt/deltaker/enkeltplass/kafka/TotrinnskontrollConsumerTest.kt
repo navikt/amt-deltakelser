@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -13,8 +15,8 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -25,9 +27,15 @@ import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -41,16 +49,16 @@ class TotrinnskontrollConsumerTest {
     private val deltakerService = mockk<DeltakerService>()
     private val vedtakService = mockk<VedtakService>()
     private val distribuerEndringService = mockk<DistribuerEndringService>()
-    private val navAnsattRepository = mockk<NavAnsattRepository>()
-    private val navEnhetRepository = mockk<NavEnhetRepository>()
+    private val navAnsattService = mockk<NavAnsattService>(relaxed = true)
+    private val navEnhetService = mockk<NavEnhetService>(relaxed = true)
 
     private val consumer = TotrinnskontrollConsumer(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
-        navAnsattRepository = navAnsattRepository,
-        navEnhetRepository = navEnhetRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
     )
 
     val gjennomforingId = UUID.randomUUID()
@@ -58,12 +66,37 @@ class TotrinnskontrollConsumerTest {
 
     @BeforeEach
     fun setup() {
+        val navEnhetId = UUID.randomUUID()
+        mockkObject(Database)
+        every { Database.transaction<Any>(any()) } answers {
+            firstArg<() -> Any>().invoke()
+        }
         mockkObject(PrisinfoRepoAdapter)
+        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+        every { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), any<PrisinfoDbo.Rolle>()) } returns PrisinformasjonDto.IngenKostnader(
+            aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            tilleggsopplysninger = null,
+        )
+        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns NavAnsatt(
+            id = UUID.randomUUID(),
+            navIdent = "Z654321",
+            navn = "Saksbehandler",
+            epost = null,
+            telefon = null,
+            navEnhetId = navEnhetId,
+        )
+        coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhetId) } returns NavEnhet(
+            id = navEnhetId,
+            enhetsnummer = "1234",
+            navn = "NAV Test",
+        )
+        every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
         mockkObject(PrisinfoRepository)
     }
 
     @AfterEach
     fun tearDown() {
+        unmockkObject(Database)
         unmockkObject(PrisinfoRepoAdapter)
         unmockkObject(PrisinfoRepository)
     }
@@ -143,10 +176,7 @@ class TotrinnskontrollConsumerTest {
             every {
                 PrisinfoRepository.hentPrisinfoStatus(any(), any())
             } returns PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } just Runs
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } just Runs
-            every { navAnsattRepository.getOrThrow(any<UUID>()) } returns mockk()
-            every { navEnhetRepository.getOrThrow(any<UUID>()) } returns mockk()
             every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
@@ -154,6 +184,8 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = capture(beforeUpsertSlot),
                     afterUpsert = any(),
                 )
@@ -215,12 +247,39 @@ class TotrinnskontrollConsumerTest {
                 startdato = idag,
                 sluttdato = idag.plusWeeks(4),
             )
+            val godkjentPrisinfo = PrisinformasjonDto.IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
+            )
+            val navEnhetId = UUID.randomUUID()
+            val navAnsatt = NavAnsatt(
+                id = UUID.randomUUID(),
+                navIdent = "Z654321",
+                navn = "Saksbehandler",
+                epost = null,
+                telefon = null,
+                navEnhetId = navEnhetId,
+            )
+            val navEnhet = NavEnhet(
+                id = navEnhetId,
+                enhetsnummer = "1234",
+                navn = "NAV Test",
+            )
+            val hendelseSlot = slot<HendelseType>()
 
             every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
             every {
                 PrisinfoRepository.hentPrisinfoStatus(any(), any())
             } returns PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } just Runs
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = gjennomforingId,
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                )
+            } returns godkjentPrisinfo
+            every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
+            coEvery { navAnsattService.hentEllerOpprettNavAnsatt("Z654321") } returns navAnsatt
+            coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhetId) } returns navEnhet
 
             // Act
             consumer.consume(
@@ -234,6 +293,135 @@ class TotrinnskontrollConsumerTest {
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsatt, navEnhet, any()) }
+            hendelseSlot.captured shouldBe HendelseType.EnkeltplassGodkjennPrisendring(
+                prisinfo = godkjentPrisinfo,
+            )
+            coVerify { navAnsattService.hentEllerOpprettNavAnsatt("Z654321") }
+            coVerify { navEnhetService.hentEllerOpprettNavEnhet(navEnhetId) }
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING for SOKT_INN prosesseres som innsoking`() = runTest {
+            // Arrange
+            val idag = LocalDate.now()
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+                startdato = idag,
+                sluttdato = idag.plusWeeks(4),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
+            every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+            every { vedtakService.godkjentOkonomiFattVedtak(any()) } just Runs
+            every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
+
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
+            val afterUpsertSlot = slot<(Deltaker) -> Unit>()
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = capture(afterUpsertSlot),
+                )
+            } answers {
+                val updated = beforeUpsertSlot.captured(firstArg<Deltaker>())
+                afterUpsertSlot.captured(updated)
+                updated
+            }
+
+            // Act
+            consumer.consume(
+                key = totrinnskontrollId,
+                value = godkjentEnkeltplassPrisinformasjonPayload(
+                    gjennomforingId = gjennomforingId,
+                    totrinnskontrollId = totrinnskontrollId,
+                ),
+            )
+
+            // Assert
+            verify(exactly = 1) {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = false,
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = any(),
+                    afterUpsert = any(),
+                )
+            }
+            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
+            verify(exactly = 1) { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) }
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING skipper historisk prisinfo`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
+            every {
+                PrisinfoRepository.hentPrisinfoStatus(any(), any())
+            } returns PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING
+            every { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) } returns false
+
+            // Act
+            consumer.consume(
+                key = totrinnskontrollId,
+                value = godkjentEnkeltplassPrisinformasjonPayload(
+                    gjennomforingId = gjennomforingId,
+                    totrinnskontrollId = totrinnskontrollId,
+                ),
+            )
+
+            // Assert
+            verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING kaster unntak naar besluttetAv mangler`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                deltakerliste = lagDeltakerliste(id = gjennomforingId),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltakerInTest)
+            every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING
+
+            val rawJson =
+                """
+                {
+                  "id": "$totrinnskontrollId",
+                  "entityId": "$gjennomforingId",
+                  "type": "ENKELTPLASS_PRISENDRING",
+                  "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+                  "behandletTidspunkt": "2026-06-01T10:00:00Z",
+                  "besluttetAv": null,
+                  "besluttetTidspunkt": null,
+                  "status": "GODKJENT",
+                  "aarsaker": [],
+                  "forklaring": null
+                }
+                """.trimIndent()
+
+            // Act + Assert
+            val exception = shouldThrow<IllegalStateException> {
+                consumer.consume(
+                    key = totrinnskontrollId,
+                    value = rawJson,
+                )
+            }
+            exception.message shouldBe "BesluttetAv mangler for ENKELTPLASS_PRISENDRING"
         }
 
         @Test
@@ -347,14 +535,18 @@ class TotrinnskontrollConsumerTest {
     @Nested
     inner class ProcessGodkjentInnsokingTest {
         @Test
-        fun `processGodkjentInnsoking - gjør ingenting når deltaker ikke har status SOKT_INN`() {
+        fun `processGodkjentInnsoking - gjør ingenting når deltaker ikke har status SOKT_INN`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
 
             // Act
             consumer.processGodkjentInnsoking(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -362,6 +554,8 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = any(),
                     afterUpsert = any(),
                 )
@@ -370,7 +564,7 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
-        fun `processGodkjentInnsoking - oppdaterer deltaker status via beforeUpsert`() {
+        fun `processGodkjentInnsoking - oppdaterer deltaker status via beforeUpsert`() = runTest {
             // Arrange
             val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
@@ -378,11 +572,11 @@ class TotrinnskontrollConsumerTest {
                 startdato = idag,
                 sluttdato = idag.plusWeeks(4),
             )
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
 
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } just Runs
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } just Runs
-            every { navAnsattRepository.getOrThrow(any<UUID>()) } returns mockk()
-            every { navEnhetRepository.getOrThrow(any<UUID>()) } returns mockk()
             every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
@@ -390,6 +584,8 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = capture(beforeUpsertSlot),
                     afterUpsert = any(),
                 )
@@ -410,6 +606,8 @@ class TotrinnskontrollConsumerTest {
             consumer.processGodkjentInnsoking(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -419,7 +617,91 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
-        fun `processGodkjentInnsoking - afterUpsert produserer hendelse`() {
+        fun `processGodkjentInnsoking - skipper videre prosessering naar prisinfo ikke kan godkjennes`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            )
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
+                )
+            } answers {
+                beforeUpsertSlot.captured(firstArg<Deltaker>())
+            }
+
+            // Act
+            consumer.processGodkjentInnsoking(
+                deltaker = deltakerInTest,
+                prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
+            )
+
+            // Assert
+            verify(exactly = 1) {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = any(),
+                    afterUpsert = any(),
+                )
+            }
+            verify(exactly = 0) { vedtakService.godkjentOkonomiFattVedtak(any()) }
+            verify(exactly = 0) { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) }
+        }
+
+        @Test
+        fun `processGodkjentInnsoking - beforeUpsert kaster exception ved historisk prisinfo`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            )
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+
+            val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
+            every {
+                deltakerService.upsertAndProduceDeltaker(
+                    deltaker = any(),
+                    erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
+                    beforeUpsert = capture(beforeUpsertSlot),
+                    afterUpsert = any(),
+                )
+            } returns deltakerInTest
+
+            // Act
+            consumer.processGodkjentInnsoking(
+                deltaker = deltakerInTest,
+                prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
+            )
+
+            // Assert
+            val exception = shouldThrow<IllegalStateException> {
+                beforeUpsertSlot.captured(deltakerInTest)
+            }
+            exception.message shouldBe
+                "Fant ikke aktiv ENDRING-prisinfo $totrinnskontrollId for deltaker ${deltakerInTest.id}"
+        }
+
+        @Test
+        fun `processGodkjentInnsoking - afterUpsert produserer hendelse`() = runTest {
             // Arrange
             val sistEndretAv = UUID.randomUUID()
             val sistEndretAvEnhet = UUID.randomUUID()
@@ -440,13 +722,10 @@ class TotrinnskontrollConsumerTest {
                 sluttdato = idag.plusWeeks(4),
                 vedtaksinformasjon = vedtaksinformasjon,
             )
-            val navAnsatt = mockk<NavAnsatt>()
-            val navEnhet = mockk<NavEnhet>()
-
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } just Runs
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } just Runs
-            every { navAnsattRepository.getOrThrow(sistEndretAv) } returns navAnsatt
-            every { navEnhetRepository.getOrThrow(sistEndretAvEnhet) } returns navEnhet
             every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
 
             val afterUpsertSlot = slot<(Deltaker) -> Unit>()
@@ -454,6 +733,8 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = any(),
                     afterUpsert = capture(afterUpsertSlot),
                 )
@@ -463,25 +744,25 @@ class TotrinnskontrollConsumerTest {
             consumer.processGodkjentInnsoking(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert
             afterUpsertSlot.captured(deltakerInTest)
 
-            verify { navAnsattRepository.getOrThrow(sistEndretAv) }
-            verify { navEnhetRepository.getOrThrow(sistEndretAvEnhet) }
             verify {
                 distribuerEndringService.produceHendelseForUtkast(
                     deltaker = deltakerInTest,
-                    navAnsatt = navAnsatt,
-                    enhet = navEnhet,
+                    navAnsatt = any(),
+                    enhet = any(),
                     block = any(),
                 )
             }
         }
 
         @Test
-        fun `processGodkjentInnsoking - afterUpsert kaster feil når vedtaksinformasjon mangler`() {
+        fun `processGodkjentInnsoking - afterUpsert produserer hendelse når vedtaksinformasjon mangler`() = runTest {
             // Arrange
             val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
@@ -490,15 +771,20 @@ class TotrinnskontrollConsumerTest {
                 sluttdato = idag.plusWeeks(4),
                 vedtaksinformasjon = null,
             )
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
 
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } just Runs
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
             every { vedtakService.godkjentOkonomiFattVedtak(any()) } just Runs
+            every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
 
             val afterUpsertSlot = slot<(Deltaker) -> Unit>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = any(),
                     afterUpsert = capture(afterUpsertSlot),
                 )
@@ -508,18 +794,24 @@ class TotrinnskontrollConsumerTest {
             consumer.processGodkjentInnsoking(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert
-            val exception = shouldThrow<IllegalStateException> {
-                afterUpsertSlot.captured(deltakerInTest)
+            afterUpsertSlot.captured(deltakerInTest)
+            verify {
+                distribuerEndringService.produceHendelseForUtkast(
+                    deltaker = deltakerInTest,
+                    navAnsatt = any(),
+                    enhet = any(),
+                    block = any(),
+                )
             }
-            exception.message shouldBe
-                "Kan ikke produsere hendelse for økonomi godkjent for deltaker ${deltakerInTest.id} uten vedtak"
         }
 
         @Test
-        fun `processGodkjentInnsoking - kaster unntak når godkjennOkonomi feiler`() {
+        fun `processGodkjentInnsoking - kaster unntak når godkjennOkonomi feiler`() = runTest {
             // Arrange
             val idag = LocalDate.now()
             val deltakerInTest = lagDeltaker(
@@ -528,6 +820,8 @@ class TotrinnskontrollConsumerTest {
                 sluttdato = idag.plusWeeks(4),
             )
             val dbError = RuntimeException("Database error")
+            val navAnsatt = lagNavAnsatt()
+            val navEnhet = lagNavEnhet()
 
             every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } throws dbError
 
@@ -536,6 +830,8 @@ class TotrinnskontrollConsumerTest {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
                     erDeltakerSluttdatoEndret = any(),
+                    forceProduce = any(),
+                    nesteStatus = any(),
                     beforeUpsert = capture(beforeUpsertSlot),
                     afterUpsert = any(),
                 )
@@ -545,6 +841,8 @@ class TotrinnskontrollConsumerTest {
             consumer.processGodkjentInnsoking(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert - godkjennOkonomi feiler når beforeUpsert kjøres
@@ -557,11 +855,24 @@ class TotrinnskontrollConsumerTest {
     @Nested
     inner class ProcessGodkjentPrisEndringTest {
         @Test
-        fun `kaller godkjennOkonomi med gjennomforingId`() {
+        fun `kaller godkjennOkonomi med gjennomforingId`() = runTest {
             // Arrange
             val gjennomforingId = UUID.randomUUID()
             val deltakerInTest = lagDeltaker(
                 deltakerliste = lagDeltakerliste(id = gjennomforingId),
+            )
+            val navAnsatt = NavAnsatt(
+                id = UUID.randomUUID(),
+                navIdent = "Z999999",
+                navn = "Saksbehandler",
+                epost = null,
+                telefon = null,
+                navEnhetId = UUID.randomUUID(),
+            )
+            val navEnhet = NavEnhet(
+                id = navAnsatt.navEnhetId!!,
+                enhetsnummer = "1234",
+                navn = "NAV Test",
             )
 
             every {
@@ -569,12 +880,33 @@ class TotrinnskontrollConsumerTest {
                     gjennomforingId = any(),
                     prisinformasjonId = any(),
                 )
-            } just Runs
+            } returns true
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                )
+            } returns PrisinformasjonDto.IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
+            )
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                )
+            } returns PrisinformasjonDto.IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
+            )
+            every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
 
             // Act
             consumer.processGodkjentPrisEndring(
                 deltaker = deltakerInTest,
                 prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -587,10 +919,23 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
-        fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() {
+        fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker()
             val exception = RuntimeException("Database error")
+            val navAnsatt = NavAnsatt(
+                id = UUID.randomUUID(),
+                navIdent = "Z123456",
+                navn = "Saksbehandler",
+                epost = null,
+                telefon = null,
+                navEnhetId = UUID.randomUUID(),
+            )
+            val navEnhet = NavEnhet(
+                id = navAnsatt.navEnhetId!!,
+                enhetsnummer = "1234",
+                navn = "NAV Test",
+            )
 
             every {
                 PrisinfoRepoAdapter.godkjennOkonomi(
@@ -598,14 +943,68 @@ class TotrinnskontrollConsumerTest {
                     prisinformasjonId = any(),
                 )
             } throws exception
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                )
+            } returns PrisinformasjonDto.IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
+            )
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                )
+            } returns PrisinformasjonDto.IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
+            )
 
             // Act & Assert
             shouldThrow<RuntimeException> {
                 consumer.processGodkjentPrisEndring(
                     deltaker = deltakerInTest,
                     prisinfoId = totrinnskontrollId,
+                    besluttetAvNavAnsatt = navAnsatt,
+                    besluttetAvNavEnhet = navEnhet,
                 )
             }
+        }
+
+        @Test
+        fun `processGodkjentPrisEndring - publiserer ikke når godkjennOkonomi returnerer false`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker()
+            val navEnhetId = UUID.randomUUID()
+            val navAnsatt = NavAnsatt(
+                id = UUID.randomUUID(),
+                navIdent = "Z123456",
+                navn = "Saksbehandler",
+                epost = null,
+                telefon = null,
+                navEnhetId = navEnhetId,
+            )
+            val navEnhet = NavEnhet(
+                id = navEnhetId,
+                enhetsnummer = "1234",
+                navn = "NAV Test",
+            )
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+
+            // Act
+            consumer.processGodkjentPrisEndring(
+                deltaker = deltakerInTest,
+                prisinfoId = totrinnskontrollId,
+                besluttetAvNavAnsatt = navAnsatt,
+                besluttetAvNavEnhet = navEnhet,
+            )
+
+            // Assert
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) }
+            verify(exactly = 0) { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), PrisinfoDbo.Rolle.GJELDENDE) }
+            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
     }
 
@@ -723,6 +1122,22 @@ class TotrinnskontrollConsumerTest {
     }
 
     companion object {
+        private fun lagNavAnsatt(
+            navIdent: String = "Z654321",
+            navEnhetId: UUID = UUID.randomUUID(),
+        ) = lagNavAnsatt(
+            id = UUID.randomUUID(),
+            navIdent = navIdent,
+            navn = "Saksbehandler",
+            navEnhetId = navEnhetId,
+        )
+
+        private fun lagNavEnhet(id: UUID = UUID.randomUUID()) = lagNavEnhet(
+            id = id,
+            enhetsnummer = "1234",
+            navn = "NAV Test",
+        )
+
         private fun godkjentEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
             """
             {

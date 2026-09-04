@@ -59,6 +59,10 @@ sealed interface HendelseType {
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
+    data class EnkeltplassGodkjennPrisendring(
+        val prisinfo: PrisinformasjonDto,
+    ) : HendelseType
+
     data class EnkeltplassEndreOpplaringKategorisering(
         val opplaringKategoriseringValg: OpplaringKategoriseringValg,
         val pavirkerPris: Boolean = false,

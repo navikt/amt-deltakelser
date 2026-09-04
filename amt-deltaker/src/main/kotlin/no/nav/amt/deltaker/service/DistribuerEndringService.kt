@@ -19,7 +19,6 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.hendelse.toHendelseEndring
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -141,6 +140,22 @@ class DistribuerEndringService(
         }
     }
 
+    fun produceHendelse(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        enhet: NavEnhet,
+        endring: HendelseType,
+    ) {
+        hendelseProducer.produce(
+            nyHendelseFraNavAnsatt(
+                deltaker = deltaker,
+                navAnsatt = navAnsatt,
+                navEnhet = enhet,
+                endring = endring,
+            ),
+        )
+    }
+
     fun produceHendelseForUtkast(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
@@ -253,15 +268,16 @@ class DistribuerEndringService(
 
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
-        val (prisinformasjon, opplaringKategoriseringValg) =
-            if (deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-                Pair(
-                    PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id),
-                    OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id),
-                )
-            } else {
-                Pair(null, null)
-            }
+        // for endringsvedtak er dette overflødig, men kalltreet er foreløpig for dypt til å skru dette av/på
+        // bør refaktureres
+        val (prisinformasjon, opplaringKategoriseringValg) = if (deltaker.deltakerliste.erNyForskriftOpplaring) {
+            Pair(
+                PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id),
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id),
+            )
+        } else {
+            Pair(null, null)
+        }
 
         return Hendelse(
             id = UUID.randomUUID(),

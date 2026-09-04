@@ -3,6 +3,7 @@ package no.nav.amt.distribusjon.journalforing.pdf
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.hendelse.model.deltakerAdresseDelesMedArrangor
 import no.nav.amt.distribusjon.hendelse.model.visningsnavn
+import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toPrisinformasjon
 import no.nav.amt.distribusjon.journalforing.person.model.NavBruker
 import no.nav.amt.distribusjon.utils.formatDate
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
@@ -327,6 +328,13 @@ fun tilEndringDto(
             EndringDto.Avslag.Vurdering(it.vurderingstype.visningsnavn(), it.begrunnelse)
         },
     )
+
+    is HendelseType.EnkeltplassGodkjennPrisendring -> {
+        EndringDto.GodkjennPrisendring(
+            tittel = "Prisendring er godkjent",
+            prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
+        )
+    }
 }
 
 fun deltakelsesmengdeTekst(

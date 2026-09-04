@@ -3,6 +3,7 @@ package no.nav.amt.distribusjon.journalforing.job
 import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.utils.job.JobManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,10 +41,21 @@ class EndringsvedtakJob(
     }
 
     suspend fun journalforEndringsvedtak() {
-        val ikkeJournalforteEndringsvedtak = getIkkeJournalforteHendelser()
+        val hendelser = getIkkeJournalforteHendelser()
             .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
 
-        val endringsvedtakPerDeltaker = ikkeJournalforteEndringsvedtak.groupBy { it.hendelse.deltaker.id }
+        val (skalSendesUmiddelbart, skalSendesSamlet) = hendelser.partition {
+            it.hendelse.payload is HendelseType.EnkeltplassGodkjennPrisendring
+        }
+
+        journalforUmiddelbare(skalSendesUmiddelbart)
+        journalforSamlede(skalSendesSamlet)
+
+        log.info("Ferdig med å behandle ${hendelser.size} endringsvedtak")
+    }
+
+    private suspend fun journalforSamlede(skalSendesSamlet: List<HendelseMedJournalforingstatus>) {
+        val endringsvedtakPerDeltaker = skalSendesSamlet.groupBy { it.hendelse.deltaker.id }
 
         endringsvedtakPerDeltaker.forEach { (deltakerId, hendelser) ->
             /*
@@ -64,7 +76,17 @@ class EndringsvedtakJob(
                 )
             }
         }
-        log.info("Ferdig med å behandle ${ikkeJournalforteEndringsvedtak.size} endringsvedtak")
+    }
+
+    private suspend fun journalforUmiddelbare(skalSendesUmiddelbart: List<HendelseMedJournalforingstatus>) {
+        skalSendesUmiddelbart.forEach {
+            log.info("Behandler EnkeltplassGodkjennPrisendring: ${it.hendelse.id}")
+            try {
+                journalforingService.journalforOgDistribuerEndringsvedtak(listOf(it))
+            } catch (e: Exception) {
+                log.error("Behandling av endringsvedtak for deltaker med id ${it.hendelse.deltaker.id} feilet", e)
+            }
+        }
     }
 
     internal fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {

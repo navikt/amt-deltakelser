@@ -7,7 +7,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndrePrisinfo
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.Endring
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import java.util.UUID
 
 object GjennomforingPrisinformasjon {
@@ -21,10 +20,7 @@ object GjennomforingPrisinformasjon {
         includeOpplaringKategorisering: Boolean,
         historikk: List<DeltakerHistorikk>,
     ): PrisinformasjonData? {
-        val skalHenteEnkeltplassValg =
-            includeOpplaringKategorisering &&
-                deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass &&
-                !deltakerliste.tiltakstype.tiltakskode.erArenaEnkeltplass()
+        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && deltakerliste.erNyForskriftOpplaring
 
         if (!skalHenteEnkeltplassValg) return null
 
