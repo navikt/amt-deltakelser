@@ -59,8 +59,8 @@ class TotrinnskontrollConsumerTest {
         navEnhetRepository = navEnhetRepository,
     )
 
-    val gjennomforingId = UUID.randomUUID()
-    val totrinnskontrollId = UUID.randomUUID()
+    val gjennomforingId: UUID = UUID.randomUUID()
+    val totrinnskontrollId: UUID = UUID.randomUUID()
 
     @BeforeEach
     fun setup() {
