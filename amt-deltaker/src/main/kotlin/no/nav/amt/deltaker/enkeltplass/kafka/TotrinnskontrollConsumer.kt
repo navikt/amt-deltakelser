@@ -3,8 +3,8 @@ package no.nav.amt.deltaker.enkeltplass.kafka
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollType
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -17,8 +17,6 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
@@ -51,8 +49,8 @@ class TotrinnskontrollConsumer(
     private val deltakerService: DeltakerService,
     private val vedtakService: VedtakService,
     private val distribuerEndringService: DistribuerEndringService,
-    private val navAnsattService: NavAnsattService,
-    private val navEnhetService: NavEnhetService,
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -133,18 +131,11 @@ class TotrinnskontrollConsumer(
             return
         }
 
-        val besluttetAv = totrinnskontrollHendelse.besluttetAv
-            ?: error("BesluttetAv mangler for ${totrinnskontrollHendelse.type}")
-
-        val (besluttetAvNavAnsatt, besluttetAvNavEnhet) = hentNavAnsattOgEnhet(besluttetAv)
-
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
                 processGodkjentInnsoking(
                     deltaker = deltaker,
                     prisinfoId = totrinnskontrollHendelse.id,
-                    besluttetAvNavAnsatt = besluttetAvNavAnsatt,
-                    besluttetAvNavEnhet = besluttetAvNavEnhet,
                 )
             }
 
@@ -154,16 +145,12 @@ class TotrinnskontrollConsumer(
                     processGodkjentInnsoking(
                         deltaker = deltaker,
                         prisinfoId = totrinnskontrollHendelse.id,
-                        besluttetAvNavAnsatt = besluttetAvNavAnsatt,
-                        besluttetAvNavEnhet = besluttetAvNavEnhet,
                     )
                 } else {
                     // hvis deltaker har status etter SOKT_INN, prosesserer prisendringen som endring
                     processGodkjentPrisEndring(
                         deltaker = deltaker,
                         prisinfoId = totrinnskontrollHendelse.id,
-                        besluttetAvNavAnsatt = besluttetAvNavAnsatt,
-                        besluttetAvNavEnhet = besluttetAvNavEnhet,
                     )
                 }
             }
@@ -185,9 +172,10 @@ class TotrinnskontrollConsumer(
     internal fun processGodkjentPrisEndring(
         deltaker: Deltaker,
         prisinfoId: UUID,
-        besluttetAvNavAnsatt: NavAnsatt,
-        besluttetAvNavEnhet: NavEnhet,
     ) {
+        val vedtak = deltaker.vedtaksinformasjon
+            ?: error("Fant ikke vedtaksinformasjon for deltaker ${deltaker.id}")
+
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
@@ -203,8 +191,8 @@ class TotrinnskontrollConsumer(
 
             distribuerEndringService.produceHendelse(
                 deltaker = deltaker,
-                navAnsatt = besluttetAvNavAnsatt,
-                enhet = besluttetAvNavEnhet,
+                navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv),
+                enhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet),
                 endring = HendelseType.EnkeltplassGodkjennPrisendring(prisinfo = godkjentPrisinfo),
             )
         }
@@ -225,8 +213,6 @@ class TotrinnskontrollConsumer(
     internal fun processGodkjentInnsoking(
         deltaker: Deltaker,
         prisinfoId: UUID,
-        besluttetAvNavAnsatt: NavAnsatt,
-        besluttetAvNavEnhet: NavEnhet,
     ) {
         log.info("Behandler godkjent totrinnskontroll for deltaker ${deltaker.id}")
 
@@ -257,11 +243,14 @@ class TotrinnskontrollConsumer(
                         status = DeltakerUtils.nyDeltakerStatus(nyDeltakerStatus(deltaker)),
                     )
                 },
-                afterUpsert = { deltaker ->
+                afterUpsert = { oppdatertDeltaker ->
+                    val vedtak = oppdatertDeltaker.vedtaksinformasjon
+                        ?: error("Fant ikke vedtaksinformasjon for deltaker ${deltaker.id}")
+
                     distribuerEndringService.produceHendelseForUtkast(
-                        deltaker = deltaker,
-                        navAnsatt = besluttetAvNavAnsatt,
-                        enhet = besluttetAvNavEnhet,
+                        deltaker = oppdatertDeltaker,
+                        navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv),
+                        enhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet),
                     ) { utkastDto -> HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkastDto) }
                 },
             )
@@ -339,18 +328,5 @@ class TotrinnskontrollConsumer(
                 else -> DeltakerStatus.Type.DELTAR
             }
         }
-    }
-
-    internal suspend fun hentNavAnsattOgEnhet(
-        besluttetAv: TotrinnskontrollHendelsePayload.TotrinnskontrollAgent,
-    ): Pair<NavAnsatt, NavEnhet> {
-        require(besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt)
-
-        val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(besluttetAv.navIdent)
-        val enhet = ansatt.navEnhetId
-            ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
-            ?: error("Fant ikke enhet for navIdent ${besluttetAv.navIdent}")
-
-        return ansatt to enhet
     }
 }
