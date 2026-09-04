@@ -27,7 +27,7 @@ class PdfDtoMappingUtilsTest {
         )
 
         resultat shouldBe EndringDto.GodkjennPrisendring(
-            tittel = "Prisendring er godkjent",
+            tittel = "Pris og betalingsbetingelser er endret",
             prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
         )
     }

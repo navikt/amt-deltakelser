@@ -1,6 +1,7 @@
 package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -103,7 +104,7 @@ class EndringsvedtakTest :
                             innholdBeskrivelse = "Beskrivelse",
                         ),
                         EndringDto.GodkjennPrisendring(
-                            tittel = "Prisendring er godkjent",
+                            tittel = "Pris og betalingsbetingelser er endret",
                             prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                         ),
                     )
@@ -155,15 +156,15 @@ class EndringsvedtakTest :
                             endringer =
                                 listOf(
                                     EndringDto.GodkjennPrisendring(
-                                        tittel = "Prisendring er godkjent",
+                                        tittel = "Pris og betalingsbetingelser er endret",
                                         prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
                                     ),
                                 ),
                         ),
                     )
 
-                    doc.text() shouldContain "Prisendring er godkjent"
-                    doc.text() shouldContain "Pris og betalingsbetingelser"
+                    doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
+                    doc.text() shouldContain "Pris og betalingsbetingelser er endret"
                     doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen."
                 }
 

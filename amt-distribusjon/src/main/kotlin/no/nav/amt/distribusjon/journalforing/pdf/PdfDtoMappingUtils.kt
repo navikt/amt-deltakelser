@@ -329,12 +329,10 @@ fun tilEndringDto(
         },
     )
 
-    is HendelseType.EnkeltplassGodkjennPrisendring -> {
-        EndringDto.GodkjennPrisendring(
-            tittel = "Prisendring er godkjent",
-            prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
-        )
-    }
+    is HendelseType.EnkeltplassGodkjennPrisendring -> EndringDto.GodkjennPrisendring(
+        tittel = "Pris og betalingsbetingelser er endret",
+        prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
+    )
 }
 
 fun deltakelsesmengdeTekst(
