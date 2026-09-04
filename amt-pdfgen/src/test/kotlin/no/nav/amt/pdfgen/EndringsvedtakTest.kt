@@ -6,6 +6,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.ForslagDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.pdfgen.util.DtoBuilders.defaultEndring
@@ -106,7 +107,7 @@ class EndringsvedtakTest :
 
                 describe("pavirkerPris-tekst") {
                     val tekst =
-                        "Endringen forutsetter at endringer i pris eller betalingsbetingelser blir godkjent. Du vil bli informert om dette i et eget vedtak."
+                        "Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette."
 
                     it("viser teksten når pavirkerPris er true på endringstype som støtter feltet") {
                         val doc = renderEndringsvedtak(
@@ -142,6 +143,49 @@ class EndringsvedtakTest :
                         )
 
                         doc.text() shouldNotContain tekst
+                    }
+                }
+
+                describe("erEnkeltplassinnhold") {
+                    it("viser enkeltplass-innhold og skjuler standard innholdsliste når flagget er true") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                            tittel = "Innholdet er endret",
+                                            innholdFritekst = "Fritekst om hva opplæringen inneholder",
+                                            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+                                                bransje = "Bygg og anlegg",
+                                                forerkortOgSertifiseringer = listOf("B - Personbil"),
+                                            ),
+                                            erEnkeltplassinnhold = true,
+                                            pavirkerPris = false,
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldContain "Fritekst om hva opplæringen inneholder"
+                        doc.text() shouldContain "Bransje: Bygg og anlegg"
+                    }
+
+                    it("viser standard innholdsliste når flagget ikke er med i data") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EndreInnhold(
+                                            innhold = listOf("Innhold 1", "Innhold 2"),
+                                            innholdBeskrivelse = null,
+                                            tittel = "Innholdet er endret",
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldContain "Innhold 1"
+                        doc.text() shouldContain "Innhold 2"
                     }
                 }
 
