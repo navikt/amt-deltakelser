@@ -508,8 +508,8 @@ fun Application.module() {
             deltakerService = deltakerService,
             vedtakService = vedtakService,
             distribuerEndringService = distribuerEndringService,
-            navAnsattRepository = navAnsattRepository,
-            navEnhetRepository = navEnhetRepository,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
         ),
         ArrangorMeldingConsumer(
             endringFraArrangorService,
