@@ -85,6 +85,32 @@
       ]
     },
     {
+      "tittel": "Innholdet er endret",
+      "erEnkeltplassinnhold": true,
+      "innhold": {
+        "typw": "Arbeidsmarkedsopplaering",
+        "bransje": "",
+        "forerkortOgSertifiseringer": [
+          "B - Personbil",
+          "C - Lastebil",
+          "Sertifisering 1"
+        ]
+      },
+      "innholdFritekst": "Fritekst om hva opplæringen inneholder"
+    },
+    {
+      "tittel": "Innholdet er endret",
+      "erEnkeltplassinnhold": true,
+      "innhold": {
+        "typw": "FagOgYrkesopplaering",
+        "utdanningsprogram": "Elektro og datateknologi",
+        "Lærefag": [
+          "Drift av IKT-systemer"
+        ]
+      },
+      "innholdFritekst": "Fritekst om hva opplæringen inneholder"
+    },
+    {
       "tittel": "Søknaden er avslått",
       "aarsak": "Krav for deltakelse ikke oppfylt",
       "begrunnelseFraNav": "Kan ikke strikke",

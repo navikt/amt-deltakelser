@@ -21,6 +21,10 @@
         <p>{{this.sluttdato}}</p>
     {{/if}}
 
+   {{#if this.erEnkeltplassinnhold}}
+        {{> sections/enkeltplass-innhold}}
+    {{/if}}
+
     {{#if this.begrunnelseFraNav}}
         <p>Nav sin begrunnelse: {{this.begrunnelseFraNav}}</p>
     {{/if}}
@@ -72,19 +76,22 @@
         <p class="fritekst">{{this.bakgrunnsinformasjon}}</p>
     {{/if}}
 
-    {{#if this.innhold.length}}
-        <p>{{deltakerliste.ledetekst}}</p>
+    {{#unless this.erEnkeltplassinnhold}}
+        {{#if this.innhold.length}}
+            <p>{{deltakerliste.ledetekst}}</p>
 
-        {{#if this.innholdBeskrivelse}}
-            <br />
-            <p class="fritekst">{{this.innholdBeskrivelse}}</p>
+            {{#if this.innholdBeskrivelse}}
+                <br />
+                <p class="fritekst">{{this.innholdBeskrivelse}}</p>
+            {{/if}}
+
+            {{#unless this.innholdBeskrivelse}}
+                <ul>
+                    {{#each this.innhold}}
+                        <li class="fritekst">{{this}}</li>
+                    {{/each}}
+                </ul>
+            {{/unless}}
         {{/if}}
-        {{#unless this.innholdBeskrivelse}}
-            <ul>
-                {{#each this.innhold}}
-                    <li class="fritekst">{{this}}</li>
-                {{/each}}
-            </ul>
-        {{/unless}}
-    {{/if}}
+    {{/unless}}
 </section>

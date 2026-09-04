@@ -296,6 +296,13 @@ fun tilEndringDto(
         },
     )
 
+    is HendelseType.EnkeltplassEndreOpplaringKategorisering -> EndringDto.EnkeltplassEndreOpplaringKategorisering(
+        erEnkeltplassinnhold = true,
+        innhold = hendelseType.opplaringKategoriseringValg.toEnkeltplassInnhold(),
+        innholdFritekst = hendelseType.innholdFritekst,
+        pavirkerPris = hendelseType.pavirkerPris,
+    )
+
     is HendelseType.EndreBakgrunnsinformasjon -> EndringDto.EndreBakgrunnsinformasjon(
         bakgrunnsinformasjon = if (hendelseType.bakgrunnsinformasjon.isNullOrEmpty()) {
             "—"
