@@ -88,8 +88,8 @@
       "tittel": "Innholdet er endret",
       "erEnkeltplassinnhold": true,
       "innhold": {
-        "typw": "Arbeidsmarkedsopplaering",
-        "bransje": "",
+        "type": "Arbeidsmarkedsopplaering",
+        "bransje": "Bygg og anlegg",
         "forerkortOgSertifiseringer": [
           "B - Personbil",
           "C - Lastebil",
@@ -102,9 +102,9 @@
       "tittel": "Innholdet er endret",
       "erEnkeltplassinnhold": true,
       "innhold": {
-        "typw": "FagOgYrkesopplaering",
+        "type": "FagOgYrkesopplaering",
         "utdanningsprogram": "Elektro og datateknologi",
-        "Lærefag": [
+        "laerefag": [
           "Drift av IKT-systemer"
         ]
       },

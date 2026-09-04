@@ -191,6 +191,7 @@ class EndringsvedtakTest :
 
                         doc.text() shouldContain "Fritekst om hva opplæringen inneholder"
                         doc.text() shouldContain "Bransje: Bygg og anlegg"
+                        doc.text() shouldNotContain "Dette er ledeteksten"
                     }
 
                     it("viser standard innholdsliste når flagget ikke er med i data") {
