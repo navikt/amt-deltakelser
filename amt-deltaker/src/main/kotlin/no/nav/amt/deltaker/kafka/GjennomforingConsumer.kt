@@ -64,11 +64,15 @@ class GjennomforingConsumer(
 
     private suspend fun handterDeltakerliste(gjennomforingPayload: GjennomforingV2KafkaPayload) {
         if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
+            log.info(
+                "Ignorerer deltakerliste ${gjennomforingPayload.id} med tiltakskode ${gjennomforingPayload.tiltakskode.name} fordi unleash toggle er av.",
+            )
             return
         }
 
         // enkelte gjennomforinger skal ikke bli lest grunnet feil
         if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(gjennomforingPayload.id)) {
+            log.info("Ignorerer deltakerliste ${gjennomforingPayload.id} fordi den er i feilstatus.")
             return
         }
 

@@ -108,6 +108,9 @@ class KafkaConsumerService(
         val deltakerlistePayload: GjennomforingV2KafkaPayload = objectMapper.readValue(value)
 
         if (!unleashToggle.skalLeseGjennomforing(deltakerlistePayload.tiltakskode.name)) {
+            log.info(
+                "Ignorerer deltakerliste ${deltakerlistePayload.id} med tiltakskode ${deltakerlistePayload.tiltakskode.name} fordi unleash toggle er av.",
+            )
             return
         }
 
