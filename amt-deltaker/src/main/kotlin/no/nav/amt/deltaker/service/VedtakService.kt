@@ -91,7 +91,7 @@ class VedtakService(
      *
      * @param deltaker deltakeren vedtaket gjelder for
      * @param sistEndretAv Nav-veileder som utfører endringen
-     * @param sistEndretAvEnhet Nav-enhet for Nav-veileder utfører endringen
+     * @param sistEndretAvEnhet Nav-enhet for Nav-veileder som utfører endringen
      */
     fun godkjentOkonomiFattVedtak(
         deltaker: Deltaker,
