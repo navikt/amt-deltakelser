@@ -65,7 +65,7 @@ class GjennomforingConsumer(
     private suspend fun handterDeltakerliste(gjennomforingPayload: GjennomforingV2KafkaPayload) {
         if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
             log.info(
-                "Ignorerer deltakerliste ${gjennomforingPayload.id} med tiltakskode ${gjennomforingPayload.tiltakskode.name} fordi unleash toggle er av.",
+                "Ignorerer deltakerliste ${gjennomforingPayload.id} med tiltakskode ${gjennomforingPayload.tiltakskode.name} fordi Unleash-toggle er av.",
             )
             return
         }
