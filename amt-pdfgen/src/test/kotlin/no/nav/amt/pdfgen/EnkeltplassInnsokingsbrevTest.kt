@@ -24,6 +24,7 @@ class EnkeltplassInnsokingsbrevTest :
                 doc.text() shouldContain "Arbeidsforberedende trening"
                 doc.text() shouldContain "Jada Fangst AS"
                 doc.text() shouldContain "Du er søkt inn og Nav vurderer søknaden din"
+                doc.select("h2").any { it.text() == "Pris og betalingsbetingelser" } shouldBe true
             }
 
             describe("Prisformatering") {

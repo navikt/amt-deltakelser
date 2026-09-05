@@ -30,9 +30,10 @@ data class Hendelse(
         is HendelseType.FjernOppstartsdato,
         is HendelseType.Avslag,
         is HendelseType.EndreAvslutning,
+        is HendelseType.EnkeltplassGodkjennPrisendring, // endringsvedtak
         -> true
 
-        is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
+        is HendelseType.EnkeltplassOkonomiGodkjennUtkast, // hovedvedtak
         is HendelseType.EnkeltplassEndrePrisinfo,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.InnbyggerGodkjennUtkast,
@@ -61,6 +62,7 @@ data class Hendelse(
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassGodkjennPrisendring,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EndreSluttarsak,
@@ -75,6 +77,7 @@ data class Hendelse(
         is HendelseType.Avslag,
         is HendelseType.EndreAvslutning,
         -> null
+
         is HendelseType.ReaktiverDeltakelse,
         -> payload.begrunnelseFraNav
     }
@@ -92,6 +95,7 @@ data class Hendelse(
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassGodkjennPrisendring,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EndreUtkast,
         is HendelseType.OpprettUtkast,

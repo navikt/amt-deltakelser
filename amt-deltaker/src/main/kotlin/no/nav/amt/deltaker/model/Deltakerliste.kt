@@ -35,7 +35,7 @@ data class Deltakerliste(
 
     // enkeltplass opplæring etter ny forskrift
     @get:JsonIgnore
-    val nyForskriftOpplaring get() = gjennomforingstype == GjennomforingType.Enkeltplass &&
+    val erNyForskriftOpplaring get() = gjennomforingstype == GjennomforingType.Enkeltplass &&
         !tiltakstype.tiltakskode.erArenaEnkeltplass()
 
     @get:JsonIgnore

@@ -16,9 +16,8 @@ data class Journalforingstatus(
     fun erDistribuert(
         distribusjonskanal: Distribusjonskanal,
         erUnderManuellOppfolging: Boolean,
-    ): Boolean = if (DigitalBrukerService.skalDistribueresDigitalt(distribusjonskanal, erUnderManuellOppfolging)) {
-        true
-    } else {
-        bestillingsId != null || kanIkkeDistribueres == true
-    }
+    ): Boolean = DigitalBrukerService.skalDistribueresDigitalt(
+        distribusjonskanal,
+        erUnderManuellOppfolging,
+    ) || bestillingsId != null || kanIkkeDistribueres == true
 }

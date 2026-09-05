@@ -13,12 +13,7 @@ class DigitalBrukerService(
         fun skalDistribueresDigitalt(
             distribusjonskanal: Distribusjonskanal,
             erUnderManuellOppfolging: Boolean,
-        ): Boolean {
-            if (erUnderManuellOppfolging) {
-                return false
-            }
-            return distribusjonskanal.skalDistribueresDigitalt()
-        }
+        ): Boolean = !erUnderManuellOppfolging && distribusjonskanal.skalDistribueresDigitalt()
     }
 
     suspend fun erDigital(personident: String): Boolean {

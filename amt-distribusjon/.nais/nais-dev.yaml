@@ -77,6 +77,10 @@ spec:
         - id: elastic
         - id: loki
   env:
+    - name: ENDRINGSVEDTAK_JOB_INITIAL_DELAY
+      value: "PT2M"
+    - name: ENDRINGSVEDTAK_JOB_PERIOD
+      value: "PT2M"
     - name: JDK_JAVA_OPTIONS
       value: "-XX:MaxRAMPercentage=60.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE
