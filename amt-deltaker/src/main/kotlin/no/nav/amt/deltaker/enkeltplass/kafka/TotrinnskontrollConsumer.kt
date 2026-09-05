@@ -222,8 +222,8 @@ class TotrinnskontrollConsumer(
      *
      * @param deltaker Deltakeren hvor økonomi skal godkjennes
      * @param prisinfoId ID til prisinfoen som skal godkjennes.
-     * @param behandletAvNavAnsatt  Nav-ansatt som imitierte behandlingen
-     * @param behandletAvNavEnhet Nav-enhet for Nav-ansatt som imitierte behandlingen
+     * @param behandletAvNavAnsatt  Nav-ansatt som initierte behandlingen
+     * @param behandletAvNavEnhet Nav-enhet for Nav-ansatt som initierte behandlingen
      */
     internal fun processGodkjentInnsoking(
         deltaker: Deltaker,
