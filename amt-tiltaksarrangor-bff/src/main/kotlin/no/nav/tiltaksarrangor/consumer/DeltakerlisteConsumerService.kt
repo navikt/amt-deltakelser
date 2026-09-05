@@ -44,7 +44,7 @@ class DeltakerlisteConsumerService(
 
         // enkelte gjennomforinger skal ikke bli lest grunnet feil
         if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
-            log.info("Ignorerer deltakerliste ${deltakerlistePayload.id} fordi den er i feilstatus.")
+            log.info("Ignorerer deltakerliste ${deltakerlistePayload.id} fordi den er svartelistet pga feil ved prosessering.")
             return
         }
 
