@@ -326,6 +326,8 @@ class VedtakServiceTest {
 
         @Test
         fun `godkjentOkonomiFattVedtak - ikke-fattet vedtak finnes - godkjennes og fattes`() {
+            TestRepository.insertAll(navEnhetInTest, navAnsattInTest)
+
             val deltaker = lagDeltakerKladd()
             val vedtakInTest = TestData.lagVedtak(
                 deltakerVedVedtak = deltaker,
