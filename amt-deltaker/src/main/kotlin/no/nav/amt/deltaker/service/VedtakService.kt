@@ -85,12 +85,26 @@ class VedtakService(
         )
     }
 
-    fun godkjentOkonomiFattVedtak(deltaker: Deltaker) {
+    /**
+     * Fatter vedtak når økonomi har godkjent en deltakelse.
+     * Brukes kun for vedtak som fortsatt ikke er fattet.
+     *
+     * @param deltaker deltakeren vedtaket gjelder for
+     * @param sistEndretAv Nav-veileder som utfører endringen
+     * @param sistEndretAvEnhet Nav-enhet for Nav-veileder utfører endringen
+     */
+    fun godkjentOkonomiFattVedtak(
+        deltaker: Deltaker,
+        sistEndretAv: NavAnsatt,
+        sistEndretAvEnhet: NavEnhet,
+    ) {
         val ikkeFattetVedtak = hentIkkeFattetVedtakOrThrow(deltaker.id)
         val fattetVedtak = ikkeFattetVedtak.copy(
             fattetAvNav = true,
             fattet = LocalDateTime.now(),
             deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
 
         vedtakRepository.upsert(fattetVedtak)
