@@ -148,20 +148,23 @@ fun Application.configureRouting(
             enkeltplassService = enkeltplassService,
             deltakerResponseBuilder = deltakerResponseBuilder,
             gjennomforingUpserter = gjennomforingUpserter,
+            navAnsattService = navAnsattService,
+            deltakerRepository = deltakerRepository,
+            distribuerEndringService = distribuerEndringService,
         )
         registerInternalApi(
-            deltakerRepository,
-            deltakerService,
-            kladdService,
-            deltakerProducerService,
-            innsokRepository,
-            vurderingRepository,
-            distribuerEndringService,
-            endringFraTiltakskoordinatorRepository,
-            vedtakRepository,
-            navAnsattService,
-            navEnhetService,
-            gjennomforingRequestProducer,
+            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
+            kladdService = kladdService,
+            deltakerProducerService = deltakerProducerService,
+            innsokRepository = innsokRepository,
+            vurderingRepository = vurderingRepository,
+            distribuerEndringService = distribuerEndringService,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+            vedtakRepository = vedtakRepository,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            gjennomforingRequestProducer = gjennomforingRequestProducer,
         )
 
         registerTiltakskoordinatorApi(
@@ -171,7 +174,13 @@ fun Application.configureRouting(
             tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
         )
         registerUlestHendelseApi(ulestHendelseRepository)
-        registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
+        registerExternalApi(
+            deltakerRepository = deltakerRepository,
+            navEnhetService = navEnhetService,
+            tilgangskontrollService = tilgangskontrollService,
+            deltakelserResponseMapper = deltakelserResponseMapper,
+            unleashToggle = unleashToggle,
+        )
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

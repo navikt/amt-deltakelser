@@ -17,7 +17,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
-import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 /**
@@ -137,25 +136,25 @@ class GjennomforingUpserter(
     fun produserTilbakekallPrisendring(
         deltakerId: UUID,
         endretAvNavIdent: String,
-    ) {
+    ): UUID {
         val gjennomforingId = deltakerRepository
             .get(deltakerId)
             .getOrThrow()
             .deltakerliste.id
 
-        Database.transaction {
-            val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
+        val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
 
-            val tilbakekallPrisinfoPayload = GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon(
-                gjennomforingId = gjennomforingId,
-                totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
-                    id = prisinformasjonId,
-                    behandletAv = endretAvNavIdent,
-                ),
-            )
+        val tilbakekallPrisinfoPayload = GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon(
+            gjennomforingId = gjennomforingId,
+            totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
+                id = prisinformasjonId,
+                behandletAv = endretAvNavIdent,
+            ),
+        )
 
-            gjennomforingRequestProducer.produce(tilbakekallPrisinfoPayload)
-        }
+        gjennomforingRequestProducer.produce(tilbakekallPrisinfoPayload)
+
+        return prisinformasjonId
     }
 
     /**

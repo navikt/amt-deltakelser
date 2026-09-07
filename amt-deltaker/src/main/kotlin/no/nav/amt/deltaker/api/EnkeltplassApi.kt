@@ -11,16 +11,23 @@ import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.getDeltakerId
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
+import no.nav.amt.lib.utils.database.Database
 
 fun Routing.registerEnkeltplassApi(
     enkeltplassService: EnkeltplassService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     gjennomforingUpserter: GjennomforingUpserter,
+    distribuerEndringService: DistribuerEndringService,
+    deltakerRepository: DeltakerRepository,
+    navAnsattService: NavAnsattService,
 ) {
     authenticate("SYSTEM") {
         route("/enkeltplass") {
@@ -94,12 +101,28 @@ fun Routing.registerEnkeltplassApi(
             }
 
             post("/tilbakekall-prisendring/{deltakerId}") {
+                val deltakerId = call.getDeltakerId()
                 val request: EnkeltplassTilbakekallPrisinfoRequest = call.receive()
 
-                gjennomforingUpserter.produserTilbakekallPrisendring(
-                    deltakerId = call.getDeltakerId(),
-                    endretAvNavIdent = request.endretAv,
-                )
+                val deltaker = deltakerRepository
+                    .get(deltakerId)
+                    .getOrThrow()
+
+                val (navAnsatt, navEnhet) = navAnsattService.hentNavAnsattOgEnhet(request.endretAv)
+
+                Database.transaction {
+                    val prisinformasjonId = gjennomforingUpserter.produserTilbakekallPrisendring(
+                        deltakerId = deltakerId,
+                        endretAvNavIdent = request.endretAv,
+                    )
+
+                    distribuerEndringService.produserHendelseForTilbakekallPrisendring(
+                        deltaker = deltaker,
+                        navAnsatt = navAnsatt,
+                        navEnhet = navEnhet,
+                        prisinformasjonId = prisinformasjonId,
+                    )
+                }
 
                 call.respond(HttpStatusCode.OK)
             }

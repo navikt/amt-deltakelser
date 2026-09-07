@@ -14,6 +14,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
@@ -36,7 +38,10 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -295,6 +300,17 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
     @Nested
     inner class TilbakekallPrisendringTests {
+        @BeforeEach
+        fun setup() {
+            mockkObject(Database)
+            every { Database.transaction<Any>(any()) } answers {
+                firstArg<() -> Any>().invoke()
+            }
+        }
+
+        @AfterEach
+        fun cleanup() = unmockkObject(Database)
+
         @Test
         fun `mangler token - returnerer Unauthorized`() {
             withTestApplicationContext { client ->
@@ -308,13 +324,18 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         fun `skal tilbakekalle prisendring`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker()
+            val navEnhetInTest = lagNavEnhet()
+            val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
 
+            every { navAnsattRepository.get(any<String>()) } returns navAnsattInTest
+            every { navEnhetRepository.get(navEnhetInTest.id) } returns navEnhetInTest
+            every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
             every {
                 gjennomforingUpserter.produserTilbakekallPrisendring(
                     deltakerId = deltakerInTest.id,
                     endretAvNavIdent = "~endretAv~",
                 )
-            } just Runs
+            } returns UUID.randomUUID()
 
             val request = EnkeltplassTilbakekallPrisinfoRequest(
                 endretAv = "~endretAv~",
