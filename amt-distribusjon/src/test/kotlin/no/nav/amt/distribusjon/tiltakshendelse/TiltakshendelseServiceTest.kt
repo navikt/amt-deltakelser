@@ -8,6 +8,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.IntegrationTestBase
+import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService.Companion.UTKAST_TIL_PAMELDING_TEKST
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.distribusjon.utils.data.DeltakerData
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
@@ -46,7 +47,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 personident shouldBe hendelse.deltaker.personident
                 hendelser shouldBe listOf(hendelse.id)
                 type shouldBe Tiltakshendelse.Type.UTKAST
-                tekst shouldBe TiltakshendelseService.UTKAST_TIL_PAMELDING_TEKST
+                tekst shouldBe UTKAST_TIL_PAMELDING_TEKST
                 opprettet shouldBeCloseTo hendelse.opprettet
                 tiltakskode shouldBe hendelse.deltaker.deltakerliste.tiltak.tiltakskode
             }
@@ -80,7 +81,13 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         fun `handleHendelse - utkast er håndtert - håndterer ikke på nytt`() {
             // Arrange
             val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-            tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse().copy(aktiv = false))
+            tiltakshendelseRepository.upsert(
+                opprettHendelse
+                    .toTiltakshendelse(
+                        type = Tiltakshendelse.Type.UTKAST,
+                        tekst = UTKAST_TIL_PAMELDING_TEKST,
+                    ).copy(aktiv = false),
+            )
 
             // Act
             tiltakshendelseService.handleHendelse(opprettHendelse)
@@ -247,7 +254,12 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
     private fun testInaktiveringAvTiltakshendelse(hendelseType: HendelseType) = runTest {
         // Arrange
         val opprettHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-        tiltakshendelseRepository.upsert(opprettHendelse.toTiltakshendelse())
+        tiltakshendelseRepository.upsert(
+            opprettHendelse.toTiltakshendelse(
+                type = Tiltakshendelse.Type.UTKAST,
+                tekst = UTKAST_TIL_PAMELDING_TEKST,
+            ),
+        )
 
         val godkjennHendelse = Hendelsesdata.hendelse(hendelseType, deltaker = opprettHendelse.deltaker)
 

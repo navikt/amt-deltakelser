@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.tiltakshendelse
 
 import no.nav.amt.distribusjon.amtdeltaker.AmtDeltakerClient
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
-import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService.Companion.UTKAST_TIL_PAMELDING_TEKST
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -172,8 +171,8 @@ fun Forslag.toHendelse(
 )
 
 fun Hendelse.toTiltakshendelse(
-    type: Tiltakshendelse.Type = Tiltakshendelse.Type.UTKAST,
-    tekst: String = UTKAST_TIL_PAMELDING_TEKST,
+    type: Tiltakshendelse.Type,
+    tekst: String,
 ): Tiltakshendelse = Tiltakshendelse(
     id = UUID.randomUUID(),
     type = type,
