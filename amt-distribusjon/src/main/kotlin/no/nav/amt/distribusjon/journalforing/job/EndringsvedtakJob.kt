@@ -80,7 +80,7 @@ class EndringsvedtakJob(
 
     private suspend fun journalforUmiddelbare(skalSendesUmiddelbart: List<HendelseMedJournalforingstatus>) {
         skalSendesUmiddelbart.forEach {
-            log.info("Behandler EnkeltplassGodkjennPrisendring: ${it.hendelse.id}")
+            log.info("Behandler EnkeltplassGodkjennPrisendring0 ${it.hendelse.id} for deltaker med id ${it.hendelse.deltaker.id}")
             try {
                 journalforingService.journalforOgDistribuerEndringsvedtak(listOf(it))
             } catch (e: Exception) {
