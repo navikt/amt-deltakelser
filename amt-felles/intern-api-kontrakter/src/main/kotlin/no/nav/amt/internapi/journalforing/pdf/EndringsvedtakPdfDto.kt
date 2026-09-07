@@ -1,8 +1,8 @@
 package no.nav.amt.internapi.journalforing.pdf
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import java.time.LocalDate
 
