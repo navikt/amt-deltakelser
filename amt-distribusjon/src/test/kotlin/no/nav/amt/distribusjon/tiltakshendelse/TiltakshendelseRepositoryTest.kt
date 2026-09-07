@@ -102,6 +102,70 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
         funnet.id shouldBe tiltakshendelse.id
     }
 
+    @Nested
+    inner class GetAktivHendelseTests {
+        @Test
+        fun `getAktivHendelse - returnerer aktiv hendelse for deltaker og type`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val aktivHendelse = tiltakshendelse(
+                id = UUID.randomUUID(),
+                forslagId = null,
+                hendelser = listOf(UUID.randomUUID()),
+                tekst = "Prisendring aktiv",
+                type = Tiltakshendelse.Type.PRISENDRING,
+                deltakerId = deltakerId,
+                aktiv = true,
+            )
+            val inaktivHendelse = tiltakshendelse(
+                id = UUID.randomUUID(),
+                forslagId = null,
+                hendelser = listOf(UUID.randomUUID()),
+                tekst = "Prisendring inaktiv",
+                type = Tiltakshendelse.Type.PRISENDRING,
+                deltakerId = deltakerId,
+                aktiv = false,
+            )
+
+            tiltakshendelseRepository.upsert(inaktivHendelse)
+            tiltakshendelseRepository.upsert(aktivHendelse)
+
+            // Act
+            val funnet = tiltakshendelseRepository
+                .getAktivHendelse(deltakerId, Tiltakshendelse.Type.PRISENDRING)
+                .shouldBeSuccess()
+
+            // Assert
+            funnet.id shouldBe aktivHendelse.id
+            funnet.aktiv shouldBe true
+        }
+
+        @Test
+        fun `getAktivHendelse - returnerer failure når kun inaktive finnes`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val inaktivHendelse = tiltakshendelse(
+                id = UUID.randomUUID(),
+                forslagId = null,
+                hendelser = listOf(UUID.randomUUID()),
+                tekst = "Prisendring inaktiv",
+                type = Tiltakshendelse.Type.PRISENDRING,
+                deltakerId = deltakerId,
+                aktiv = false,
+            )
+            tiltakshendelseRepository.upsert(inaktivHendelse)
+
+            // Act
+            val result = tiltakshendelseRepository.getAktivHendelse(
+                deltakerId = deltakerId,
+                hendelseType = Tiltakshendelse.Type.PRISENDRING,
+            )
+
+            // Assert
+            result.isFailure shouldBe true
+        }
+    }
+
     companion object {
         private fun tiltakshendelse(
             id: UUID,
@@ -109,14 +173,16 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
             hendelser: List<UUID>,
             tekst: String,
             type: Tiltakshendelse.Type,
+            deltakerId: UUID = UUID.randomUUID(),
+            aktiv: Boolean = true,
         ) = Tiltakshendelse(
             id = id,
             type = type,
-            deltakerId = UUID.randomUUID(),
+            deltakerId = deltakerId,
             forslagId = forslagId,
             hendelser = hendelser,
             personident = "12345678901",
-            aktiv = true,
+            aktiv = aktiv,
             tekst = tekst,
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             opprettet = LocalDateTime.now(),

@@ -29,16 +29,12 @@ class TiltakshendelseService(
         }
 
         when (hendelse.payload) {
-            is HendelseType.OpprettUtkast -> opprettStartHendelse(
+            is HendelseType.OpprettUtkast -> opprettUtkastStartHendelse(
                 hendelse = hendelse,
-                type = Tiltakshendelse.Type.UTKAST,
-                tekst = UTKAST_TIL_PAMELDING_TEKST,
             )
 
-            is HendelseType.EnkeltplassEndrePrisinfo -> opprettStartHendelse(
+            is HendelseType.EnkeltplassEndrePrisinfo -> opprettEllerOppdaterPrisendringStartHendelse(
                 hendelse = hendelse,
-                type = Tiltakshendelse.Type.PRISENDRING,
-                tekst = PRISINFO_TIL_GODKJENNING_TEKST,
             )
 
             is HendelseType.AvbrytUtkast,
@@ -102,17 +98,30 @@ class TiltakshendelseService(
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
 
-    private fun opprettStartHendelse(
-        hendelse: Hendelse,
-        type: Tiltakshendelse.Type,
-        tekst: String,
-    ) {
+    private fun opprettUtkastStartHendelse(hendelse: Hendelse) {
         lagreOgDistribuer(
             hendelse.toTiltakshendelse(
-                type = type,
-                tekst = tekst,
+                type = Tiltakshendelse.Type.UTKAST,
+                tekst = UTKAST_TIL_PAMELDING_TEKST,
             ),
         )
+    }
+
+    private fun opprettEllerOppdaterPrisendringStartHendelse(hendelse: Hendelse) {
+        val aktivHendelse = tiltakshendelseRepository
+            .getAktivHendelse(
+                deltakerId = hendelse.deltaker.id,
+                hendelseType = Tiltakshendelse.Type.PRISENDRING,
+            ).getOrNull()
+
+        val tiltakshendelse = aktivHendelse
+            ?.copy(hendelser = aktivHendelse.hendelser.plus(hendelse.id))
+            ?: hendelse.toTiltakshendelse(
+                type = Tiltakshendelse.Type.PRISENDRING,
+                tekst = PRISINFO_TIL_GODKJENNING_TEKST,
+            )
+
+        lagreOgDistribuer(tiltakshendelse)
     }
 
     private suspend fun opprettStartHendelse(forslag: Forslag) {
@@ -134,7 +143,7 @@ class TiltakshendelseService(
         hendelseType: Tiltakshendelse.Type,
     ) {
         tiltakshendelseRepository
-            .getHendelse(
+            .getAktivHendelse(
                 deltakerId = hendelse.deltaker.id,
                 hendelseType = hendelseType,
             ).onSuccess { hendelseFraDb ->

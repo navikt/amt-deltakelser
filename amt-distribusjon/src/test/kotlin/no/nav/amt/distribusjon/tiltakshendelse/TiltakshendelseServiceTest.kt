@@ -8,6 +8,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.IntegrationTestBase
+import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService.Companion.PRISINFO_TIL_GODKJENNING_TEKST
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService.Companion.UTKAST_TIL_PAMELDING_TEKST
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.distribusjon.utils.data.DeltakerData
@@ -16,6 +17,8 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.database.Database
@@ -63,7 +66,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `handleHendelse - utkast godkjent av nav - inaktiverer tiltakshendelse`() {
+        fun `handleHendelse - utkast godkjent av Nav - inaktiverer tiltakshendelse`() {
             testInaktiveringAvTiltakshendelse(HendelseTypeData.navGodkjennUtkast())
         }
 
@@ -97,6 +100,67 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             tiltakshendelse.aktiv shouldBe false
 
             verify(exactly = 0) { outboxService.insertRecord(tiltakshendelse.id, any(), any(), any()) }
+        }
+
+        @Test
+        fun `handleHendelse - flere prisendringer for samme deltaker - gjenbruker aktiv tiltakshendelse`() {
+            // Arrange
+            val deltaker = Hendelsesdata.lagDeltaker()
+            val opprettPrisendring1 = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassEndrePrisinfo(
+                    prisinfo = PrisinformasjonDto.IngenKostnader(
+                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                        tilleggsopplysninger = null,
+                    ),
+                ),
+                deltaker = deltaker,
+            )
+            val opprettPrisendring2 = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassEndrePrisinfo(
+                    prisinfo = PrisinformasjonDto.IngenKostnader(
+                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                        tilleggsopplysninger = null,
+                    ),
+                ),
+                deltaker = deltaker,
+            )
+
+            // Act
+            Database.transaction {
+                tiltakshendelseService.handleHendelse(opprettPrisendring1)
+                tiltakshendelseService.handleHendelse(opprettPrisendring2)
+            }
+
+            // Assert
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettPrisendring1.id).shouldBeSuccess()
+            val tiltakshendelseEtterNyPrisendring = tiltakshendelseRepository.getByHendelseId(opprettPrisendring2.id).shouldBeSuccess()
+
+            assertSoftly(tiltakshendelseEtterNyPrisendring) {
+                id shouldBe tiltakshendelse.id
+                type shouldBe Tiltakshendelse.Type.PRISENDRING
+                tekst shouldBe PRISINFO_TIL_GODKJENNING_TEKST
+                hendelser shouldBe listOf(opprettPrisendring1.id, opprettPrisendring2.id)
+                aktiv shouldBe true
+            }
+        }
+
+        @Test
+        fun `handleHendelse - prisendring godkjent - inaktiverer aktiv prisendring`() = runTest {
+            testInaktiveringAvPrisendringHendelse(
+                hendelseType = HendelseType.EnkeltplassGodkjennPrisendring(
+                    prisinfo = PrisinformasjonDto.IngenKostnader(
+                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                        tilleggsopplysninger = null,
+                    ),
+                ),
+            )
+        }
+
+        @Test
+        fun `handleHendelse - prisendring tilbakekalt - inaktiverer aktiv prisendring`() = runTest {
+            testInaktiveringAvPrisendringHendelse(
+                hendelseType = HendelseType.EnkeltplassTilbakekallPrisendring(UUID.randomUUID()),
+            )
         }
 
         @Nested
@@ -279,6 +343,39 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 topic = Environment.TILTAKSHENDELSE_TOPIC,
                 suppressOutsideTxWarning = any(),
             )
+        }
+    }
+
+    private fun testInaktiveringAvPrisendringHendelse(hendelseType: HendelseType) {
+        // Arrange
+        val opprettHendelse = Hendelsesdata.hendelse(
+            payload = HendelseType.EnkeltplassEndrePrisinfo(
+                prisinfo = PrisinformasjonDto.IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
+            ),
+        )
+        Database.transaction {
+            tiltakshendelseService.handleHendelse(opprettHendelse)
+        }
+
+        val stoppHendelse = Hendelsesdata.hendelse(
+            payload = hendelseType,
+            deltaker = opprettHendelse.deltaker,
+        )
+
+        // Act
+        Database.transaction {
+            tiltakshendelseService.handleHendelse(stoppHendelse)
+        }
+
+        // Assert
+        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(stoppHendelse.id).shouldBeSuccess()
+        assertSoftly(tiltakshendelse) {
+            aktiv shouldBe false
+            type shouldBe Tiltakshendelse.Type.PRISENDRING
+            hendelser shouldBe listOf(opprettHendelse.id, stoppHendelse.id)
         }
     }
 }
