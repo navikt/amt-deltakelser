@@ -108,7 +108,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `enkeltplassEndreOpplaringKategorisering - oppretter intern beskjed uten å påvirke eksisterende oppgave`() {
+        fun `enkeltplassEndreOpplaringKategorisering - oppretter ny varsel via handleNyttVarsel med sammenslaing av ventende varsel`() {
             // Arrange
             val deltakerId = UUID.randomUUID()
             val oppgave = Varselsdata.varsel(
