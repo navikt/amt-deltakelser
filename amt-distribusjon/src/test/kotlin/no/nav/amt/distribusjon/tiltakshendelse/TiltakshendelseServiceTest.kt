@@ -17,6 +17,7 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -142,6 +143,32 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 hendelser shouldBe listOf(opprettPrisendring1.id, opprettPrisendring2.id)
                 aktiv shouldBe true
             }
+        }
+
+        @Test
+        fun `handleHendelse - prisendring for SOKT_INN - ignoreres`() {
+            // Arrange
+            val soktInnDeltaker = Hendelsesdata.lagDeltaker().copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+            val prisendring = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassEndrePrisinfo(
+                    prisinfo = PrisinformasjonDto.IngenKostnader(
+                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                        tilleggsopplysninger = null,
+                    ),
+                ),
+                deltaker = soktInnDeltaker,
+            )
+
+            // Act
+            Database.transaction {
+                tiltakshendelseService.handleHendelse(prisendring)
+            }
+
+            // Assert
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(prisendring.id)
+            tiltakshendelse.isFailure shouldBe true
         }
 
         @Test
