@@ -134,6 +134,7 @@ fun tilEndringDto(
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
+    is HendelseType.EnkeltplassTilbakekallPrisendring,
     is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.EndreSluttarsak,

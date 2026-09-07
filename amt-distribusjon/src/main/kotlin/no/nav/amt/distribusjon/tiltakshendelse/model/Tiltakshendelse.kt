@@ -21,5 +21,6 @@ data class Tiltakshendelse(
     enum class Type {
         FORSLAG,
         UTKAST,
+        PRISENDRING,
     }
 }

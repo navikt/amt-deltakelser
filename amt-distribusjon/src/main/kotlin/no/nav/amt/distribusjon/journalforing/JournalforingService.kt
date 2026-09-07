@@ -100,6 +100,7 @@ class JournalforingService(
             is HendelseType.AvbrytUtkast,
             is HendelseType.DeltakerSistBesokt,
             is HendelseType.EnkeltplassEndrePrisinfo, // håndteres med EnkeltplassGodkjennPrisendring
+            is HendelseType.EnkeltplassTilbakekallPrisendring,
             -> Unit
 
             is HendelseType.SettPaaVenteliste -> journalforOgSendVentelisteBrev(hendelse, journalforingstatus)

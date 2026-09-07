@@ -35,6 +35,7 @@ data class Hendelse(
 
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast, // hovedvedtak
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassTilbakekallPrisendring,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
@@ -62,6 +63,7 @@ data class Hendelse(
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassTilbakekallPrisendring,
         is HendelseType.EnkeltplassGodkjennPrisendring,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
@@ -95,6 +97,7 @@ data class Hendelse(
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
         is HendelseType.EnkeltplassEndrePrisinfo,
+        is HendelseType.EnkeltplassTilbakekallPrisendring,
         is HendelseType.EnkeltplassGodkjennPrisendring,
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.EndreUtkast,

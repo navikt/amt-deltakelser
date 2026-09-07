@@ -97,8 +97,8 @@ fun Routing.registerEnkeltplassApi(
                 val request: EnkeltplassTilbakekallPrisinfoRequest = call.receive()
 
                 gjennomforingUpserter.produserTilbakekallPrisendring(
-                    call.getDeltakerId(),
-                    request.endretAv,
+                    deltakerId = call.getDeltakerId(),
+                    endretAvNavIdent = request.endretAv,
                 )
 
                 call.respond(HttpStatusCode.OK)

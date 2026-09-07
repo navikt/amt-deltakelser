@@ -20,6 +20,7 @@ class TiltakshendelseService(
 
     companion object {
         const val UTKAST_TIL_PAMELDING_TEKST = "Utkast til påmelding"
+        const val PRISINFO_TIL_GODKJENNING_TEKST = "Prisinfo til godkjenning"
     }
 
     fun handleHendelse(hendelse: Hendelse) {
@@ -29,11 +30,32 @@ class TiltakshendelseService(
         }
 
         when (hendelse.payload) {
-            is HendelseType.OpprettUtkast -> opprettStartHendelse(hendelse)
+            is HendelseType.OpprettUtkast -> opprettStartHendelse(
+                hendelse = hendelse,
+                type = Tiltakshendelse.Type.UTKAST,
+                tekst = UTKAST_TIL_PAMELDING_TEKST,
+            )
+
+            is HendelseType.EnkeltplassEndrePrisinfo -> opprettStartHendelse(
+                hendelse = hendelse,
+                type = Tiltakshendelse.Type.PRISENDRING,
+                tekst = PRISINFO_TIL_GODKJENNING_TEKST,
+            )
+
             is HendelseType.AvbrytUtkast,
             is HendelseType.InnbyggerGodkjennUtkast,
             is HendelseType.NavGodkjennUtkast,
-            -> stoppUtkastHendelse(hendelse)
+            -> stoppHendelse(
+                hendelse = hendelse,
+                hendelseType = Tiltakshendelse.Type.UTKAST,
+            )
+
+            is HendelseType.EnkeltplassGodkjennPrisendring,
+            is HendelseType.EnkeltplassTilbakekallPrisendring,
+            -> stoppHendelse(
+                hendelse = hendelse,
+                hendelseType = Tiltakshendelse.Type.PRISENDRING,
+            )
 
             else -> Unit
         }
@@ -81,8 +103,17 @@ class TiltakshendelseService(
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
 
-    private fun opprettStartHendelse(hendelse: Hendelse) {
-        lagreOgDistribuer(hendelse.toTiltakshendelse())
+    private fun opprettStartHendelse(
+        hendelse: Hendelse,
+        type: Tiltakshendelse.Type,
+        tekst: String,
+    ) {
+        lagreOgDistribuer(
+            hendelse.toTiltakshendelse(
+                type = type,
+                tekst = tekst,
+            ),
+        )
     }
 
     private suspend fun opprettStartHendelse(forslag: Forslag) {
@@ -99,14 +130,21 @@ class TiltakshendelseService(
         }
     }
 
-    private fun stoppUtkastHendelse(hendelse: Hendelse) {
-        tiltakshendelseRepository.getHendelse(hendelse.deltaker.id).onSuccess {
-            val inaktivertHendelse = it.copy(
-                aktiv = false,
-                hendelser = it.hendelser.plus(hendelse.id),
-            )
-            lagreOgDistribuer(inaktivertHendelse)
-        }
+    private fun stoppHendelse(
+        hendelse: Hendelse,
+        hendelseType: Tiltakshendelse.Type,
+    ) {
+        tiltakshendelseRepository
+            .getHendelse(
+                deltakerId = hendelse.deltaker.id,
+                hendelseType = hendelseType,
+            ).onSuccess { hendelseFraDb ->
+                val inaktivertHendelse = hendelseFraDb.copy(
+                    aktiv = false,
+                    hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
+                )
+                lagreOgDistribuer(inaktivertHendelse)
+            }
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
@@ -133,24 +171,21 @@ fun Forslag.toHendelse(
     opprettet = opprettet,
 )
 
-fun Hendelse.toTiltakshendelse() = when (this.payload) {
-    is HendelseType.OpprettUtkast -> Tiltakshendelse(
-        id = UUID.randomUUID(),
-        type = Tiltakshendelse.Type.UTKAST,
-        deltakerId = this.deltaker.id,
-        forslagId = null,
-        hendelser = listOf(this.id),
-        personident = this.deltaker.personident,
-        aktiv = true,
-        tekst = UTKAST_TIL_PAMELDING_TEKST,
-        tiltakskode = this.deltaker.deltakerliste.tiltak.tiltakskode,
-        opprettet = this.opprettet,
-    )
-
-    else -> throw IllegalArgumentException(
-        "Kan ikke lage tiltakshendelse for hendelse ${this.id} av type ${this.payload.javaClass.simpleName}",
-    )
-}
+fun Hendelse.toTiltakshendelse(
+    type: Tiltakshendelse.Type = Tiltakshendelse.Type.UTKAST,
+    tekst: String = UTKAST_TIL_PAMELDING_TEKST,
+): Tiltakshendelse = Tiltakshendelse(
+    id = UUID.randomUUID(),
+    type = type,
+    deltakerId = this.deltaker.id,
+    forslagId = null,
+    hendelser = listOf(this.id),
+    personident = this.deltaker.personident,
+    aktiv = true,
+    tekst = tekst,
+    tiltakskode = this.deltaker.deltakerliste.tiltak.tiltakskode,
+    opprettet = this.opprettet,
+)
 
 fun getForslagHendelseTekst(forslag: Forslag): String {
     val forslagtekst = "Forslag:"
