@@ -21,6 +21,7 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
     companion object {
@@ -453,6 +454,67 @@ class PrisinfoRepoAdapterTest {
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldBeNull()
+        }
+
+        @Test
+        fun `godkjennOkonomi returnerer false for historisk prisinformasjonId og lar mappinger vaere uendret`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+            val gjeldendePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = gjeldendePrisinfo,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = gjeldendePrisinfoId,
+            )
+
+            val endringPrisinfo = Anskaffelse(pris = 20000)
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = endringPrisinfo,
+            )
+            val aktivEndringId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
+            val stalePrisinfoId = UUID.randomUUID()
+
+            val endringFoer = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                ).shouldNotBeNull()
+            val gjeldendeFoer = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                ).shouldNotBeNull()
+
+            // Act
+            val result = PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjonId = stalePrisinfoId,
+            )
+
+            // Assert
+            result shouldBe false
+            Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
+
+            val endringEtter = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                ).shouldNotBeNull()
+            val gjeldendeEtter = PrisinfoRepository
+                .hentPrisinfo(
+                    gjennomforingId = gjennomforingInTest.id,
+                    rolle = PrisinfoDbo.Rolle.GJELDENDE,
+                ).shouldNotBeNull()
+
+            endringEtter.id shouldBe endringFoer.id
+            endringEtter.status shouldBe endringFoer.status
+            gjeldendeEtter.id shouldBe gjeldendeFoer.id
+            gjeldendeEtter.status shouldBe gjeldendeFoer.status
         }
     }
 

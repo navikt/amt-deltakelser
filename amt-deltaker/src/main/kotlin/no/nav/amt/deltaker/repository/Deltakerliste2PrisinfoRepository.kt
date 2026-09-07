@@ -48,22 +48,20 @@ object Deltakerliste2PrisinfoRepository {
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
         rolle: PrisinfoDbo.Rolle,
-    ) {
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    """
-                    DELETE FROM deltakerliste_2_prisinformasjon
-                    WHERE 
-                        deltakerliste_id = ? 
-                        AND prisinformasjon_id = ?
-                        AND rolle = ?
-                    """.trimIndent(),
-                    gjennomforingId,
-                    prisinformasjonId,
-                    rolle.name,
-                ),
-            )
-        }
+    ): Int = Database.query { session ->
+        session.update(
+            queryOf(
+                """
+                DELETE FROM deltakerliste_2_prisinformasjon
+                WHERE 
+                    deltakerliste_id = ? 
+                    AND prisinformasjon_id = ?
+                    AND rolle = ?
+                """.trimIndent(),
+                gjennomforingId,
+                prisinformasjonId,
+                rolle.name,
+            ),
+        )
     }
 }

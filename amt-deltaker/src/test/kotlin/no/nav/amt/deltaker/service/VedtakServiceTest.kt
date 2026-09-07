@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -20,6 +21,9 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -95,10 +99,8 @@ class VedtakServiceTest {
 
     @Nested
     inner class OpprettEllerOppdaterVedtakTests {
-        val endretAvAnsatt = no.nav.amt.lib.testing.utils.TestData
-            .lagNavAnsatt()
-        val endretAvEnhet = no.nav.amt.lib.testing.utils.TestData
-            .lagNavEnhet()
+        val endretAvAnsatt = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         @BeforeEach
         fun setup() = TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
@@ -158,10 +160,8 @@ class VedtakServiceTest {
     @Nested
     inner class AvbrytVedtakTests {
         val deltaker = TestData.lagDeltaker()
-        val avbruttAvAnsatt = no.nav.amt.lib.testing.utils.TestData
-            .lagNavAnsatt()
-        val avbryttAvEnhet = no.nav.amt.lib.testing.utils.TestData
-            .lagNavEnhet()
+        val avbruttAvAnsatt = lagNavAnsatt()
+        val avbryttAvEnhet = lagNavEnhet()
 
         @BeforeEach
         fun setup() = TestRepository.insertAll(avbruttAvAnsatt, avbryttAvEnhet)
@@ -242,10 +242,8 @@ class VedtakServiceTest {
             insertVedtak(vedtak)
 
             val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId).copy(bakgrunnsinformasjon = "Endret bakgrunn")
-            val endretAvAnsatt = no.nav.amt.lib.testing.utils.TestData
-                .lagNavAnsatt()
-            val endretAvEnhet = no.nav.amt.lib.testing.utils.TestData
-                .lagNavEnhet()
+            val endretAvAnsatt = lagNavAnsatt()
+            val endretAvEnhet = lagNavEnhet()
             TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
             runTest {
@@ -323,8 +321,13 @@ class VedtakServiceTest {
 
     @Nested
     inner class GodkjentOkonomiFattVedtakTests {
+        val navEnhetInTest = lagNavEnhet()
+        val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
+
         @Test
         fun `godkjentOkonomiFattVedtak - ikke-fattet vedtak finnes - godkjennes og fattes`() {
+            TestRepository.insertAll(navEnhetInTest, navAnsattInTest)
+
             val deltaker = lagDeltakerKladd()
             val vedtakInTest = TestData.lagVedtak(
                 deltakerVedVedtak = deltaker,
@@ -336,7 +339,11 @@ class VedtakServiceTest {
             val deltakerSomGodkjennes = deltaker.copy(bakgrunnsinformasjon = "Godkjent økonomi")
 
             runTest {
-                vedtakService.godkjentOkonomiFattVedtak(deltakerSomGodkjennes)
+                vedtakService.godkjentOkonomiFattVedtak(
+                    deltaker = deltakerSomGodkjennes,
+                    sistEndretAv = navAnsattInTest,
+                    sistEndretAvEnhet = navEnhetInTest,
+                )
 
                 val fattetVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
 
@@ -355,7 +362,11 @@ class VedtakServiceTest {
             val deltaker = lagDeltakerKladd()
 
             val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+                vedtakService.godkjentOkonomiFattVedtak(
+                    deltaker = deltaker,
+                    sistEndretAv = navAnsattInTest,
+                    sistEndretAvEnhet = navEnhetInTest,
+                )
             }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
@@ -368,7 +379,11 @@ class VedtakServiceTest {
             insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalArgumentException> {
-                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+                vedtakService.godkjentOkonomiFattVedtak(
+                    deltaker = deltaker,
+                    sistEndretAv = navAnsattInTest,
+                    sistEndretAvEnhet = navEnhetInTest,
+                )
             }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
@@ -381,7 +396,11 @@ class VedtakServiceTest {
             insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalStateException> {
-                vedtakService.godkjentOkonomiFattVedtak(deltaker)
+                vedtakService.godkjentOkonomiFattVedtak(
+                    deltaker = deltaker,
+                    sistEndretAv = navAnsattInTest,
+                    sistEndretAvEnhet = navEnhetInTest,
+                )
             }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
@@ -389,12 +408,11 @@ class VedtakServiceTest {
     }
 
     private fun insertVedtak(vedtak: Vedtak) {
-        val navEnhet = no.nav.amt.lib.testing.utils.TestData
-            .lagNavEnhet(vedtak.opprettetAvEnhet)
+        val navEnhet = lagNavEnhet(vedtak.opprettetAvEnhet)
         navEnhetRepository.upsert(navEnhet)
 
         navAnsattRepository.upsert(
-            no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt(
+            lagNavAnsatt(
                 id = vedtak.opprettetAv,
                 navEnhetId = vedtak.opprettetAvEnhet,
             ),
@@ -405,9 +423,8 @@ class VedtakServiceTest {
 
     private fun lagDeltakerKladd(
         id: UUID = UUID.randomUUID(),
-        navBruker: NavBruker = no.nav.amt.lib.testing.utils.TestData
-            .lagNavBruker(),
-        deltakerliste: Deltakerliste = TestData.lagDeltakerliste(),
+        navBruker: NavBruker = lagNavBruker(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
     ) = TestData.lagDeltaker(
         id = id,
         navBruker = navBruker,

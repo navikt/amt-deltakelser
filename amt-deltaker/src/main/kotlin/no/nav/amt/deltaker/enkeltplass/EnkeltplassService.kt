@@ -195,7 +195,7 @@ class EnkeltplassService(
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
         afterUpdate: ((Deltaker) -> Deltaker)? = null,
     ): Deltaker {
-        require(deltaker.deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
+        require(deltaker.deltakerliste.erNyForskriftOpplaring) {
             "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
         }
 

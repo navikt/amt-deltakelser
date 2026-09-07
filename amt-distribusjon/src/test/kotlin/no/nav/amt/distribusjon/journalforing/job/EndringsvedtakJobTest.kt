@@ -15,6 +15,8 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -99,6 +101,42 @@ class EndringsvedtakJobTest {
         test.job.journalforEndringsvedtak()
 
         coVerify(exactly = 0) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
+    }
+
+    @Test
+    fun `journalforEndringsvedtak - sender EnkeltplassGodkjennPrisendring umiddelbart men samler fortsatt vanlige endringer`() = runTest {
+        val deltakerId = UUID.randomUUID()
+
+        val hendelser = listOf(
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(2),
+                payload = HendelseType.EnkeltplassGodkjennPrisendring(
+                    prisinfo = PrisinformasjonDto.IngenKostnader(
+                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                        tilleggsopplysninger = null,
+                    ),
+                ),
+            ),
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(2),
+                payload = HendelseTypeData.endreStartdato(),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 1 && liste.single().hendelse.payload is HendelseType.EnkeltplassGodkjennPrisendring
+                },
+            )
+        }
+        coVerify(exactly = 1) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
     }
 
     @Test

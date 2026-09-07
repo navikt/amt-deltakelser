@@ -24,6 +24,7 @@ class EnkeltplassHovedvedtakTest :
                 doc.text() shouldContain "Arbeidsforberedende trening"
                 doc.text() shouldContain "Jada Fangst AS"
                 doc.text() shouldContain "Du har fått godkjent opplæringen"
+                doc.select("h2").any { it.text() == "Pris og betalingsbetingelser" } shouldBe true
             }
 
             it("skal vise vedtak- og klageseksjoner") {

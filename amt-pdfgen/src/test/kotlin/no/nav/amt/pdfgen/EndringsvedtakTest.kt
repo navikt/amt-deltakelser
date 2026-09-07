@@ -1,11 +1,13 @@
 package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.ForslagDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.pdfgen.util.DtoBuilders.defaultEndring
@@ -45,7 +47,6 @@ class EndringsvedtakTest :
             }
 
             describe("Endringstyper") {
-
                 val endringer =
                     listOf(
                         defaultEndring(),
@@ -102,6 +103,10 @@ class EndringsvedtakTest :
                             innhold = listOf("Punkt1", "Punkt2"),
                             innholdBeskrivelse = "Beskrivelse",
                         ),
+                        EndringDto.GodkjennPrisendring(
+                            tittel = "Pris og betalingsbetingelser er endret",
+                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        ),
                     )
 
                 describe("pavirkerPris-tekst") {
@@ -143,6 +148,24 @@ class EndringsvedtakTest :
 
                         doc.text() shouldNotContain tekst
                     }
+                }
+
+                it("viser prisinformasjon for GodkjennPrisendring") {
+                    val doc = renderEndringsvedtak(
+                        endringsvedtak(
+                            endringer =
+                                listOf(
+                                    EndringDto.GodkjennPrisendring(
+                                        tittel = "Pris og betalingsbetingelser er endret",
+                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                                    ),
+                                ),
+                        ),
+                    )
+
+                    doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
+                    doc.text() shouldContain "Pris og betalingsbetingelser er endret"
+                    doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen."
                 }
 
                 endringer.forEach { endring ->

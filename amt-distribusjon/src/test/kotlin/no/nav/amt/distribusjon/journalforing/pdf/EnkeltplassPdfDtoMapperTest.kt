@@ -309,11 +309,7 @@ class EnkeltplassPdfDtoMapperTest {
     inner class ToPrisinformasjonTests {
         @Test
         fun `toPrisinformasjon skal returnere Anskaffelse når prisinformasjon er Anskaffelse`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = Anskaffelse(pris = 50000),
-            )
-
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = Anskaffelse(pris = 50000).toPrisinformasjon()
 
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Anskaffelse>()
             resultat.pris shouldBe 50000
@@ -321,27 +317,25 @@ class EnkeltplassPdfDtoMapperTest {
 
         @Test
         fun `toPrisinformasjon skal returnere Tilskudd med sortert liste`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = Tilskudd(
-                    tilskudd = listOf(
-                        TilskuddInfo(
-                            type = Tilskuddstype.STUDIEREISE,
-                            pris = 5000,
-                        ),
-                        TilskuddInfo(
-                            type = Tilskuddstype.SKOLEPENGER,
-                            pris = 10000,
-                        ),
-                        TilskuddInfo(
-                            type = Tilskuddstype.EKSAMENSGEBYR,
-                            pris = 1000,
-                        ),
+            val prisinfoInTest = Tilskudd(
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.STUDIEREISE,
+                        pris = 5000,
                     ),
-                    tilleggsopplysninger = null,
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 10000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 1000,
+                    ),
                 ),
+                tilleggsopplysninger = null,
             )
 
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = prisinfoInTest.toPrisinformasjon()
 
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilskudd.size shouldBe 3
@@ -353,19 +347,17 @@ class EnkeltplassPdfDtoMapperTest {
 
         @Test
         fun `toPrisinformasjon skal inkludere tilleggsopplysninger i Tilskudd`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = Tilskudd(
-                    tilskudd = listOf(
-                        TilskuddInfo(
-                            type = Tilskuddstype.SKOLEPENGER,
-                            pris = 15000,
-                        ),
+            val prisinfoInTest = Tilskudd(
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 15000,
                     ),
-                    tilleggsopplysninger = "Skolepengene dekker lærebøker og materiell",
                 ),
+                tilleggsopplysninger = "Skolepengene dekker lærebøker og materiell",
             )
 
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = prisinfoInTest.toPrisinformasjon()
 
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilleggsopplysninger shouldBe "Skolepengene dekker lærebøker og materiell"
@@ -373,81 +365,62 @@ class EnkeltplassPdfDtoMapperTest {
 
         @Test
         fun `toPrisinformasjon skal returnere IngenKostnader når aarsak er OPPLAERINGEN_ER_KOSTNADSFRI`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
-                ),
+            val prisinfoInTest = IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                tilleggsopplysninger = null,
             )
 
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = prisinfoInTest.toPrisinformasjon()
 
             resultat shouldBe EnkeltplassPdfDto.Prisinformasjon.IngenKostnader
         }
 
         @Test
         fun `toPrisinformasjon skal returnere Innbyggerfinansiert når aarsak er OPPLAERINGEN_ER_EGENFINANSIERT`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                    tilleggsopplysninger = "Deltaker finansierer kurset selv",
-                ),
+            val prisinfoInTest = IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                tilleggsopplysninger = "Deltaker finansierer kurset selv",
             )
 
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = prisinfoInTest.toPrisinformasjon()
 
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert>()
             resultat.tilleggsopplysninger shouldBe "Deltaker finansierer kurset selv"
         }
 
         @Test
-        fun `toPrisinformasjon skal kaste IllegalStateException når prisinformasjon er null`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = null,
-            )
-
-            shouldThrow<IllegalStateException> {
-                deltakerliste.toPrisinformasjon()
-            }
-        }
-
-        @Test
         fun `toPrisinformasjon skal kaste IllegalStateException når tilleggsopplysninger mangler for egenfinansiert`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                    tilleggsopplysninger = null,
-                ),
+            val prisinfoInTest = IngenKostnader(
+                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                tilleggsopplysninger = null,
             )
 
             shouldThrow<IllegalStateException> {
-                deltakerliste.toPrisinformasjon()
+                prisinfoInTest.toPrisinformasjon()
             }
         }
 
         @Test
         fun `toPrisinformasjon skal handlere multiple tilskudd typer korrekt`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = Tilskudd(
-                    tilskudd = listOf(
-                        TilskuddInfo(
-                            type = Tilskuddstype.SEMESTERAVGIFT,
-                            pris = 2000,
-                        ),
-                        TilskuddInfo(
-                            type = Tilskuddstype.INTEGRERT_BOTILBUD,
-                            pris = 8000,
-                        ),
-                        TilskuddInfo(
-                            type = Tilskuddstype.SKOLEPENGER,
-                            pris = 20000,
-                        ),
+            val prisinfoInTest = Tilskudd(
+                tilskudd = listOf(
+                    TilskuddInfo(
+                        type = Tilskuddstype.SEMESTERAVGIFT,
+                        pris = 2000,
                     ),
-                    tilleggsopplysninger = "Omfattende tilskudd",
+                    TilskuddInfo(
+                        type = Tilskuddstype.INTEGRERT_BOTILBUD,
+                        pris = 8000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 20000,
+                    ),
                 ),
+                tilleggsopplysninger = "Omfattende tilskudd",
             )
 
-            val resultat = deltakerliste.toPrisinformasjon()
+            val resultat = prisinfoInTest.toPrisinformasjon()
 
             resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Tilskudd>()
             resultat.tilskudd.size shouldBe 3
@@ -455,18 +428,6 @@ class EnkeltplassPdfDtoMapperTest {
             resultat.tilskudd[1].type shouldBe "Semesteravgift"
             resultat.tilskudd[2].type shouldBe "Integrert botilbud"
             resultat.tilskudd.sumOf { it.pris } shouldBe 30000
-        }
-
-        @Test
-        fun `toPrisinformasjon skal håndtere Anskaffelse med liten pris`() {
-            val deltakerliste = Hendelsesdata.lagDeltakerliste(
-                prisinformasjon = Anskaffelse(pris = 100),
-            )
-
-            val resultat = deltakerliste.toPrisinformasjon()
-
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Anskaffelse>()
-            resultat.pris shouldBe 100
         }
     }
 
@@ -510,9 +471,11 @@ class EnkeltplassPdfDtoMapperTest {
 
         @Test
         fun `lagEnkeltplassInnsokingsbrevPdfDto skal mappe deltaker korrekt`() {
+            // Arrange
             val deltaker = createValidDeltaker()
             val utkast = createValidUtkast()
 
+            // Act
             val enkeltplassPdfDto = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
@@ -521,6 +484,7 @@ class EnkeltplassPdfDtoMapperTest {
                 utkast = utkast,
             )
 
+            // Assert
             assertSoftly(enkeltplassPdfDto) {
                 it.deltaker.fornavn shouldBe navBruker.fornavn
                 it.deltaker.personident shouldBe deltaker.personident
@@ -534,12 +498,14 @@ class EnkeltplassPdfDtoMapperTest {
 
         @Test
         fun `lagEnkeltplassInnsokingsbrevPdfDto skal mappe innholdFritekst fra annet innhold`() {
+            // Arrange
             val deltaker = createValidDeltaker()
             val fritekst = "Spesial fritekst for testen"
             val utkast = createValidUtkast(
                 innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, fritekst)),
             )
 
+            // Act
             val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
@@ -548,14 +514,17 @@ class EnkeltplassPdfDtoMapperTest {
                 utkast = utkast,
             )
 
+            // Assert
             resultat.innholdFritekst shouldBe fritekst
         }
 
         @Test
         fun `lagEnkeltplassInnsokingsbrevPdfDto skal konvertere dagerPerUke til int`() {
+            // Arrange
             val deltaker = createValidDeltaker()
             val utkast = createValidUtkast(dagerPerUke = 3.7f)
 
+            // Act
             val resultat = EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
                 deltaker = deltaker,
                 navBruker = navBruker,
@@ -564,7 +533,33 @@ class EnkeltplassPdfDtoMapperTest {
                 utkast = utkast,
             )
 
+            // Assert
             resultat.deltakelsesmengdeAntallDager shouldBe 3
+        }
+
+        @Test
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal kaste feil naar prisinformasjon mangler`() {
+            // Arrange
+            val gyldigDeltaker = createValidDeltaker()
+            val deltakerUtenPrisinformasjon = gyldigDeltaker.copy(
+                deltakerliste = gyldigDeltaker.deltakerliste.copy(prisinformasjon = null),
+            )
+            val utkast = createValidUtkast()
+
+            // Act
+            val exception = shouldThrow<IllegalStateException> {
+                EnkeltplassPdfDtoMapper.lagEnkeltplassPdfDto(
+                    deltaker = deltakerUtenPrisinformasjon,
+                    navBruker = navBruker,
+                    veileder = veileder,
+                    opprettetDato = opprettetDato,
+                    utkast = utkast,
+                )
+            }
+
+            // Assert
+            exception.message shouldBe
+                "Deltakerliste ${deltakerUtenPrisinformasjon.deltakerliste.id} må ha prisinformasjon for å lage enkeltplass innsøkingsbrev"
         }
     }
 }

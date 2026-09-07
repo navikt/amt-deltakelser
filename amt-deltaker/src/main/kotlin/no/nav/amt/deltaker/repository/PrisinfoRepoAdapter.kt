@@ -41,16 +41,19 @@ object PrisinfoRepoAdapter {
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
      * @param prisinformasjonId ID til prisinfoen som skal godkjennes
+     * @return `true` hvis godkjenningen var vellykket, `false` hvis prisinfoen ikke finnes eller ikke er ENDRING
      */
     fun godkjennOkonomi(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
-    ) {
-        Deltakerliste2PrisinfoRepository.delete(
+    ): Boolean {
+        val endringFinnes = Deltakerliste2PrisinfoRepository.delete(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
-        )
+        ) > 0
+
+        if (!endringFinnes) return false
 
         Deltakerliste2PrisinfoRepository.upsert(
             gjennomforingId = gjennomforingId,
@@ -62,6 +65,8 @@ object PrisinfoRepoAdapter {
             prisinformasjonId = prisinformasjonId,
             status = PrisinfoDbo.PrisinfoStatus.GODKJENT,
         )
+
+        return true
     }
 
     fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository

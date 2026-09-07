@@ -34,6 +34,7 @@ class VarselService(
             is HendelseType.NavGodkjennUtkast,
             is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
             is HendelseType.EnkeltplassEndrePrisinfo,
+            is HendelseType.EnkeltplassGodkjennPrisendring,
             is HendelseType.EnkeltplassEndreOpplaringKategorisering,
             -> {
                 inaktiverOppgave(hendelse.deltaker)
@@ -264,6 +265,7 @@ fun Hendelse.skalVarslesEksternt() = when (payload) {
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
+    is HendelseType.EnkeltplassGodkjennPrisendring,
     is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.OpprettUtkast,
     is HendelseType.AvsluttDeltakelse,

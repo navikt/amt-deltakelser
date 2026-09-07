@@ -12,6 +12,7 @@ import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnho
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
@@ -62,7 +63,11 @@ object EnkeltplassPdfDtoMapper {
             ),
         deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt(),
         innhold = deltaker.deltakerliste.toInnhold(),
-        prisinformasjon = deltaker.deltakerliste.toPrisinformasjon(),
+        prisinformasjon = deltaker.deltakerliste.prisinformasjon
+            ?.toPrisinformasjon()
+            ?: throw IllegalStateException(
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha prisinformasjon for å lage enkeltplass innsøkingsbrev",
+            ),
     )
 
     internal fun Tilskuddstype.visningsnavn(): String = when (this) {
@@ -73,36 +78,31 @@ object EnkeltplassPdfDtoMapper {
         Tilskuddstype.INTEGRERT_BOTILBUD -> "Integrert botilbud"
     }
 
-    internal fun HendelseDeltaker.Deltakerliste.toPrisinformasjon(): Prisinformasjon {
-        val prisinfoFraDeltakerliste = prisinformasjon
-            ?: throw IllegalStateException("Deltakerliste ${this.id} må ha prisinformasjon for å lage enkeltplass innsøkingsbrev")
+    internal fun PrisinformasjonDto.toPrisinformasjon(): Prisinformasjon = when (this) {
+        is Anskaffelse -> Prisinformasjon.Anskaffelse(
+            pris = pris,
+        )
 
-        return when (prisinfoFraDeltakerliste) {
-            is Anskaffelse -> Prisinformasjon.Anskaffelse(
-                pris = prisinfoFraDeltakerliste.pris,
-            )
-
-            is Tilskudd -> Prisinformasjon.Tilskudd(
-                tilskudd = prisinfoFraDeltakerliste.tilskudd
-                    .sortedBy { it.type.sortOrder }
-                    .map {
-                        Prisinformasjon.Tilskudd.TilskuddInfo(
-                            type = it.type.visningsnavn(),
-                            pris = it.pris,
-                        )
-                    },
-                tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger,
-            )
-
-            is IngenKostnader -> {
-                when (prisinfoFraDeltakerliste.aarsak) {
-                    Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
-                    Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
-                        tilleggsopplysninger = prisinfoFraDeltakerliste.tilleggsopplysninger ?: throw IllegalStateException(
-                            "tilleggsopplysninger må være satt for innbyggerfinansiert prisinformasjon",
-                        ),
+        is Tilskudd -> Prisinformasjon.Tilskudd(
+            tilskudd = tilskudd
+                .sortedBy { it.type.sortOrder }
+                .map {
+                    Prisinformasjon.Tilskudd.TilskuddInfo(
+                        type = it.type.visningsnavn(),
+                        pris = it.pris,
                     )
-                }
+                },
+            tilleggsopplysninger = tilleggsopplysninger,
+        )
+
+        is IngenKostnader -> {
+            when (aarsak) {
+                Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
+                Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
+                    tilleggsopplysninger = tilleggsopplysninger ?: throw IllegalStateException(
+                        "tilleggsopplysninger må være satt for innbyggerfinansiert prisinformasjon",
+                    ),
+                )
             }
         }
     }
