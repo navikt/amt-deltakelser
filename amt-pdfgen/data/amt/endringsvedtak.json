@@ -96,7 +96,8 @@
           "Sertifisering 1"
         ]
       },
-      "innholdFritekst": "Fritekst om hva opplæringen inneholder"
+      "innholdFritekst": "Fritekst om hva opplæringen inneholder",
+      "pavirkerPris": true
     },
     {
       "tittel": "Innholdet er endret",
@@ -108,7 +109,8 @@
           "Drift av IKT-systemer"
         ]
       },
-      "innholdFritekst": "Fritekst om hva opplæringen inneholder"
+      "innholdFritekst": "",
+      "pavirkerPris": true
     },
     {
       "tittel": "Søknaden er avslått",

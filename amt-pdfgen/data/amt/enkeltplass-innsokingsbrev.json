@@ -1,0 +1,44 @@
+{
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "personident": "12345678910"
+  },
+  "deltakerliste": {
+    "tiltaksnavn": "Fag- og yrkesopplæring",
+    "arrangornavn": "Muligheter AS",
+    "startdato": "2025-05-04",
+    "sluttdato": "2026-05-04",
+    "oppstartstype": "LOPENDE"
+  },
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkalleen"
+  },
+  "opprettetDato": "2024-04-30",
+  "innholdFritekst": "Du søker opplæring i sveising med tilhørende teori.",
+  "deltakelsesmengdeAntallDager": 5,
+  "innhold": {
+    "type": "FagOgYrkesopplaering",
+    "utdanningsprogram": "Teknologi- og industrifag",
+    "laerefag": [
+      "Sveiserfaget",
+      "Platearbeiderfaget"
+    ]
+  },
+  "prisinformasjon": {
+    "type": "Tilskudd",
+    "tilskudd": [
+      {
+        "type": "Skolepenger",
+        "pris": 30000
+      },
+      {
+        "type": "Utstyr",
+        "pris": 5000
+      }
+    ],
+    "tilleggsopplysninger": "Utbetaling skjer etterskuddsvis ved dokumenterte utgifter."
+  }
+}

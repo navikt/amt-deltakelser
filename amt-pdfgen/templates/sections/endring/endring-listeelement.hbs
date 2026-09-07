@@ -22,7 +22,7 @@
     {{/if}}
 
    {{#if this.erEnkeltplassinnhold}}
-        {{> sections/enkeltplass-innhold}}
+        {{> sections/enkeltplass-innhold hideHeading=true}}
     {{/if}}
 
     {{#if this.begrunnelseFraNav}}
@@ -30,8 +30,7 @@
     {{/if}}
 
     {{#if this.pavirkerPris}}
-        <br/>
-        <p>Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette.</p>
+        <p class="margins-0-5-rem"> Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette.</p>
     {{/if}}
 
     {{#if this.prisinformasjon}}
