@@ -149,7 +149,6 @@ class TotrinnskontrollConsumer(
 
             TotrinnskontrollType.ENKELTPLASS_PRISENDRING -> {
                 if (deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-                    // hvis deltaker har status SOKT_INN, prosesserer prisendringen som godkjent innsoking
                     processGodkjentInnsoking(
                         deltaker = deltaker,
                         prisinfoId = totrinnskontrollHendelse.id,
@@ -157,7 +156,6 @@ class TotrinnskontrollConsumer(
                         behandletAvNavEnhet = behandletAvNavEnhet,
                     )
                 } else {
-                    // hvis deltaker har status etter SOKT_INN, prosesserer prisendringen som endring
                     processGodkjentPrisEndring(
                         deltaker = deltaker,
                         prisinfoId = totrinnskontrollHendelse.id,
