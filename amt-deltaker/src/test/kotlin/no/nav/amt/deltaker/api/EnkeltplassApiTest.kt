@@ -15,9 +15,11 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
@@ -34,6 +36,9 @@ import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpprettKladdEnkeltplassRequest
+import no.nav.amt.internapi.hendelse.Hendelse
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -326,6 +331,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val deltakerInTest = lagDeltaker()
             val navEnhetInTest = lagNavEnhet()
             val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
+            val prisinformasjonId = UUID.randomUUID()
 
             every { navAnsattRepository.get(any<String>()) } returns navAnsattInTest
             every { navEnhetRepository.get(navEnhetInTest.id) } returns navEnhetInTest
@@ -335,7 +341,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                     deltakerId = deltakerInTest.id,
                     endretAvNavIdent = "~endretAv~",
                 )
-            } returns UUID.randomUUID()
+            } returns prisinformasjonId
 
             val request = EnkeltplassTilbakekallPrisinfoRequest(
                 endretAv = "~endretAv~",
@@ -357,6 +363,24 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                     deltakerId = deltakerInTest.id,
                     endretAvNavIdent = "~endretAv~",
                 )
+            }
+
+            val hendelseSlot = slot<Hendelse>()
+            verify {
+                outboxService.insertRecord(
+                    key = deltakerInTest.id,
+                    value = capture(hendelseSlot),
+                    topic = Environment.DELTAKER_HENDELSE_TOPIC,
+                    suppressOutsideTxWarning = false,
+                )
+            }
+
+            hendelseSlot.captured.payload shouldBe HendelseType.EnkeltplassTilbakekallPrisendring(prisinformasjonId)
+            (hendelseSlot.captured.ansvarlig as HendelseAnsvarlig.NavVeileder).let {
+                it.id shouldBe navAnsattInTest.id
+                it.navIdent shouldBe navAnsattInTest.navIdent
+                it.enhet.id shouldBe navEnhetInTest.id
+                it.enhet.enhetsnummer shouldBe navEnhetInTest.enhetsnummer
             }
         }
     }
