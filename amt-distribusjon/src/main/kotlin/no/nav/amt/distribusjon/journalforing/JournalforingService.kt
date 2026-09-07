@@ -54,10 +54,6 @@ class JournalforingService(
                 journalforingstatus = journalforingstatus,
             )
 
-            is HendelseType.EnkeltplassEndreOpplaringKategorisering -> {
-                // TODO, ennå ikke opprettet kort i Trello
-            }
-
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,
@@ -85,6 +81,7 @@ class JournalforingService(
             is HendelseType.ForlengDeltakelse,
             is HendelseType.IkkeAktuell,
             is HendelseType.EndreInnhold,
+            is HendelseType.EnkeltplassEndreOpplaringKategorisering,
             is HendelseType.EndreBakgrunnsinformasjon,
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
