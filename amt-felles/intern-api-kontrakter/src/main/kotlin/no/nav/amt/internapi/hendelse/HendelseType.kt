@@ -51,6 +51,7 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
     ) : HendelseSystemKanOpprette
 
+    // medfører hovedvedtak
     data class EnkeltplassOkonomiGodkjennUtkast(
         val utkast: UtkastDto,
     ) : HendelseType
@@ -59,6 +60,7 @@ sealed interface HendelseType {
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
+    // medfører endringsvedtak
     data class EnkeltplassGodkjennPrisendring(
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
