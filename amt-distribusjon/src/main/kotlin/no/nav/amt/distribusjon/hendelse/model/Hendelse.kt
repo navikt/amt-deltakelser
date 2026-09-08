@@ -31,12 +31,12 @@ data class Hendelse(
         is HendelseType.Avslag,
         is HendelseType.EndreAvslutning,
         is HendelseType.EnkeltplassGodkjennPrisendring, // endringsvedtak
+        is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         -> true
 
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast, // hovedvedtak
         is HendelseType.EnkeltplassEndrePrisinfo,
         is HendelseType.EnkeltplassTilbakekallPrisendring,
-        is HendelseType.EnkeltplassEndreOpplaringKategorisering,
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,
         is HendelseType.EndreSluttarsak,

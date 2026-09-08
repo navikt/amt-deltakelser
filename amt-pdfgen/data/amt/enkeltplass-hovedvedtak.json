@@ -1,0 +1,34 @@
+{
+  "deltaker": {
+    "fornavn": "Navn",
+    "mellomnavn": null,
+    "etternavn": "Navnersen",
+    "personident": "12345678910"
+  },
+  "deltakerliste": {
+    "tiltaksnavn": "Arbeidsmarkedsopplæring",
+    "arrangornavn": "Muligheter AS",
+    "startdato": "2025-05-04",
+    "sluttdato": "2026-05-04",
+    "oppstartstype": "LOPENDE"
+  },
+  "avsender": {
+    "navn": "Veileder Veiledersen",
+    "enhet": "Nav Fyrstikkalleen"
+  },
+  "opprettetDato": "2024-04-30",
+  "innholdFritekst": "Du skal ta sveiseopplæring med teori og praksis.",
+  "deltakelsesmengdeAntallDager": 4,
+  "innhold": {
+    "type": "Arbeidsmarkedsopplaering",
+    "bransje": "Bygg og anlegg",
+    "forerkortOgSertifiseringer": [
+      "Førerkort klasse B",
+      "Sertifisert sikkerhetsopplæring"
+    ]
+  },
+  "prisinformasjon": {
+    "type": "Anskaffelse",
+    "pris": 45000
+  }
+}
