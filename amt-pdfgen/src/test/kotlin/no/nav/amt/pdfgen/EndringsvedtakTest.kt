@@ -111,7 +111,7 @@ class EndringsvedtakTest :
 
                 describe("pavirkerPris-tekst") {
                     val tekst =
-                        "Endringen forutsetter at endringer i pris eller betalingsbetingelser blir godkjent. Du vil bli informert om dette i et eget vedtak."
+                        "Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette."
 
                     it("viser teksten når pavirkerPris er true på endringstype som støtter feltet") {
                         val doc = renderEndringsvedtak(
@@ -166,6 +166,51 @@ class EndringsvedtakTest :
                     doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
                     doc.text() shouldContain "Pris og betalingsbetingelser er endret"
                     doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen."
+
+                }
+
+                describe("erEnkeltplassinnhold") {
+                    it("viser enkeltplass-innhold og skjuler standard innholdsliste når flagget er true") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                            tittel = "Innholdet er endret",
+                                            innholdFritekst = "Fritekst om hva opplæringen inneholder",
+                                            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Arbeidsmarkedsopplaering(
+                                                bransje = "Bygg og anlegg",
+                                                forerkortOgSertifiseringer = listOf("B - Personbil"),
+                                            ),
+                                            erEnkeltplassinnhold = true,
+                                            pavirkerPris = false,
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldContain "Fritekst om hva opplæringen inneholder"
+                        doc.text() shouldContain "Bransje: Bygg og anlegg"
+                        doc.text() shouldNotContain "Dette er ledeteksten"
+                    }
+
+                    it("viser standard innholdsliste når flagget ikke er med i data") {
+                        val doc = renderEndringsvedtak(
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EndreInnhold(
+                                            innhold = listOf("Innhold 1", "Innhold 2"),
+                                            innholdBeskrivelse = null,
+                                            tittel = "Innholdet er endret",
+                                        ),
+                                    ),
+                            ),
+                        )
+
+                        doc.text() shouldContain "Innhold 1"
+                        doc.text() shouldContain "Innhold 2"
+                    }
                 }
 
                 endringer.forEach { endring ->

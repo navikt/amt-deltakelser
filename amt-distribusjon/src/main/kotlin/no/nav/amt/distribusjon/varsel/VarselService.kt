@@ -36,7 +36,6 @@ class VarselService(
             is HendelseType.EnkeltplassEndrePrisinfo,
             is HendelseType.EnkeltplassTilbakekallPrisendring,
             is HendelseType.EnkeltplassGodkjennPrisendring,
-            is HendelseType.EnkeltplassEndreOpplaringKategorisering,
             -> {
                 inaktiverOppgave(hendelse.deltaker)
                 val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
@@ -55,6 +54,7 @@ class VarselService(
             is HendelseType.IkkeAktuell,
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
+            is HendelseType.EnkeltplassEndreOpplaringKategorisering,
             -> handleNyttVarsel(slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse)))
 
             is HendelseType.EndreUtkast,
@@ -250,6 +250,7 @@ fun Hendelse.skalVarslesEksternt() = when (payload) {
     is HendelseType.EndreBakgrunnsinformasjon,
     is HendelseType.EndreDeltakelsesmengde,
     is HendelseType.EndreInnhold,
+    is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.EndreSluttarsak,
     is HendelseType.EndreStartdato,
     is HendelseType.EndreUtkast,
@@ -268,7 +269,6 @@ fun Hendelse.skalVarslesEksternt() = when (payload) {
     is HendelseType.EnkeltplassEndrePrisinfo,
     is HendelseType.EnkeltplassTilbakekallPrisendring,
     is HendelseType.EnkeltplassGodkjennPrisendring,
-    is HendelseType.EnkeltplassEndreOpplaringKategorisering,
     is HendelseType.OpprettUtkast,
     is HendelseType.AvsluttDeltakelse,
     is HendelseType.AvbrytDeltakelse,

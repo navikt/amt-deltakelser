@@ -5,7 +5,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.tiltakskodenavn
-import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toInnhold
 import no.nav.amt.distribusjon.journalforing.pdf.EnkeltplassPdfDtoMapper.toPrisinformasjon
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
@@ -157,7 +156,7 @@ class EnkeltplassPdfDtoMapperTest {
     @Nested
     inner class ToInnholdTests {
         @Test
-        fun `toInnhold skal returnere UtenInnhold når KURSTYPE_ID finnes`() {
+        fun `toEnkeltplassInnhold skal returnere UtenInnhold når KURSTYPE_ID finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -172,13 +171,14 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            val resultat = deltakerliste.toInnhold()
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
 
             resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
-        fun `toInnhold skal returnere Arbeidsmarkedsopplaering når BRANSJE_ID finnes`() {
+        fun `toEnkeltplassInnhold skal returnere Arbeidsmarkedsopplaering når BRANSJE_ID finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -192,7 +192,8 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            val resultat = deltakerliste.toInnhold()
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
 
             resultat.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
@@ -200,7 +201,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal inkludere forerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
+        fun `toEnkeltplassInnhold skal inkludere forerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -218,7 +219,8 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            val resultat = deltakerliste.toInnhold()
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
 
             resultat.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()
             resultat.bransje shouldBe "Elektrikk"
@@ -226,7 +228,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal returnere FagOgYrkesopplaering når UTDANNINGSPROGRAM_ID finnes`() {
+        fun `toEnkeltplassInnhold skal returnere FagOgYrkesopplaering når UTDANNINGSPROGRAM_ID finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -244,7 +246,8 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            val resultat = deltakerliste.toInnhold()
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
 
             resultat.shouldBeInstanceOf<EnkeltplassInnhold.FagOgYrkesopplaering>()
             resultat.utdanningsprogram shouldBe "Helse- og oppvekstfag"
@@ -252,18 +255,19 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toInnhold skal kaste IllegalStateException når opplaringKategoriseringValg er null`() {
+        fun `toEnkeltplassInnhold skal returnere null når opplaringKategoriseringValg er null`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste(
                 opplaringKategoriseringValg = null,
             )
 
-            shouldThrow<IllegalStateException> {
-                deltakerliste.toInnhold()
-            }
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
+
+            resultat shouldBe null
         }
 
         @Test
-        fun `toInnhold skal returnere tomt innhold når ingen gyldig kategoriseringstype finnes`() {
+        fun `toEnkeltplassInnhold skal returnere tomt innhold når ingen gyldig kategoriseringstype finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -277,11 +281,11 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            deltakerliste.toInnhold() shouldBe EnkeltplassInnhold.UtenInnhold
+            deltakerliste.opplaringKategoriseringValg?.toEnkeltplassInnhold() shouldBe EnkeltplassInnhold.UtenInnhold
         }
 
         @Test
-        fun `toInnhold skal prioritere KURSTYPE_ID over andre kategoriseringer`() {
+        fun `toEnkeltplassInnhold skal prioritere KURSTYPE_ID over andre kategoriseringer`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -299,7 +303,8 @@ class EnkeltplassPdfDtoMapperTest {
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             )
 
-            val resultat = deltakerliste.toInnhold()
+            val resultat = deltakerliste.opplaringKategoriseringValg
+                ?.toEnkeltplassInnhold()
 
             resultat shouldBe EnkeltplassInnhold.UtenInnhold
         }

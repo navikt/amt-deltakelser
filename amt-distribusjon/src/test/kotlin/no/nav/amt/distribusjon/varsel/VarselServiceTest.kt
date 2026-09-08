@@ -108,7 +108,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `enkeltplassEndreOpplaringKategorisering - inaktiverer oppgave og oppretter ekstern beskjed`() {
+        fun `enkeltplassEndreOpplaringKategorisering - oppretter ny varsel via handleNyttVarsel med sammenslaing av ventende varsel`() {
             // Arrange
             val deltakerId = UUID.randomUUID()
             val oppgave = Varselsdata.varsel(
@@ -130,17 +130,15 @@ class VarselServiceTest : IntegrationTestBase() {
 
             // Assert
             assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.OPPGAVE).shouldBeSuccess()) {
-                status shouldBe Varsel.Status.INAKTIVERT
+                status shouldBe Varsel.Status.AKTIV
             }
 
             assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldBeSuccess()) {
                 type shouldBe Varsel.Type.BESKJED
-                status shouldBe Varsel.Status.AKTIV
-                erEksterntVarsel shouldBe true
-                revarsles.shouldNotBeNull()
+                status shouldBe Varsel.Status.VENTER_PA_UTSENDELSE
+                erEksterntVarsel shouldBe false
+                revarsles shouldBe null
             }
-
-            verify { outboxService.insertRecord(oppgave.id, any(), any()) }
         }
 
         @Test
