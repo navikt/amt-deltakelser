@@ -72,7 +72,7 @@ sealed interface HendelseType {
 
     data class EnkeltplassEndreOpplaringKategorisering(
         val opplaringKategoriseringValg: OpplaringKategoriseringValg,
-        val innholdFritekst: String = "",
+        val innholdFritekst: String? = null,
         val pavirkerPris: Boolean = false,
     ) : HendelseType
 

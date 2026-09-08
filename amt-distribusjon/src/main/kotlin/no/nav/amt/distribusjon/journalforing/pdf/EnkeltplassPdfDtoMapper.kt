@@ -12,6 +12,7 @@ import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnho
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
@@ -62,7 +63,11 @@ object EnkeltplassPdfDtoMapper {
                 "Deltakerliste ${deltaker.deltakerliste.id} må ha beskrivelse for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
         deltakelsesmengdeAntallDager = utkast.dagerPerUke?.toInt(),
-        innhold = deltaker.deltakerliste.toInnhold(),
+        innhold = deltaker.deltakerliste.opplaringKategoriseringValg
+            ?.toEnkeltplassInnhold()
+            ?: throw IllegalStateException(
+                "Deltakerliste ${deltaker.deltakerliste.id} må ha opplæring kategorisering for å lage enkeltplass innsøkingsbrev",
+            ),
         prisinformasjon = deltaker.deltakerliste.prisinformasjon
             ?.toPrisinformasjon()
             ?: throw IllegalStateException(
@@ -138,7 +143,7 @@ object EnkeltplassPdfDtoMapper {
     }
 }
 
-internal fun no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg.toEnkeltplassInnhold(): EnkeltplassInnhold {
+internal fun OpplaringKategoriseringValg.toEnkeltplassInnhold(): EnkeltplassInnhold {
     val representerSet = this.hentRepresenterer()
 
     return when {

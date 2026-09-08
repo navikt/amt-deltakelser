@@ -136,7 +136,7 @@ sealed interface EndringDto {
     ) : EndringDto
 
     data class EnkeltplassEndreOpplaringKategorisering(
-        val innholdFritekst: String,
+        val innholdFritekst: String?,
         val innhold: EnkeltplassInnhold,
         val pavirkerPris: Boolean = false,
         val erEnkeltplassinnhold: Boolean,
