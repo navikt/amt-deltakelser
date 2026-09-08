@@ -78,6 +78,48 @@ class DeltakerExtensionsTest {
     }
 
     @Test
+    fun `endreDeltakersOppstart - gjeldende mengde med null dagerPerUke - nullstiller ikke til gammel verdi`() {
+        val nyStartdato = LocalDate.now().plusMonths(1)
+        val gammelStartdato = nyStartdato.minusMonths(1)
+
+        val gjeldendeMengde = Deltakelsesmengde(
+            deltakelsesprosent = 40F,
+            dagerPerUke = null,
+            gyldigFra = nyStartdato,
+            opprettet = gammelStartdato.atStartOfDay(),
+        )
+        val fremtidigMengde = Deltakelsesmengde(
+            deltakelsesprosent = 70F,
+            dagerPerUke = 3F,
+            gyldigFra = nyStartdato.plusMonths(1),
+            opprettet = nyStartdato.plusMonths(1).atStartOfDay(),
+        )
+
+        val gammelDeltakelsesmengder = Deltakelsesmengder(
+            listOf(gjeldendeMengde, fremtidigMengde),
+        )
+
+        val deltaker = TestData.lagDeltaker(
+            startdato = gammelStartdato,
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            dagerPerUke = 5F,
+            deltakelsesprosent = 100F,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = nyStartdato,
+            sluttdato = null,
+            deltakelsesmengder = gammelDeltakelsesmengder,
+        )
+
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe null
+            deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
+        }
+    }
+
+    @Test
     fun `endreDeltakersOppstart - null startdato - endrer ikke deltakelsesmengde`() {
         val nyStartdato = null
         val gammelStartdato = LocalDate.now().minusMonths(1)
