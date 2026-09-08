@@ -47,19 +47,29 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun getHendelse(deltakerId: UUID): Result<Tiltakshendelse> = runCatching {
-        val hendelseType: Tiltakshendelse.Type = Tiltakshendelse.Type.UTKAST
-
+    fun getAktivHendelse(
+        deltakerId: UUID,
+        hendelseType: Tiltakshendelse.Type,
+    ): Result<Tiltakshendelse> = runCatching {
         Database.query { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE deltaker_id = :deltaker_id AND type = :type",
+                    """
+                    SELECT *
+                    FROM tiltakshendelse
+                    WHERE 
+                        deltaker_id = :deltaker_id
+                        AND type = :type
+                        AND aktiv = true
+                    ORDER BY modified_at DESC
+                    LIMIT 1
+                    """.trimIndent(),
                     mapOf(
                         "deltaker_id" to deltakerId,
                         "type" to hendelseType.name,
                     ),
                 ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for deltaker $deltakerId og type $hendelseType")
+            ) ?: throw NoSuchElementException("Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType")
         }
     }
 

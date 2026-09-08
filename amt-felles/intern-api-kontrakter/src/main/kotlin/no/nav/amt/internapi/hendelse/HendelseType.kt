@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface HendelseType {
@@ -63,6 +64,10 @@ sealed interface HendelseType {
     // medfører endringsvedtak
     data class EnkeltplassGodkjennPrisendring(
         val prisinfo: PrisinformasjonDto,
+    ) : HendelseType
+
+    data class EnkeltplassTilbakekallPrisendring(
+        val prisinformasjonId: UUID,
     ) : HendelseType
 
     data class EnkeltplassEndreOpplaringKategorisering(

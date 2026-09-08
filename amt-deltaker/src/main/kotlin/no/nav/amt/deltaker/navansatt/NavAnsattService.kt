@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -14,6 +15,15 @@ class NavAnsattService(
     private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun hentNavAnsattOgEnhet(navIdent: String): Pair<NavAnsatt, NavEnhet> {
+        val ansatt = hentEllerOpprettNavAnsatt(navIdent)
+        val enhet = ansatt.navEnhetId
+            ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
+            ?: error("Fant ikke enhet for navIdent $navIdent")
+
+        return ansatt to enhet
+    }
 
     suspend fun hentEllerOpprettNavAnsatt(navIdent: String): NavAnsatt = repository.get(navIdent) ?: run {
         log.info("Fant ikke Nav-ansatt med ident $navIdent, henter fra amt-person-service")

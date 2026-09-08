@@ -4,7 +4,6 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.TotrinnskontrollHendelsePayload.TotrinnskontrollType
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -52,7 +51,6 @@ class TotrinnskontrollConsumer(
     private val vedtakService: VedtakService,
     private val distribuerEndringService: DistribuerEndringService,
     private val navAnsattService: NavAnsattService,
-    private val navEnhetService: NavEnhetService,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -135,7 +133,9 @@ class TotrinnskontrollConsumer(
 
         // hent Nav-ansatt og Nav-enhet for veileder som forespurte godkjenning av økonomi
         require(totrinnskontrollHendelse.behandletAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt)
-        val (behandletAvNavAnsatt, behandletAvNavEnhet) = hentNavAnsattOgEnhet(totrinnskontrollHendelse.behandletAv)
+        val (behandletAvNavAnsatt, behandletAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(
+            totrinnskontrollHendelse.behandletAv.navIdent,
+        )
 
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
@@ -319,17 +319,6 @@ class TotrinnskontrollConsumer(
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
-
-    internal suspend fun hentNavAnsattOgEnhet(
-        behandletAv: TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt,
-    ): Pair<NavAnsatt, NavEnhet> {
-        val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(behandletAv.navIdent)
-        val enhet = ansatt.navEnhetId
-            ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
-            ?: error("Fant ikke enhet for navIdent ${behandletAv.navIdent}")
-
-        return ansatt to enhet
-    }
 
     companion object {
         private const val SKIP_RECORDS_BEFORE_OFFSET_IN_DEV = 5L

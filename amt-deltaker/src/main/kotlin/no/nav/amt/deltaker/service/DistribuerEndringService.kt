@@ -48,7 +48,13 @@ class DistribuerEndringService(
     ) {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(endring.endretAvEnhet)
-        produserHendelseFraTiltaksansvarlig(deltaker, navAnsatt, navEnhet, endring.endring)
+
+        produserHendelseFraTiltaksansvarlig(
+            deltaker = deltaker,
+            navAnsatt = navAnsatt,
+            navEnhet = navEnhet,
+            endringsType = endring.endring,
+        )
     }
 
     fun produserHendelseFraTiltaksansvarlig(
@@ -66,14 +72,24 @@ class DistribuerEndringService(
                 aarsak = endringsType.aarsak,
                 begrunnelseFraNav = endringsType.begrunnelse,
                 vurderingFraArrangor = vurderingService.getSisteForDeltaker(deltaker.id)?.let {
-                    HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
+                    HendelseType.Avslag.Vurdering(
+                        vurderingstype = it.vurderingstype,
+                        begrunnelse = it.begrunnelse,
+                    )
                 },
             )
 
             EndringFraTiltakskoordinator.DelMedArrangor -> return
         }
 
-        hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
+        hendelseProducer.produce(
+            hendelse = nyHendelseFraKoordinator(
+                deltaker = deltaker,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                endring = hendelseType,
+            ),
+        )
     }
 
     fun hendelseForDeltakerEndring(
@@ -105,7 +121,13 @@ class DistribuerEndringService(
         val navEnhet = getNavEnhet(deltaker)
         val endring = endringFraArrangor.toHendelseEndring()
 
-        hendelseProducer.produce(nyHendelseForEndringFraArrangor(deltaker, navEnhet, endring))
+        hendelseProducer.produce(
+            nyHendelseForEndringFraArrangor(
+                deltaker = deltaker,
+                navEnhet = navEnhet,
+                endring = endring,
+            ),
+        )
     }
 
     private fun getNavEnhet(deltaker: Deltaker): NavEnhet {
@@ -135,9 +157,11 @@ class DistribuerEndringService(
         val navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv)
         val navEnhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet)
 
-        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { utkastDto ->
-            HendelseType.InnbyggerGodkjennUtkast(utkastDto)
-        }
+        produceHendelseForUtkast(
+            deltaker = deltaker,
+            navAnsatt = navAnsatt,
+            enhet = navEnhet,
+        ) { utkastDto -> HendelseType.InnbyggerGodkjennUtkast(utkastDto) }
     }
 
     fun produceHendelse(
@@ -152,6 +176,25 @@ class DistribuerEndringService(
                 navAnsatt = navAnsatt,
                 navEnhet = enhet,
                 endring = endring,
+            ),
+        )
+    }
+
+    /**
+     * Produserer tilbakekall av prisendring uten å hente inn full historikk for deltaker.
+     */
+    fun produserHendelseForTilbakekallPrisendring(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+        prisinformasjonId: UUID,
+    ) {
+        hendelseProducer.produce(
+            nyMinimalHendelseFraNavAnsatt(
+                deltaker = deltaker,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                endring = HendelseType.EnkeltplassTilbakekallPrisendring(prisinformasjonId),
             ),
         )
     }
@@ -178,7 +221,12 @@ class DistribuerEndringService(
         block: (it: UtkastDto) -> HendelseType.HendelseSystemKanOpprette,
     ) {
         val endring = block(deltaker.toUtkastDto())
-        hendelseProducer.produce(nyHendelseFraSystem(deltaker, endring))
+        hendelseProducer.produce(
+            nyHendelseFraSystem(
+                deltaker = deltaker,
+                endring = endring,
+            ),
+        )
     }
 
     private fun nyHendelseFraNavAnsatt(
@@ -191,11 +239,44 @@ class DistribuerEndringService(
             id = navAnsatt.id,
             navIdent = navAnsatt.navIdent,
             navn = navAnsatt.navn,
-            enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(
+                id = navEnhet.id,
+                enhetsnummer = navEnhet.enhetsnummer,
+            ),
         )
 
-        return nyHendelse(deltaker, ansvarlig, endring)
+        return nyHendelse(
+            deltaker = deltaker,
+            ansvarlig = ansvarlig,
+            endring = endring,
+        )
     }
+
+    private fun nyMinimalHendelseFraNavAnsatt(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+        endring: HendelseType,
+    ) = Hendelse(
+        id = UUID.randomUUID(),
+        opprettet = LocalDateTime.now(),
+        deltaker = deltaker.toHendelseDeltaker(
+            overordnetArrangor = null,
+            forsteVedtakFattet = null,
+            opplaringKategoriseringValg = null,
+            prisinformasjon = null,
+        ),
+        ansvarlig = HendelseAnsvarlig.NavVeileder(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(
+                id = navEnhet.id,
+                enhetsnummer = navEnhet.enhetsnummer,
+            ),
+        ),
+        payload = endring,
+    )
 
     private fun nyHendelseFraKoordinator(
         deltaker: Deltaker,
@@ -214,7 +295,11 @@ class DistribuerEndringService(
             ),
         )
 
-        return nyHendelse(deltaker, ansvarlig, endring)
+        return nyHendelse(
+            deltaker = deltaker,
+            ansvarlig = ansvarlig,
+            endring = endring,
+        )
     }
 
     private fun nyHendelseForEndringFraArrangor(
@@ -222,21 +307,28 @@ class DistribuerEndringService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val ansvarlig =
-            HendelseAnsvarlig.Arrangor(
-                enhet = HendelseAnsvarlig.Arrangor.Enhet(navEnhet.id, navEnhet.enhetsnummer),
-            )
+        val ansvarlig = HendelseAnsvarlig.Arrangor(
+            enhet = HendelseAnsvarlig.Arrangor.Enhet(
+                id = navEnhet.id,
+                enhetsnummer = navEnhet.enhetsnummer,
+            ),
+        )
 
-        return nyHendelse(deltaker, ansvarlig, endring)
+        return nyHendelse(
+            deltaker = deltaker,
+            ansvarlig = ansvarlig,
+            endring = endring,
+        )
     }
 
     private fun nyHendelseFraSystem(
         deltaker: Deltaker,
         endring: HendelseType.HendelseSystemKanOpprette,
-    ): Hendelse {
-        val ansvarlig = HendelseAnsvarlig.System
-        return nyHendelse(deltaker, ansvarlig, endring)
-    }
+    ): Hendelse = nyHendelse(
+        deltaker = deltaker,
+        ansvarlig = HendelseAnsvarlig.System,
+        endring = endring,
+    )
 
     fun hendelseForSistBesokt(
         deltaker: Deltaker,
@@ -250,7 +342,12 @@ class DistribuerEndringService(
             navn = deltaker.navBruker.fulltNavn,
         )
 
-        val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
+        val hendelse = nyHendelse(
+            deltaker = deltaker,
+            ansvarlig = ansvarlig,
+            endring = HendelseType.DeltakerSistBesokt(sistBesokt),
+        )
+
         hendelseProducer.produce(
             hendelse = hendelse,
             suppressOutsideTxWarning = true, // OK at denne kalles utenfor transaksjon

@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -16,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -48,7 +46,6 @@ class TotrinnskontrollConsumerTest {
     private val vedtakService = mockk<VedtakService>()
     private val distribuerEndringService = mockk<DistribuerEndringService>()
     private val navAnsattService = mockk<NavAnsattService>(relaxed = true)
-    private val navEnhetService = mockk<NavEnhetService>(relaxed = true)
 
     private val consumer = TotrinnskontrollConsumer(
         deltakerRepository = deltakerRepository,
@@ -56,11 +53,13 @@ class TotrinnskontrollConsumerTest {
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
         navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
     )
 
     private val gjennomforingId: UUID = UUID.randomUUID()
     private val totrinnskontrollId: UUID = UUID.randomUUID()
+
+    private val navEnhetInTest = lagNavEnhet()
+    private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
 
     @BeforeEach
     fun setup() {
@@ -75,9 +74,9 @@ class TotrinnskontrollConsumerTest {
             tilleggsopplysninger = null,
         )
 
-        val navEnhet = lagNavEnhet()
-        coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns lagNavAnsatt(navEnhetId = navEnhet.id)
-        coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhet.id) } returns navEnhet
+        coEvery {
+            navAnsattService.hentNavAnsattOgEnhet(any<String>())
+        } returns Pair(navAnsattInTest, navEnhetInTest)
 
         every {
             distribuerEndringService.produceHendelse(
@@ -269,15 +268,11 @@ class TotrinnskontrollConsumerTest {
                 aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = null,
             )
-            val navEnhet = lagNavEnhet()
-            val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id, navIdent = "Z123456")
             val hendelseSlot = slot<HendelseType>()
 
             stubEnkeltplassDeltaker(deltakerInTest)
             stubGjeldendePrisinfo(godkjentPrisinfo)
             every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
-            coEvery { navAnsattService.hentEllerOpprettNavAnsatt("Z123456") } returns navAnsatt
-            coEvery { navEnhetService.hentEllerOpprettNavEnhet(navEnhet.id) } returns navEnhet
 
             // Act
             consumer.consume(
@@ -291,12 +286,10 @@ class TotrinnskontrollConsumerTest {
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
-            verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsatt, navEnhet, any()) }
+            verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
             hendelseSlot.captured shouldBe HendelseType.EnkeltplassGodkjennPrisendring(
                 prisinfo = godkjentPrisinfo,
             )
-            coVerify { navAnsattService.hentEllerOpprettNavAnsatt("Z123456") }
-            coVerify { navEnhetService.hentEllerOpprettNavEnhet(navEnhet.id) }
         }
 
         @Test
