@@ -11,6 +11,31 @@ import java.time.LocalDate
 
 class DeltakerExtensionsTest {
     @Test
+    fun `endreDeltakersOppstart - uten historikk for deltakelsesmengde - bevarer eksisterende mengde`() {
+        val idag = LocalDate.now()
+        val nyStartdato = idag.plusMonths(1)
+
+        val deltaker = TestData.lagDeltaker(
+            startdato = idag,
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            dagerPerUke = 3F,
+            deltakelsesprosent = 60F,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = nyStartdato,
+            sluttdato = null,
+            deltakelsesmengder = Deltakelsesmengder(emptyList()),
+        )
+
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe 3F
+            deltakelsesprosent shouldBe 60F
+        }
+    }
+
+    @Test
     fun `endreDeltakersOppstart - fremtidig startdato - endrer også deltakelsesmengde`() {
         val nyStartdato = LocalDate.now().plusMonths(1)
         val gammelStartdato = nyStartdato.minusMonths(1)
