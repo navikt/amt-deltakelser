@@ -11,6 +11,31 @@ import java.time.LocalDate
 
 class DeltakerExtensionsTest {
     @Test
+    fun `endreDeltakersOppstart - uten historikk for deltakelsesmengde - bevarer eksisterende mengde`() {
+        val idag = LocalDate.now()
+        val nyStartdato = idag.plusMonths(1)
+
+        val deltaker = TestData.lagDeltaker(
+            startdato = idag,
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            dagerPerUke = 3F,
+            deltakelsesprosent = 60F,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = nyStartdato,
+            sluttdato = null,
+            deltakelsesmengder = Deltakelsesmengder(emptyList()),
+        )
+
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe 3F
+            deltakelsesprosent shouldBe 60F
+        }
+    }
+
+    @Test
     fun `endreDeltakersOppstart - fremtidig startdato - endrer også deltakelsesmengde`() {
         val nyStartdato = LocalDate.now().plusMonths(1)
         val gammelStartdato = nyStartdato.minusMonths(1)
@@ -49,6 +74,48 @@ class DeltakerExtensionsTest {
             startdato shouldBe nyStartdato
             dagerPerUke shouldBe fremtidigMengde.dagerPerUke
             deltakelsesprosent shouldBe fremtidigMengde.deltakelsesprosent
+        }
+    }
+
+    @Test
+    fun `endreDeltakersOppstart - gjeldende mengde med null dagerPerUke - nullstiller ikke til gammel verdi`() {
+        val nyStartdato = LocalDate.now().plusMonths(1)
+        val gammelStartdato = nyStartdato.minusMonths(1)
+
+        val gjeldendeMengde = Deltakelsesmengde(
+            deltakelsesprosent = 40F,
+            dagerPerUke = null,
+            gyldigFra = nyStartdato,
+            opprettet = gammelStartdato.atStartOfDay(),
+        )
+        val fremtidigMengde = Deltakelsesmengde(
+            deltakelsesprosent = 70F,
+            dagerPerUke = 3F,
+            gyldigFra = nyStartdato.plusMonths(1),
+            opprettet = nyStartdato.plusMonths(1).atStartOfDay(),
+        )
+
+        val gammelDeltakelsesmengder = Deltakelsesmengder(
+            listOf(gjeldendeMengde, fremtidigMengde),
+        )
+
+        val deltaker = TestData.lagDeltaker(
+            startdato = gammelStartdato,
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            dagerPerUke = 5F,
+            deltakelsesprosent = 100F,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = nyStartdato,
+            sluttdato = null,
+            deltakelsesmengder = gammelDeltakelsesmengder,
+        )
+
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe null
+            deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
         }
     }
 
