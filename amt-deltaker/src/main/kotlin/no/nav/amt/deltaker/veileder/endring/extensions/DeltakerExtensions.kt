@@ -67,8 +67,8 @@ fun Deltaker.endreDeltakersOppstart(
         startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,
         sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else faktiskSluttdato,
         status = oppdatertStatus,
-        deltakelsesprosent = gjeldendeDeltakelsmengde?.deltakelsesprosent ?: deltakelsesprosent,
-        dagerPerUke = gjeldendeDeltakelsmengde?.dagerPerUke ?: dagerPerUke,
+        deltakelsesprosent = if (gjeldendeDeltakelsmengde != null) gjeldendeDeltakelsmengde.deltakelsesprosent else deltakelsesprosent,
+        dagerPerUke = if (gjeldendeDeltakelsmengde != null) gjeldendeDeltakelsmengde.dagerPerUke else dagerPerUke,
     )
 }
 
