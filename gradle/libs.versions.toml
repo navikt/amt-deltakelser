@@ -10,14 +10,14 @@ jackson2-version = "2.22.2"
 nav-common-version = "4.2026.07.17_11.36-f5bba2c96561"
 poao-tilgang-version = "2025.11.03_14.33-9c5783f38a9a"
 kotest-version = "6.2.4"
-flyway-version = "13.3.0"
+flyway-version = "13.4.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.13"
 caffeine-version = "3.2.4"
 mockk-version = "1.14.11"
 nimbus-version = "10.9.1"
-unleash-version = "12.2.3"
+unleash-version = "12.3.0"
 tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
@@ -37,7 +37,7 @@ shedlock-spring-version = "7.9.0"
 springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
-jsoup-version = "1.23.1"
+jsoup-version = "1.23.2"
 pdfgen-core-version = "1.1.82"
 
 # CVE-fixes
