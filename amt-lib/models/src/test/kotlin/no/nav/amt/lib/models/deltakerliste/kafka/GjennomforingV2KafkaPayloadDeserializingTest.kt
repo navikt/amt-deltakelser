@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode

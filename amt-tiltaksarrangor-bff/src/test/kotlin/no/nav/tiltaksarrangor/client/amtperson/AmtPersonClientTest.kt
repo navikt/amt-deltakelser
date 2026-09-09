@@ -3,7 +3,7 @@ package no.nav.tiltaksarrangor.client.amtperson
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID

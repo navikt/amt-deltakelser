@@ -10,21 +10,21 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
-import no.nav.amt.lib.models.deltaker.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
-import no.nav.amt.lib.models.deltaker.Navn
-import no.nav.amt.lib.models.deltaker.Personalia
-import no.nav.amt.lib.models.deltaker.SisteEndring
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
+import no.nav.amt.lib.models.kafka.DeltakerlistePayload
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Navn
+import no.nav.amt.lib.models.kafka.Personalia
+import no.nav.amt.lib.models.kafka.SisteEndring
 import java.time.LocalDate
 import java.util.UUID
 
@@ -136,7 +136,7 @@ class DeltakerKafkaPayloadBuilder(
         return DeltakerKafkaPayload(
             id = deltaker.id,
             deltakerlisteId = deltaker.deltakerliste.id,
-            deltakerliste = Deltakerliste(
+            deltakerliste = DeltakerlistePayload(
                 id = deltaker.deltakerliste.id,
                 navn = deltaker.deltakerliste.navn,
                 gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
@@ -164,7 +164,7 @@ class DeltakerKafkaPayloadBuilder(
                 adresse = deltaker.navBruker.adresse,
                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
             ),
-            status = DeltakerStatusDto(
+            status = DeltakerStatusPayload(
                 id = deltaker.status.id,
                 type = deltaker.status.type,
                 aarsak = deltaker.status.aarsak?.type,

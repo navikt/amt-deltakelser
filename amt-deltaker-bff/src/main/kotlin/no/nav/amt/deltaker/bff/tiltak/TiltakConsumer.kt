@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.Environment
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
+import no.nav.amt.lib.models.kafka.TiltakstypePayload
 import no.nav.amt.lib.utils.objectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
@@ -26,8 +26,8 @@ class TiltakConsumer(
             return
         }
 
-        val tiltakstypeDto = objectMapper.readValue<TiltakstypeDto>(value)
-        repository.upsert(tiltakstypeDto.toModel())
+        val tiltakstypePayload = objectMapper.readValue<TiltakstypePayload>(value)
+        repository.upsert(tiltakstypePayload.toModel())
     }
 
     override fun start() = consumer.start()

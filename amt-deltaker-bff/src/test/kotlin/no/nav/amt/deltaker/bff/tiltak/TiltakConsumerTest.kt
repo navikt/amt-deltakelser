@@ -7,7 +7,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.lib.models.deltaker.toV2
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakstypeSystem
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
+import no.nav.amt.lib.models.kafka.TiltakstypePayload
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -25,7 +25,7 @@ class TiltakConsumerTest {
 
     @Test
     fun `consumeTiltakstype - ny, aktiv tiltakstype - lagrer tiltakstype`() {
-        val tiltakstypeDto = TiltakstypeDto(
+        val tiltakstypePayload = TiltakstypePayload(
             id = tiltakstype.id,
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,
@@ -36,7 +36,7 @@ class TiltakConsumerTest {
         runTest {
             sut.consume(
                 tiltakstype.id,
-                objectMapper.writeValueAsString(tiltakstypeDto),
+                objectMapper.writeValueAsString(tiltakstypePayload),
             )
 
             tiltakRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
@@ -45,7 +45,7 @@ class TiltakConsumerTest {
 
     @Test
     fun `consumeTiltakstype - TiltakstypeSystem TILTAKSADMINISTRASJON - lagrer tiltakstype`() {
-        val tiltakstypeDto = TiltakstypeDto(
+        val tiltakstypePayload = TiltakstypePayload(
             id = tiltakstype.id,
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,
@@ -57,7 +57,7 @@ class TiltakConsumerTest {
         runTest {
             sut.consume(
                 tiltakstype.id,
-                objectMapper.writeValueAsString(tiltakstypeDto),
+                objectMapper.writeValueAsString(tiltakstypePayload),
             )
 
             tiltakRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
@@ -66,7 +66,7 @@ class TiltakConsumerTest {
 
     @Test
     fun `consumeTiltakstype - TiltakstypeSystem ARENA - lagrer ikke tiltakstype`() {
-        val tiltakstypeDto = TiltakstypeDto(
+        val tiltakstypePayload = TiltakstypePayload(
             id = tiltakstype.id,
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,
@@ -77,7 +77,7 @@ class TiltakConsumerTest {
         runTest {
             sut.consume(
                 tiltakstype.id,
-                objectMapper.writeValueAsString(tiltakstypeDto),
+                objectMapper.writeValueAsString(tiltakstypePayload),
             )
 
             tiltakRepository.get(tiltakstype.tiltakskode).shouldBeFailure()

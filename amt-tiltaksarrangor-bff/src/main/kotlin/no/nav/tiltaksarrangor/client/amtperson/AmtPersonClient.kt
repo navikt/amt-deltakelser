@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.client.toExternalServiceException
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet

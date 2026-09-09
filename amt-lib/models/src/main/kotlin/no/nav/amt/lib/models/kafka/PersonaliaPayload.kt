@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltaker
+package no.nav.amt.lib.models.kafka
 
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse

@@ -7,8 +7,8 @@ import no.nav.amt.aktivitetskort.database.TestData.lagDeltakerliste
 import no.nav.amt.aktivitetskort.database.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.aktivitetskort.database.TestData.lagGruppeDeltakerlistePayload
 import no.nav.amt.aktivitetskort.database.TestData.lagTiltak
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import org.junit.jupiter.api.Test
 
 class GjennomforingV2KafkaPayloadExtensionsTest {

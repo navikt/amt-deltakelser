@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.consumer
 
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.getGjennomforingstypeFromJson
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.skalLagres

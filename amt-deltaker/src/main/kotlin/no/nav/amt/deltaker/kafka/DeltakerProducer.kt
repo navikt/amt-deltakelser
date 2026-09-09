@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
 

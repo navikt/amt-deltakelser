@@ -1,6 +1,10 @@
-package no.nav.amt.lib.models.deltaker
+package no.nav.amt.lib.models.kafka
 
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import java.time.LocalDate
@@ -12,9 +16,9 @@ import java.util.UUID
  */
 data class DeltakerKafkaPayload(
     val id: UUID,
-    val deltakerliste: Deltakerliste,
+    val deltakerliste: DeltakerlistePayload,
     val personalia: Personalia,
-    val status: DeltakerStatusDto,
+    val status: DeltakerStatusPayload,
     val dagerPerUke: Float?,
     val prosentStilling: Double?,
     val oppstartsdato: LocalDate?,
@@ -50,7 +54,7 @@ data class DeltakerKafkaPayload(
     val forcedUpdate: Boolean? = false,
 )
 
-data class DeltakerStatusDto(
+data class DeltakerStatusPayload(
     // Kan ikke bytte til DeltakerStatus siden denne har en annen struktur på aarsak
     val id: UUID?,
     val type: DeltakerStatus.Type,

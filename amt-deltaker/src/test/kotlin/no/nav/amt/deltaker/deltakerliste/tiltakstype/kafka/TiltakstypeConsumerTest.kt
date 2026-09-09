@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.toV2
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka.TiltakstypeDto
+import no.nav.amt.lib.models.kafka.TiltakstypePayload
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ class TiltakstypeConsumerTest {
     @Test
     fun `consumeTiltakstype - ny, aktiv tiltakstype - lagrer tiltakstype`() {
         val tiltakstype = TestData.lagTiltakstype()
-        val tiltakstypeDto = TiltakstypeDto(
+        val tiltakstypePayload = TiltakstypePayload(
             id = tiltakstype.id,
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,
@@ -36,7 +36,7 @@ class TiltakstypeConsumerTest {
         runTest {
             consumer.consume(
                 tiltakstype.id,
-                objectMapper.writeValueAsString(tiltakstypeDto),
+                objectMapper.writeValueAsString(tiltakstypePayload),
             )
         }
 

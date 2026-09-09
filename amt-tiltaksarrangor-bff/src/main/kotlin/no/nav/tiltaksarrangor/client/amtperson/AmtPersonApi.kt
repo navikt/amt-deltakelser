@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
