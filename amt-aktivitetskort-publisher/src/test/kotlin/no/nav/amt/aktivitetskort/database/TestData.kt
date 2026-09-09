@@ -21,19 +21,19 @@ import no.nav.amt.aktivitetskort.domain.toAktivitetskortTiltakstype
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilEtikett
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
-import no.nav.amt.lib.models.deltaker.Navn
-import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Navn
+import no.nav.amt.lib.models.kafka.Personalia
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -269,7 +269,7 @@ object TestData {
             adressebeskyttelse = null,
         ),
         deltakerlisteId = this.deltakerlisteId,
-        status = DeltakerStatusDto(
+        status = DeltakerStatusPayload(
             id = UUID.randomUUID(),
             type = this.status.type,
             aarsak = this.status.aarsak,
@@ -283,7 +283,7 @@ object TestData {
         sluttdato = this.sluttdato,
         deltarPaKurs = this.deltarPaKurs,
         kilde = this.kilde,
-        deltakerliste = no.nav.amt.lib.models.deltaker.Deltakerliste(
+        deltakerliste = no.nav.amt.lib.models.kafka.DeltakerlistePayload(
             id = this.deltakerlisteId,
             navn = "Navn",
             tiltak = no.nav.amt.lib.models.deltakerliste.tiltakstype

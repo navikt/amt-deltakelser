@@ -9,9 +9,9 @@ import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
 import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper

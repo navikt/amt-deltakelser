@@ -28,10 +28,10 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.Personalia
+import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
+import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -358,15 +358,15 @@ class DeltakerResponseMapperServiceTest {
         }
 
         private fun sammenlignStatus(
-            deltakerStatusDto: DeltakerStatusDto,
+            deltakerStatusPayload: DeltakerStatusPayload,
             deltakerStatus: DeltakerStatus,
         ) {
-            deltakerStatusDto.id shouldBe deltakerStatus.id
-            deltakerStatusDto.type shouldBe deltakerStatus.type
-            deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type
-            deltakerStatusDto.aarsaksbeskrivelse shouldBe deltakerStatus.aarsak?.beskrivelse
-            deltakerStatusDto.gyldigFra shouldBeCloseTo deltakerStatus.gyldigFra
-            deltakerStatusDto.opprettetDato shouldBeCloseTo deltakerStatus.opprettet
+            deltakerStatusPayload.id shouldBe deltakerStatus.id
+            deltakerStatusPayload.type shouldBe deltakerStatus.type
+            deltakerStatusPayload.aarsak shouldBe deltakerStatus.aarsak?.type
+            deltakerStatusPayload.aarsaksbeskrivelse shouldBe deltakerStatus.aarsak?.beskrivelse
+            deltakerStatusPayload.gyldigFra shouldBeCloseTo deltakerStatus.gyldigFra
+            deltakerStatusPayload.opprettetDato shouldBeCloseTo deltakerStatus.opprettet
         }
     }
 }

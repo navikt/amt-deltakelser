@@ -12,18 +12,18 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
-import no.nav.amt.lib.models.deltaker.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
-import no.nav.amt.lib.models.deltaker.Navn
-import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
+import no.nav.amt.lib.models.kafka.DeltakerlistePayload
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Navn
+import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -731,7 +731,7 @@ class DeltakerDtoCtx {
                 adressebeskyttelse = null,
             ),
         status =
-            DeltakerStatusDto(
+            DeltakerStatusPayload(
                 id = UUID.randomUUID(),
                 type = DeltakerStatus.Type.DELTAR,
                 gyldigFra = LocalDate.now().minusWeeks(1).atStartOfDay(),
@@ -771,7 +771,7 @@ class DeltakerDtoCtx {
         historikk = null, // vedtak?
         sistEndret = LocalDateTime.now(),
         forsteVedtakFattet = LocalDate.now().minusMonths(2),
-        deltakerliste = Deltakerliste(
+        deltakerliste = DeltakerlistePayload(
             id = deltakerlisteId,
             navn = "Tiltak hos Arrangør",
             tiltak = Tiltak(
@@ -820,7 +820,7 @@ class DeltakerDtoCtx {
         aarsakbeskrivelse: String? = null,
     ) {
         deltakerDto = deltakerDto.copy(
-            status = DeltakerStatusDto(
+            status = DeltakerStatusPayload(
                 id = UUID.randomUUID(),
                 type = type,
                 gyldigFra = LocalDate.now().minusDays(gyldigFraDagerSiden).atStartOfDay(),

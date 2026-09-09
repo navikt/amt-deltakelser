@@ -2,7 +2,7 @@ package no.nav.tiltaksarrangor.consumer
 
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.utils.objectMapper
 import java.time.LocalDate

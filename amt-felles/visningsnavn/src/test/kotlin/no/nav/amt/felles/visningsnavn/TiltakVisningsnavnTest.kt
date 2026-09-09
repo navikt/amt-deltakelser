@@ -77,6 +77,40 @@ class TiltakVisningsnavnTest {
         response.kladdTittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
     }
 
+    @Test
+    fun `lagTittel bruker tiltaksnavn for vanlige tiltak`() {
+        val tittel = TiltakVisningsnavn.lagTittel(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            tiltaksnavn = "Arbeidsforberedende trening",
+            arrangorNavn = "Arrangør navn",
+        )
+
+        tittel shouldBe "Arbeidsforberedende trening hos Arrangør navn"
+    }
+
+    @Test
+    fun `lagTittel bruker kurstype for norskopplaering`() {
+        val tittel = TiltakVisningsnavn.lagTittel(
+            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            tiltaksnavn = "Norskopplæring, grunnleggende ferdigheter og FOV",
+            arrangorNavn = "Arrangør navn",
+            opplaringKategoriseringValg = lagKurstypeValg("Yrkesnorsk"),
+        )
+
+        tittel shouldBe "Yrkesnorsk hos Arrangør navn"
+    }
+
+    @Test
+    fun `lagTittel bruker fallback for manglende arrangor`() {
+        val tittel = TiltakVisningsnavn.lagTittel(
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            tiltaksnavn = "Arbeidsforberedende trening",
+            arrangorNavn = null,
+        )
+
+        tittel shouldBe "Arbeidsforberedende trening hos Ukjent arrangør"
+    }
+
     data class SpecCase(
         val navn: String,
         val tiltakskode: Tiltakskode,

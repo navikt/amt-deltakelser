@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.bff.gjennomforing
 
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Arrangor
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 
 fun GjennomforingV2KafkaPayload.Gruppe.toModel(
     arrangor: Arrangor,

@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.repositories
 
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository

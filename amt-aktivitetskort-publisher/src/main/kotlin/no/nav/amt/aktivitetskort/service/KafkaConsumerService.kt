@@ -16,10 +16,10 @@ import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
 import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

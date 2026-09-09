@@ -22,17 +22,17 @@ import no.nav.amt.deltaker.bff.utils.endre
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
-import no.nav.amt.lib.models.deltaker.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
-import no.nav.amt.lib.models.deltaker.Navn
-import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
+import no.nav.amt.lib.models.kafka.DeltakerlistePayload
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.kafka.Navn
+import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -468,7 +468,7 @@ class DeltakerV2ConsumerTest {
                 adresse = navBruker.adresse,
                 adressebeskyttelse = navBruker.adressebeskyttelse,
             ),
-            status = DeltakerStatusDto(
+            status = DeltakerStatusPayload(
                 id = status.id,
                 type = status.type,
                 aarsak = status.aarsak?.type,
@@ -486,7 +486,7 @@ class DeltakerV2ConsumerTest {
             historikk = historikk,
             vurderingerFraArrangor = vurderinger,
             sistEndret = sistEndret,
-            deltakerliste = Deltakerliste(
+            deltakerliste = DeltakerlistePayload(
                 id = deltakerliste.id,
                 navn = deltakerliste.navn,
                 tiltak = Tiltak(

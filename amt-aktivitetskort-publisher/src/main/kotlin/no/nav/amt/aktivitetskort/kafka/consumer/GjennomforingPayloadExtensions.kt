@@ -3,7 +3,7 @@ package no.nav.amt.aktivitetskort.kafka.consumer
 import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.Tiltak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import java.util.UUID
 
 fun GjennomforingV2KafkaPayload.Gruppe.toModel(

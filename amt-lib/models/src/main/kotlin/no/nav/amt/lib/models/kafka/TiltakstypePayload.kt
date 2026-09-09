@@ -1,4 +1,4 @@
-package no.nav.amt.lib.models.deltakerliste.tiltakstype.kafka
+package no.nav.amt.lib.models.kafka
 
 import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
 import no.nav.amt.lib.models.deltaker.toV1
@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.TiltakstypeSystem
 import java.util.UUID
 
-data class TiltakstypeDto(
+data class TiltakstypePayload(
     val id: UUID,
     val navn: String,
     val tiltakskode: Tiltakskode,
