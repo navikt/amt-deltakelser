@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options:
+          - Alle apper
           - amt-aktivitetskort-publisher
           - amt-deltaker-bff
           - amt-deltaker
@@ -16,11 +17,28 @@ on:
           - amt-tiltaksarrangor-bff
 
 permissions:
-  contents: write    # Required for dependency-graph submit in reusable workflow
-  id-token: write    # Required for NAIS deploy/docker-build-push in reusable workflow
+  contents: write
+  id-token: write
 
 jobs:
-  deploy:
+  deploy-single:
+    if: ${{ inputs.module_path != 'Alle apper' }}
     uses: ./.github/workflows/reusable-deploy-app.yml
     with:
       module_path: ${{ inputs.module_path }}
+
+  deploy-all:
+    if: ${{ inputs.module_path == 'Alle apper' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module_path:
+          - amt-aktivitetskort-publisher
+          - amt-deltaker-bff
+          - amt-deltaker
+          - amt-distribusjon
+          - amt-pdfgen
+          - amt-tiltaksarrangor-bff
+    uses: ./.github/workflows/reusable-deploy-app.yml
+    with:
+      module_path: ${{ matrix.module_path }}
