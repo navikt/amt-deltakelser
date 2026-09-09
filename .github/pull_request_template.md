@@ -11,6 +11,7 @@
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Documentation update
+- [ ] Technical improvement
 - [ ] Other: __________
 
 ## Checklist
