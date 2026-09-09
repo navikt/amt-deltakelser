@@ -1,25 +1,25 @@
 {
   "collection": "kotlin-backend",
-  "version": "2026.07.23-202645-36d5b37",
+  "version": "2026.09.08-121052-b4c22f9",
   "scope": "repo",
-  "source_sha": "d6f24d4",
+  "source_sha": "b4c22f9",
   "installed_at": "2026-06-16T09:55:47Z",
   "files": [
     {
       "path": ".github/agents/code-review.agent.md",
-      "hash": "ba64c6ac567371bb"
+      "hash": "3406168d68a9470a"
     },
     {
       "path": ".github/agents/research.agent.md",
-      "hash": "90b7a1685788c5a4"
+      "hash": "57973bb865dfdd9d"
     },
     {
       "path": ".github/agents/security-champion.agent.md",
-      "hash": "5ccba48b66938fd0"
+      "hash": "a209e3ce5d93746d"
     },
     {
       "path": ".github/agents/nav-pilot.agent.md",
-      "hash": "8ce02d89fd7a818a"
+      "hash": "eed57b0a1dd623bf"
     },
     {
       "path": ".github/skills/api-design/",
@@ -51,15 +51,15 @@
     },
     {
       "path": ".github/skills/nais/",
-      "hash": "23c3b8a1bab24c72"
+      "hash": "b0b94d480fbdb4c6"
     },
     {
       "path": ".github/skills/nav-auth/",
-      "hash": "f244d4e2bef4cfcf"
+      "hash": "581809ed36d9a6d6"
     },
     {
       "path": ".github/skills/observability-setup/",
-      "hash": "78181a920d929a23"
+      "hash": "b16ee0c748b966bf"
     },
     {
       "path": ".github/skills/observability-debugging/",
@@ -71,15 +71,15 @@
     },
     {
       "path": ".github/skills/readme-review/",
-      "hash": "8051f0041095f50c"
+      "hash": "27b83a8872b33f4c"
     },
     {
       "path": ".github/skills/security-review/",
-      "hash": "c74a83a4e61fbf58"
+      "hash": "3c05f1012664e5c8"
     },
     {
       "path": ".github/skills/security-owasp/",
-      "hash": "6b06f512092bde91"
+      "hash": "b909907ae0e18174"
     },
     {
       "path": ".github/skills/spring-boot-scaffold/",
@@ -87,7 +87,7 @@
     },
     {
       "path": ".github/skills/threat-model/",
-      "hash": "305fe669dec42981"
+      "hash": "8fd0fa04afd9b093"
     },
     {
       "path": ".github/skills/tokenx-auth/",
@@ -95,11 +95,11 @@
     },
     {
       "path": ".github/skills/workstation-security/",
-      "hash": "75749c782af25813"
+      "hash": "93d7292e18b1b82d"
     },
     {
       "path": ".github/skills/nav-plan/",
-      "hash": "0a160744cf2b4e82"
+      "hash": "db7618d269cd2f07"
     },
     {
       "path": ".github/skills/nav-deep-interview/",
@@ -115,7 +115,7 @@
     },
     {
       "path": ".github/skills/terse-mode/",
-      "hash": "133c50e8cd7769d2"
+      "hash": "d28a057d860494bb"
     },
     {
       "path": ".github/instructions/code-review.instructions.md",
@@ -123,15 +123,15 @@
     },
     {
       "path": ".github/instructions/deliberate-ai-use.instructions.md",
-      "hash": "a0999e3cc902f4f5"
+      "hash": "68b3ca596e278482"
     },
     {
       "path": ".github/instructions/kotlin-ktor.instructions.md",
-      "hash": "f180c7d9ebb3ddee"
+      "hash": "e6a054a0dc9bf870"
     },
     {
       "path": ".github/instructions/kotlin-spring.instructions.md",
-      "hash": "9c5bc41afd68d962"
+      "hash": "db9355ee1afaeaef"
     },
     {
       "path": ".github/instructions/testing.instructions.md",
@@ -151,7 +151,7 @@
     },
     {
       "path": ".github/instructions/database.instructions.md",
-      "hash": "9fb524bf4111f25f"
+      "hash": "9fc5267c1dc9dd01"
     },
     {
       "path": ".github/instructions/security-owasp.instructions.md",
@@ -159,11 +159,11 @@
     },
     {
       "path": ".github/prompts/ktor-endpoint.prompt.md",
-      "hash": "e5a24e1b9e9bc398"
+      "hash": "78a11bb6d225b664"
     },
     {
       "path": ".github/prompts/spring-boot-endpoint.prompt.md",
-      "hash": "3e68aab2f5cbe402"
+      "hash": "82404ec13b5fd880"
     },
     {
       "path": ".github/prompts/kafka-topic.prompt.md",
