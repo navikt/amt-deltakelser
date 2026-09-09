@@ -30,6 +30,7 @@ jobs:
   deploy-all:
     if: ${{ inputs.module_path == 'Alle apper' }}
     strategy:
+      fail-fast: false
       matrix:
         module_path:
           - amt-aktivitetskort-publisher
