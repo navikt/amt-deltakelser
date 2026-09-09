@@ -74,7 +74,7 @@ object DtoBuilders {
         ),
         endringer = endringer,
         avsender = endringsvedtakAvsender(),
-        visVedtakOgKlage = true,
+        erVedtak = true,
         vedtaksdato = fixedDate,
         forsteVedtakFattet = fixedDate.minusDays(10),
         sidetittel = "Endring i tiltak",
@@ -96,6 +96,7 @@ object DtoBuilders {
         forskriftskapittel: Forskriftskapittel,
     ) = EndringsvedtakPdfDto.DeltakerlisteDto(
         navn = "Tiltaksliste",
+        tiltakskodenavn = "Fag- og yrkesopplæring",
         ledetekst = "Dette er ledeteksten",
         arrangor = EndringsvedtakPdfDto.ArrangorDto("Arrangør AS"),
         forskriftskapittel = forskriftskapittel,
@@ -108,7 +109,7 @@ object DtoBuilders {
         begrunnelseFraNav = "Begrunnelse",
         forslagFraArrangor = null,
         gyldigFra = fixedDate,
-        pavirkerPris = false
+        pavirkerPris = false,
     )
 
     fun endringsvedtakAvsender() = EndringsvedtakPdfDto.AvsenderDto(

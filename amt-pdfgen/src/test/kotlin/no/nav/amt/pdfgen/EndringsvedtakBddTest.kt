@@ -67,6 +67,35 @@ class EndringsvedtakBddTest :
             }
         }
 
+        Given("title i head") {
+            val base = endringsvedtak()
+            val payloadMedUlikTittelOgTiltakskodenavn = base.copy(
+                erVedtak = false,
+                sidetittel = "Fag- og yrkesopplæring hos Borgund Hest & Maskin",
+                deltakerliste = base.deltakerliste.copy(
+                    navn = "Fag- og yrkesopplæring hos Borgund Hest & Maskin",
+                    tiltakskodenavn = "Fag- og yrkesopplæring",
+                ),
+            )
+
+            When("erVedtak er true") {
+                val doc = renderEndringsvedtak(base.copy(erVedtak = true))
+
+                Then("skal vise vedtakstittel") {
+                    doc.title() shouldBe "Vedtak om tiltaksdeltakelse"
+                }
+            }
+
+            When("erVedtak er false") {
+                val doc = renderEndringsvedtak(payloadMedUlikTittelOgTiltakskodenavn)
+
+                Then("skal vise endring med tiltakskodenavn") {
+                    doc.title() shouldBe "Endring - Fag- og yrkesopplæring"
+                    doc.title() shouldNotBe "Endring - ${payloadMedUlikTittelOgTiltakskodenavn.sidetittel}"
+                }
+            }
+        }
+
         Given("oppstartstype") {
             forAll(
                 row(
@@ -108,19 +137,19 @@ class EndringsvedtakBddTest :
             }
         }
 
-        Given("visVedtakOgKlage") {
+        Given("erVedtak") {
             forAll(
                 row(a = true),
                 row(a = false),
-            ) { visVedtakOgKlage ->
+            ) { erVedtak ->
 
-                When("visVedtakOgKlage er $visVedtakOgKlage") {
-                    val payload = endringsvedtak().copy(visVedtakOgKlage = visVedtakOgKlage)
+                When("erVedtak er $erVedtak") {
+                    val payload = endringsvedtak().copy(erVedtak = erVedtak)
                     val doc = renderEndringsvedtak(payload)
 
-                    Then("skal vedtak- og klageinformasjon være ${if (visVedtakOgKlage) "synlig" else "skjult"}") {
-                        doc.select("h2").any { it.text() == "Dette er et vedtak" } shouldBe visVedtakOgKlage
-                        doc.select("h2").any { it.text() == "Du har rett til å klage" } shouldBe visVedtakOgKlage
+                    Then("skal vedtak- og klageinformasjon være ${if (erVedtak) "synlig" else "skjult"}") {
+                        doc.select("h2").any { it.text() == "Dette er et vedtak" } shouldBe erVedtak
+                        doc.select("h2").any { it.text() == "Du har rett til å klage" } shouldBe erVedtak
                     }
                 }
             }
@@ -284,6 +313,7 @@ class EndringsvedtakBddTest :
             klagerett: Boolean,
         ) = EndringsvedtakPdfDto.DeltakerlisteDto(
             navn = "Tiltaksliste",
+            tiltakskodenavn = "Fag- og yrkesopplæring",
             ledetekst = "Dette er ledeteksten",
             arrangor = EndringsvedtakPdfDto.ArrangorDto("Arrangør AS"),
             forskriftskapittel = Forskriftskapittel.KAPITTEL_4,
@@ -305,7 +335,7 @@ class EndringsvedtakBddTest :
             deltakerliste = baseDeltakerliste(pameldingstype, klagerett),
             endringer = endringer,
             avsender = baseAvsender(),
-            visVedtakOgKlage = true,
+            erVedtak = true,
             vedtaksdato = fixedDate,
             forsteVedtakFattet = fixedDate.minusDays(10),
             sidetittel = "Endring i tiltak",

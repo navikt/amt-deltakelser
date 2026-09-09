@@ -77,6 +77,7 @@ fun lagHovedopptakForTildeltPlass(
     deltakelseInnhold: Deltakelsesinnhold?,
 ): HovedvedtakVedTildeltPlassPdfDto {
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
+
     return HovedvedtakVedTildeltPlassPdfDto(
         deltaker = HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
             fornavn = navBruker.fornavn,
@@ -183,8 +184,8 @@ fun lagEndringsvedtakPdfDto(
     opprettetDato: LocalDate,
 ): EndringsvedtakPdfDto {
     val endringer = fjernEldreHendelserAvSammeType(hendelser).map { it.payload }
-
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
+
     return EndringsvedtakPdfDto(
         deltaker = EndringsvedtakPdfDto.DeltakerDto(
             fornavn = navBruker.fornavn,
@@ -195,6 +196,7 @@ fun lagEndringsvedtakPdfDto(
         ),
         deltakerliste = EndringsvedtakPdfDto.DeltakerlisteDto(
             navn = visningsnavn.tittel,
+            tiltakskodenavn = visningsnavn.tiltakskodenavn,
             ledetekst = deltaker.deltakerliste.tiltak.ledetekst ?: "",
             arrangor = EndringsvedtakPdfDto.ArrangorDto(navn = deltaker.deltakerliste.arrangorVisningsnavn()),
             forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
@@ -216,7 +218,7 @@ fun lagEndringsvedtakPdfDto(
             navn = ansvarlig.getAvsendernavn(),
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
-        visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status?.type, endringer),
+        erVedtak = skalViseVedtakOgKlageForEndring(deltaker.status?.type, endringer),
         vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = visningsnavn.tittel,

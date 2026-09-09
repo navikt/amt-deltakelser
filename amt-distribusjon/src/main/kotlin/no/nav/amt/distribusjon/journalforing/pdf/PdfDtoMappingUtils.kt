@@ -70,7 +70,7 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
     else -> throw IllegalArgumentException("Ukjent tiltakstype: ${this.tiltak.tiltakskode}")
 }
 
-fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisningsnavn(
+fun HendelseDeltaker.Deltakerliste.visningsnavn(): TiltakVisningsnavn = TiltakVisningsnavn.lagVisningsnavn(
     tiltakskode = tiltak.tiltakskode,
     tiltaksnavn = tiltak.navn,
     gjennomforingsnavn = navn,

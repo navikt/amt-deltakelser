@@ -9,8 +9,13 @@
     {{#block 'amt/style' }}
     {{/block}}
 
-    <title>Vedtak om tiltaksdeltakelse</title>
-
+    <title>
+        {{#if this.erVedtak}}
+            Vedtak om tiltaksdeltakelse
+        {{else}}
+            Endring - {{this.deltakerliste.tiltakskodenavn}}
+        {{/if}}
+    </title>
 </head>
 <body>
     <div id="footer">
@@ -29,7 +34,7 @@
             {{> sections/endring/endring-listeelement}}
         {{/each}}
 
-        {{#if this.visVedtakOgKlage}}
+        {{#if this.erVedtak}}
             {{> sections/dette-er-et-vedtak}}
 
             {{> sections/klagerett}}

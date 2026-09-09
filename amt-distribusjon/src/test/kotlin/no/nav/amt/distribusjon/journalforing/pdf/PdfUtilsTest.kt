@@ -127,7 +127,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for deltakere som ikke er sokt inn`() {
+        fun `lagEndringsvedtakPdfDto - erVedtak er true for deltakere som ikke er sokt inn`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
@@ -142,11 +142,11 @@ class PdfUtilsTest {
                 opprettetDato = LocalDate.now(),
             )
 
-            pdfDto.visVedtakOgKlage shouldBe true
+            pdfDto.erVedtak shouldBe true
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true nar status er null`() {
+        fun `lagEndringsvedtakPdfDto - erVedtak er true nar status er null`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = null,
             )
@@ -161,11 +161,11 @@ class PdfUtilsTest {
                 opprettetDato = LocalDate.now(),
             )
 
-            pdfDto.visVedtakOgKlage shouldBe true
+            pdfDto.erVedtak shouldBe true
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for status sokt inn med ikke-aktuell endring`() {
+        fun `lagEndringsvedtakPdfDto - erVedtak er true for status sokt inn med ikke-aktuell endring`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
             )
@@ -189,11 +189,11 @@ class PdfUtilsTest {
                 opprettetDato = LocalDate.now(),
             )
 
-            pdfDto.visVedtakOgKlage shouldBe true
+            pdfDto.erVedtak shouldBe true
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er false for sokt inn uten ikke-aktuell endring`() {
+        fun `lagEndringsvedtakPdfDto - erVedtak er false for sokt inn uten ikke-aktuell endring`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
             )
@@ -208,7 +208,7 @@ class PdfUtilsTest {
                 opprettetDato = LocalDate.now(),
             )
 
-            pdfDto.visVedtakOgKlage shouldBe false
+            pdfDto.erVedtak shouldBe false
         }
 
         @Test
@@ -236,7 +236,7 @@ class PdfUtilsTest {
 
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.IkkeAktuell).aarsak shouldBe arsak.visningsnavn()
-            pdfDto.visVedtakOgKlage shouldBe true
+            pdfDto.erVedtak shouldBe true
         }
 
         @Test

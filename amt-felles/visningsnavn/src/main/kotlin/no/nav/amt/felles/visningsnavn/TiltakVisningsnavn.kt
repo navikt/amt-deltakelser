@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class TiltakVisningsnavn(
     val tittel: String,
+    val tiltakskodenavn: String,
     val aktivitetskortTittel: String,
     val ingressTekst: String,
     val kladdTittel: String,
@@ -20,11 +21,16 @@ data class TiltakVisningsnavn(
             erKladd: Boolean,
             arrangorNavn: String?,
             opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
-        ): TiltakVisningsnavn = TiltakVisningsnavn(
+        ) = TiltakVisningsnavn(
             tittel = lagTittel(
                 tiltakskode = tiltakskode,
                 tiltaksnavn = tiltaksnavn,
                 arrangorNavn = arrangorNavn,
+                opplaringKategoriseringValg = opplaringKategoriseringValg,
+            ),
+            tiltakskodenavn = hentTittelTekst(
+                tiltakskode = tiltakskode,
+                tiltaksnavn = tiltaksnavn,
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             ),
             aktivitetskortTittel = lagAktivitetskortTittel(
@@ -155,6 +161,7 @@ private fun hentKladdTittel(
         kurstype == null && skalBrukeDeltakerlisteNavn(tiltakskode) -> gjennomforingsnavn
         tiltakskode == Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET &&
             erKladd -> tiltaksnavn
+
         !erKladd -> hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg)
         else -> hentVisningsnavnFraTiltakskode(tiltakskode)
     }
