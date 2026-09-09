@@ -18,6 +18,8 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.veilarboppfolging.Sak
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -309,6 +311,107 @@ class JournalforingServiceTest : IntegrationTestBase() {
             journalpostId shouldNotBe null
             journalpostId shouldBe journalpostForleng.journalpostId
             kanIkkeJournalfores shouldBe false
+        }
+    }
+
+    @Test
+    fun `journalforOgDistribuerEndringsvedtak - status sokt inn gir endring i journalpostnavn`() = runTest {
+        // Arrange
+        val deltaker = Hendelsesdata
+            .lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(
+                        navn = "Arbeidsforberedende trening",
+                        tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    ),
+                ),
+            ).copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
+            )
+
+        val hendelse = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.endreDeltakelsesmengde(),
+            deltaker = deltaker,
+        )
+
+        val journalforingstatus = Journalforingstatus(
+            hendelseId = hendelse.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+        journalforingstatusRepository.upsert(journalforingstatus)
+
+        coEvery { amtPersonClient.hentNavBruker(any()) } returns Persondata.lagNavBruker()
+        coEvery { pdfgenClient.endringsvedtak(any()) } returns "pdf".toByteArray()
+
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            listOf(HendelseMedJournalforingstatus(hendelse, journalforingstatus)),
+        )
+
+        // Assert
+        coVerify(exactly = 1) {
+            dokarkivClient.opprettJournalpost(
+                hendelseId = any(),
+                fnr = any(),
+                sak = any(),
+                pdf = any(),
+                journalforendeEnhet = any(),
+                journalpostNavn = "Endring - Arbeidsforberedende trening",
+            )
+        }
+    }
+
+    @Test
+    fun `journalforOgDistribuerEndringsvedtak - status ikke sokt inn gir endringsvedtak i journalpostnavn`() = runTest {
+        // Arrange
+        val deltaker = Hendelsesdata
+            .lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(
+                        navn = "Arbeidsforberedende trening",
+                        tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    ),
+                ),
+            ).copy(
+                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+            )
+
+        val hendelse = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.endreDeltakelsesmengde(),
+            deltaker = deltaker,
+        )
+
+        val journalforingstatus = Journalforingstatus(
+            hendelseId = hendelse.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = null,
+            kanIkkeJournalfores = null,
+        )
+
+        journalforingstatusRepository.upsert(journalforingstatus)
+
+        coEvery { amtPersonClient.hentNavBruker(any()) } returns Persondata.lagNavBruker()
+        coEvery { pdfgenClient.endringsvedtak(any()) } returns "pdf".toByteArray()
+
+        // Act
+        journalforingService.journalforOgDistribuerEndringsvedtak(
+            listOf(HendelseMedJournalforingstatus(hendelse, journalforingstatus)),
+        )
+
+        // Assert
+        coVerify(exactly = 1) {
+            dokarkivClient.opprettJournalpost(
+                hendelseId = any(),
+                fnr = any(),
+                sak = any(),
+                pdf = any(),
+                journalforendeEnhet = any(),
+                journalpostNavn = "Endringsvedtak - Arbeidsforberedende trening",
+            )
         }
     }
 

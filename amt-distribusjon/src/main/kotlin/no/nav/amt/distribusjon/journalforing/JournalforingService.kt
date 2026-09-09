@@ -24,6 +24,7 @@ import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.UtkastDto
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -151,7 +152,7 @@ class JournalforingService(
         }
 
         journalforOgSend(
-            genererPDF = pdf,
+            genererPdfFunc = pdf,
             hendelse = hendelse,
             journalforendeEnhet = hendelseAnsvarlig.enhet.enhetsnummer,
             journalforingstatus = journalforingstatus,
@@ -230,7 +231,7 @@ class JournalforingService(
         }
 
         journalforOgSend(
-            genererPDF = pdfFunc,
+            genererPdfFunc = pdfFunc,
             hendelse = hendelse,
             journalforendeEnhet = veileder.enhet.enhetsnummer,
             journalforingstatus = journalforingstatus,
@@ -247,7 +248,7 @@ class JournalforingService(
     ) {
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val tiltakskoordinator = hendelse.ansvarlig.hentTiltakskoordinator()
-        val pdf: suspend () -> ByteArray = {
+        val pdfFunc: suspend () -> ByteArray = {
             pdfgenClient.genererVentelistebrevPDF(
                 lagVentelistebrevPdfDto(
                     deltaker = hendelse.deltaker,
@@ -259,12 +260,12 @@ class JournalforingService(
         }
 
         journalforOgSend(
-            pdf,
-            hendelse,
-            tiltakskoordinator.enhet.enhetsnummer,
-            journalforingstatus,
-            DokumentType.VENTELISTEBREV,
-            DistribuerJournalpostRequest.Distribusjonstype.ANNET,
+            genererPdfFunc = pdfFunc,
+            hendelse = hendelse,
+            journalforendeEnhet = tiltakskoordinator.enhet.enhetsnummer,
+            journalforingstatus = journalforingstatus,
+            dokumentType = DokumentType.VENTELISTEBREV,
+            distribusjonstype = DistribuerJournalpostRequest.Distribusjonstype.ANNET,
         )
 
         log.info("Journalførte ventelistebrev for deltaker ${hendelse.deltaker.id}")
@@ -278,7 +279,7 @@ class JournalforingService(
         val navBruker = amtPersonClient.hentNavBruker(hendelse.deltaker.personident)
         val veileder = hendelse.ansvarlig.hentVeileder()
 
-        val pdf: suspend () -> ByteArray = {
+        val pdfFunc: suspend () -> ByteArray = {
             if (hendelse.deltaker.deltakerliste.erEnkeltplass == true) {
                 pdfgenClient.genererEnkeltplassHovedvedtakPdf(
                     lagEnkeltplassPdfDto(
@@ -304,7 +305,7 @@ class JournalforingService(
         }
 
         journalforOgSend(
-            genererPDF = pdf,
+            genererPdfFunc = pdfFunc,
             hendelse = hendelse,
             journalforendeEnhet = veileder.enhet.enhetsnummer,
             journalforingstatus = journalforingstatus,
@@ -316,7 +317,7 @@ class JournalforingService(
     }
 
     private suspend fun journalforOgSend(
-        genererPDF: suspend () -> ByteArray,
+        genererPdfFunc: suspend () -> ByteArray,
         hendelse: Hendelse,
         journalforendeEnhet: String,
         journalforingstatus: Journalforingstatus?,
@@ -327,7 +328,7 @@ class JournalforingService(
         var journalpostId = if (journalforingstatus?.erJournalfort() == true) journalforingstatus.journalpostId else null
 
         if (journalpostId == null) {
-            val pdf = genererPDF()
+            val pdf = genererPdfFunc()
             journalpostId = journalfor(listOf(hendelse), journalforendeEnhet, navBruker, pdf, dokumentType)
         }
 
@@ -386,7 +387,11 @@ class JournalforingService(
             .map { it.hendelse }
 
         if (ikkeJournalforteHendelser.isNotEmpty()) {
-            val journalpostId = journalforEndringsvedtak(ikkeJournalforteHendelser, navBruker) ?: return
+            val journalpostId = journalforEndringsvedtak(
+                ikkeJournalforteHendelser = ikkeJournalforteHendelser,
+                navBruker = navBruker,
+            ) ?: return
+
             sendBrev(
                 hendelser = ikkeJournalforteHendelser,
                 journalpostId = journalpostId,
@@ -399,10 +404,11 @@ class JournalforingService(
             val unikeJournalpostIder = journalforteHendelser
                 .distinctBy { it.journalforingstatus.journalpostId }
                 .mapNotNull { it.journalforingstatus.journalpostId }
-            val journalpostHendelseMap =
-                unikeJournalpostIder.associateWith { journalpostid ->
-                    journalforteHendelser.filter { it.journalforingstatus.journalpostId == journalpostid }
-                }
+
+            val journalpostHendelseMap = unikeJournalpostIder.associateWith { journalpostid ->
+                journalforteHendelser.filter { it.journalforingstatus.journalpostId == journalpostid }
+            }
+
             journalpostHendelseMap.entries.forEach { entry ->
                 sendBrev(
                     journalpostId = entry.key,
@@ -441,16 +447,24 @@ class JournalforingService(
             }
             return null
         }
-        val pdf = pdfgenClient.endringsvedtak(
+
+        val pdfFunc = pdfgenClient.endringsvedtak(
             lagEndringsvedtakPdfDto(
-                nyesteHendelse.deltaker,
-                navBruker,
-                ansvarlig,
-                ikkeJournalforteHendelser,
-                nyesteHendelse.opprettet.toLocalDate(),
+                deltaker = nyesteHendelse.deltaker,
+                navBruker = navBruker,
+                ansvarlig = ansvarlig,
+                hendelser = ikkeJournalforteHendelser,
+                opprettetDato = nyesteHendelse.opprettet.toLocalDate(),
             ),
         )
-        val journalpostId = journalfor(ikkeJournalforteHendelser, journalforendeEnhet, navBruker, pdf, DokumentType.ENDRINGSVEDTAK)
+
+        val journalpostId = journalfor(
+            hendelser = ikkeJournalforteHendelser,
+            journalforendeEnhet = journalforendeEnhet,
+            navBruker = navBruker,
+            pdf = pdfFunc,
+            dokumentType = DokumentType.ENDRINGSVEDTAK,
+        )
 
         log.info(
             "Journalførte endringsvedtak for deltaker ${ikkeJournalforteHendelser.first().deltaker.id}, " +
@@ -498,17 +512,18 @@ class JournalforingService(
     }
 
     private suspend fun journalfor(
-        hendelse: List<Hendelse>,
+        hendelser: List<Hendelse>,
         journalforendeEnhet: String,
         navBruker: NavBruker,
         pdf: ByteArray,
         dokumentType: DokumentType,
     ): String {
-        val nyesteHendelse = hendelse.maxBy { it.opprettet }
+        val nyesteHendelse = hendelser.maxBy { it.opprettet }
         val aktivOppfolgingsperiode = navBruker.getAktivOppfolgingsperiode()
             ?: throw IllegalArgumentException(
                 "Kan ikke endre på deltaker ${nyesteHendelse.deltaker.id} som ikke har aktiv oppfølgingsperiode",
             )
+
         val sak = veilarboppfolgingClient.opprettEllerHentSak(aktivOppfolgingsperiode.id)
 
         val journalpostId = dokarkivClient.opprettJournalpost(
@@ -517,10 +532,13 @@ class JournalforingService(
             sak = sak,
             pdf = pdf,
             journalforendeEnhet = journalforendeEnhet,
-            journalpostNavn = getJournalpostNavn(nyesteHendelse.deltaker.deltakerliste.tiltak, dokumentType),
+            journalpostNavn = getJournalpostNavn(
+                deltaker = nyesteHendelse.deltaker,
+                dokumentType = dokumentType,
+            ),
         )
 
-        hendelse.forEach {
+        hendelser.forEach {
             upsertJournalforingsstatus(hendelseId = it.id, journalpostId = journalpostId)
         }
 
@@ -568,16 +586,32 @@ private fun getAnsvarlig(
 }
 
 private fun getJournalpostNavn(
-    tiltakstype: HendelseDeltaker.Deltakerliste.Tiltak,
+    deltaker: HendelseDeltaker,
     dokumentType: DokumentType,
 ): String {
-    val tiltaknavn = if (tiltakstype.tiltakskode == Tiltakskode.JOBBKLUBB) "Jobbsøkerkurs" else tiltakstype.navn
+    val tiltak = deltaker.deltakerliste.tiltak
+
+    val tiltaknavn = if (tiltak.tiltakskode == Tiltakskode.JOBBKLUBB) {
+        "Jobbsøkerkurs"
+    } else {
+        tiltak.navn
+    }
+
     return when (dokumentType) {
         DokumentType.HOVEDVEDTAK -> "Vedtak - $tiltaknavn"
-        DokumentType.ENDRINGSVEDTAK -> "Endringsvedtak - $tiltaknavn"
         DokumentType.INNSOKINGSBREV -> "Søknad - $tiltaknavn"
         DokumentType.AVSLAG -> "Avslag - $tiltaknavn"
         DokumentType.VENTELISTEBREV -> "Venteliste - $tiltaknavn"
+        DokumentType.ENDRINGSVEDTAK -> {
+            // endringer for status SOKT_INN er ikke vedtak
+            val prefix = if (deltaker.status?.type == DeltakerStatus.Type.SOKT_INN) {
+                "Endring"
+            } else {
+                "Endringsvedtak"
+            }
+
+            "$prefix - $tiltaknavn"
+        }
     }
 }
 
