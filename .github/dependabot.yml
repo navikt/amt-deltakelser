@@ -47,3 +47,5 @@ updates:
     directory: "/amt-pdfgen"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 0
