@@ -377,13 +377,13 @@ class VeilederApiTest : IntegrationTestBase() {
             @Test
             fun `oppdater opplæringskategorisering - beskrivelse over maks lengde - sanitiseres til 250`() {
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
-                val expected = setupMocksLocal(
+                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "a".repeat(251))
+
+                setupMocksLocal(
                     deltaker = deltaker,
                     oppdatert = deltaker,
                     gjennomforingType = GjennomforingType.Enkeltplass,
                 )
-
-                val request = endreOpplaringKategoriseringRequest.copy(beskrivelse = "a".repeat(251))
 
                 withTestApplicationContext { httpClient ->
                     httpClient

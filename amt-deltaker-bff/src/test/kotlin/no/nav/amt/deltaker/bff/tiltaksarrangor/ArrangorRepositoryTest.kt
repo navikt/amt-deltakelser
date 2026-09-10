@@ -19,7 +19,7 @@ class ArrangorRepositoryTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
-        arrangorRepository.get(arrangor.id) shouldBe arrangor
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe arrangor
     }
 
     @Test
@@ -30,7 +30,7 @@ class ArrangorRepositoryTest {
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
         arrangorRepository.upsert(oppdatertArrangor)
 
-        arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe oppdatertArrangor
     }
 
     @Test
@@ -40,6 +40,6 @@ class ArrangorRepositoryTest {
 
         arrangorRepository.delete(arrangor.id)
 
-        arrangorRepository.get(arrangor.id) shouldBe null
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe null
     }
 }

@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.model.Deltakeroppdatering
-import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.KafkaConsumerFactory
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -25,7 +24,6 @@ class DeltakerV2Consumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val vurderingService: VurderingService,
     private val navBrukerService: NavBrukerService,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
@@ -85,7 +83,6 @@ class DeltakerV2Consumer(
                     personident = deltaker.navBruker.personident,
                     deltakerlisteId = deltaker.deltakerliste.id,
                 )
-                vurderingService.upsertMany(deltakerPayload.vurderingerFraArrangor.orEmpty())
             }
         } else {
             log.info("Oppdaterer deltaker med id ${deltakerPayload.id}")
@@ -97,8 +94,6 @@ class DeltakerV2Consumer(
                         personident = navBruker.personident,
                         deltakerlisteId = deltakerPayload.deltakerliste.id,
                     )
-
-                    vurderingService.upsertMany(deltakerPayload.vurderingerFraArrangor.orEmpty())
                 },
             )
 

@@ -44,15 +44,6 @@ class ArrangorRepository {
         }
     }
 
-    fun get(id: UUID): Arrangor? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM arrangor WHERE id = :id",
-                mapOf("id" to id),
-            ).map(::rowMapper).asSingle,
-        )
-    }
-
     fun get(orgnr: String): Arrangor? = Database.query { session ->
         session.run(
             queryOf(

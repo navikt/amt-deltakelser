@@ -47,7 +47,7 @@ class TiltakstypeRepositoryTest(
             )
             sut.upsert(expectedTiltakstype)
 
-            val inDb = sut.getById(tiltakstypeInTest.id)
+            val inDb = sut.getByTiltakskode(expectedTiltakstype.tiltakskode.name)
 
             assertSoftly(inDb.shouldNotBeNull()) {
                 navn shouldBe expectedTiltakstype.navn

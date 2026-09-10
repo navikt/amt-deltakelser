@@ -60,8 +60,6 @@ import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingConsumer
-import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -250,9 +248,6 @@ fun Application.module() {
 
     val forslagRepository = ForslagRepository()
 
-    val vurderingRepository = VurderingRepository()
-
-    val vurderingService = VurderingService(vurderingRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
@@ -302,7 +297,6 @@ fun Application.module() {
             deltakerRepository,
             deltakerService,
             deltakerlisteRepository,
-            vurderingService,
             navBrukerService,
             unleashToggle,
         ),
