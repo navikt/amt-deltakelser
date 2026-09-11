@@ -38,7 +38,9 @@ class DeltakerlisteServiceTest {
     @Test
     fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato og graceperiode er passert - kaster exception`() {
         with(DeltakerlisteContext()) {
-            medAvsluttetDeltakerliste()
+            medAvsluttetDeltakerliste(
+                sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+            )
             assertThrows<DeltakerlisteStengtException> {
                 deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
             }
@@ -46,9 +48,27 @@ class DeltakerlisteServiceTest {
     }
 
     @Test
-    fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato er ikke passert - kaster ikke exception`() {
+    fun `verifiserTilgjengeligDeltakerliste - akkurat ved graceperiode grensen - kaster ikke exception`() {
+        with(DeltakerlisteContext()) {
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode))
+            deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+        }
+    }
+
+    @Test
+    fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato er innenfor graceperiode - kaster ikke exception`() {
         with(DeltakerlisteContext()) {
             deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+        }
+    }
+
+    @Test
+    fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato er forbi graceperiode grensen - kaster exception`() {
+        with(DeltakerlisteContext()) {
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1))
+            assertThrows<DeltakerlisteStengtException> {
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+            }
         }
     }
 }
@@ -75,11 +95,11 @@ data class DeltakerlisteContext(
         TestRepository.insert(deltakerliste)
     }
 
-    fun medAvsluttetDeltakerliste() {
+    fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now().minusDays(1)) {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
             startDato = LocalDate.now().minusMonths(3),
-            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+            sluttDato = sluttDato,
         )
 
         repository.upsert(deltakerliste)

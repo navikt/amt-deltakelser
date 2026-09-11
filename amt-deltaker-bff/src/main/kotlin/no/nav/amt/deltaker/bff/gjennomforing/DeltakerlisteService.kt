@@ -9,7 +9,7 @@ class DeltakerlisteService(
     private val deltakerlisteRepository: DeltakerlisteRepository,
 ) {
     companion object {
-        val tiltakskoordinatorGraceperiode: Period = Period.ofDays(14)
+        val tiltakskoordinatorGraceperiode: Period = Period.ofMonths(6)
     }
 
     fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
