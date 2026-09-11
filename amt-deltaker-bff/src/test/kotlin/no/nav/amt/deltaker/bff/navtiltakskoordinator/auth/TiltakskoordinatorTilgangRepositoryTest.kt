@@ -175,8 +175,8 @@ class TiltakskoordinatorTilgangRepositoryTest {
     fun `hentUtdaterteTilganger - deltakerlisten er akkurat ved graceperiode grensen - returnerer ikke utdatert tilgang`() {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
-            medAvsluttetDeltakerliste(sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode))
-            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger() shouldHaveSize 0
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 28)) shouldHaveSize 0
         }
     }
 
@@ -184,8 +184,8 @@ class TiltakskoordinatorTilgangRepositoryTest {
     fun `hentUtdaterteTilganger - deltakerlisten er forbi graceperiode grensen - returnerer utdatert tilgang`() {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
-            medAvsluttetDeltakerliste(sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1))
-            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger() shouldHaveSize 1
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 29)) shouldHaveSize 1
         }
     }
 
