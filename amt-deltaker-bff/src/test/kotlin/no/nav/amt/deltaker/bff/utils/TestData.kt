@@ -117,7 +117,14 @@ object TestData {
         status = status,
         startDato = startDato,
         sluttDato = sluttDato,
-        datoAvsluttendeStatus = sluttDato,
+        datoAvsluttendeStatus = when (status) {
+            GjennomforingStatusType.AVSLUTTET,
+            GjennomforingStatusType.AVBRUTT,
+            -> sluttDato
+
+            GjennomforingStatusType.AVLYST -> startDato
+            else -> null
+        },
         oppstart = oppstart,
         arrangor = Deltakerliste.Arrangor(arrangor, overordnetArrangor?.navn),
         apentForPamelding = apentForPamelding,
