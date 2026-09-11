@@ -41,15 +41,6 @@ class NavEnhetRepository {
         }
     }
 
-    fun get(enhetsnummer: String): NavEnhetDbo? = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
-                mapOf("nav_enhet_nummer" to enhetsnummer),
-            ).map(::rowMapper).asSingle,
-        )
-    }
-
     fun get(id: UUID): NavEnhetDbo? = Database.query { session ->
         session.run(
             queryOf(

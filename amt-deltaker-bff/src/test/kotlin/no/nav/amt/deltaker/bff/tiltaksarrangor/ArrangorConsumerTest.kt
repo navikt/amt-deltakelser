@@ -25,7 +25,7 @@ class ArrangorConsumerTest {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
         }
 
-        arrangorRepository.get(arrangor.id) shouldBe arrangor
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe arrangor
     }
 
     @Test
@@ -41,7 +41,7 @@ class ArrangorConsumerTest {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
         }
 
-        arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe oppdatertArrangor
     }
 
     @Test
@@ -55,6 +55,6 @@ class ArrangorConsumerTest {
             arrangorConsumer.consume(arrangor.id, null)
         }
 
-        arrangorRepository.get(arrangor.id) shouldBe null
+        arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe null
     }
 }

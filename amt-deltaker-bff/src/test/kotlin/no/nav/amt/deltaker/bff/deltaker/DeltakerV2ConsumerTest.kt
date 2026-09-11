@@ -14,8 +14,6 @@ import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.deltaker.bff.utils.endre
@@ -69,13 +67,11 @@ class DeltakerV2ConsumerTest {
         forslagRepository = mockk(relaxed = true),
     )
     private val deltakerlisteRepository = DeltakerlisteRepository()
-    private val vurderingService = VurderingService(VurderingRepository())
     private val unleashToggle = mockk<CommonUnleashToggle>()
     private val consumer = DeltakerV2Consumer(
         deltakerRepository,
         deltakerService,
         deltakerlisteRepository,
-        vurderingService,
         navBrukerService,
         unleashToggle,
     )
@@ -112,9 +108,6 @@ class DeltakerV2ConsumerTest {
         oppdatertDeltaker.startdato shouldBe startdato
         oppdatertDeltaker.sluttdato shouldBe sluttdato
         oppdatertDeltaker.sistEndret shouldBeCloseTo sistEndret
-
-        val lagretVurdering = TestRepository.getVurderingerForDeltaker(deltaker.id)
-        lagretVurdering.size shouldBe 1
     }
 
     @Test

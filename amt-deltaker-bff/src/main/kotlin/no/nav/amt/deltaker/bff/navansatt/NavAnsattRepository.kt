@@ -76,19 +76,6 @@ class NavAnsattRepository {
         )
     }
 
-    fun getMany(veilederIdenter: List<UUID>): List<NavAnsatt> {
-        if (veilederIdenter.isEmpty()) return emptyList()
-
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM nav_ansatt WHERE id IN (${veilederIdenter.joinToString { "?" }})",
-                    *veilederIdenter.toTypedArray(),
-                ).map(::rowMapper).asList,
-            )
-        }
-    }
-
     companion object {
         private fun rowMapper(row: Row) = NavAnsatt(
             id = row.uuid("id"),

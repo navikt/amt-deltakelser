@@ -13,8 +13,6 @@ import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.arrangor.melding.Vurdering
-import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -75,24 +73,6 @@ object TestRepository {
                 "SELECT sist_besokt FROM deltaker WHERE id = ?",
                 deltakerId,
             ).map { row -> row.zonedDateTime("sist_besokt") }.asSingle,
-        )
-    }
-
-    fun getVurderingerForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM vurdering WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ).map { row ->
-                Vurdering(
-                    id = row.uuid("id"),
-                    deltakerId = row.uuid("deltaker_id"),
-                    opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
-                    opprettet = row.localDateTime("opprettet"),
-                    vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
-                    begrunnelse = row.stringOrNull("begrunnelse"),
-                )
-            }.asList,
         )
     }
 

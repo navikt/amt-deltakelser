@@ -72,7 +72,7 @@ class KafkaConsumerTest(
             ack,
         )
 
-        tiltakstypeRepository.getById(ctx.tiltakstype.id) shouldNotBe null
+        tiltakstypeRepository.getByTiltakskode(ctx.tiltakstype.tiltakskode.name) shouldNotBe null
     }
 
     @Test
