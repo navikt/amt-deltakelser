@@ -18,8 +18,8 @@ class DeltakerlisteService(
     ): Deltakerliste {
         val deltakerliste = deltakerlisteRepository.get(id).getOrThrow()
 
-        deltakerliste.sluttDato?.let { sluttdato ->
-            if (today.isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {
+        deltakerliste.datoAvsluttendeStatus?.let { datoAvsluttendeStatus ->
+            if (today.isAfter(datoAvsluttendeStatus.plus(tiltakskoordinatorGraceperiode))) {
                 throw DeltakerlisteStengtException("Deltakerlisten $id er stengt for tiltakskoordinator")
             }
         }

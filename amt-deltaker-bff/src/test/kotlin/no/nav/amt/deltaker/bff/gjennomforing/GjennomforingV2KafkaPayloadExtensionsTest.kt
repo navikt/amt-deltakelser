@@ -22,10 +22,10 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
         val deltakerListeInTest = lagDeltakerliste(
             tiltakstype = tiltakstypeInTest,
             arrangor = arrangorInTest,
+            status = GjennomforingStatusType.AVSLUTTET,
         )
 
         val payload = lagGruppeDeltakerlistePayload(deltakerliste = deltakerListeInTest)
-
         val model = payload.toModel(arrangorInTest, tiltakstypeInTest)
 
         assertSoftly(model) {
@@ -36,6 +36,7 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
             navn shouldBe deltakerListeInTest.navn
             startDato shouldBe deltakerListeInTest.startDato
             sluttDato shouldBe deltakerListeInTest.sluttDato
+            datoAvsluttendeStatus shouldBe deltakerListeInTest.datoAvsluttendeStatus
             status shouldBe deltakerListeInTest.status
             oppstart shouldBe deltakerListeInTest.oppstart
             apentForPamelding shouldBe deltakerListeInTest.apentForPamelding
@@ -74,6 +75,7 @@ class GjennomforingV2KafkaPayloadExtensionsTest {
             status shouldBe deltakerListeInTest.status
             startDato.shouldBeNull()
             sluttDato.shouldBeNull()
+            datoAvsluttendeStatus.shouldBeNull()
             oppstart shouldBe deltakerListeInTest.oppstart
             apentForPamelding.shouldBeTrue()
             antallPlasser.shouldBeNull()

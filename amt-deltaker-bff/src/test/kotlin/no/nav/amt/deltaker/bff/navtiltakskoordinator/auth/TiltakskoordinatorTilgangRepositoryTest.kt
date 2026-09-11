@@ -275,10 +275,17 @@ data class TiltakskoordinatorTilgangContext(
     }
 
     fun medStengtDeltakerliste() {
+        val sluttdato = LocalDate
+            .now()
+            .minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
+            .minusDays(1)
+
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+            sluttDato = sluttdato,
+            datoAvsluttendeStatus = sluttdato,
         )
+
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
@@ -286,6 +293,7 @@ data class TiltakskoordinatorTilgangContext(
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
             sluttDato = sluttDato,
+            datoAvsluttendeStatus = sluttDato,
         )
         deltakerlisteRepository.upsert(deltakerliste)
     }

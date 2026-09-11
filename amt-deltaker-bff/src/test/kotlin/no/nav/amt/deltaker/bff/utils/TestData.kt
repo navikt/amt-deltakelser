@@ -117,6 +117,7 @@ object TestData {
         status = status,
         startDato = startDato,
         sluttDato = sluttDato,
+        datoAvsluttendeStatus = sluttDato,
         oppstart = oppstart,
         arrangor = Deltakerliste.Arrangor(arrangor, overordnetArrangor?.navn),
         apentForPamelding = apentForPamelding,

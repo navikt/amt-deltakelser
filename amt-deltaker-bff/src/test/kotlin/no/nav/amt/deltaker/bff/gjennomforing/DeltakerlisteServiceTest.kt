@@ -96,6 +96,7 @@ data class DeltakerlisteContext(
             status = GjennomforingStatusType.AVSLUTTET,
             startDato = LocalDate.now().minusMonths(3),
             sluttDato = sluttDato,
+            datoAvsluttendeStatus = sluttDato,
         )
 
         repository.upsert(deltakerliste)

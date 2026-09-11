@@ -148,13 +148,16 @@ class TiltakskoordinatorTilgangRepository {
                 JOIN deltakerliste dl ON t.deltakerliste_id = dl.id
             WHERE 
                 t.gyldig_til IS NULL 
-                AND dl.slutt_dato + INTERVAL '${DeltakerlisteService.tiltakskoordinatorGraceperiode.months} months' < :today
+                AND dl.dato_avsluttende_status + INTERVAL '${DeltakerlisteService.tiltakskoordinatorGraceperiode.months} months' < :today
             """.trimIndent()
 
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, mapOf("today" to today)).map(::rowMapper).asList,
+                    queryOf(
+                        statement = sql,
+                        paramMap = mapOf("today" to today),
+                    ).map(::rowMapper).asList,
                 )
             }
     }

@@ -304,16 +304,20 @@ class DeltakerRepository {
                 dl.status AS "dl.status",
                 dl.start_dato AS "dl.start_dato",
                 dl.slutt_dato AS "dl.slutt_dato",
+                dl.dato_avsluttende_status AS "dl.dato_avsluttende_status",
                 dl.oppstart AS "dl.oppstart",
                 dl.apent_for_pamelding AS "dl.apent_for_pamelding",
                 dl.antall_plasser AS "dl.antall_plasser",
                 dl.oppmote_sted AS "dl.oppmote_sted",
                 dl.pameldingstype AS "dl.pameldingstype",
+                
                 a.id AS "a.id",
                 a.navn AS "a.navn",
                 a.organisasjonsnummer AS "a.organisasjonsnummer",
                 a.overordnet_arrangor_id AS "a.overordnet_arrangor_id",
+                
                 oa.navn AS "oa.navn",
+                
                 t.id AS "t.id",
                 t.navn AS "t.navn",
                 t.tiltakskode AS "t.tiltakskode",
