@@ -4,7 +4,7 @@ ALTER TABLE deltakerliste
 UPDATE deltakerliste
     SET dato_avsluttende_status = CASE
                                   WHEN status = 'AVSLUTTET' THEN slutt_dato
-                                  WHEN status = 'AVRUTT' THEN slutt_dato
+                                  WHEN status = 'AVBRUTT' THEN slutt_dato
                                   WHEN status = 'AVLYST' THEN start_dato
     END
 WHERE
