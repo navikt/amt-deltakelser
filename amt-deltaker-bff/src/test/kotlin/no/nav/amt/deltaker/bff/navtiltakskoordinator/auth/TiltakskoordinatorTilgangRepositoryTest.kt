@@ -190,6 +190,16 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
+    fun `hentUtdaterteTilganger - month-end case - bruker samme graceperiode som service`() {
+        with(TiltakskoordinatorTilgangContext()) {
+            medAktivTilgang()
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 31)) shouldHaveSize 1
+        }
+    }
+
+    @Test
     fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()

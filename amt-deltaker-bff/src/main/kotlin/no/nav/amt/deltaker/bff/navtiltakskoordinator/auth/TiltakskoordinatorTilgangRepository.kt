@@ -134,8 +134,7 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentUtdaterteTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> {
-        val grense = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
+    fun hentUtdaterteTilganger(today: LocalDate = LocalDate.now()): List<TiltakskoordinatorDeltakerlisteTilgang> {
         val sql =
             """
             SELECT
@@ -143,17 +142,43 @@ class TiltakskoordinatorTilgangRepository {
                 t.nav_ansatt_id,
                 t.deltakerliste_id,
                 t.gyldig_fra,
-                t.gyldig_til
+                t.gyldig_til,
+                dl.slutt_dato
             FROM 
                 tiltakskoordinator_deltakerliste_tilgang t 
                 JOIN deltakerliste dl ON t.deltakerliste_id = dl.id
             WHERE 
                 t.gyldig_til IS NULL 
-                AND dl.slutt_dato < :grense 
             """.trimIndent()
 
-        return Database.query { session ->
-            session.run(queryOf(sql, mapOf("grense" to grense)).map(::rowMapper).asList)
+        return Database
+            .query { session ->
+                session.run(
+                    queryOf(sql)
+                        .map { row ->
+                            TiltakskoordinatorTilgangMedSluttdato(
+                                tilgang = rowMapper(row),
+                                sluttDato = row.localDateOrNull("slutt_dato"),
+                            )
+                        }.asList,
+                )
+            }.filter { it.erUtdatert(today) }
+            .map { it.tilgang }
+    }
+
+    private data class TiltakskoordinatorTilgangMedSluttdato(
+        val tilgang: TiltakskoordinatorDeltakerlisteTilgang,
+        val sluttDato: LocalDate?,
+    ) {
+        /**
+         * Vurderer om tilgangen er utløpt ved å bruke samme kalenderregel som service-laget.
+         *
+         * Dette må sammenligne `sluttDato.plusMonths(6)` mot dagens dato, ikke en fast
+         * dagssum, ellers får vi avvik rundt månedsslutt og skuddår.
+         */
+        fun erUtdatert(today: LocalDate): Boolean {
+            val sluttDato = sluttDato ?: return false
+            return today.isAfter(sluttDato.plus(DeltakerlisteService.tiltakskoordinatorGraceperiode))
         }
     }
 
