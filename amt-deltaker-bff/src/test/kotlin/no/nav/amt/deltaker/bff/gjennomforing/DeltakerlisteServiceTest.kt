@@ -39,10 +39,13 @@ class DeltakerlisteServiceTest {
     fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato og graceperiode er passert - kaster exception`() {
         with(DeltakerlisteContext()) {
             medAvsluttetDeltakerliste(
-                sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+                sluttDato = LocalDate.of(2026, 2, 28),
             )
             assertThrows<DeltakerlisteStengtException> {
-                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(
+                    id = deltakerliste.id,
+                    today = LocalDate.of(2026, 8, 29),
+                )
             }
         }
     }
@@ -50,8 +53,11 @@ class DeltakerlisteServiceTest {
     @Test
     fun `verifiserTilgjengeligDeltakerliste - akkurat ved graceperiode grensen - kaster ikke exception`() {
         with(DeltakerlisteContext()) {
-            medAvsluttetDeltakerliste(sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode))
-            deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            deltakerlisteService.verifiserTilgjengeligDeltakerliste(
+                id = deltakerliste.id,
+                today = LocalDate.of(2026, 8, 28),
+            )
         }
     }
 

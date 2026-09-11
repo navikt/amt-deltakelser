@@ -12,11 +12,14 @@ class DeltakerlisteService(
         val tiltakskoordinatorGraceperiode: Period = Period.ofMonths(6)
     }
 
-    fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
+    fun verifiserTilgjengeligDeltakerliste(
+        id: UUID,
+        today: LocalDate = LocalDate.now(),
+    ): Deltakerliste {
         val deltakerliste = deltakerlisteRepository.get(id).getOrThrow()
 
         deltakerliste.sluttDato?.let { sluttdato ->
-            if (LocalDate.now().isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {
+            if (today.isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {
                 throw DeltakerlisteStengtException("Deltakerlisten $id er stengt for tiltakskoordinator")
             }
         }
