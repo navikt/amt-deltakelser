@@ -172,6 +172,34 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
+    fun `hentUtdaterteTilganger - deltakerlisten er akkurat ved graceperiode grensen - returnerer ikke utdatert tilgang`() {
+        with(TiltakskoordinatorTilgangContext()) {
+            medAktivTilgang()
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 28)) shouldHaveSize 0
+        }
+    }
+
+    @Test
+    fun `hentUtdaterteTilganger - deltakerlisten er forbi graceperiode grensen - returnerer utdatert tilgang`() {
+        with(TiltakskoordinatorTilgangContext()) {
+            medAktivTilgang()
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 29)) shouldHaveSize 1
+        }
+    }
+
+    @Test
+    fun `hentUtdaterteTilganger - month-end case - bruker samme graceperiode som service`() {
+        with(TiltakskoordinatorTilgangContext()) {
+            medAktivTilgang()
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+
+            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(today = LocalDate.of(2026, 8, 31)) shouldHaveSize 1
+        }
+    }
+
+    @Test
     fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
@@ -247,17 +275,25 @@ data class TiltakskoordinatorTilgangContext(
     }
 
     fun medStengtDeltakerliste() {
+        val sluttdato = LocalDate
+            .now()
+            .minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
+            .minusDays(1)
+
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+            sluttDato = sluttdato,
+            datoAvsluttendeStatus = sluttdato,
         )
+
         deltakerlisteRepository.upsert(deltakerliste)
     }
 
-    fun medAvsluttetDeltakerliste() {
+    fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now()) {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            sluttDato = LocalDate.now(),
+            sluttDato = sluttDato,
+            datoAvsluttendeStatus = sluttDato,
         )
         deltakerlisteRepository.upsert(deltakerliste)
     }
