@@ -4,7 +4,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import no.nav.amt.aktivitetskort.database.TestData
@@ -60,7 +59,7 @@ class KafkaConsumerServiceTest {
         tiltakstypeRepository = tiltakstypeRepository,
         transactionTemplate = transactionTemplate,
         unleashToggle = unleashToggle,
-        objectMapper = staticObjectMapper,
+        objectMapper = objectMapper,
     )
 
     @BeforeEach
@@ -207,7 +206,7 @@ class KafkaConsumerServiceTest {
 
             kafkaConsumerService.deltakerlisteHendelse(
                 id = ctx.deltakerlisteGruppePayload.id,
-                value = staticObjectMapper.writeValueAsString(ctx.deltakerlisteGruppePayload),
+                value = objectMapper.writeValueAsString(ctx.deltakerlisteGruppePayload),
             )
 
             verify(exactly = 0) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
@@ -220,7 +219,7 @@ class KafkaConsumerServiceTest {
 
             kafkaConsumerService.deltakerlisteHendelse(
                 id = ctx.deltakerlisteGruppePayload.id,
-                value = staticObjectMapper.writeValueAsString(ctx.deltakerlisteGruppePayload),
+                value = objectMapper.writeValueAsString(ctx.deltakerlisteGruppePayload),
             )
 
             verify(exactly = 1) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
@@ -255,7 +254,7 @@ class KafkaConsumerServiceTest {
 
             kafkaConsumerService.deltakerlisteHendelse(
                 id = deltakerlistePayload.id,
-                value = staticObjectMapper.writeValueAsString(deltakerlistePayload),
+                value = objectMapper.writeValueAsString(deltakerlistePayload),
             )
 
             verify(exactly = 2) { arrangorRepository.get(arrangorInTest.organisasjonsnummer) }

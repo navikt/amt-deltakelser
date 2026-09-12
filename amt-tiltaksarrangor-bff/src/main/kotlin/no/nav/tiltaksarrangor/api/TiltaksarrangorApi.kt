@@ -1,11 +1,10 @@
 package no.nav.tiltaksarrangor.api
 
+import no.nav.amt.lib.utils.writePolymorphicListAsString
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.model.Deltaker
 import no.nav.tiltaksarrangor.service.TiltaksarrangorService
-import no.nav.tiltaksarrangor.utils.objectMapper
 import no.nav.tiltaksarrangor.utils.personIdent
-import no.nav.tiltaksarrangor.utils.writePolymorphicListAsString
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -15,12 +14,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @RestController
 @RequestMapping("/tiltaksarrangor")
 class TiltaksarrangorApi(
     private val tiltaksarrangorService: TiltaksarrangorService,
+    private val objectMapper: ObjectMapper,
 ) {
     @GetMapping("/meg/roller")
     fun getMineRoller(): List<String> = tiltaksarrangorService.getMineRoller()

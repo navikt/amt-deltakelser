@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
-import no.nav.amt.person.service.clients.AMT_ARRANGOR_CLIENT_ID
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

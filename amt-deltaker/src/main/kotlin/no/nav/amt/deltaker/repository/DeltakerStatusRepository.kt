@@ -7,10 +7,10 @@ import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.repository.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
 import no.nav.amt.deltaker.repository.dbo.DeltakerStatusMedDeltakerId
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -61,7 +61,7 @@ object DeltakerStatusRepository {
             "id" to deltakerStatus.id,
             "deltaker_id" to deltakerId,
             "type" to deltakerStatus.type.name,
-            "aarsak" to toPGObject(deltakerStatus.aarsak),
+            "aarsak" to deltakerStatus.aarsak?.let { objectMapper.toPGObject(it) },
             "gyldig_til" to deltakerStatus.gyldigTil,
             "gyldig_fra" to nullWhenNearNow(deltakerStatus.gyldigFra),
             "created_at" to nullWhenNearNow(deltakerStatus.opprettet),

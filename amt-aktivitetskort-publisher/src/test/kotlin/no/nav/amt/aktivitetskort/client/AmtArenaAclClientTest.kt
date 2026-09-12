@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
-import no.nav.amt.person.service.clients.AMT_ARENA_ACL_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest

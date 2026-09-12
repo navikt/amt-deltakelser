@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.veileder
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -56,9 +56,9 @@ class InnsokRepository {
             "startdato" to innsok.startdato,
             "sluttdato" to innsok.sluttdato,
             "dager_per_uke_ved_innsok" to innsok.dagerPerUkeVedInnsok,
-            "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
-            "prisinformasjon_ved_innsok" to toPGObject(innsok.prisinformasjonVedInnsok),
-            "kategorisering_ved_innsok" to toPGObject(innsok.opplaringKategoriseringVedInnsok),
+            "deltakelsesinnhold_ved_innsok" to innsok.deltakelsesinnholdVedInnsok?.let { objectMapper.toPGObject(it) },
+            "prisinformasjon_ved_innsok" to innsok.prisinformasjonVedInnsok?.let { objectMapper.toPGObject(it) },
+            "kategorisering_ved_innsok" to innsok.opplaringKategoriseringVedInnsok?.let { objectMapper.toPGObject(it) },
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

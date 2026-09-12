@@ -1,22 +1,23 @@
 package no.nav.tiltaksarrangor.repositories
 
+import no.nav.amt.lib.utils.toPGObject
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.repositories.model.EndringsmeldingDbo
-import no.nav.tiltaksarrangor.utils.objectMapper
 import no.nav.tiltaksarrangor.utils.sqlParameters
-import org.postgresql.util.PGobject
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Repository
 class EndringsmeldingRepository(
     private val template: NamedParameterJdbcTemplate,
+    private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -57,7 +58,7 @@ class EndringsmeldingRepository(
                 "id" to endringsmeldingDbo.id,
                 "deltaker_id" to endringsmeldingDbo.deltakerId,
                 "type" to endringsmeldingDbo.type.name,
-                "innhold" to endringsmeldingDbo.innhold?.toPGObject(),
+                "innhold" to endringsmeldingDbo.innhold?.let { objectMapper.toPGObject(it) },
                 "status" to endringsmeldingDbo.status.name,
                 "sendt" to endringsmeldingDbo.sendt,
             ),
@@ -113,9 +114,4 @@ class EndringsmeldingRepository(
             EndringsmeldingType.ENDRE_SLUTTAARSAK -> objectMapper.readValue<Innhold.EndreSluttaarsakInnhold>(innholdJson)
         }
     }
-}
-
-fun Innhold.toPGObject() = PGobject().also {
-    it.type = "json"
-    it.value = objectMapper.writeValueAsString(this)
 }

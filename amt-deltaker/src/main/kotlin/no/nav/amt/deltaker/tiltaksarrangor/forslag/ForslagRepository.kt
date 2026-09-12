@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.tiltaksarrangor.forslag
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.prefixColumn
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -97,8 +97,8 @@ class ForslagRepository {
             "arrangoransatt_id" to forslag.opprettetAvArrangorAnsattId,
             "opprettet" to forslag.opprettet,
             "begrunnelse" to forslag.begrunnelse,
-            "endring" to toPGObject(forslag.endring),
-            "status" to toPGObject(forslag.status),
+            "endring" to objectMapper.toPGObject(forslag.endring),
+            "status" to objectMapper.toPGObject(forslag.status),
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

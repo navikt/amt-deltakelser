@@ -1,18 +1,19 @@
 package no.nav.tiltaksarrangor.melding.forslag
 
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.tiltaksarrangor.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import no.nav.tiltaksarrangor.utils.sqlParameters
-import org.postgresql.util.PGobject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Repository
 class ForslagRepository(
     private val template: NamedParameterJdbcTemplate,
+    private val objectMapper: ObjectMapper,
 ) {
     private val rowMapper = RowMapper { rs, _ ->
         Forslag(
@@ -56,8 +57,8 @@ class ForslagRepository(
             "deltaker_id" to forslag.deltakerId,
             "opprettet_av_arrangor_ansatt_id" to forslag.opprettetAvArrangorAnsattId,
             "begrunnelse" to forslag.begrunnelse,
-            "endring" to toPGObject(forslag.endring),
-            "status" to toPGObject(forslag.status),
+            "endring" to objectMapper.toPGObject(forslag.endring),
+            "status" to objectMapper.toPGObject(forslag.status),
             "created_at" to forslag.opprettet,
         )
         return template.queryForObject(sql, params, rowMapper)
@@ -125,9 +126,4 @@ class ForslagRepository(
                 ),
             )
     }
-}
-
-fun toPGObject(value: Any?) = PGobject().also {
-    it.type = "json"
-    it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
 }

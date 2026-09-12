@@ -2,7 +2,6 @@ package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.request.PersonRequest
 import no.nav.amt.aktivitetskort.client.response.OppfolgingPeriodeResponse
-import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.RequestBody

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.deltaker
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.bff.model.Deltaker
@@ -13,6 +12,8 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.polymorphicToPGObject
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -83,8 +84,8 @@ class DeltakerRepository {
             "dagerPerUke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
-            "historikk" to toPGObject(deltaker.historikk),
+            "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
+            "historikk" to objectMapper.polymorphicToPGObject(deltaker.historikk),
             "kan_endres" to deltaker.kanEndres,
             "modified_at" to deltaker.sistEndret,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
@@ -223,8 +224,8 @@ class DeltakerRepository {
             "dagerPerUke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
-            "historikk" to toPGObject(deltaker.historikk),
+            "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
+            "historikk" to objectMapper.polymorphicToPGObject(deltaker.historikk),
             "modified_at" to deltaker.sistEndret,
         )
 

@@ -1,10 +1,9 @@
 package no.nav.amt.aktivitetskort.repositories
 
-import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.utils.getZonedDateTime
 import no.nav.amt.aktivitetskort.utils.sqlParameters
-import org.postgresql.util.PGobject
+import no.nav.amt.lib.utils.toPGObject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
@@ -52,7 +51,7 @@ class MeldingRepository(
                 "deltakerliste_id" to melding.deltakerlisteId,
                 "arrangor_id" to melding.arrangorId,
                 "oppfolgingsperiode" to melding.oppfolgingperiode,
-                "melding" to melding.aktivitetskort.toPGObject(),
+                "melding" to objectMapper.toPGObject(melding.aktivitetskort),
             ),
         )
     }
@@ -74,9 +73,4 @@ class MeldingRepository(
         sqlParameters("arrangor_id" to arrangorId),
         rowMapper,
     )
-
-    fun Aktivitetskort.toPGObject() = PGobject().also {
-        it.type = "json"
-        it.value = objectMapper.writeValueAsString(this)
-    }
 }

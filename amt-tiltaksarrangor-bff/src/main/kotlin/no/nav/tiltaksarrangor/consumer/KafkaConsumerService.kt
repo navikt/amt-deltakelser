@@ -36,10 +36,10 @@ import no.nav.tiltaksarrangor.repositories.model.DAGER_AVSLUTTET_DELTAKER_VISES
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.service.NavAnsattService
 import no.nav.tiltaksarrangor.service.NavEnhetService
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -57,6 +57,7 @@ class KafkaConsumerService(
     private val ulestEndringRepository: UlestEndringRepository,
     private val amtPersonClient: AmtPersonClient,
     private val navAnsattRepository: NavAnsattRepository,
+    private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -97,7 +98,11 @@ class KafkaConsumerService(
         }
 
         // sjekker at gjennomføringstype er støttet før deserialisering
-        val gjennomforingstypeFromJson = getGjennomforingstypeFromDeltakerJsonPayload(deltakerPayloadJson)
+        val gjennomforingstypeFromJson = getGjennomforingstypeFromDeltakerJsonPayload(
+            messageJson = deltakerPayloadJson,
+            objectMapper = objectMapper,
+        )
+
         if (gjennomforingstypeFromJson != GjennomforingType.Gruppe.name) {
             log.info("Gjennomføringstype $gjennomforingstypeFromJson er ikke støttet.")
             return

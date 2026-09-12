@@ -2,12 +2,12 @@ package no.nav.amt.deltaker.bff.innbygger
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -66,9 +66,9 @@ class NavBrukerRepository {
             "mellomnavn" to bruker.mellomnavn,
             "etternavn" to bruker.etternavn,
             "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
-            "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
+            "oppfolgingsperioder" to objectMapper.toPGObject(bruker.oppfolgingsperioder),
             "innsatsgruppe" to bruker.innsatsgruppe?.name,
-            "adresse" to toPGObject(bruker.adresse),
+            "adresse" to bruker.adresse?.let { objectMapper.toPGObject(it) },
             "er_skjermet" to bruker.erSkjermet,
             "nav_enhet_id" to bruker.navEnhetId,
             "nav_veileder_id" to bruker.navVeilederId,

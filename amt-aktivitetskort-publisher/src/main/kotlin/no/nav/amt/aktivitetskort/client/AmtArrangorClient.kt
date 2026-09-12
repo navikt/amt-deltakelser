@@ -2,7 +2,6 @@ package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import no.nav.amt.lib.spring.boot.client.toExternalServiceException
-import no.nav.amt.person.service.clients.AMT_ARRANGOR_CLIENT_ID
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException
 import java.util.UUID

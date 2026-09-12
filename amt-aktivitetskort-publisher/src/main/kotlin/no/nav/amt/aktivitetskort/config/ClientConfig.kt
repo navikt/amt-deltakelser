@@ -1,15 +1,15 @@
 package no.nav.amt.aktivitetskort.config
 
+import no.nav.amt.aktivitetskort.client.AKTIVITET_ARENA_ACL_CLIENT_ID
+import no.nav.amt.aktivitetskort.client.AMT_ARENA_ACL_CLIENT_ID
+import no.nav.amt.aktivitetskort.client.AMT_ARRANGOR_CLIENT_ID
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclApi
 import no.nav.amt.aktivitetskort.client.AmtArenaAclApi
 import no.nav.amt.aktivitetskort.client.AmtArrangorApi
 import no.nav.amt.aktivitetskort.client.NAV_CONSUMER_ID_HEADER
 import no.nav.amt.aktivitetskort.client.NAV_CONSUMER_ID_HEADER_VALUE
+import no.nav.amt.aktivitetskort.client.VEILARBOPPFOLGING_CLIENT_ID
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingApi
-import no.nav.amt.person.service.clients.AKTIVITET_ARENA_ACL_CLIENT_ID
-import no.nav.amt.person.service.clients.AMT_ARENA_ACL_CLIENT_ID
-import no.nav.amt.person.service.clients.AMT_ARRANGOR_CLIENT_ID
-import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders

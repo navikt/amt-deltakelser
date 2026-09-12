@@ -7,15 +7,14 @@ import io.mockk.slot
 import io.mockk.verify
 import no.nav.amt.aktivitetskort.kafka.consumer.AKTIVITETSKORT_TOPIC
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortKasseringPayload
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.kafka.core.KafkaTemplate
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class AktivitetskortProducerTest {
     private val template = mockk<KafkaTemplate<String, String>>(relaxed = true)
-    private val objectMapper = jacksonObjectMapper()
 
     private val producer = AktivitetskortProducer(
         template = template,
