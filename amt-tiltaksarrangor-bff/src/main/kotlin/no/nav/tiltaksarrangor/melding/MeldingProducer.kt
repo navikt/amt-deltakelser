@@ -4,15 +4,16 @@ import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import tools.jackson.databind.ObjectMapper
 
 const val MELDING_TOPIC = "amt.arrangor-melding-v1"
 
 @Service
 class MeldingProducer(
     private val producer: Producer<String, String>,
+    private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

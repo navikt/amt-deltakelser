@@ -8,6 +8,8 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.polymorphicToPGObject
+import no.nav.amt.lib.utils.toPGObject
 import no.nav.tiltaksarrangor.repositories.model.DAGER_AVSLUTTET_DELTAKER_VISES
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerMedDeltakerlisteDbo
@@ -17,12 +19,11 @@ import no.nav.tiltaksarrangor.utils.getNullableFloat
 import no.nav.tiltaksarrangor.utils.getNullableLocalDate
 import no.nav.tiltaksarrangor.utils.getNullableLocalDateTime
 import no.nav.tiltaksarrangor.utils.getNullableUUID
-import no.nav.tiltaksarrangor.utils.objectMapper
 import no.nav.tiltaksarrangor.utils.sqlParameters
-import no.nav.tiltaksarrangor.utils.toPGObject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.util.UUID
@@ -30,6 +31,7 @@ import java.util.UUID
 @Repository
 class DeltakerRepository(
     private val template: NamedParameterJdbcTemplate,
+    private val objectMapper: ObjectMapper,
 ) {
     private val deltakerRowMapper =
         RowMapper { rs, _ ->
@@ -231,7 +233,7 @@ class DeltakerRepository(
                 "status" to deltakerDbo.status.name,
                 "status_gyldig_fra" to deltakerDbo.statusGyldigFraDato,
                 "status_opprettet_dato" to deltakerDbo.statusOpprettetDato,
-                "aarsak" to toPGObject(deltakerDbo.statusAarsak),
+                "aarsak" to deltakerDbo.statusAarsak?.let { objectMapper.polymorphicToPGObject(it) },
                 "dager_per_uke" to deltakerDbo.dagerPerUke,
                 "prosent_stilling" to deltakerDbo.prosentStilling,
                 "start_dato" to deltakerDbo.startdato,
@@ -242,16 +244,16 @@ class DeltakerRepository(
                 "navveileder_id" to deltakerDbo.navVeilederId,
                 "skjult_av_ansatt_id" to deltakerDbo.skjultAvAnsattId,
                 "skjult_dato" to deltakerDbo.skjultDato,
-                "adresse" to deltakerDbo.adresse?.toPGObject(),
-                "vurderinger" to toPGObject(deltakerDbo.vurderingerFraArrangor),
+                "adresse" to deltakerDbo.adresse?.let { objectMapper.toPGObject(it) },
+                "vurderinger" to deltakerDbo.vurderingerFraArrangor?.let { objectMapper.polymorphicToPGObject(it) },
                 "adressebeskyttet" to deltakerDbo.adressebeskyttet,
-                "innhold" to toPGObject(deltakerDbo.innhold),
+                "innhold" to deltakerDbo.innhold?.let { objectMapper.polymorphicToPGObject(it) },
                 "kilde" to deltakerDbo.kilde?.name,
-                "historikk" to toPGObject(deltakerDbo.historikk),
+                "historikk" to objectMapper.polymorphicToPGObject(deltakerDbo.historikk),
                 "modified_at" to deltakerDbo.sistEndret,
                 "forste_vedtak_fattet" to deltakerDbo.forsteVedtakFattet,
                 "er_manuelt_delt_med_arrangor" to deltakerDbo.erManueltDeltMedArrangor,
-                "oppfolgingsperioder" to toPGObject(deltakerDbo.oppfolgingsperioder),
+                "oppfolgingsperioder" to objectMapper.polymorphicToPGObject(deltakerDbo.oppfolgingsperioder),
             ),
         )
     }
@@ -518,7 +520,7 @@ class DeltakerRepository(
         template.update(
             sql,
             sqlParameters(
-                "vurderinger" to toPGObject(oppdaterteVurderinger),
+                "vurderinger" to objectMapper.polymorphicToPGObject(oppdaterteVurderinger),
                 "deltakerId" to deltakerId,
             ),
         )

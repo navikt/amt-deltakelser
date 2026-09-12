@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.veileder.endring
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -54,7 +54,7 @@ class DeltakerEndringRepository {
         val params = mapOf(
             "id" to deltakerEndring.id,
             "deltaker_id" to deltakerEndring.deltakerId,
-            "endring" to toPGObject(deltakerEndring.endring),
+            "endring" to objectMapper.toPGObject(deltakerEndring.endring),
             "endret" to deltakerEndring.endret,
             "endret_av" to deltakerEndring.endretAv,
             "endret_av_enhet" to deltakerEndring.endretAvEnhet,

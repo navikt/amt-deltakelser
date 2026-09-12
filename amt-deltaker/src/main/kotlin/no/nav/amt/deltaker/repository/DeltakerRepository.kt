@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
 import no.nav.amt.deltaker.repository.DeltakerRepository.Companion.buildDeltakerSql
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -19,6 +18,7 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
@@ -195,7 +195,7 @@ class DeltakerRepository {
             "dagerPerUke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+            "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
             "kilde" to deltaker.kilde.name,
             "modified_at" to deltaker.sistEndret,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
@@ -247,7 +247,7 @@ class DeltakerRepository {
             "dager_per_uke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+            "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
             "kilde" to deltaker.kilde.name,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
@@ -273,7 +273,7 @@ class DeltakerRepository {
             "startdato" to deltaker.startdato,
             "sluttdato" to deltaker.sluttdato,
             "dagerPerUke" to deltaker.dagerPerUke,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+            "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
         )
 
         Database.query { session -> session.update(queryOf(sql, parameters)) }

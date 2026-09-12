@@ -4,6 +4,7 @@ import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.cleanDatabase
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureJdbc
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.ApplicationContext
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -16,6 +17,7 @@ import javax.sql.DataSource
 
 @ActiveProfiles("test")
 @AutoConfigureJdbc
+@AutoConfigureJson
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 abstract class RepositoryTestBase {
     @Autowired

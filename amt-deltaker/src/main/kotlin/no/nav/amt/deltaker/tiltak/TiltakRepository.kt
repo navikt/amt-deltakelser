@@ -3,12 +3,12 @@ package no.nav.amt.deltaker.tiltak
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.prefixColumn
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 
@@ -44,8 +44,8 @@ class TiltakRepository {
             "id" to tiltakstype.id,
             "navn" to tiltakstype.navn,
             "tiltakskode" to tiltakstype.tiltakskode.name,
-            "innsatsgrupper" to toPGObject(tiltakstype.innsatsgrupper),
-            "innhold" to toPGObject(tiltakstype.innhold),
+            "innsatsgrupper" to objectMapper.toPGObject(tiltakstype.innsatsgrupper),
+            "innhold" to tiltakstype.innhold?.let { objectMapper.toPGObject(it) },
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

@@ -32,7 +32,6 @@ data class ForslagResponse(
             val tilbakekalt: LocalDateTime,
         ) : Status
 
-        @Suppress("unused")
         data class Erstattet(
             val erstattet: LocalDateTime,
         )

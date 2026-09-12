@@ -6,9 +6,9 @@ import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -40,9 +40,9 @@ class HendelseRepository {
         val params = mapOf(
             "id" to hendelse.id,
             "deltaker_id" to hendelse.deltaker.id,
-            "deltaker" to toPGObject(hendelse.deltaker),
-            "ansvarlig" to toPGObject(hendelse.ansvarlig),
-            "payload" to toPGObject(hendelse.payload),
+            "deltaker" to objectMapper.toPGObject(hendelse.deltaker),
+            "ansvarlig" to objectMapper.toPGObject(hendelse.ansvarlig),
+            "payload" to objectMapper.toPGObject(hendelse.payload),
             "distribusjonskanal" to hendelse.distribusjonskanal.name,
             "manuelloppfolging" to hendelse.manuellOppfolging,
         )

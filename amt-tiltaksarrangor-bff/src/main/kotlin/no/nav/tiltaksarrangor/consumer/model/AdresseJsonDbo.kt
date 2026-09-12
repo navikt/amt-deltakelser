@@ -3,8 +3,6 @@ package no.nav.tiltaksarrangor.consumer.model
 import no.nav.amt.lib.models.person.address.Oppholdsadresse
 import no.nav.tiltaksarrangor.model.Adresse
 import no.nav.tiltaksarrangor.model.Adressetype
-import no.nav.tiltaksarrangor.utils.objectMapper
-import org.postgresql.util.PGobject
 
 // Alt dette er duplikater fra lib men iom at dette brukes til å lagre json i databasen så beholder jeg datastrukturene
 // for å unngå farlige situasjoner om modellen endres i lib uten å ta høyde for json formatet
@@ -13,11 +11,6 @@ data class AdresseJsonDbo(
     val oppholdsadresse: OppholdsadresseJsonDbo?,
     val kontaktadresse: KontaktadresseJsonDbo?,
 ) {
-    fun toPGObject() = PGobject().also {
-        it.type = "json"
-        it.value = objectMapper.writeValueAsString(this)
-    }
-
     companion object {
         fun fromModel(adresse: no.nav.amt.lib.models.person.address.Adresse) = AdresseJsonDbo(
             bostedsadresse = adresse.bostedsadresse?.let { BostedsadresseJsonDbo.fromModel(bostedsadresse = it) },

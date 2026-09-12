@@ -749,7 +749,7 @@ class TotrinnskontrollConsumerTest {
         val navEnhet = lagNavEnhet()
         val navAnsatt = lagNavAnsatt(navIdent = "Z999999", navEnhetId = navEnhet.id)
 
-        val gjennomforingId = UUID.randomUUID()
+        val gjennomforingId: UUID = UUID.randomUUID()
         val deltakerInTest = lagDeltaker(
             deltakerliste = lagDeltakerliste(id = gjennomforingId),
         )

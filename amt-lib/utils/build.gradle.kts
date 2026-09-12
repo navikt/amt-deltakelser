@@ -8,6 +8,7 @@ dependencies {
     api(libs.logback.classic)
 
     api(libs.tools.jackson.module.kotlin)
+    api(libs.postgresql)
 
     implementation(libs.kotlinx.coroutines.core)
 

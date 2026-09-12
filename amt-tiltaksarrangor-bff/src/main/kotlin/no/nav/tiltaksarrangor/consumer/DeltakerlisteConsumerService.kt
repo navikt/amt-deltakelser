@@ -8,9 +8,9 @@ import no.nav.tiltaksarrangor.consumer.ConsumerUtils.toDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -20,6 +20,7 @@ class DeltakerlisteConsumerService(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val hentArrangorClient: HentArrangorClient,
+    private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -33,7 +34,10 @@ class DeltakerlisteConsumerService(
             return
         }
 
-        val gjennomforingstypeFromJson = getGjennomforingstypeFromJson(value)
+        val gjennomforingstypeFromJson = getGjennomforingstypeFromJson(
+            messageJson = value,
+            objectMapper = objectMapper,
+        )
 
         if (gjennomforingstypeFromJson != GjennomforingV2KafkaPayload.GRUPPE_V2_TYPE) {
             log.info("Gjennomføringstype $gjennomforingstypeFromJson er ikke støttet.")

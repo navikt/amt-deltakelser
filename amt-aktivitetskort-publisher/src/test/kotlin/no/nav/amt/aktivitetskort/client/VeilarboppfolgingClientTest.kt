@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
 import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
-import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource

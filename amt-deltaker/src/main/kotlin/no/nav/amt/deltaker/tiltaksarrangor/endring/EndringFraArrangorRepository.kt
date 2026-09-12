@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.tiltaksarrangor.endring
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -57,7 +57,7 @@ class EndringFraArrangorRepository {
             "deltaker_id" to endring.deltakerId,
             "arrangor_ansatt_id" to endring.opprettetAvArrangorAnsattId,
             "opprettet" to endring.opprettet,
-            "endring" to toPGObject(endring.endring),
+            "endring" to objectMapper.toPGObject(endring.endring),
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

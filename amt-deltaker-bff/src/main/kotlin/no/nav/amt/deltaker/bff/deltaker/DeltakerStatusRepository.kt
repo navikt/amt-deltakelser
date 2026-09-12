@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.bff.deltaker
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.bff.db.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -95,7 +95,7 @@ object DeltakerStatusRepository {
         "id" to status.id,
         "deltaker_id" to deltakerId,
         "type" to status.type.name,
-        "aarsak" to toPGObject(status.aarsak),
+        "aarsak" to status.aarsak?.let { objectMapper.toPGObject(it) },
         "gyldig_fra" to status.gyldigFra,
         "created_at" to status.opprettet,
     )

@@ -4,7 +4,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
-import no.nav.tiltaksarrangor.utils.objectMapper
+import tools.jackson.databind.ObjectMapper
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,13 +15,19 @@ object ConsumerUtils {
     const val GJENNOMFORINGSTYPE_KEY = "type"
     private const val FALLBACK_GJENNOMFORINGSTYPE = "UKJENT"
 
-    fun getGjennomforingstypeFromJson(messageJson: String): String = objectMapper
+    fun getGjennomforingstypeFromJson(
+        messageJson: String,
+        objectMapper: ObjectMapper,
+    ): String = objectMapper
         .readTree(messageJson)
         .get(GJENNOMFORINGSTYPE_KEY)
         ?.asString()
         ?: FALLBACK_GJENNOMFORINGSTYPE
 
-    fun getGjennomforingstypeFromDeltakerJsonPayload(messageJson: String): String = objectMapper
+    fun getGjennomforingstypeFromDeltakerJsonPayload(
+        messageJson: String,
+        objectMapper: ObjectMapper,
+    ): String = objectMapper
         .readTree(messageJson)
         .get(DELTAKERLISTE_KEY)
         ?.get(LISTE_GJENNOMFORINGSTYPE_KEY)

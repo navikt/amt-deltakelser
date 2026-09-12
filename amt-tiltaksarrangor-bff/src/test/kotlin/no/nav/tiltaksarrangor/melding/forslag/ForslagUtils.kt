@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.verify
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.utils.objectMapper
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
@@ -21,7 +22,6 @@ import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import no.nav.tiltaksarrangor.testutils.getKoordinator
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
 import no.nav.tiltaksarrangor.testutils.getNavEnhet
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.springframework.context.ApplicationContext
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
@@ -52,7 +52,7 @@ class ForslagCtx(
     var navEnhet: NavEnhet? = null
 
     private val navAnsattRepository = getOrCreateBean { template -> NavAnsattRepository(template) }
-    private val forslagRepository = getOrCreateBean { template -> ForslagRepository(template) }
+    private val forslagRepository = getOrCreateBean { template -> ForslagRepository(template, objectMapper) }
     private val navEnhetRepository = getOrCreateBean { template -> NavEnhetRepository(template) }
 
     init {

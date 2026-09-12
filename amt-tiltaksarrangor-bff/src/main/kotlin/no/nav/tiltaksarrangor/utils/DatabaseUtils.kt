@@ -1,6 +1,5 @@
 package no.nav.tiltaksarrangor.utils
 
-import org.postgresql.util.PGobject
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import java.sql.ResultSet
 import java.time.LocalDate
@@ -27,9 +26,4 @@ fun ResultSet.getNullableDouble(columnLabel: String): Double? {
     val value = this.getDouble(columnLabel)
     if (this.wasNull()) return null
     return value
-}
-
-inline fun <reified T> toPGObject(value: T?) = PGobject().also {
-    it.type = "json"
-    it.value = value?.let { v -> objectMapper.writePolymorphicListAsString(v) }
 }
