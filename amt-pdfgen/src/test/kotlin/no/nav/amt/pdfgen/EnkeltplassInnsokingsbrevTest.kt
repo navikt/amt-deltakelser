@@ -247,9 +247,9 @@ class EnkeltplassInnsokingsbrevTest :
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
-                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Innsøking på tiltak"
-                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Innsøkingsbrev"
-                doc.selectFirst("title")?.text() shouldBe "Innsøking på tiltak"
+                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Deltakelse på arbeidsmarkedstiltak"
+                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Deltakelse på arbeidsmarkedstiltak"
+                doc.selectFirst("title")?.text() shouldBe "Deltakelse på arbeidsmarkedstiltak"
             }
         }
     })
