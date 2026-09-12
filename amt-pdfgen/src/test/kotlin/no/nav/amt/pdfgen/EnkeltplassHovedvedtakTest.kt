@@ -118,9 +118,9 @@ class EnkeltplassHovedvedtakTest :
                 )
                 val doc = render("enkeltplass-hovedvedtak", brev)
 
-                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Vedtak om tiltak"
-                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Vedtak"
-                doc.selectFirst("title")?.text() shouldBe "Vedtak om tiltaksdeltakelse"
+                doc.selectFirst("meta[name=description]")?.attr("content") shouldBe "Deltakelse på arbeidsmarkedstiltak"
+                doc.selectFirst("meta[name=subject]")?.attr("content") shouldBe "Deltakelse på arbeidsmarkedstiltak"
+                doc.selectFirst("title")?.text() shouldBe "Deltakelse på arbeidsmarkedstiltak"
             }
         }
     })
