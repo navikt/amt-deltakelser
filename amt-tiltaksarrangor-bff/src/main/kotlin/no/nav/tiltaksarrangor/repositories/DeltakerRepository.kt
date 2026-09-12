@@ -233,7 +233,7 @@ class DeltakerRepository(
                 "status" to deltakerDbo.status.name,
                 "status_gyldig_fra" to deltakerDbo.statusGyldigFraDato,
                 "status_opprettet_dato" to deltakerDbo.statusOpprettetDato,
-                "aarsak" to deltakerDbo.statusAarsak?.let { objectMapper.polymorphicToPGObject(it) },
+                "aarsak" to deltakerDbo.statusAarsak?.let { objectMapper.toPGObject(it) },
                 "dager_per_uke" to deltakerDbo.dagerPerUke,
                 "prosent_stilling" to deltakerDbo.prosentStilling,
                 "start_dato" to deltakerDbo.startdato,
@@ -253,7 +253,7 @@ class DeltakerRepository(
                 "modified_at" to deltakerDbo.sistEndret,
                 "forste_vedtak_fattet" to deltakerDbo.forsteVedtakFattet,
                 "er_manuelt_delt_med_arrangor" to deltakerDbo.erManueltDeltMedArrangor,
-                "oppfolgingsperioder" to objectMapper.polymorphicToPGObject(deltakerDbo.oppfolgingsperioder),
+                "oppfolgingsperioder" to objectMapper.toPGObject(deltakerDbo.oppfolgingsperioder),
             ),
         )
     }
