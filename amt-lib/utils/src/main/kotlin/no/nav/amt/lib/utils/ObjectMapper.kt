@@ -16,7 +16,10 @@ inline fun <reified T : Collection<*>> ObjectMapper.writePolymorphicCollectionAs
 
 @Deprecated(
     message = "Use writePolymorphicCollectionAsString for collections",
-    replaceWith = ReplaceWith("this.writePolymorphicCollectionAsString(value)"),
+    replaceWith = ReplaceWith(
+        expression = "this.writePolymorphicCollectionAsString(value)",
+        imports = ["no.nav.amt.lib.utils.writePolymorphicCollectionAsString"],
+    ),
 )
 inline fun <reified T> ObjectMapper.writePolymorphicListAsString(value: T): String =
     this.writerFor(object : TypeReference<T>() {}).writeValueAsString(value)
