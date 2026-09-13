@@ -12,13 +12,14 @@ data class Deltakerliste(
     val tiltak: Tiltakstype,
     val navn: String,
     val status: GjennomforingStatusType,
-    val startDato: LocalDate?,
+    val startDato: LocalDate? = null,
     val sluttDato: LocalDate? = null,
+    val datoAvsluttendeStatus: LocalDate? = null,
     val oppstart: Oppstartstype,
     val arrangor: Arrangor,
     val apentForPamelding: Boolean,
-    val antallPlasser: Int?,
-    val oppmoteSted: String?,
+    val antallPlasser: Int? = null,
+    val oppmoteSted: String? = null,
     val pameldingstype: GjennomforingPameldingType,
 ) {
     data class Arrangor(

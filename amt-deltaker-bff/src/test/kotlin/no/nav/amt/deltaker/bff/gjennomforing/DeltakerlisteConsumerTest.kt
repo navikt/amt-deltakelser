@@ -150,11 +150,13 @@ class DeltakerlisteConsumerTest {
             tiltakstype = tiltakstype,
             oppstart = Oppstartstype.LOPENDE,
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            status = GjennomforingStatusType.AVSLUTTET,
         )
 
-        val deltakerlistePayload = lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste).copy(
-            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-        )
+        val deltakerlistePayload = lagGruppeDeltakerlistePayload(
+            arrangor = arrangorInTest,
+            deltakerliste = expectedDeltakerliste,
+        ).copy(arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer))
 
         consumer.consume(
             key = deltakerlistePayload.id,
@@ -196,6 +198,7 @@ class DeltakerlisteConsumerTest {
             status = deltakerliste.status,
             startDato = null,
             sluttDato = null,
+            datoAvsluttendeStatus = null,
             antallPlasser = null,
             apentForPamelding = true,
             oppmoteSted = null,
@@ -206,15 +209,20 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() = runTest {
-        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-        tiltakRepository.upsert(deltakerliste.tiltak)
-
-        consumer.consume(
-            deltakerliste.id,
-            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)),
+        val expectedDeltakerliste = lagDeltakerliste(
+            arrangor = arrangorInTest,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            status = GjennomforingStatusType.AVBRUTT,
         )
 
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
+        tiltakRepository.upsert(expectedDeltakerliste.tiltak)
+
+        consumer.consume(
+            expectedDeltakerliste.id,
+            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, expectedDeltakerliste)),
+        )
+
+        deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste
     }
 
     @Test
@@ -222,14 +230,23 @@ class DeltakerlisteConsumerTest {
         val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
         TestRepository.insert(deltakerliste)
 
-        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
-
-        consumer.consume(
-            deltakerliste.id,
-            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, oppdatertDeltakerliste)),
+        val expectedDeltakerliste = deltakerliste.copy(
+            sluttDato = LocalDate.now(),
+            datoAvsluttendeStatus = LocalDate.now(),
+            status = GjennomforingStatusType.AVSLUTTET,
         )
 
-        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
+        consumer.consume(
+            key = deltakerliste.id,
+            value = objectMapper.writeValueAsString(
+                lagGruppeDeltakerlistePayload(
+                    arrangor = arrangorInTest,
+                    deltakerliste = expectedDeltakerliste,
+                ),
+            ),
+        )
+
+        deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe expectedDeltakerliste
     }
 
     @Test
@@ -257,7 +274,11 @@ class DeltakerlisteConsumerTest {
         )
         TestRepository.insert(deltaker)
 
-        val mutatedDeltakerliste = deltakerlisteInTest.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
+        val mutatedDeltakerliste = deltakerlisteInTest.copy(
+            sluttDato = LocalDate.now(),
+            datoAvsluttendeStatus = LocalDate.now(),
+            status = GjennomforingStatusType.AVBRUTT,
+        )
 
         consumer.consume(
             deltakerlisteInTest.id,

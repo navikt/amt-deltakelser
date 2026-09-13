@@ -9,14 +9,17 @@ class DeltakerlisteService(
     private val deltakerlisteRepository: DeltakerlisteRepository,
 ) {
     companion object {
-        val tiltakskoordinatorGraceperiode: Period = Period.ofDays(14)
+        val tiltakskoordinatorGraceperiode: Period = Period.ofMonths(6)
     }
 
-    fun verifiserTilgjengeligDeltakerliste(id: UUID): Deltakerliste {
+    fun verifiserTilgjengeligDeltakerliste(
+        id: UUID,
+        today: LocalDate = LocalDate.now(),
+    ): Deltakerliste {
         val deltakerliste = deltakerlisteRepository.get(id).getOrThrow()
 
-        deltakerliste.sluttDato?.let { sluttdato ->
-            if (LocalDate.now().isAfter(sluttdato.plus(tiltakskoordinatorGraceperiode))) {
+        deltakerliste.datoAvsluttendeStatus?.let { datoAvsluttendeStatus ->
+            if (today.isAfter(datoAvsluttendeStatus.plus(tiltakskoordinatorGraceperiode))) {
                 throw DeltakerlisteStengtException("Deltakerlisten $id er stengt for tiltakskoordinator")
             }
         }

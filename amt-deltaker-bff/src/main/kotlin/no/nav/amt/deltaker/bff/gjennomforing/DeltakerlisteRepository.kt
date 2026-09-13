@@ -27,6 +27,7 @@ class DeltakerlisteRepository {
                 tiltakstype_id, 
                 start_dato, 
                 slutt_dato, 
+                dato_avsluttende_status,
                 oppstart,
                 apent_for_pamelding,
                 antall_plasser,
@@ -41,6 +42,7 @@ class DeltakerlisteRepository {
                 :tiltakstype_id,
                 :start_dato,
                 :slutt_dato,
+                :dato_avsluttende_status,
                 :oppstart,
                 :apent_for_pamelding,
                 :antall_plasser,
@@ -48,18 +50,19 @@ class DeltakerlisteRepository {
                 :pameldingstype
             )
             ON CONFLICT (id) DO UPDATE SET
-                navn     				= :navn,
-                status					= :status,
-                arrangor_id 			= :arrangor_id,
-                tiltakstype_id			= :tiltakstype_id,
-                start_dato				= :start_dato,
-                slutt_dato				= :slutt_dato,
-                oppstart                = :oppstart,
-                modified_at             = CURRENT_TIMESTAMP,
-                apent_for_pamelding     = :apent_for_pamelding,
-                antall_plasser          = :antall_plasser,
-                oppmote_sted            = :oppmote_sted,
-                pameldingstype          = :pameldingstype
+                navn     				= EXCLUDED.navn,
+                status					= EXCLUDED.status,
+                arrangor_id 			= EXCLUDED.arrangor_id,
+                tiltakstype_id			= EXCLUDED.tiltakstype_id,
+                start_dato				= EXCLUDED.start_dato,
+                slutt_dato				= EXCLUDED.slutt_dato,
+                dato_avsluttende_status = EXCLUDED.dato_avsluttende_status,
+                oppstart                = EXCLUDED.oppstart,
+                apent_for_pamelding     = EXCLUDED.apent_for_pamelding,
+                antall_plasser          = EXCLUDED.antall_plasser,
+                oppmote_sted            = EXCLUDED.oppmote_sted,
+                pameldingstype          = EXCLUDED.pameldingstype,
+                modified_at             = CURRENT_TIMESTAMP
             """.trimIndent()
 
         val params = mapOf(
@@ -70,6 +73,7 @@ class DeltakerlisteRepository {
             "tiltakstype_id" to deltakerliste.tiltak.id,
             "start_dato" to deltakerliste.startDato,
             "slutt_dato" to deltakerliste.sluttDato,
+            "dato_avsluttende_status" to deltakerliste.datoAvsluttendeStatus,
             "oppstart" to deltakerliste.oppstart.name,
             "apent_for_pamelding" to deltakerliste.apentForPamelding,
             "antall_plasser" to deltakerliste.antallPlasser,
@@ -100,6 +104,7 @@ class DeltakerlisteRepository {
                 dl.status as "dl.status",
                 dl.start_dato as "dl.start_dato",
                 dl.slutt_dato as "dl.slutt_dato",
+                dl.dato_avsluttende_status as "dl.dato_avsluttende_status",
                 dl.oppstart as "dl.oppstart",
                 dl.apent_for_pamelding as "dl.apent_for_pamelding",
                 dl.antall_plasser as "dl.antall_plasser",
@@ -140,6 +145,7 @@ class DeltakerlisteRepository {
             status = row.string(col("status")).let { GjennomforingStatusType.valueOf(it) },
             startDato = row.localDateOrNull(col("start_dato")),
             sluttDato = row.localDateOrNull(col("slutt_dato")),
+            datoAvsluttendeStatus = row.localDateOrNull(col("dato_avsluttende_status")),
             oppstart = row.string(col("oppstart")).let { Oppstartstype.valueOf(it) },
             arrangor = Deltakerliste.Arrangor(
                 arrangor = Arrangor(

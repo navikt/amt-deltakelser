@@ -134,8 +134,7 @@ class TiltakskoordinatorTilgangRepository {
         }
     }
 
-    fun hentUtdaterteTilganger(): List<TiltakskoordinatorDeltakerlisteTilgang> {
-        val grense = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode)
+    fun hentUtdaterteTilganger(today: LocalDate = LocalDate.now()): List<TiltakskoordinatorDeltakerlisteTilgang> {
         val sql =
             """
             SELECT
@@ -149,12 +148,18 @@ class TiltakskoordinatorTilgangRepository {
                 JOIN deltakerliste dl ON t.deltakerliste_id = dl.id
             WHERE 
                 t.gyldig_til IS NULL 
-                AND dl.slutt_dato < :grense 
+                AND dl.dato_avsluttende_status + INTERVAL '${DeltakerlisteService.tiltakskoordinatorGraceperiode.months} months' < :today
             """.trimIndent()
 
-        return Database.query { session ->
-            session.run(queryOf(sql, mapOf("grense" to grense)).map(::rowMapper).asList)
-        }
+        return Database
+            .query { session ->
+                session.run(
+                    queryOf(
+                        statement = sql,
+                        paramMap = mapOf("today" to today),
+                    ).map(::rowMapper).asList,
+                )
+            }
     }
 
     fun hentAktiveForDeltakerliste(deltakerlisteId: UUID): List<TiltakskoordinatorDeltakerlisteTilgang> {
