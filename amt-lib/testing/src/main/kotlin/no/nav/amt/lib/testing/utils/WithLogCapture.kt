@@ -16,11 +16,11 @@ suspend fun withLogCapture(
     block: suspend (List<ILoggingEvent>) -> Unit,
 ) {
     val logger = LoggerFactory.getLogger(loggerName) as Logger
-    val appender =
-        ListAppender<ILoggingEvent>().apply {
-            start()
-            logger.addAppender(this)
-        }
+
+    val appender = ListAppender<ILoggingEvent>().apply {
+        start()
+        logger.addAppender(this)
+    }
 
     try {
         block(appender.list)
