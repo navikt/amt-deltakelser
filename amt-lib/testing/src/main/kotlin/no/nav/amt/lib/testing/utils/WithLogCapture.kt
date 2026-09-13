@@ -3,9 +3,7 @@ package no.nav.amt.lib.testing.utils
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import kotlin.apply
 
 /**
  * Captures log messages emitted by the specified logger during execution of [block].
@@ -13,7 +11,7 @@ import kotlin.apply
  * @param loggerName The fully qualified logger name
  * @param block The suspend function block to run while capturing logs.
  */
-fun withLogCapture(
+suspend fun withLogCapture(
     loggerName: String,
     block: suspend (List<ILoggingEvent>) -> Unit,
 ) {
@@ -25,7 +23,7 @@ fun withLogCapture(
         }
 
     try {
-        runBlocking { block(appender.list) }
+        block(appender.list)
     } finally {
         logger.detachAppender(appender)
         appender.stop()

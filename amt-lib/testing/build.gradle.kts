@@ -15,5 +15,4 @@ dependencies {
     api(libs.junit.jupiter.params)
     api(libs.kotlin.test.junit5)
     api(libs.mockk)
-    api(libs.kotlinx.coroutines.test)
 }

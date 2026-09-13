@@ -26,23 +26,24 @@ class DokdistfordelingClientTest {
     }
 
     @Test
-    fun `skal returnere bestillingsId og logge warning nar distribuerJournalpost kalles med respons som returnerer 409 Conflict`() {
-        val sut = createDokdistfordelingClient(
-            HttpStatusCode.Conflict,
-            responseBody = expectedResponse,
-        )
+    fun `skal returnere bestillingsId og logge warning nar distribuerJournalpost kalles med respons som returnerer 409 Conflict`() =
+        runTest {
+            val sut = createDokdistfordelingClient(
+                HttpStatusCode.Conflict,
+                responseBody = expectedResponse,
+            )
 
-        withLogCapture("no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient") { logEvents ->
-            val actualResponse = sut.runDistribuerJournalpostWithTestParams()
-            actualResponse shouldBe bestillingsId
+            withLogCapture("no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient") { logEvents ->
+                val actualResponse = sut.runDistribuerJournalpostWithTestParams()
+                actualResponse shouldBe bestillingsId
 
-            val messages = logEvents.map { it.formattedMessage }
-            messages.any { it.contains("Journalpost $JOURNAL_POST_ID er allerede distribuert") } shouldBe true
+                val messages = logEvents.map { it.formattedMessage }
+                messages.any { it.contains("Journalpost $JOURNAL_POST_ID er allerede distribuert") } shouldBe true
+            }
         }
-    }
 
     @Test
-    fun `skal returnere null og logge warning nar distribuerJournalpost kalles med respons som returnerer 410 Gone`() {
+    fun `skal returnere null og logge warning nar distribuerJournalpost kalles med respons som returnerer 410 Gone`() = runTest {
         val sut = createDokdistfordelingClient(
             HttpStatusCode.Gone,
             responseBody = expectedResponse,
