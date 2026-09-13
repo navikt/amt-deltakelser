@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.navtiltakskoordinator
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -38,7 +38,7 @@ class EndringFraTiltakskoordinatorRepository {
                 "nav_ansatt_id" to endring.endretAv,
                 "nav_enhet_id" to endring.endretAvEnhet,
                 "endret" to endring.endret,
-                "endring" to toPGObject(endring.endring),
+                "endring" to objectMapper.toPGObject(endring.endring),
             )
         }
 

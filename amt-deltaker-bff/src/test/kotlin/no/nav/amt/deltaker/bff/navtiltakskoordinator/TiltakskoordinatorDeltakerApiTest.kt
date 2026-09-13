@@ -18,7 +18,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -124,7 +124,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
             val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
             val oppstartstype = deltakerResponse.gjennomforing.oppstart
 
-            val expectedResponse = objectMapper.writePolymorphicListAsString(
+            val expectedResponse = objectMapper.writePolymorphicCollectionAsString(
                 DeltakerHistorikkResponse.fromModels(
                     models = historikk,
                     arrangornavn = arrangornavn,

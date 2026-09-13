@@ -55,7 +55,7 @@ import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
@@ -214,7 +214,7 @@ class VeilederApiTest : IntegrationTestBase() {
         withTestApplicationContext { httpClient ->
             httpClient.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
-                val expected = objectMapper.writePolymorphicListAsString(
+                val expected = objectMapper.writePolymorphicCollectionAsString(
                     DeltakerHistorikkResponse.fromModels(
                         models = historikk,
                         arrangornavn = arrangornavn,

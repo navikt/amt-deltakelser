@@ -18,7 +18,7 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilg
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorDeltakerApi(
@@ -83,7 +83,7 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
                         pameldingstype = deltakerResponse.gjennomforing.pameldingstype,
                         enheter = data.enheter,
                         ansatte = data.ansatte,
-                    ).let { objectMapper.writePolymorphicListAsString(it) }
+                    ).let { objectMapper.writePolymorphicCollectionAsString(it) }
 
                 call.respondText(historikkResponse, ContentType.Application.Json)
             }

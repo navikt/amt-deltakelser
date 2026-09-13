@@ -27,6 +27,7 @@ import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.utils.objectMapper
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
@@ -54,7 +55,6 @@ import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
 import no.nav.tiltaksarrangor.testutils.getVurderinger
-import no.nav.tiltaksarrangor.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -77,16 +77,17 @@ class KafkaConsumerServiceTest {
     private val amtPersonClient = mockk<AmtPersonClient>()
     private val kafkaConsumerService =
         KafkaConsumerService(
-            arrangorRepository,
-            tiltaksarrangorAnsattRepository,
-            deltakerRepository,
-            endringsmeldingRepository,
-            forslagService,
-            navEnhetService,
-            navAnsattService,
-            ulestEndringRepository,
-            amtPersonClient,
-            navAnsattRepository,
+            arrangorRepository = arrangorRepository,
+            tiltaksarrangorAnsattRepository = tiltaksarrangorAnsattRepository,
+            deltakerRepository = deltakerRepository,
+            endringsmeldingRepository = endringsmeldingRepository,
+            forslagService = forslagService,
+            navEnhetService = navEnhetService,
+            navAnsattService = navAnsattService,
+            ulestEndringRepository = ulestEndringRepository,
+            amtPersonClient = amtPersonClient,
+            navAnsattRepository = navAnsattRepository,
+            objectMapper = objectMapper,
         )
 
     private val arrangor =

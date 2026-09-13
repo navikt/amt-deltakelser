@@ -4,7 +4,6 @@ import no.nav.amt.aktivitetskort.client.request.PersonRequest
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
 import no.nav.amt.lib.spring.boot.client.toExternalServiceException
-import no.nav.amt.person.service.clients.VEILARBOPPFOLGING_CLIENT_ID
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException

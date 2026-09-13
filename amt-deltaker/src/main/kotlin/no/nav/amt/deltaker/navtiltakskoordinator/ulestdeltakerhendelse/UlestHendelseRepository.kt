@@ -5,9 +5,9 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
@@ -121,8 +121,8 @@ class UlestHendelseRepository {
                 "id" to ulestHendelse.id,
                 "deltaker_id" to ulestHendelse.deltakerId,
                 "opprettet" to ulestHendelse.opprettet,
-                "ansvarlig" to toPGObject(ulestHendelse.ansvarlig),
-                "hendelse" to toPGObject(ulestHendelse.hendelse),
+                "ansvarlig" to ulestHendelse.ansvarlig?.let { objectMapper.toPGObject(it) },
+                "hendelse" to objectMapper.toPGObject(ulestHendelse.hendelse),
             )
         }
 

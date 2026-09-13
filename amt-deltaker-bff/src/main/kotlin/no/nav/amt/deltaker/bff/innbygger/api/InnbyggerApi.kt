@@ -22,7 +22,7 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 
 fun Routing.registerInnbyggerApi(
     deltakerService: DeltakerService,
@@ -94,7 +94,7 @@ fun Routing.registerInnbyggerApi(
                 ansatte = data.ansatte,
             )
             call.respondText(
-                objectMapper.writePolymorphicListAsString(historikkResponse),
+                objectMapper.writePolymorphicCollectionAsString(historikkResponse),
                 ContentType.Application.Json,
             )
         }

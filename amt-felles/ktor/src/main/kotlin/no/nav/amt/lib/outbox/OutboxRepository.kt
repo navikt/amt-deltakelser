@@ -5,7 +5,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
-import org.postgresql.util.PGobject
+import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
 
 internal class OutboxRepository {
@@ -38,7 +38,7 @@ internal class OutboxRepository {
 
         val params = mapOf(
             "key" to record.key,
-            "value" to toPGObject(record.value),
+            "value" to objectMapper.toPGObject(record.value),
             "value_type" to record.valueType,
             "topic" to record.topic,
             "status" to OutboxRecordStatus.PENDING.name,
@@ -126,11 +126,6 @@ internal class OutboxRepository {
     }
 
     companion object {
-        private fun toPGObject(value: Any?) = PGobject().also {
-            it.type = "json"
-            it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
-        }
-
         private fun rowMapper(row: Row) = OutboxRecord(
             id = OutboxRecordId(row.long("id")),
             key = row.string("key"),

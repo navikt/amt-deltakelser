@@ -1,19 +1,20 @@
 package no.nav.tiltaksarrangor.repositories
 
-import no.nav.tiltaksarrangor.melding.forslag.toPGObject
+import no.nav.amt.lib.utils.toPGObject
 import no.nav.tiltaksarrangor.model.Oppdatering
 import no.nav.tiltaksarrangor.model.UlestEndring
-import no.nav.tiltaksarrangor.utils.objectMapper
 import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Repository
 class UlestEndringRepository(
     private val template: NamedParameterJdbcTemplate,
+    private val objectMapper: ObjectMapper,
 ) {
     private val rowMapper = RowMapper { rs, _ ->
         UlestEndring(
@@ -45,7 +46,7 @@ class UlestEndringRepository(
         val params = sqlParameters(
             "id" to oppdatering.id,
             "deltakerId" to deltakerId,
-            "oppdatering" to toPGObject(oppdatering),
+            "oppdatering" to objectMapper.toPGObject(oppdatering),
         )
 
         return template.queryForObject(sql, params, rowMapper)
