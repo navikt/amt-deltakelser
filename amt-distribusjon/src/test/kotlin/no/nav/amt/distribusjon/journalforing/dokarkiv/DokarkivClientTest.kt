@@ -28,7 +28,7 @@ class DokarkivClientTest {
     }
 
     @Test
-    fun `skal skrive warning til loggene nar journalpost for hendelseId allerede er opprettet`() {
+    fun `skal skrive warning til loggene nar journalpost for hendelseId allerede er opprettet`() = runTest {
         val sut = createDokarkivClient(
             statusCode = HttpStatusCode.Conflict,
             responseBody = expectedResponse,

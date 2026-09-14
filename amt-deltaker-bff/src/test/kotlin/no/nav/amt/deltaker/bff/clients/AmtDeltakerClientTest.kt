@@ -631,7 +631,7 @@ class AmtDeltakerClientTest {
         val expectedUrl = "$DELTAKER_BASE_URL/deltaker/${deltakerInTest.id}/sist-besokt"
 
         @Test
-        fun `skal logge warning ved feil`() {
+        fun `skal logge warning ved feil`() = runTest {
             val deltakerClient = createDeltakerClient(expectedUrl, HttpStatusCode.Unauthorized)
 
             withLogCapture("no.nav.amt.deltaker.bff.clients.AmtDeltakerClient") { logEvents ->
