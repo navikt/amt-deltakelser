@@ -22,7 +22,6 @@ data class TiltakVisningsnavn(
             arrangorNavn: String?,
             opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         ): TiltakVisningsnavn = TiltakVisningsnavn(
-            // TODO: Deltakeroverskrift+? undersøk
             tittel = lagTittel(
                 tiltakskode = tiltakskode,
                 tiltaksnavn = tiltaksnavn,
@@ -65,9 +64,6 @@ data class TiltakVisningsnavn(
             tekst = hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg),
         )
 
-        // Denne tittelen brukes både av den funksjonen eksponerer data i api, og funksjonen som lager aktivitetskort visningsnavn
-        // Hva er forskjellen på de to egentlig?
-        // private
         fun lagAktivitetskortTittel(
             tiltakskode: Tiltakskode,
             tiltaksnavn: String,

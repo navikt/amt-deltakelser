@@ -69,7 +69,7 @@ data class HendelseDeltaker(
          */
         fun arrangorVisningsnavn(): String {
             // Enda en håndtering av overordnet arrangør navn, se ArrangorService i amt-deltaker
-            // TODO: amt-deltaker sender riktig arrangør isteden for å håndtere i konsumenten
+            // TODO: denne kan fjernes når pr #470 er prodsatt sånn at kafka meldingene innheholder riktig arrangør
             val faktiskArrangornavn = if (erEnkeltplass == true && !tiltak.tiltakskode.erArenaEnkeltplass()) {
                 arrangor.navn
             } else {
