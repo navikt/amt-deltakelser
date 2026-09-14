@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.DeltakerUtils.nyDeltakerStatus
@@ -33,8 +34,41 @@ class DeltakerService(
     private val forslagRepository: ForslagRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
+    private val arrangorService: ArrangorService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    /*
+        Henter deltaker med arrangør som er riktig for brev, varsel og
+        visning av deltakere i alle flater.
+        Brukes i tilfeller hvor det er en forventning at deltakeren skal finnes
+     */
+    fun get(deltakerId: UUID): Deltaker {
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
+            gjennomforing = deltaker.deltakerliste,
+        )
+
+        return deltaker.copy(
+            deltakerliste = deltaker.deltakerliste.copy(arrangor = arrangor),
+        )
+    }
+
+    /*
+           Henter deltakere med arrangør som er riktig for brev, varsel og
+           visning av deltakere i alle flater.
+     */
+    fun getFlereForPerson(personIdent: String): List<Deltaker> {
+        val deltakere = deltakerRepository.getFlereForPerson(personIdent)
+        return deltakere.map { deltaker ->
+            val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
+                gjennomforing = deltaker.deltakerliste,
+            )
+            deltaker.copy(
+                deltakerliste = deltaker.deltakerliste.copy(arrangor = arrangor),
+            )
+        }
+    }
 
     fun transactionalDeltakerUpsert(
         deltaker: Deltaker,

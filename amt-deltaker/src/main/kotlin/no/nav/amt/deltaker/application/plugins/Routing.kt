@@ -41,7 +41,6 @@ import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VeilederEndringService
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
@@ -87,7 +86,6 @@ fun Application.configureRouting(
     navAnsattService: NavAnsattService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
-    arrangorService: ArrangorService,
     gjennomforingRequestProducer: GjennomforingRequestProducer,
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
@@ -129,7 +127,7 @@ fun Application.configureRouting(
         )
         registerKladdApi(
             kladdService = kladdService,
-            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
             deltakerResponseBuilder = deltakerResponseBuilder,
         )
         registerVeilederApi(
@@ -140,7 +138,6 @@ fun Application.configureRouting(
             deltakerResponseBuilder = deltakerResponseBuilder,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            arrangorService = arrangorService,
             forslagService = forslagService,
             forslagRepository = forslagRepository,
         )
@@ -149,7 +146,7 @@ fun Application.configureRouting(
             deltakerResponseBuilder = deltakerResponseBuilder,
             gjennomforingUpserter = gjennomforingUpserter,
             navAnsattService = navAnsattService,
-            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
             distribuerEndringService = distribuerEndringService,
         )
         registerInternalApi(
@@ -176,6 +173,7 @@ fun Application.configureRouting(
         registerUlestHendelseApi(ulestHendelseRepository)
         registerExternalApi(
             deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
             navEnhetService = navEnhetService,
             tilgangskontrollService = tilgangskontrollService,
             deltakelserResponseMapper = deltakelserResponseMapper,

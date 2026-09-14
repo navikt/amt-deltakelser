@@ -17,7 +17,6 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
 import no.nav.amt.lib.models.kafka.DeltakerlistePayload
@@ -25,6 +24,7 @@ import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.kafka.SisteEndring
+import no.nav.amt.lib.models.kafka.TiltakPayload
 import java.time.LocalDate
 import java.util.UUID
 
@@ -140,7 +140,7 @@ class DeltakerKafkaPayloadBuilder(
                 id = deltaker.deltakerliste.id,
                 navn = deltaker.deltakerliste.navn,
                 gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
-                tiltak = Tiltak(
+                tiltak = TiltakPayload(
                     navn = deltaker.deltakerliste.tiltakstype.navn,
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                 ),

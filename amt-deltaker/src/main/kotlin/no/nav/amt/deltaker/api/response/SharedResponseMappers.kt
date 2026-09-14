@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.api.response
 
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -17,6 +16,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
+import no.nav.amt.lib.utils.toTitleCase
 import java.util.UUID
 
 /**
@@ -58,7 +58,6 @@ internal object SharedResponseMappers {
 
     fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
-        arrangorService: ArrangorService,
         opplaringKategoriseringValg: OpplaringKategoriseringValg?,
         prisinformasjon: GjennomforingPrisinformasjon.PrisinformasjonData?,
     ) = GjennomforingResponse(
@@ -74,11 +73,7 @@ internal object SharedResponseMappers {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let { arrangor ->
             ArrangorResponse(
-                // TODO: fjerne avhengighet til service?
-                navn = arrangorService.getArrangorNavn(
-                    arrangor = arrangor,
-                    gjennomforingstype = deltakerliste.gjennomforingstype,
-                ),
+                navn = deltakerliste.arrangor.navn.toTitleCase(),
                 organisasjonsnummer = arrangor.organisasjonsnummer,
             )
         },

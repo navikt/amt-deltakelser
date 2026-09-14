@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VeilederEndringService
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.internapi.PersonIdentResponse
@@ -34,7 +33,6 @@ fun Routing.registerVeilederApi(
     deltakerResponseBuilder: DeltakerResponseBuilder,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
-    arrangorService: ArrangorService,
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
 ) {
@@ -69,9 +67,8 @@ fun Routing.registerVeilederApi(
                 avvistAvEnhet = request.avvistAvEnhet,
             )
 
-            val deltakerResponse = deltakerRepository
+            val deltakerResponse = deltakerService
                 .get(deltakerId)
-                .getOrThrow()
                 .let { deltakerResponseBuilder.buildDeltakerResponse(it) }
 
             call.respond(deltakerResponse)
@@ -79,9 +76,8 @@ fun Routing.registerVeilederApi(
 
         route("/deltaker/{deltakerId}") {
             get {
-                val deltakerResponse = deltakerRepository
+                val deltakerResponse = deltakerService
                     .get(call.getDeltakerId())
-                    .getOrThrow()
                     .let {
                         deltakerResponseBuilder.buildDeltakerResponse(it)
                     }
@@ -99,19 +95,14 @@ fun Routing.registerVeilederApi(
 
             get("/historikk") {
                 val deltakerId = call.getDeltakerId()
-                val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+                val deltaker = deltakerService.get(deltakerId)
                 val historikk = historikkService.getForDeltaker(deltakerId)
                 val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
                 val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
 
                 val response = DeltakerHistorikkDataResponse(
                     historikk = historikk,
-                    arrangornavn = deltaker.deltakerliste.arrangor?.let { arrangor ->
-                        arrangorService.getArrangorNavn(
-                            arrangor = arrangor,
-                            gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
-                        )
-                    } ?: "",
+                    arrangornavn = deltaker.deltakerliste.arrangor?.navn ?: "",
                     oppstartstype = deltaker.deltakerliste.oppstart,
                     pameldingstype = deltaker.deltakerliste.pameldingstype,
                     ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },

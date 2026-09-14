@@ -359,10 +359,6 @@ class DistribuerEndringService(
         ansvarlig: HendelseAnsvarlig,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor!!
-            .overordnetArrangorId
-            ?.let { arrangorService.hentArrangor(it) }
-
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         // for endringsvedtak er dette overflødig, men kalltreet er foreløpig for dypt til å skru dette av/på
@@ -380,7 +376,7 @@ class DistribuerEndringService(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
             deltaker = deltaker.toHendelseDeltaker(
-                overordnetArrangor = overordnetArrangor,
+                overordnetArrangor = deltaker.deltakerliste.arrangor,
                 forsteVedtakFattet = forsteVedtakFattet,
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
                 prisinformasjon = prisinformasjon,

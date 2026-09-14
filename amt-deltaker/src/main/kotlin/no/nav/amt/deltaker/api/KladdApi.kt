@@ -9,7 +9,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.extensions.getDeltakerId
-import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.internapi.paamelding.request.KladdRequest
@@ -18,7 +18,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 fun Routing.registerKladdApi(
     kladdService: KladdService,
-    deltakerRepository: DeltakerRepository,
+    deltakerService: DeltakerService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
 ) {
     authenticate("SYSTEM") {
@@ -39,7 +39,7 @@ fun Routing.registerKladdApi(
 
         post("/oppdater-kladd/{deltakerId}") {
             val kladdRequest = call.receive<KladdRequest>()
-            val deltaker = deltakerRepository.get(call.getDeltakerId()).getOrThrow()
+            val deltaker = deltakerService.get(call.getDeltakerId())
 
             require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
                 "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id ${deltaker.id} har status ${deltaker.status.type}"

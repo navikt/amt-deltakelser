@@ -286,8 +286,8 @@ object TestData {
         deltakerliste = no.nav.amt.lib.models.kafka.DeltakerlistePayload(
             id = this.deltakerlisteId,
             navn = "Navn",
-            tiltak = no.nav.amt.lib.models.deltakerliste.tiltakstype
-                .Tiltak("test", Tiltakskode.OPPFOLGING),
+            tiltak = no.nav.amt.lib.models.kafka
+                .TiltakPayload("test", Tiltakskode.OPPFOLGING),
             startdato = null,
             sluttdato = null,
             oppstartstype = null,

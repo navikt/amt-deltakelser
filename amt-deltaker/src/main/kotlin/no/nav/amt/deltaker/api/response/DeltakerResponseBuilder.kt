@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
@@ -27,7 +26,6 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
 
 class DeltakerResponseBuilder(
-    private val arrangorService: ArrangorService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val digitalBrukerService: DigitalBrukerService,
@@ -129,7 +127,6 @@ class DeltakerResponseBuilder(
 
         return SharedResponseMappers.buildGjennomforingResponse(
             deltakerliste = deltakerliste,
-            arrangorService = arrangorService,
             opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
             prisinformasjon = prisinformasjon,
         )

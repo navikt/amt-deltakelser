@@ -5,6 +5,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
+// https://confluence.adeo.no/spaces/SFAMT/pages/800078787/Visning+av+navn+p%C3%A5+tiltaket+gjennomf%C3%B8ring+i+aktivitetsplanenen+og+p%C3%A5+tiltakssidene
 data class TiltakVisningsnavn(
     val tittel: String,
     val aktivitetskortTittel: String,
@@ -21,12 +22,14 @@ data class TiltakVisningsnavn(
             arrangorNavn: String?,
             opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         ): TiltakVisningsnavn = TiltakVisningsnavn(
+            // TODO: Deltakeroverskrift+? undersøk
             tittel = lagTittel(
                 tiltakskode = tiltakskode,
                 tiltaksnavn = tiltaksnavn,
                 arrangorNavn = arrangorNavn,
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
             ),
+            // Denne brukes ikke egentlig av noen? Ser ut som den er med for å forenkle tester
             aktivitetskortTittel = lagAktivitetskortTittel(
                 tiltakskode = tiltakskode,
                 tiltaksnavn = tiltaksnavn,
@@ -62,6 +65,9 @@ data class TiltakVisningsnavn(
             tekst = hentTittelTekst(tiltakskode, tiltaksnavn, opplaringKategoriseringValg),
         )
 
+        // Denne tittelen brukes både av den funksjonen eksponerer data i api, og funksjonen som lager aktivitetskort visningsnavn
+        // Hva er forskjellen på de to egentlig?
+        // private
         fun lagAktivitetskortTittel(
             tiltakskode: Tiltakskode,
             tiltaksnavn: String,
@@ -80,6 +86,7 @@ data class TiltakVisningsnavn(
             ),
         )
 
+        // Dette er den faktiske tittelen på aktivitetskortet
         fun lagAktivitetskortTittel(
             tiltakskode: Tiltakskode,
             tiltaksnavn: String,

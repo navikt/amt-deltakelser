@@ -125,6 +125,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
         coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerService.get(deltaker.id) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
         every { forslagRepository.get(forslagId) } returns Result.success(lagForslag(id = forslagId, deltakerId = deltaker.id))
 
@@ -415,6 +416,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.get(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
@@ -452,6 +454,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.get(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
@@ -485,6 +488,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.get(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter

@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
+import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -57,6 +58,7 @@ class EnkeltplassDeltakerConsumerTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val deltakerlisteRepository = DeltakerlisteRepository()
     private val tiltakRepository = TiltakRepository()
+    private val arrangorService = mockk<ArrangorService>()
     private val deltakerProducerService = DeltakerProducerService(
         deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
         deltakerProducer = deltakerProducer,
@@ -73,6 +75,7 @@ class EnkeltplassDeltakerConsumerTest {
         vedtakService = mockk(),
         distribuerEndringService = mockk(),
         endringFraArrangorRepository = mockk(),
+        arrangorService = arrangorService,
         endringFraTiltakskoordinatorRepository = mockk(),
         forslagRepository = mockk(),
     )

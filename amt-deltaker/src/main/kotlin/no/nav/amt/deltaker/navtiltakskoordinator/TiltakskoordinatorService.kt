@@ -141,7 +141,7 @@ class TiltakskoordinatorService(
                         vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
                     }
 
-                    val deltakerFromDb = deltakerRepository.get(deltakerToUpdate.id).getOrThrow()
+                    val deltakerFromDb = deltakerService.get(deltakerToUpdate.id)
 
                     deltakerProducerService.produce(deltakerFromDb)
                     distribuerEndringService.produserHendelseFraTiltaksansvarlig(

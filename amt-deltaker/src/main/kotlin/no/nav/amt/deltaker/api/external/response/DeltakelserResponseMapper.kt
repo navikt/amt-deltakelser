@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
@@ -15,7 +14,6 @@ import java.time.LocalDate
 
 class DeltakelserResponseMapper(
     private val deltakerHistorikkService: DeltakerHistorikkService,
-    private val arrangorService: ArrangorService,
 ) {
     fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
         val aktive = deltakelser
@@ -87,23 +85,12 @@ class DeltakelserResponseMapper(
         else -> this.getStatustekst()
     }
 
-    private fun lagArrangorTittel(deltaker: Deltaker): String {
-        val arrangorNavn = deltaker.deltakerliste.arrangor
-            ?.let {
-                arrangorService.getArrangorNavn(
-                    arrangor = deltaker.deltakerliste.arrangor,
-                    gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
-                )
-            }
-            ?: "Ukjent arrangør"
-
-        return TiltakVisningsnavn.lagTittel(
-            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-            tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
-            arrangorNavn = arrangorNavn,
-            opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
-        )
-    }
+    private fun lagArrangorTittel(deltaker: Deltaker): String = TiltakVisningsnavn.lagTittel(
+        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+        tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
+        arrangorNavn = deltaker.deltakerliste.arrangor?.navn ?: "Ukjent arrangør",
+        opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
+    )
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(
         navn = visningsnavn,

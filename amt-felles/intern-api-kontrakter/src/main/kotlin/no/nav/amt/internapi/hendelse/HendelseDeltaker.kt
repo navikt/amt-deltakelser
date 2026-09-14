@@ -35,6 +35,11 @@ data class HendelseDeltaker(
         val opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         val prisinformasjon: PrisinformasjonDto? = null,
     ) {
+        /*
+            overordnet arrangør vil alltid være null etter
+            at implementasjonen er endret til at amt-deltaker alltid setter riktig navn
+            på det overornede objektet
+         */
         data class Arrangor(
             val id: UUID,
             val organisasjonsnummer: String,
@@ -63,6 +68,8 @@ data class HendelseDeltaker(
          * @return det faktiske arrangørnavnet i visningsformat.
          */
         fun arrangorVisningsnavn(): String {
+            // Enda en håndtering av overordnet arrangør navn, se ArrangorService i amt-deltaker
+            // TODO: amt-deltaker sender riktig arrangør isteden for å håndtere i konsumenten
             val faktiskArrangornavn = if (erEnkeltplass == true && !tiltak.tiltakskode.erArenaEnkeltplass()) {
                 arrangor.navn
             } else {
