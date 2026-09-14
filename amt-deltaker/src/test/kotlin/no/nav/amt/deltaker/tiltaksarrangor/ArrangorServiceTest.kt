@@ -45,6 +45,17 @@ class ArrangorServiceTest {
     }
 
     @Test
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer ukjent navn`() {
+        val gjennomforing = lagDeltakerliste(
+            arrangor = null,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
+
+        val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
+        funksjonellArrangor.navn shouldBe "Ukjent Arrangør"
+    }
+
+    @Test
     fun `getFunksjonellArrangorForGjennomforing - gruppe med CAPS overordnet arrangor - formaterer navn`() {
         val overordnetArrangor = lagreArrangor(navn = "TEST ARRANGØR")
         val underordnetArrangor = lagreArrangor(navn = "UNDERORDNET ARRANGØR", overordnetArrangorId = overordnetArrangor.id)
