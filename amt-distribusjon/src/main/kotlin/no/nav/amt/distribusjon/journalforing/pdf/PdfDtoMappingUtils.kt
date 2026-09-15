@@ -76,7 +76,7 @@ fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisnin
     gjennomforingsnavn = navn,
     gjennomforingType = if (erEnkeltplass == true) GjennomforingType.Enkeltplass else GjennomforingType.Gruppe,
     erKladd = false,
-    arrangorNavn = this.arrangorVisningsnavn(),
+    arrangorNavn = this.arrangor.navn,
     opplaringKategoriseringValg = opplaringKategoriseringValg,
 )
 

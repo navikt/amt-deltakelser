@@ -65,7 +65,4 @@ private fun Arrangor.toHendelseArrangor() = HendelseDeltaker.Deltakerliste.Arran
     id,
     organisasjonsnummer,
     navn,
-    // TODO: Overordnet arrangør skal fjernes her fordi amt-deltaker sørger for å sende den som skal brukes
-    // Dette kan fjernes etter at meldinger er spist
-    null,
 )
