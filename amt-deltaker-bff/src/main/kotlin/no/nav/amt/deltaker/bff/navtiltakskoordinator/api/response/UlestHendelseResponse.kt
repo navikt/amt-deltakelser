@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerEndringEndringResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagEndringResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringEndringResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
