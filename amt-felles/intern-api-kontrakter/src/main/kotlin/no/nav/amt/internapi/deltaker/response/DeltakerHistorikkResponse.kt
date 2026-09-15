@@ -1,15 +1,28 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
-import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status.Avvist
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status.Erstattet
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status.Godkjent
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status.Tilbakekalt
+import no.nav.amt.lib.models.arrangor.melding.Forslag.Status.VenterPaSvar
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator.AvvistStatusDecorator
+import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator.DefaultDecorator
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.Endring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.EnkeltplassOkonomiGodkjent
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.VurderingFraArrangor
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
@@ -24,17 +37,17 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = DeltakerEndringResponse::class, name = "Endring"),
-    JsonSubTypes.Type(value = VedtakResponse::class, name = "Vedtak"),
-    JsonSubTypes.Type(value = ForslagResponse::class, name = "Forslag"),
-    JsonSubTypes.Type(value = EndringFraArrangorResponse::class, name = "EndringFraArrangor"),
-    JsonSubTypes.Type(value = ImportertFraArenaResponse::class, name = "ImportertFraArena"),
-    JsonSubTypes.Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
-    JsonSubTypes.Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
-    JsonSubTypes.Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
-    JsonSubTypes.Type(value = EnkeltplassOkonomiGodkjentResponse::class, name = "EnkeltplassOkonomiGodkjent"),
+    Type(value = DeltakerEndringResponse::class, name = "Endring"),
+    Type(value = VedtakResponse::class, name = "Vedtak"),
+    Type(value = ForslagResponse::class, name = "Forslag"),
+    Type(value = EndringFraArrangorResponse::class, name = "EndringFraArrangor"),
+    Type(value = ImportertFraArenaResponse::class, name = "ImportertFraArena"),
+    Type(value = VurderingFraArrangorResponse::class, name = "VurderingFraArrangor"),
+    Type(value = EndringFraTiltakskoordinatorResponse::class, name = "EndringFraTiltakskoordinator"),
+    Type(value = InnsokPaaFellesOppstartResponse::class, name = "InnsokPaaFellesOppstart"),
+    Type(value = EnkeltplassOkonomiGodkjentResponse::class, name = "EnkeltplassOkonomiGodkjent"),
 )
 sealed interface DeltakerHistorikkResponse {
     companion object {
@@ -64,7 +77,7 @@ sealed interface DeltakerHistorikkResponse {
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ) = when (model) {
-            is DeltakerHistorikk.Endring -> DeltakerEndringResponse(
+            is Endring -> DeltakerEndringResponse(
                 model = model.endring,
                 arrangornavn = arrangornavn,
                 oppstartstype = oppstartstype,
@@ -102,7 +115,7 @@ sealed interface DeltakerHistorikkResponse {
                 model.importertFraArena,
             )
 
-            is DeltakerHistorikk.VurderingFraArrangor -> VurderingFraArrangorResponse.fromModel(
+            is VurderingFraArrangor -> VurderingFraArrangorResponse.fromModel(
                 model = model.data,
                 arrangornavn = arrangornavn,
             )
@@ -113,13 +126,13 @@ sealed interface DeltakerHistorikkResponse {
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse.fromModel(
+            is InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartResponse.fromModel(
                 model = model.data,
                 enheter = enheter,
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
+            is EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
                 model = model.data,
                 enheter = enheter,
                 ansatte = ansatte,
@@ -322,18 +335,18 @@ data class ForslagResponse(
 ) : DeltakerHistorikkResponse {
     companion object {
         private fun fromStatus(
-            status: Forslag.Status,
+            status: Status,
             decorator: ForslagDecorator,
             avvistAvNavnProvider: (UUID) -> String,
             avvistAvEnhetNavnProvider: (UUID) -> String,
         ): ForslagResponseStatus = when (status) {
-            is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
-            is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
-            is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
-            is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
-            is Forslag.Status.Avvist -> {
+            is VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+            is Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
+            is Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+            is Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
+            is Avvist -> {
                 // Hent avvist-info fra decorator hvis det er AvvistStatusDecorator
-                val (avvistAvNavn, avvistAvEnhet) = (decorator as? ForslagDecorator.AvvistStatusDecorator)
+                val (avvistAvNavn, avvistAvEnhet) = (decorator as? AvvistStatusDecorator)
                     ?.let { it.avvistAvAnsattNavn to it.avvistAvEnhetNavn }
                     ?: (avvistAvNavnProvider(status.avvistAv.id) to avvistAvEnhetNavnProvider(status.avvistAv.enhetId))
 
@@ -376,7 +389,7 @@ data class ForslagResponse(
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ): ForslagResponse = fromForslagDecorator(
-            dekorertForslag = ForslagDecorator.DefaultDecorator(forslag),
+            dekorertForslag = DefaultDecorator(forslag),
             arrangornavn = arrangornavn,
             // NOTE: Fallback til UUID-string hvis ikke funnet i ansatte
             avvistAvNavnProvider = { ansatte[it]?.navn ?: it.toString() },

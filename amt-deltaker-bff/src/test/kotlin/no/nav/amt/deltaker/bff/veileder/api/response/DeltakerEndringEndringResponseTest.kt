@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringEndringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import org.junit.jupiter.api.Test

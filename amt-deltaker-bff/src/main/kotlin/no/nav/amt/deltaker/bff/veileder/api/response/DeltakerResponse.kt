@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
 import java.time.LocalDate
 import java.util.UUID
 

@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseMapper
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString

@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
