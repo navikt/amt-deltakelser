@@ -11,8 +11,58 @@ env:
   PRINT_PAYLOAD: true
 
 jobs:
-  test-build-and-push:
-    name: Test, build and push ${{ inputs.module_path }}
+  test:
+    name: Test ${{ inputs.module_path }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Run serial tests
+        run: |
+          # amt-deltaker excludes isolated tests, which run in parallel in a separate job.
+          ./gradlew test \
+            -p ${{ inputs.module_path }} \
+            --no-daemon \
+            --no-configuration-cache
+
+  parallel-test:
+    name: Run amt-deltaker isolated tests
+    if: inputs.module_path == 'amt-deltaker'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Run isolated tests
+        run: ./gradlew parallelTest -p amt-deltaker --no-daemon --no-configuration-cache
+
+  build-and-push:
+    name: Build and push ${{ inputs.module_path }}
+    needs: [test, parallel-test]
+    if: ${{ always() && needs.test.result == 'success' && (needs.parallel-test.result == 'success' || needs.parallel-test.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write    # Required for dependency-graph: generate-and-submit
@@ -45,6 +95,8 @@ jobs:
           ./gradlew build \
             $GRADLE_ARGS \
             -p ${{ inputs.module_path }} \
+            -x test \
+            -x parallelTest \
             --no-daemon \
             --no-configuration-cache
 # Kommenter inn ved behov
@@ -68,7 +120,7 @@ jobs:
 
   deploy-dev:
     name: Deploy ${{ inputs.module_path }} to dev
-    needs: test-build-and-push
+    needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -82,12 +134,12 @@ jobs:
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/nais-dev.yaml
-          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VAR: image=${{ needs.build-and-push.outputs.image }}
           VARS: ${{ inputs.module_path }}/.nais/vars-dev.yaml
 
   deploy-prod:
     name: Deploy ${{ inputs.module_path }} to prod
-    needs: [ test-build-and-push, deploy-dev ]
+    needs: [ build-and-push, deploy-dev ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -102,5 +154,5 @@ jobs:
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/nais-prod.yaml
-          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VAR: image=${{ needs.build-and-push.outputs.image }}
           VARS: ${{ inputs.module_path }}/.nais/vars-prod.yaml
