@@ -53,7 +53,7 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.internapi.enkeltplass.sanitizeBeskrivelse
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -142,7 +142,7 @@ fun Routing.registerVeilederApi(
                 )
 
                 call.respondText(
-                    objectMapper.writePolymorphicListAsString(historikkResponse),
+                    objectMapper.writePolymorphicCollectionAsString(historikkResponse),
                     ContentType.Application.Json,
                 )
             }

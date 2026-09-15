@@ -2,7 +2,6 @@ package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import no.nav.amt.lib.spring.boot.client.toExternalServiceException
-import no.nav.amt.person.service.clients.AMT_ARENA_ACL_CLIENT_ID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException

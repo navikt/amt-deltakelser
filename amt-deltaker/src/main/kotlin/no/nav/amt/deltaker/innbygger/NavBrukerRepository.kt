@@ -2,12 +2,12 @@ package no.nav.amt.deltaker.innbygger
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -76,9 +76,9 @@ class NavBrukerRepository {
             "telefonnummer" to bruker.telefon,
             "epost" to bruker.epost,
             "er_skjermet" to bruker.erSkjermet,
-            "adresse" to toPGObject(bruker.adresse),
+            "adresse" to bruker.adresse?.let { objectMapper.toPGObject(it) },
             "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
-            "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
+            "oppfolgingsperioder" to objectMapper.toPGObject(bruker.oppfolgingsperioder),
             "innsatsgruppe" to bruker.innsatsgruppe?.name,
         )
 
