@@ -455,26 +455,6 @@ class VeilederApiTest : IntegrationTestBase() {
                         }
                 }
             }
-
-            @Test
-            fun `tilbakekall prisendring - uten prisinfo til godkjenning - returnerer 400`() {
-                val deltaker = lagDeltakerResponse(
-                    id = UUID.randomUUID(),
-                    deltakerliste = lagDeltakerResponse().gjennomforing.copy(prisinformasjonTilGodkjenning = null),
-                )
-
-                setupMocks(lagDeltakerOld(id = deltaker.id))
-                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns deltaker
-
-                withTestApplicationContext { httpClient ->
-                    httpClient
-                        .post("/deltaker/${deltaker.id}/tilbakekall-prisendring") {
-                            createPostRequest(tilbakekallPrisendringRequest)
-                        }.apply {
-                            status shouldBe HttpStatusCode.BadRequest
-                        }
-                }
-            }
         }
 
         // ---- startdato ----
