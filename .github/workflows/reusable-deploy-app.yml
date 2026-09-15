@@ -32,30 +32,21 @@ jobs:
         with:
           dependency-graph: generate-and-submit
 
-      - name: Build deploy artifact
+      - name: Build artifacts
         run: |
+          GRADLE_ARGS="installDist"
+          
           case "${{ inputs.module_path }}" in
-            amt-deltaker|amt-deltaker-bff|amt-distribusjon)
-              # Ktor-appene pakker runtime-avhengigheter i build/install/, som Dockerfile kopierer.
-              ./gradlew :${{ inputs.module_path }}:installDist \
-                --no-daemon \
-                --no-configuration-cache
-              ;;
-            amt-aktivitetskort-publisher|amt-tiltaksarrangor-bff)
-              # Spring Boot-appene bruker den eksekverbare JAR-filen fra build/libs/ i Dockerfile.
-              ./gradlew :${{ inputs.module_path }}:bootJar \
-                --no-daemon \
-                --no-configuration-cache
-              ;;
-            amt-pdfgen)
-              # PDFgen-imaget inneholder bare statiske templates, fonter og ressurser.
-              ;;
-            *)
-              # Hindrer at en ny app feilaktig deployes uten sitt nødvendige byggesteg.
-              echo "Unsupported application module: ${{ inputs.module_path }}" >&2
-              exit 1
-              ;;
+            amt-aktivitetskort-publisher|amt-tiltaksarrangor-bff|amt-pdfgen)
+            GRADLE_ARGS=""
+          ;;
           esac
+          
+          ./gradlew build \
+            $GRADLE_ARGS \
+            -p ${{ inputs.module_path }} \
+            --no-daemon \
+            --no-configuration-cache
 # Kommenter inn ved behov
 #            --info \
 #            --console=plain \
