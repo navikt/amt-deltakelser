@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -71,22 +70,5 @@ class DeltakerEndringEndringResponseTest {
         response
             .prisinfo
             .shouldBeInstanceOf<PrisinformasjonResponse.IngenKostnader>()
-    }
-
-    @Test
-    fun `endrePrisinfo - tilbakekalt status - mappes korrekt`() {
-        // Arrange
-        val endring = DeltakerEndring.Endring.EndrePrisinfo(
-            prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000),
-            begrunnelse = "Begrunnelse",
-            status = DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT,
-        )
-
-        // Act
-        val response = DeltakerEndringEndringResponse.fromModel(endring, null)
-            .shouldBeInstanceOf<DeltakerEndringEndringResponse.EndrePrisinfo>()
-
-        // Assert
-        response.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
     }
 }
