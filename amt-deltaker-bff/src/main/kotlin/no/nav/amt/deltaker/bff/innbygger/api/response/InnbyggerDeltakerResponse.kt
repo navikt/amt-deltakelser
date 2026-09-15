@@ -5,9 +5,9 @@ import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
