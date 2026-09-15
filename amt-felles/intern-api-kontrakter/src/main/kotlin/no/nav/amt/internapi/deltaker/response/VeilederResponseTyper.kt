@@ -1,10 +1,14 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor.Endring
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerStatus.Type
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,7 +16,7 @@ import java.util.UUID
 
 data class DeltakerStatusResponse(
     val id: UUID,
-    val type: DeltakerStatus.Type,
+    val type: Type,
     val aarsak: Aarsak?,
     val gyldigFra: LocalDateTime,
     val gyldigTil: LocalDateTime?,
@@ -40,29 +44,7 @@ data class DeltakerStatusResponse(
 
 fun DeltakerStatus.toDeltakerStatusResponse() = DeltakerStatusResponse(this)
 
-data class DeltakelsesmengdeResponse(
-    val deltakelsesprosent: Float,
-    val dagerPerUke: Float?,
-    val gyldigFra: LocalDate,
-) {
-    constructor(model: no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse) : this(
-        deltakelsesprosent = model.deltakelsesprosent,
-        dagerPerUke = model.dagerPerUke,
-        gyldigFra = model.gyldigFra,
-    )
-}
-
-data class DeltakelsesmengderResponse(
-    val nesteDeltakelsesmengde: DeltakelsesmengdeResponse? = null,
-    val sisteDeltakelsesmengde: DeltakelsesmengdeResponse? = null,
-) {
-    constructor(model: no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse) : this(
-        nesteDeltakelsesmengde = model.nesteDeltakelsesmengde?.let(::DeltakelsesmengdeResponse),
-        sisteDeltakelsesmengde = model.sisteDeltakelsesmengde?.let(::DeltakelsesmengdeResponse),
-    )
-}
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.SIMPLE_NAME, include = As.PROPERTY, property = "type")
 sealed interface EndringFraArrangorEndringResponse {
     data class LeggTilOppstartsdato(
         val startdato: LocalDate,
@@ -75,13 +57,13 @@ sealed interface EndringFraArrangorEndringResponse {
     }
 
     companion object {
-        fun fromModel(model: EndringFraArrangor.Endring) = when (model) {
+        fun fromModel(model: Endring) = when (model) {
             is EndringFraArrangor.LeggTilOppstartsdato -> LeggTilOppstartsdato(model)
         }
     }
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.SIMPLE_NAME, include = As.PROPERTY, property = "type")
 sealed interface EndringFraTiltakskoordinatorEndringResponse {
     data object DelMedArrangor : EndringFraTiltakskoordinatorEndringResponse
 
@@ -119,7 +101,7 @@ sealed interface EndringFraTiltakskoordinatorEndringResponse {
     }
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.SIMPLE_NAME, include = As.PROPERTY, property = "type")
 sealed interface EndringAarsakResponse {
     data object Syk : EndringAarsakResponse
 
@@ -151,7 +133,7 @@ sealed interface EndringAarsakResponse {
     }
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.SIMPLE_NAME, include = As.PROPERTY, property = "type")
 sealed interface ForslagEndringResponse {
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,

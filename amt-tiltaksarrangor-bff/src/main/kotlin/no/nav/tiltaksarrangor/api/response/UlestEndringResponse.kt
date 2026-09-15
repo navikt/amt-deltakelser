@@ -2,9 +2,12 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.tiltaksarrangor.model.Oppdatering
 import no.nav.tiltaksarrangor.model.UlestEndring
 import java.time.LocalDate
@@ -31,13 +34,15 @@ data class UlestEndringResponse(
                         endring = DeltakerEndringResponse(it.oppdatering.endring, ansatte, enheter, arrangornavn, oppstartstype),
                     ),
                 )
+
                 is Oppdatering.AvvistForslag -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
                     oppdatering = OppdateringResponse.AvvistForslagResponse(
-                        forslag = ForslagHistorikkResponse(it.oppdatering.forslag, arrangornavn, ansatte, enheter),
+                        forslag = ForslagResponse(it.oppdatering.forslag, arrangornavn, ansatte, enheter),
                     ),
                 )
+
                 is Oppdatering.NavBrukerEndring -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
@@ -47,6 +52,7 @@ data class UlestEndringResponse(
                         oppdatert = it.oppdatert,
                     ),
                 )
+
                 is Oppdatering.NavEndring -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
@@ -59,6 +65,7 @@ data class UlestEndringResponse(
                         oppdatert = it.oppdatert,
                     ),
                 )
+
                 is Oppdatering.NyDeltaker -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
@@ -68,6 +75,7 @@ data class UlestEndringResponse(
                         opprettet = it.oppdatering.opprettet,
                     ),
                 )
+
                 is Oppdatering.DeltMedArrangor -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
@@ -77,6 +85,7 @@ data class UlestEndringResponse(
                         delt = it.oppdatering.delt,
                     ),
                 )
+
                 is Oppdatering.TildeltPlass -> UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
@@ -94,7 +103,7 @@ data class UlestEndringResponse(
                     oppdatering = OppdateringResponse.AvslagResponse(
                         it.oppdatering.endretAv,
                         it.oppdatering.endretAvEnhet,
-                        DeltakerStatusResponse.Aarsak(it.oppdatering.aarsak),
+                        DeltakerStatusResponse.Aarsak(type = it.oppdatering.aarsak.type, beskrivelse = it.oppdatering.aarsak.beskrivelse),
                         it.oppdatering.begrunnelse,
                         it.oppdatert,
                     ),
@@ -121,7 +130,7 @@ sealed interface OppdateringResponse {
     ) : OppdateringResponse
 
     data class AvvistForslagResponse(
-        val forslag: ForslagHistorikkResponse,
+        val forslag: ForslagResponse,
     ) : OppdateringResponse
 
     data class NavBrukerEndringResponse(

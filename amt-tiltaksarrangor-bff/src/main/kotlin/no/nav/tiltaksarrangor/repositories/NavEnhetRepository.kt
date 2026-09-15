@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.repositories
 
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.tiltaksarrangor.repositories.model.NavEnhetDbo
 import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.RowMapper

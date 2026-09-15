@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
-import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

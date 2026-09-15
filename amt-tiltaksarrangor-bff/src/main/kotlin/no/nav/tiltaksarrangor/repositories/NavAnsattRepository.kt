@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.repositories
 
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -15,10 +15,12 @@ class NavAnsattRepository(
     private val rowMapper = RowMapper { rs, _ ->
         NavAnsatt(
             id = UUID.fromString(rs.getString("id")),
-            navident = rs.getString("nav_ident"),
+            navIdent = rs.getString("nav_ident"),
             navn = rs.getString("navn"),
             epost = rs.getString("epost"),
             telefon = rs.getString("telefon"),
+            // lagres ikke i denne databasen
+            navEnhetId = null,
         )
     }
 
@@ -43,7 +45,7 @@ class NavAnsattRepository(
             """.trimIndent()
         val params = sqlParameters(
             "id" to navAnsatt.id,
-            "nav_ident" to navAnsatt.navident,
+            "nav_ident" to navAnsatt.navIdent,
             "navn" to navAnsatt.navn,
             "telefon" to navAnsatt.telefon,
             "epost" to navAnsatt.epost,

@@ -9,11 +9,11 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
 import no.nav.tiltaksarrangor.model.Endringsmelding
 import no.nav.tiltaksarrangor.model.Veiledertype
@@ -135,10 +135,11 @@ class TiltaksarrangorApiTest(
 
             val navVeileder = NavAnsatt(
                 id = UUID.randomUUID(),
-                navident = "Z123456",
+                navIdent = "Z123456",
                 navn = "Veileder Veiledersen",
                 epost = "epost@nav.no",
                 telefon = "56565656",
+                navEnhetId = null,
             )
             navAnsattRepository.upsert(navVeileder)
 

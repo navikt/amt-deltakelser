@@ -11,6 +11,8 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Bostedsadresse
@@ -23,8 +25,6 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.consumer.model.NavnDto
 import no.nav.tiltaksarrangor.consumer.model.TilknyttetArrangorDto
 import no.nav.tiltaksarrangor.consumer.model.VeilederDto
@@ -277,10 +277,11 @@ fun getVeileder(
 
 fun getNavAnsatt(id: UUID = UUID.randomUUID()) = NavAnsatt(
     id = id,
-    navident = (100000..999999).random().toString(),
+    navIdent = (100000..999999).random().toString(),
     navn = "Veileder Veiledersen",
     epost = "epost@nav.no",
     telefon = "99999999",
+    navEnhetId = null,
 )
 
 fun getNavEnhet(id: UUID = UUID.randomUUID()) = NavEnhet(

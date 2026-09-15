@@ -1,9 +1,7 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
-import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
@@ -155,6 +153,19 @@ data class DeltakerEndringResponse(
     val endret: LocalDateTime,
     val forslag: ForslagResponse?,
 ) : DeltakerHistorikkResponse {
+    constructor(
+        model: DeltakerEndring,
+        ansatte: Map<UUID, NavAnsatt>,
+        enheter: Map<UUID, NavEnhet>,
+        arrangornavn: String,
+        deltakerlisteOppstartstype: Oppstartstype,
+    ) : this(
+        endring = DeltakerEndringEndringResponse.fromModel(model.endring, deltakerlisteOppstartstype),
+        endretAv = ansatte[model.endretAv]!!.navn,
+        endretAvEnhet = enheter[model.endretAvEnhet]!!.navn,
+        endret = model.endret,
+        forslag = model.forslag?.let { ForslagResponse(it, arrangornavn) },
+    )
     constructor(
         model: DeltakerEndring,
         arrangornavn: String,
@@ -320,6 +331,22 @@ data class ForslagResponse(
     val endring: ForslagEndringResponse,
     val status: ForslagResponseStatus,
 ) : DeltakerHistorikkResponse {
+    constructor(model: Forslag, arrangornavn: String) : this (
+        model = model,
+        arrangornavn = arrangornavn,
+        ansatte = emptyMap(),
+        enheter = emptyMap(),
+    )
+
+    constructor(model: Forslag, arrangornavn: String, ansatte: Map<UUID, NavAnsatt>, enheter: Map<UUID, NavEnhet>) : this(
+        id = model.id,
+        opprettet = model.opprettet,
+        begrunnelse = model.begrunnelse ?: "",
+        arrangorNavn = arrangornavn,
+        endring = ForslagEndringResponse.fromModel(model.endring),
+        status = model.getForslagResponseStatus(ansatte, enheter),
+    )
+
     companion object {
         private fun fromStatus(
             status: Forslag.Status,

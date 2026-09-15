@@ -5,9 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.verify
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
 import no.nav.tiltaksarrangor.repositories.NavEnhetRepository
