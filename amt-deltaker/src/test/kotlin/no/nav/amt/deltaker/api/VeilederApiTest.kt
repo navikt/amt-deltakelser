@@ -114,6 +114,17 @@ class VeilederApiTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `get deltaker - deltaker finnes ikke - returnerer 404`() {
+        val deltakerId = UUID.randomUUID()
+        every { deltakerService.getOrThrow(deltakerId) } throws NoSuchElementException("Fant ikke deltaker med id $deltakerId")
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/$deltakerId") { noBodyRequest() }
+            response.status shouldBe HttpStatusCode.NotFound
+        }
+    }
+
+    @Test
     fun `avvis forslag - har tilgang - returnerer 200`() {
         val forslagId = UUID.randomUUID()
         val avvisForslagRequest = AvvisForslagRequest(

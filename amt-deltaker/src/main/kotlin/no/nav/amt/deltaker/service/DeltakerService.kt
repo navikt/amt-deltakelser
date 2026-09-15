@@ -44,12 +44,15 @@ class DeltakerService(
         Brukes i tilfeller hvor det er en forventning at deltakeren skal finnes
      */
     fun getOrThrow(deltakerId: UUID): Deltaker = get(deltakerId)
-        ?: throw IllegalArgumentException("Fant ikke deltaker med id $deltakerId")
+        ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
     fun get(deltakerId: UUID): Deltaker? {
         val deltaker = deltakerRepository
             .get(deltakerId)
-            .getOrElse { return null }
+            .getOrElse { cause ->
+                if (cause is NoSuchElementException) return null
+                throw cause
+            }
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
             gjennomforing = deltaker.deltakerliste,
         )
@@ -119,7 +122,7 @@ class DeltakerService(
         nesteStatus = nesteStatus,
         beforeDeltakerUpsert = beforeUpsert,
         afterDeltakerUpsert = { deltaker ->
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            val oppdatertDeltaker = getOrThrow(deltaker.id)
             deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forceProduce)
             log.info("Oppdatert deltaker ${deltaker.id}")
 
@@ -191,7 +194,7 @@ class DeltakerService(
         personident: String,
         publiserTilDeltakerV1: Boolean = true,
         publiserTilDeltakerEksternV1: Boolean = true,
-    ): Unit = deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
+    ): Unit = getFlereForPerson(personident).forEach { deltaker ->
         deltakerProducerService.produce(
             deltaker = deltaker,
             publiserTilDeltakerV1 = publiserTilDeltakerV1,
@@ -259,7 +262,7 @@ class DeltakerService(
                 )
 
                 // henter oppdatert deltaker fra db før publisering på Kafka
-                val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                val deltakerFromDb = getOrThrow(deltaker.id)
                 deltakerProducerService.produce(deltakerFromDb)
             }
     }
