@@ -10,6 +10,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 
 fun Deltaker.toUtkastDto() = UtkastDto(
@@ -64,5 +65,5 @@ private fun List<Innhold>.toInnholdDtoList() = this.map {
 private fun Arrangor.toHendelseArrangor() = HendelseDeltaker.Deltakerliste.Arrangor(
     id,
     organisasjonsnummer,
-    navn,
+    navn.toTitleCase(),
 )

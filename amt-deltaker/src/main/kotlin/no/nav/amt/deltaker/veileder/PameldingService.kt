@@ -98,7 +98,7 @@ class PameldingService(
     }
 
     fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerService.getOrThrow(deltakerId)
 
         return deltakerService.upsertAndProduceDeltaker(
             deltaker = deltaker,
