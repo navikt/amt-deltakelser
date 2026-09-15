@@ -1,6 +1,7 @@
 package no.nav.amt.lib.testing
 
 import kotliquery.queryOf
+import no.nav.amt.lib.testing.utils.ContainerReuseConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.DatabaseConfig
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -9,6 +10,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 object TestPostgresContainer {
     private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
     private var dbInitialized = false
+
+    private val reuseConfig = ContainerReuseConfig()
 
     fun bootstrap() {
         if (!dbInitialized) {
@@ -45,6 +48,8 @@ object TestPostgresContainer {
         PostgreSQLContainer(POSTGRES_DOCKER_IMAGE_NAME)
             .withCommand("postgres", "-c", "wal_level=logical")
             .waitingFor(HostPortWaitStrategy())
+            .withReuse(reuseConfig.reuse)
+            .withLabel("reuse.UUID", reuseConfig.reuseLabel)
             .apply { addEnv("TZ", "Europe/Oslo") }
     }
 
