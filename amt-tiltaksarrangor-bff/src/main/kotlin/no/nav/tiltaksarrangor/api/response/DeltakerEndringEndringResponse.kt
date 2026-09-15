@@ -156,10 +156,12 @@ sealed interface DeltakerEndringEndringResponse {
     data class EndrePrisinfo(
         val prisinfo: PrisinformasjonResponse,
         val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
+        val status: DeltakerEndring.Endring.EndrePrisinfo.Status?,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndrePrisinfo) : this(
             prisinfo = PrisinformasjonResponse.fromModel(model.prisinfo),
             begrunnelse = model.begrunnelse,
+            status = model.status,
         )
     }
 

@@ -195,6 +195,8 @@ fun Routing.registerEnkeltplassApi(
                 }
             }
 
+            // TODO: fjern når frontend har tatt i bruk endepunkt /tilbakekall-prisendring i VeilederApi
+            //   https://trello.com/c/PSRjid6S/412
             post("/tilbakekall-prisendring/{deltakerId}") {
                 val deltakerId = call.getDeltakerId()
 

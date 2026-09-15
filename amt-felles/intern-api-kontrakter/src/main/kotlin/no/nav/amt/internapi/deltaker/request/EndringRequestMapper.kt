@@ -9,6 +9,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreDeltakelsesme
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreInnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreOpplaringKategorisering
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndrePrisinfo
+import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndrePrisinfo.Status
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreSluttarsak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreSluttdato
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndreStartdato
@@ -17,6 +18,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.ForlengDeltakelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.IkkeAktuell
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.ReaktiverDeltakelse
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -38,6 +40,7 @@ object EndringRequestMapper {
         request: EndringRequest,
         tiltakstype: Tiltakstype? = null,
         opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
+        prisinfo: PrisinformasjonDto? = null,
     ): DeltakerEndring.Endring = when (request) {
         is AvbrytDeltakelseRequest -> AvbrytDeltakelse(
             aarsak = request.aarsak,
@@ -92,6 +95,13 @@ object EndringRequestMapper {
             prisinfo = request.prisinfo,
             begrunnelse = request.begrunnelse,
             prisinformasjonId = request.prisinformasjonId,
+        )
+
+        is TilbakekaltPrisendringRequest -> EndrePrisinfo(
+            prisinfo = requireNotNull(prisinfo) { "${request::class.simpleName} krever prisinfo" },
+            begrunnelse = null,
+            prisinformasjonId = requireNotNull(request.prisinformasjonId) { "${request::class.simpleName} krever prisinformasjonId" },
+            status = Status.TILBAKEKALT,
         )
 
         is FjernOppstartsdatoRequest -> FjernOppstartsdato(

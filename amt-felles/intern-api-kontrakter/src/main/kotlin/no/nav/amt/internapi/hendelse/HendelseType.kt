@@ -203,9 +203,15 @@ data class InnholdDto(
 )
 
 fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
-    is Endring.EndrePrisinfo -> HendelseType.EnkeltplassEndrePrisinfo(
-        endring.prisinfo,
-    )
+    is Endring.EndrePrisinfo -> if (endring.status == Endring.EndrePrisinfo.Status.TILBAKEKALT) {
+        HendelseType.EnkeltplassTilbakekallPrisendring(
+            prisinformasjonId = requireNotNull(endring.prisinformasjonId) { "Missing prisinformasjonId for tilbakekalt prisinfo" },
+        )
+    } else {
+        HendelseType.EnkeltplassEndrePrisinfo(
+            endring.prisinfo,
+        )
+    }
 
     is Endring.EndreOpplaringKategorisering -> HendelseType.EnkeltplassEndreOpplaringKategorisering(
         opplaringKategoriseringValg = endring.opplaringKategoriseringValg,

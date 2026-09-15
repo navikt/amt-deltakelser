@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
@@ -51,6 +52,7 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.enkeltplass.sanitizeBeskrivelse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
@@ -147,7 +149,6 @@ fun Routing.registerVeilederApi(
                 )
             }
 
-            // TODO: Gitt at prisendring tilbakekalles, bør dette fremgå av historikken
             post("/endre-prisinfo") {
                 val request = call.receive<EndrePrisinfoRequest>()
                 call.handleEndring(
@@ -174,6 +175,18 @@ fun Routing.registerVeilederApi(
                         beskrivelse = sanitizedRequest.beskrivelse,
                         pavirkerPris = sanitizedRequest.pavirkerPris,
                     ),
+                )
+            }
+
+            post("/tilbakekall-prisendring") {
+                val request = TilbakekallPrisendringRequest()
+                call.handleEndring(
+                    frontendRequest = request,
+                    amtDeltakerRequest =
+                        TilbakekaltPrisendringRequest(
+                            endretAv = call.getNavIdent(),
+                            endretAvEnhet = call.getEnhetsnummer(),
+                        ),
                 )
             }
 
