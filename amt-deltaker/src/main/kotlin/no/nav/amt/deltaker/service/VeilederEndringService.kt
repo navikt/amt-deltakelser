@@ -52,7 +52,7 @@ class VeilederEndringService(
         deltakerId: UUID,
         endringRequest: EndringRequest,
     ): Deltaker {
-        val eksisterendeDeltaker = deltakerService.get(deltakerId)
+        val eksisterendeDeltaker = deltakerService.getOrThrow(deltakerId)
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         require(unleashToggle.erKometMasterForTiltakstype(eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode)) {

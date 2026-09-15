@@ -16,7 +16,6 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.GenericCache
-import no.nav.amt.lib.utils.toTitleCase
 import java.util.UUID
 
 /**
@@ -73,7 +72,7 @@ internal object SharedResponseMappers {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let { arrangor ->
             ArrangorResponse(
-                navn = deltakerliste.arrangor.navn.toTitleCase(),
+                navn = deltakerliste.arrangor.navn,
                 organisasjonsnummer = arrangor.organisasjonsnummer,
             )
         },

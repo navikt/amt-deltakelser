@@ -35,7 +35,7 @@ class PameldingService(
         deltakerId: UUID,
         utkast: UtkastRequest,
     ): Deltaker {
-        val opprinneligDeltaker = deltakerService.get(deltakerId)
+        val opprinneligDeltaker = deltakerService.getOrThrow(deltakerId)
 
         require(kanUpserteUtkast(opprinneligDeltaker.status)) {
             "Kan ikke upserte utkast for deltaker $deltakerId " +

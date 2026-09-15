@@ -46,7 +46,6 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class DeltakerServiceTest : IntegrationTestWithDbBase() {
     private val navEnhetInTest = TestData.lagNavEnhet(enhetsnummer = "0326")
@@ -59,7 +58,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `get - gruppe med overordnet arrangor - returnerer deltaker med overordnet arrangor`() {
+    fun `get - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
             navn = "Underenhet Oslo",
@@ -76,13 +75,17 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         )
         TestRepository.insert(deltaker)
 
-        val result = deltakerService.get(deltaker.id)
+        val result = deltakerService.getOrThrow(deltaker.id)
 
-        result.shouldNotBeNull().deltakerliste.arrangor shouldBe overordnetArrangor
+        val deltakerArrangor = result.shouldNotBeNull().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe underordnetArrangor.id
+        deltakerArrangor.navn shouldBe "Overordnet Arrangør"
+        deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
     }
 
     @Test
-    fun `getFlereForPerson - gruppe med overordnet arrangor - returnerer deltakere med overordnet arrangor`() {
+    fun `getFlereForPerson - gruppe med overordnet arrangor - returnerer deltakere med overordnet navn men samme arrangoridentitet`() {
         val personident = "12345678910"
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
@@ -104,11 +107,15 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         val result = deltakerService.getFlereForPerson(personident)
 
         result.size shouldBe 1
-        result.first().deltakerliste.arrangor shouldBe overordnetArrangor
+        val deltakerArrangor = result.first().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe underordnetArrangor.id
+        deltakerArrangor.navn shouldBe "Overordnet Arrangør"
+        deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
     }
 
     @Test
-    fun `getFlereForPerson - enkeltplass - beholder arrangor pa deltakerlista`() {
+    fun `getFlereForPerson - enkeltplass - beholder arrangoridentitet men oppdaterer visningsnavn`() {
         val personident = "10987654321"
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val arrangor = lagArrangor(
@@ -130,7 +137,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         val result = deltakerService.getFlereForPerson(personident)
 
         result.size shouldBe 1
-        result.first().deltakerliste.arrangor shouldBe arrangor
+        val deltakerArrangor = result.first().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe arrangor.id
+        deltakerArrangor.navn shouldBe "Underenhet Oslo"
+        deltakerArrangor.organisasjonsnummer shouldBe arrangor.organisasjonsnummer
     }
 
     @Nested

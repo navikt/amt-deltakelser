@@ -24,7 +24,7 @@ import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.kafka.SisteEndring
-import no.nav.amt.lib.models.kafka.TiltakPayload
+import no.nav.amt.lib.models.kafka.Tiltak
 import java.time.LocalDate
 import java.util.UUID
 
@@ -140,7 +140,7 @@ class DeltakerKafkaPayloadBuilder(
                 id = deltaker.deltakerliste.id,
                 navn = deltaker.deltakerliste.navn,
                 gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
-                tiltak = TiltakPayload(
+                tiltak = Tiltak(
                     navn = deltaker.deltakerliste.tiltakstype.navn,
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                 ),

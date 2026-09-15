@@ -23,7 +23,7 @@ import no.nav.amt.lib.models.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
-import no.nav.amt.lib.models.kafka.TiltakPayload
+import no.nav.amt.lib.models.kafka.Tiltak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -774,7 +774,7 @@ class DeltakerDtoCtx {
         deltakerliste = DeltakerlistePayload(
             id = deltakerlisteId,
             navn = "Tiltak hos Arrangør",
-            tiltak = TiltakPayload(
+            tiltak = Tiltak(
                 navn = "Tralala",
                 tiltakskode = Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
             ),

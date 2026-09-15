@@ -293,7 +293,6 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         navEnhetRepository = navEnhetRepository,
         navEnhetService = navEnhetService,
-        arrangorService = arrangorService,
         deltakerHistorikkService = deltakerHistorikkService,
         vurderingService = vurderingService,
         unleashToggle = unleashToggle,

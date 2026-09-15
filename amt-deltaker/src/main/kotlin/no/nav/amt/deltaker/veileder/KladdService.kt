@@ -68,7 +68,7 @@ class KladdService(
 
         deltakerRepository.upsertKladd(kladdUpsertDbo)
 
-        return deltakerRepository.get(deltaker.id).getOrThrow()
+        return deltakerService.getOrThrow(deltaker.id)
     }
 
     fun slettKladd(deltakerId: UUID) {

@@ -104,7 +104,7 @@ fun Routing.registerEnkeltplassApi(
                 val deltakerId = call.getDeltakerId()
                 val request: EnkeltplassTilbakekallPrisinfoRequest = call.receive()
 
-                val deltaker = deltakerService.get(deltakerId)
+                val deltaker = deltakerService.getOrThrow(deltakerId)
 
                 val (navAnsatt, navEnhet) = navAnsattService.hentNavAnsattOgEnhet(request.endretAv)
 

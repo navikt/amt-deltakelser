@@ -39,7 +39,7 @@ fun Routing.registerKladdApi(
 
         post("/oppdater-kladd/{deltakerId}") {
             val kladdRequest = call.receive<KladdRequest>()
-            val deltaker = deltakerService.get(call.getDeltakerId())
+            val deltaker = deltakerService.getOrThrow(call.getDeltakerId())
 
             require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
                 "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id ${deltaker.id} har status ${deltaker.status.type}"

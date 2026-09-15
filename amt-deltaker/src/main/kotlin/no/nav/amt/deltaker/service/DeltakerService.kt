@@ -43,14 +43,21 @@ class DeltakerService(
         visning av deltakere i alle flater.
         Brukes i tilfeller hvor det er en forventning at deltakeren skal finnes
      */
-    fun get(deltakerId: UUID): Deltaker {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+    fun getOrThrow(deltakerId: UUID): Deltaker = get(deltakerId)
+        ?: throw IllegalArgumentException("Fant ikke deltaker med id $deltakerId")
+
+    fun get(deltakerId: UUID): Deltaker? {
+        val deltaker = deltakerRepository
+            .get(deltakerId)
+            .getOrElse { return null }
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
             gjennomforing = deltaker.deltakerliste,
         )
 
         return deltaker.copy(
-            deltakerliste = deltaker.deltakerliste.copy(arrangor = arrangor),
+            deltakerliste = deltaker.deltakerliste.copy(
+                arrangor = deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor,
+            ),
         )
     }
 
@@ -65,7 +72,9 @@ class DeltakerService(
                 gjennomforing = deltaker.deltakerliste,
             )
             deltaker.copy(
-                deltakerliste = deltaker.deltakerliste.copy(arrangor = arrangor),
+                deltakerliste = deltaker.deltakerliste.copy(
+                    arrangor = deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor,
+                ),
             )
         }
     }

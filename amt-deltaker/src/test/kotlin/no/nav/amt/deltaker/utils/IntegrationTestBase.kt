@@ -197,7 +197,6 @@ abstract class IntegrationTestBase {
             navAnsattService = navAnsattService,
             navEnhetRepository = navEnhetRepository,
             navEnhetService = navEnhetService,
-            arrangorService = arrangorService,
             deltakerHistorikkService = deltakerHistorikkService,
             vurderingService = vurderingService,
             unleashToggle = unleashToggle,

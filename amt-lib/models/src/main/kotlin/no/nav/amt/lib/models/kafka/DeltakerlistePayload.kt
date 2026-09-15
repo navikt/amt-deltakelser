@@ -9,7 +9,7 @@ data class DeltakerlistePayload(
     val id: UUID,
     val navn: String,
     val gjennomforingstype: GjennomforingType = GjennomforingType.Gruppe,
-    val tiltak: TiltakPayload,
+    val tiltak: Tiltak,
     val startdato: LocalDate? = null,
     val sluttdato: LocalDate? = null,
     val oppstartstype: Oppstartstype? = null,

@@ -68,7 +68,7 @@ fun Routing.registerVeilederApi(
             )
 
             val deltakerResponse = deltakerService
-                .get(deltakerId)
+                .getOrThrow(deltakerId)
                 .let { deltakerResponseBuilder.buildDeltakerResponse(it) }
 
             call.respond(deltakerResponse)
@@ -77,7 +77,7 @@ fun Routing.registerVeilederApi(
         route("/deltaker/{deltakerId}") {
             get {
                 val deltakerResponse = deltakerService
-                    .get(call.getDeltakerId())
+                    .getOrThrow(call.getDeltakerId())
                     .let {
                         deltakerResponseBuilder.buildDeltakerResponse(it)
                     }
@@ -95,7 +95,7 @@ fun Routing.registerVeilederApi(
 
             get("/historikk") {
                 val deltakerId = call.getDeltakerId()
-                val deltaker = deltakerService.get(deltakerId)
+                val deltaker = deltakerService.getOrThrow(deltakerId)
                 val historikk = historikkService.getForDeltaker(deltakerId)
                 val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
                 val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()

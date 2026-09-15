@@ -30,7 +30,7 @@ import no.nav.amt.lib.models.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
-import no.nav.amt.lib.models.kafka.TiltakPayload
+import no.nav.amt.lib.models.kafka.Tiltak
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -482,7 +482,7 @@ class DeltakerV2ConsumerTest {
             deltakerliste = DeltakerlistePayload(
                 id = deltakerliste.id,
                 navn = deltakerliste.navn,
-                tiltak = TiltakPayload(
+                tiltak = Tiltak(
                     navn = "trallas",
                     tiltakskode = deltakerliste.tiltak.tiltakskode,
                 ),
