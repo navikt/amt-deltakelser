@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
@@ -26,7 +26,7 @@ fun Routing.registerEnkeltplassApi(
     deltakerResponseBuilder: DeltakerResponseBuilder,
     gjennomforingUpserter: GjennomforingUpserter,
     distribuerEndringService: DistribuerEndringService,
-    deltakerRepository: DeltakerRepository,
+    deltakerService: DeltakerService,
     navAnsattService: NavAnsattService,
 ) {
     authenticate("SYSTEM") {
@@ -104,9 +104,7 @@ fun Routing.registerEnkeltplassApi(
                 val deltakerId = call.getDeltakerId()
                 val request: EnkeltplassTilbakekallPrisinfoRequest = call.receive()
 
-                val deltaker = deltakerRepository
-                    .get(deltakerId)
-                    .getOrThrow()
+                val deltaker = deltakerService.getOrThrow(deltakerId)
 
                 val (navAnsatt, navEnhet) = navAnsattService.hentNavAnsattOgEnhet(request.endretAv)
 

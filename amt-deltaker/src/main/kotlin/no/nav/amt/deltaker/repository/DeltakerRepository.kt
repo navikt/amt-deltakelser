@@ -280,6 +280,10 @@ class DeltakerRepository {
         log.info("Oppdaterte kladd deltaker med id ${deltaker.id}")
     }
 
+    /*
+        Bruk DeltakerService.get for å få riktig arrangør underenhet/hovedenhet
+        for alle visningsformål
+     */
     fun get(id: UUID): Result<Deltaker> = runCatching {
         Database.query { session ->
             session.run(
@@ -310,6 +314,11 @@ class DeltakerRepository {
         }
     }
 
+    /*
+        Returnerer deltakere med arrangør som er koblet til deltakerliste.
+        Brukes kun direkte for visning av deltakelser for tiltakskoordinator, hvor
+        arrangør på underordnet/overordnet enhet ikke har betydning
+     */
     fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
         if (deltakerIder.isEmpty()) return emptyList()
 
@@ -327,6 +336,10 @@ class DeltakerRepository {
         }
     }
 
+    /*
+      Bruk DeltakerService.getFlereForPerson for å få riktig arrangør underenhet/hovedenhet
+      for alle visningsformål
+     */
     fun getFlereForPerson(personIdent: String): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(

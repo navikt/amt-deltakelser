@@ -293,7 +293,6 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         navEnhetRepository = navEnhetRepository,
         navEnhetService = navEnhetService,
-        arrangorService = arrangorService,
         deltakerHistorikkService = deltakerHistorikkService,
         vurderingService = vurderingService,
         unleashToggle = unleashToggle,
@@ -354,7 +353,6 @@ fun Application.module() {
 
     val deltakelserResponseMapper = DeltakelserResponseMapper(
         deltakerHistorikkService = deltakerHistorikkService,
-        arrangorService = arrangorService,
     )
 
     val gjennomforingUpserter = GjennomforingUpserter(
@@ -373,6 +371,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         distribuerEndringService = distribuerEndringService,
         endringFraArrangorRepository = endringFraArrangorRepository,
+        arrangorService = arrangorService,
         importertFraArenaRepository = importertFraArenaRepository,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         forslagRepository = forslagRepository,
@@ -460,7 +459,6 @@ fun Application.module() {
     )
 
     val deltakerResponseBuilder = DeltakerResponseBuilder(
-        arrangorService = arrangorService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         digitalBrukerService = digitalBrukerService,
@@ -551,7 +549,6 @@ fun Application.module() {
         kladdService = kladdService,
         enkeltplassService = enkeltplassService,
         veilederEndringService = veilederEndringService,
-        arrangorService = arrangorService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         tiltakskoordinatorService = tiltakskoordinatorService,
         forslagService = forslagService,

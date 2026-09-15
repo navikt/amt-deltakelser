@@ -10,7 +10,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingService
 import no.nav.amt.internapi.hendelse.Hendelse
 import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
@@ -35,7 +34,6 @@ class DistribuerEndringService(
     private val navAnsattService: NavAnsattService,
     private val navEnhetRepository: NavEnhetRepository,
     private val navEnhetService: NavEnhetService,
-    private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val vurderingService: VurderingService,
     private val unleashToggle: CommonUnleashToggle,
@@ -261,7 +259,6 @@ class DistribuerEndringService(
         id = UUID.randomUUID(),
         opprettet = LocalDateTime.now(),
         deltaker = deltaker.toHendelseDeltaker(
-            overordnetArrangor = null,
             forsteVedtakFattet = null,
             opplaringKategoriseringValg = null,
             prisinformasjon = null,
@@ -359,10 +356,6 @@ class DistribuerEndringService(
         ansvarlig: HendelseAnsvarlig,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor!!
-            .overordnetArrangorId
-            ?.let { arrangorService.hentArrangor(it) }
-
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         // for endringsvedtak er dette overflødig, men kalltreet er foreløpig for dypt til å skru dette av/på
@@ -380,7 +373,6 @@ class DistribuerEndringService(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
             deltaker = deltaker.toHendelseDeltaker(
-                overordnetArrangor = overordnetArrangor,
                 forsteVedtakFattet = forsteVedtakFattet,
                 opplaringKategoriseringValg = opplaringKategoriseringValg,
                 prisinformasjon = prisinformasjon,

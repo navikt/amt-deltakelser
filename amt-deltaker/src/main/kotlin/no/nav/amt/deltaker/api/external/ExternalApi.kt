@@ -14,11 +14,13 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerExternalApi(
     deltakerRepository: DeltakerRepository,
+    deltakerService: DeltakerService,
     navEnhetService: NavEnhetService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
@@ -30,7 +32,7 @@ fun Routing.registerExternalApi(
         post("$apiPath/aktiv-deltaker") {
             // Brukes av veilarboppfolging til å bestemme om oppfølgingsperioden kan avsluttes
             val request = call.receive<HentDeltakelserRequest>()
-            val deltakelser = deltakerRepository.getFlereForPerson(request.norskIdent)
+            val deltakelser = deltakerService.getFlereForPerson(request.norskIdent)
             val harAktiveDeltakelser = deltakelser.any { deltaker -> deltaker.status.erAktiv() }
             call.respond(HarAktiveDeltakelserResponse(harAktiveDeltakelser))
         }
@@ -54,7 +56,7 @@ fun Routing.registerExternalApi(
             val request = call.receive<HentDeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
-            val deltakelser = deltakerRepository
+            val deltakelser = deltakerService
                 .getFlereForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||

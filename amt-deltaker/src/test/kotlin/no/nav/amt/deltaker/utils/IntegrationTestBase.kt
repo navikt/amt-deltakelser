@@ -197,7 +197,6 @@ abstract class IntegrationTestBase {
             navAnsattService = navAnsattService,
             navEnhetRepository = navEnhetRepository,
             navEnhetService = navEnhetService,
-            arrangorService = arrangorService,
             deltakerHistorikkService = deltakerHistorikkService,
             vurderingService = vurderingService,
             unleashToggle = unleashToggle,
@@ -265,7 +264,6 @@ abstract class IntegrationTestBase {
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper by lazy {
         DeltakelserResponseMapper(
             deltakerHistorikkService = deltakerHistorikkService,
-            arrangorService = arrangorService,
         )
     }
 
@@ -319,6 +317,7 @@ abstract class IntegrationTestBase {
             distribuerEndringService = distribuerEndringService,
             forslagRepository = forslagRepository,
             endringFraArrangorRepository = endringFraArrangorRepository,
+            arrangorService = arrangorService,
             importertFraArenaRepository = importertFraArenaRepository,
         )
     }
@@ -406,7 +405,6 @@ abstract class IntegrationTestBase {
 
     protected open val deltakerResponseBuilder: DeltakerResponseBuilder by lazy {
         DeltakerResponseBuilder(
-            arrangorService = arrangorService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             digitalBrukerService = digitalBrukerService,
@@ -486,7 +484,6 @@ abstract class IntegrationTestBase {
                     deltakerResponseBuilder = deltakerResponseBuilder,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
                     deltakerlisteRepository = deltakerlisteRepository,
-                    arrangorService = arrangorService,
                     veilederEndringService = veilederEndringService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
                     tiltakskoordinatorService = tiltakskoordinatorService,

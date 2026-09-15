@@ -33,10 +33,12 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
+import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -53,6 +55,93 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     fun setup() {
         navEnhetRepository.upsert(navEnhetInTest)
         navAnsattRepository.upsert(navAnsattInTest)
+    }
+
+    @Test
+    fun `get - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
+        val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
+        val underordnetArrangor = lagArrangor(
+            navn = "Underenhet Oslo",
+            overordnetArrangorId = overordnetArrangor.id,
+        )
+        arrangorRepository.upsert(overordnetArrangor)
+        arrangorRepository.upsert(underordnetArrangor)
+
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = underordnetArrangor,
+                gjennomforingstype = GjennomforingType.Gruppe,
+            ),
+        )
+        TestRepository.insert(deltaker)
+
+        val result = deltakerService.getOrThrow(deltaker.id)
+
+        val deltakerArrangor = result.shouldNotBeNull().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe underordnetArrangor.id
+        deltakerArrangor.navn shouldBe "Overordnet Arrangør"
+        deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
+    }
+
+    @Test
+    fun `getFlereForPerson - gruppe med overordnet arrangor - returnerer deltakere med overordnet navn men samme arrangoridentitet`() {
+        val personident = "12345678910"
+        val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
+        val underordnetArrangor = lagArrangor(
+            navn = "Underenhet Oslo",
+            overordnetArrangorId = overordnetArrangor.id,
+        )
+        arrangorRepository.upsert(overordnetArrangor)
+        arrangorRepository.upsert(underordnetArrangor)
+
+        val deltaker = lagDeltaker(
+            navBruker = TestData.lagNavBruker(personident = personident),
+            deltakerliste = lagDeltakerliste(
+                arrangor = underordnetArrangor,
+                gjennomforingstype = GjennomforingType.Gruppe,
+            ),
+        )
+        TestRepository.insert(deltaker)
+
+        val result = deltakerService.getFlereForPerson(personident)
+
+        result.size shouldBe 1
+        val deltakerArrangor = result.first().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe underordnetArrangor.id
+        deltakerArrangor.navn shouldBe "Overordnet Arrangør"
+        deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
+    }
+
+    @Test
+    fun `getFlereForPerson - enkeltplass - beholder arrangoridentitet men oppdaterer visningsnavn`() {
+        val personident = "10987654321"
+        val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
+        val arrangor = lagArrangor(
+            navn = "Underenhet Oslo",
+            overordnetArrangorId = overordnetArrangor.id,
+        )
+        arrangorRepository.upsert(overordnetArrangor)
+        arrangorRepository.upsert(arrangor)
+
+        val deltaker = lagDeltaker(
+            navBruker = TestData.lagNavBruker(personident = personident),
+            deltakerliste = lagDeltakerliste(
+                arrangor = arrangor,
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+            ),
+        )
+        TestRepository.insert(deltaker)
+
+        val result = deltakerService.getFlereForPerson(personident)
+
+        result.size shouldBe 1
+        val deltakerArrangor = result.first().deltakerliste.arrangor
+        deltakerArrangor.shouldNotBeNull()
+        deltakerArrangor.id shouldBe arrangor.id
+        deltakerArrangor.navn shouldBe "Underenhet Oslo"
+        deltakerArrangor.organisasjonsnummer shouldBe arrangor.organisasjonsnummer
     }
 
     @Nested

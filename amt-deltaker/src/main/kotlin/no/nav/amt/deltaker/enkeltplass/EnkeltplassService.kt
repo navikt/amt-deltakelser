@@ -102,7 +102,7 @@ class EnkeltplassService(
             )
         }
 
-        return deltakerRepository.get(kladdDbo.id).getOrThrow()
+        return deltakerService.getOrThrow(kladdDbo.id)
     }
 
     suspend fun oppdaterKladd(
@@ -110,7 +110,7 @@ class EnkeltplassService(
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
     ) {
         // Deltakeren hentes for å få tak i ledeteksten fra tiltakstypen
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerService.getOrThrow(deltakerId)
 
         require(deltaker.status.type == DeltakerStatus.Type.KLADD) {
             "Kladd oppdatering kan kun brukes på deltaker med status ${DeltakerStatus.Type.KLADD}. Deltaker med id $deltakerId har status ${deltaker.status.type}"
@@ -127,8 +127,7 @@ class EnkeltplassService(
         deltakerId: UUID,
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ): Deltaker {
-        // Deltakeren hentes for å få tak i ledeteksten fra tiltakstypen
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerService.getOrThrow(deltakerId)
 
         require(deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
             "Oppdatering av utkast kan kun benyttes for deltaker med status ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}. " +
@@ -237,7 +236,7 @@ class EnkeltplassService(
                 kategoriseringForTiltak = kategoriseringResponse,
             )
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            val oppdatertDeltaker = deltakerService.getOrThrow(deltaker.id)
             afterUpdate?.invoke(oppdatertDeltaker) ?: oppdatertDeltaker
         }
     }
@@ -294,7 +293,7 @@ class EnkeltplassService(
                 ),
             )
 
-            val oppdatertDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+            val oppdatertDeltaker = deltakerService.getOrThrow(deltakerId)
             val deltakerMedVedtak = lagreVedtakIkkeFattet(
                 deltaker = oppdatertDeltaker,
                 endretAv = navAnsatt,

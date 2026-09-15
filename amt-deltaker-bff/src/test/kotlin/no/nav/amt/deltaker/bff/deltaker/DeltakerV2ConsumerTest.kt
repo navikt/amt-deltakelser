@@ -23,7 +23,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
@@ -31,6 +30,7 @@ import no.nav.amt.lib.models.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
+import no.nav.amt.lib.models.kafka.Tiltak
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker

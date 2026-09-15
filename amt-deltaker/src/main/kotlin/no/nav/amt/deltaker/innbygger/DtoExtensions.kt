@@ -22,7 +22,6 @@ fun Deltaker.toUtkastDto() = UtkastDto(
 )
 
 fun Deltaker.toHendelseDeltaker(
-    overordnetArrangor: Arrangor?,
     forsteVedtakFattet: LocalDate?,
     opplaringKategoriseringValg: OpplaringKategoriseringValg?,
     prisinformasjon: PrisinformasjonDto?,
@@ -37,7 +36,7 @@ fun Deltaker.toHendelseDeltaker(
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
-        arrangor = deltakerliste.arrangor!!.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
+        arrangor = deltakerliste.arrangor!!.toHendelseArrangor(),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
         oppstartstype = deltakerliste.oppstart,
@@ -62,10 +61,11 @@ private fun List<Innhold>.toInnholdDtoList() = this.map {
     )
 }
 
-private fun Arrangor.toHendelseArrangor(overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null) =
-    HendelseDeltaker.Deltakerliste.Arrangor(
-        id,
-        organisasjonsnummer,
-        navn,
-        overordnetArrangor,
-    )
+private fun Arrangor.toHendelseArrangor() = HendelseDeltaker.Deltakerliste.Arrangor(
+    id,
+    organisasjonsnummer,
+    navn,
+    // TODO: Overordnet arrangør skal fjernes her fordi amt-deltaker sørger for å sende den som skal brukes
+    // Dette kan fjernes etter at meldinger er spist
+    null,
+)

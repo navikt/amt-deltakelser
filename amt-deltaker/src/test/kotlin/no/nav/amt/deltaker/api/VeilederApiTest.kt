@@ -114,6 +114,17 @@ class VeilederApiTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `get deltaker - deltaker finnes ikke - returnerer 404`() {
+        val deltakerId = UUID.randomUUID()
+        every { deltakerService.getOrThrow(deltakerId) } throws NoSuchElementException("Fant ikke deltaker med id $deltakerId")
+
+        withTestApplicationContext { client ->
+            val response = client.get("/deltaker/$deltakerId") { noBodyRequest() }
+            response.status shouldBe HttpStatusCode.NotFound
+        }
+    }
+
+    @Test
     fun `avvis forslag - har tilgang - returnerer 200`() {
         val forslagId = UUID.randomUUID()
         val avvisForslagRequest = AvvisForslagRequest(
@@ -125,6 +136,7 @@ class VeilederApiTest : IntegrationTestBase() {
 
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
         coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
         every { forslagRepository.get(forslagId) } returns Result.success(lagForslag(id = forslagId, deltakerId = deltaker.id))
 
@@ -415,6 +427,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
@@ -452,6 +465,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
@@ -485,6 +499,7 @@ class VeilederApiTest : IntegrationTestBase() {
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
             every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter

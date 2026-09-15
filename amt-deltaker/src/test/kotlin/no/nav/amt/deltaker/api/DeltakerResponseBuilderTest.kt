@@ -133,14 +133,12 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-
         // Act
         val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, false)
 
         // Assert
         val expectedArrangor = ArrangorResponse(
-            navn = "~arrangor-navn~",
+            navn = deltakerliste.arrangor!!.navn,
             deltakerliste.arrangor.shouldNotBeNull().organisasjonsnummer,
         )
 
@@ -178,7 +176,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             opplaringKategorisering = opplaringKategoriseringValg,
         )
 
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         mockkObject(PrisinfoRepoAdapter)
         try {
             every {
@@ -205,8 +202,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             gjennomforingstype = GjennomforingType.Gruppe,
         )
 
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
-
         // Act
         val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
 
@@ -220,8 +215,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val deltakerliste = lagDeltakerliste(
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
-
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
 
         // Act
         val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = false)
@@ -263,7 +256,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             ),
         )
 
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         mockkObject(PrisinfoRepoAdapter)
         try {
             every {
@@ -373,7 +365,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
         every { deltakerRepository.getSoktInnDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
@@ -439,7 +430,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         ) {
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
             every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
-            every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
             every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
             every { deltakerRepository.getSoktInnDato(any()) } returns null
             every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
@@ -1031,7 +1021,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             ),
         )
 
-        every { arrangorService.getArrangorNavn(any(), any()) } returns "~arrangor-navn~"
         mockkObject(PrisinfoRepoAdapter)
         try {
             every {

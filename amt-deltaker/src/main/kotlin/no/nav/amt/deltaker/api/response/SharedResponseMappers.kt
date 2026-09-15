@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.api.response
 
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -58,7 +57,6 @@ internal object SharedResponseMappers {
 
     fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
-        arrangorService: ArrangorService,
         opplaringKategoriseringValg: OpplaringKategoriseringValg?,
         prisinformasjon: GjennomforingPrisinformasjon.PrisinformasjonData?,
     ) = GjennomforingResponse(
@@ -74,11 +72,7 @@ internal object SharedResponseMappers {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let { arrangor ->
             ArrangorResponse(
-                // TODO: fjerne avhengighet til service?
-                navn = arrangorService.getArrangorNavn(
-                    arrangor = arrangor,
-                    gjennomforingstype = deltakerliste.gjennomforingstype,
-                ),
+                navn = deltakerliste.arrangor.navn,
                 organisasjonsnummer = arrangor.organisasjonsnummer,
             )
         },

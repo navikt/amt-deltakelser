@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.tiltaksarrangor
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -17,55 +18,78 @@ class ArrangorServiceTest {
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
     @Test
-    fun `getArrangorNavn - overordnet arrangør - returnerer eget navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - gruppe uten overordnet arrangor - returnerer eget navn`() {
         val arrangor = lagreArrangor(navn = "Test Arrangør")
-
-        arrangorService.getArrangorNavn(
+        val gjennomforing = lagDeltakerliste(
             arrangor = arrangor,
             gjennomforingstype = GjennomforingType.Gruppe,
-        ) shouldBe "Test Arrangør"
+        )
+
+        val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
+        funksjonellArrangor.id shouldBe arrangor.id
+        funksjonellArrangor.navn shouldBe "Test Arrangør"
     }
 
     @Test
-    fun `getArrangorNavn - underordnet arrangør - returnerer overordnet arrangør navn`() {
-        val overordnetArrangor = lagreArrangor(navn = "Test Arrangør")
+    fun `getFunksjonellArrangorForGjennomforing - gruppe med overordnet arrangor - returnerer overordnet navn`() {
+        val overordnetArrangor = lagreArrangor(navn = "TEST ARRANGØR")
         val underordnetArrangor = lagreArrangor(navn = "Underordnet arrangør", overordnetArrangorId = overordnetArrangor.id)
-
-        arrangorService.getArrangorNavn(
+        val gjennomforing = lagDeltakerliste(
             arrangor = underordnetArrangor,
             gjennomforingstype = GjennomforingType.Gruppe,
-        ) shouldBe "Test Arrangør"
+        )
+
+        val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
+        funksjonellArrangor.id shouldBe overordnetArrangor.id
+        funksjonellArrangor.navn shouldBe "Test Arrangør"
     }
 
     @Test
-    fun `getArrangorNavn - CAPS - formaterer navn`() {
-        val arrangor = lagreArrangor(navn = "TEST ARRANGØR")
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer ukjent navn`() {
+        val gjennomforing = lagDeltakerliste(
+            arrangor = null,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
 
-        arrangorService.getArrangorNavn(
-            arrangor = arrangor,
+        val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
+        funksjonellArrangor.navn shouldBe "Ukjent Arrangør"
+    }
+
+    @Test
+    fun `getFunksjonellArrangorForGjennomforing - gruppe med CAPS overordnet arrangor - formaterer navn`() {
+        val overordnetArrangor = lagreArrangor(navn = "TEST ARRANGØR")
+        val underordnetArrangor = lagreArrangor(navn = "UNDERORDNET ARRANGØR", overordnetArrangorId = overordnetArrangor.id)
+        val gjennomforing = lagDeltakerliste(
+            arrangor = underordnetArrangor,
             gjennomforingstype = GjennomforingType.Gruppe,
-        ) shouldBe "Test Arrangør"
+        )
+
+        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing).navn shouldBe "Test Arrangør"
     }
 
     @Test
-    fun `getArrangorNavn - Enkeltplass med overordnet arrangør - returnerer underenhetens navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass med overordnet arrangor - returnerer underenhetens navn`() {
         val overordnetArrangor = lagreArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagreArrangor(navn = "Underenhet Oslo", overordnetArrangorId = overordnetArrangor.id)
-
-        arrangorService.getArrangorNavn(
+        val gjennomforing = lagDeltakerliste(
             arrangor = underordnetArrangor,
             gjennomforingstype = GjennomforingType.Enkeltplass,
-        ) shouldBe "Underenhet Oslo"
+        )
+
+        val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
+        funksjonellArrangor.id shouldBe underordnetArrangor.id
+        funksjonellArrangor.navn shouldBe "Underenhet Oslo"
     }
 
     @Test
-    fun `getArrangorNavn - Enkeltplass med CAPS-navn - formaterer underenhetens navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass med CAPS-navn - formaterer underenhetens navn`() {
         val arrangor = lagreArrangor(navn = "UNDERENHET OSLO AS")
-
-        arrangorService.getArrangorNavn(
+        val gjennomforing = lagDeltakerliste(
             arrangor = arrangor,
             gjennomforingstype = GjennomforingType.Enkeltplass,
-        ) shouldBe "Underenhet Oslo AS"
+        )
+
+        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing).navn shouldBe "Underenhet Oslo AS"
     }
 
     private fun lagreArrangor(

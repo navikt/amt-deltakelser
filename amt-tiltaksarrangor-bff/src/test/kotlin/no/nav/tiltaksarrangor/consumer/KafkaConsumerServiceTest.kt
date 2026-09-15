@@ -16,7 +16,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
@@ -24,6 +23,7 @@ import no.nav.amt.lib.models.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
+import no.nav.amt.lib.models.kafka.Tiltak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator

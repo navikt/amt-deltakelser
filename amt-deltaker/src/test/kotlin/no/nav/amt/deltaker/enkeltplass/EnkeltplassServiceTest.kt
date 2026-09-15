@@ -98,6 +98,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
     private fun stubDeltaker(deltaker: Deltaker) {
         every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
     }
 
     private fun setupDatabaseMocks() {
@@ -371,9 +372,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                     type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
                 ),
             )
-            every {
-                deltakerRepository.get(kladdDeltakerInTest.id)
-            } returns Result.success(deltaker)
+            stubDeltaker(deltaker)
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
