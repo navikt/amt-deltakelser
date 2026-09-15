@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
-import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -153,37 +152,49 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
     }
 
-    @Test
-    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet og stengt - returnerer utdatert tilgang`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            medStengtDeltakerliste()
-            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger() shouldHaveSize 1
+    @Nested
+    inner class HentAktiveForDeltakerlisteTests {
+        @Test
+        fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
+            with(TiltakskoordinatorTilgangContext()) {
+                medAktivTilgang()
+                tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 1
+            }
+        }
+
+        @Test
+        fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger pa deltakerliste`() {
+            with(TiltakskoordinatorTilgangContext()) {
+                medInaktivTilgang()
+                tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 0
+            }
         }
     }
 
-    @Test
-    fun `hentUtdaterteTilganger - deltakerlisten er avsluttet men ikke stengt - returnerer ikke utdatert tilgang`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            medAvsluttetDeltakerliste()
-            tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger() shouldHaveSize 0
-        }
-    }
+    @Nested
+    inner class HentUtdaterteTilgangerTests {
+        @Test
+        fun `hentUtdaterteTilganger - akkurat ved graceperiode grensen - returnerer ikke utdatert tilgang`() {
+            with(TiltakskoordinatorTilgangContext()) {
+                medAktivTilgang()
+                medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
 
-    @Test
-    fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medAktivTilgang()
-            tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 1
+                tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(
+                    today = LocalDate.of(2026, 8, 28),
+                ) shouldHaveSize 0
+            }
         }
-    }
 
-    @Test
-    fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger pa deltakerliste`() {
-        with(TiltakskoordinatorTilgangContext()) {
-            medInaktivTilgang()
-            tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 0
+        @Test
+        fun `hentUtdaterteTilganger - forbi graceperiode grensen - returnerer utdatert tilgang`() {
+            with(TiltakskoordinatorTilgangContext()) {
+                medAktivTilgang()
+                medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+
+                tiltakskoordinatorTilgangRepository.hentUtdaterteTilganger(
+                    today = LocalDate.of(2026, 8, 29),
+                ) shouldHaveSize 1
+            }
         }
     }
 }
@@ -246,18 +257,10 @@ data class TiltakskoordinatorTilgangContext(
         deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG))
     }
 
-    fun medStengtDeltakerliste() {
+    fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now()) {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
-        )
-        deltakerlisteRepository.upsert(deltakerliste)
-    }
-
-    fun medAvsluttetDeltakerliste() {
-        deltakerliste = deltakerliste.copy(
-            status = GjennomforingStatusType.AVSLUTTET,
-            sluttDato = LocalDate.now(),
+            sluttDato = sluttDato,
         )
         deltakerlisteRepository.upsert(deltakerliste)
     }
