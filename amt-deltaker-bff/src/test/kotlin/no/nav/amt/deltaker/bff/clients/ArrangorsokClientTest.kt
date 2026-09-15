@@ -41,7 +41,6 @@ class ArrangorsokClientTest {
                 expectedResponse = listOf(
                     EnhetResponse(
                         organisasjonsnummer = "987654321",
-                        organisasjonsform = "AS",
                         navn = "Firma AS",
                         overordnetEnhet = "987654321",
                     ),
