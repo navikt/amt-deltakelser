@@ -87,6 +87,7 @@ import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
+// Triviell endring for å trigge amt-deltaker sine tester i CI (varians-måling av testcontainer-oppstart)
 abstract class IntegrationTestBase {
     protected open val arrangorClient: AmtArrangorClient = mockk()
     protected open val personServiceClient: AmtPersonServiceClient = mockk()
