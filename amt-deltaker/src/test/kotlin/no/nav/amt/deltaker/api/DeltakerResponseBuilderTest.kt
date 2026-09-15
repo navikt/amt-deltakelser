@@ -158,6 +158,20 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `buildGjennomforingResponse - arrangernavn med caps formateres i respons`() {
+        // Arrange
+        val deltakerliste = lagDeltakerliste(
+            arrangor = TestData.lagArrangor(navn = "TEST ARRANGØR"),
+        )
+
+        // Act
+        val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, false)
+
+        // Assert
+        gjennomforingResponse.arrangor.shouldNotBeNull().navn shouldBe "Test Arrangør"
+    }
+
+    @Test
     fun `buildGjennomforingResponse - enkeltplass med includeKodeverk - henter kodeverk og sertifiseringer`() {
         // Arrange
         val opplaringKategoriseringValg = OpplaringKategoriseringValg(

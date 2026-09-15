@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.tiltaksarrangor.endring
 
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
@@ -11,7 +10,6 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import org.slf4j.LoggerFactory
 
 class EndringFraArrangorService(
-    private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val distribuerEndringService: DistribuerEndringService,
@@ -20,7 +18,7 @@ class EndringFraArrangorService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun upsertEndretDeltaker(endringFraArrangor: EndringFraArrangor): Deltaker {
-        val eksisterendeDeltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
+        val eksisterendeDeltaker = deltakerService.getOrThrow(endringFraArrangor.deltakerId)
         DeltakerService.validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endretDeltaker = when (endringFraArrangor.endring) {
