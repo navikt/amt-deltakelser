@@ -266,7 +266,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             endring.prisinfo shouldBe prisinfoTilGodkjenning
             endring.prisinformasjonId shouldBe prisinformasjonId
 
-            outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
+            outboxService.assertProducedHendelse<HendelseType.EnkeltplassTilbakekallPrisendring>(deltaker.id)
             outboxService.assertProduced<GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon>(
                 expectedKey = deltaker.deltakerliste.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
