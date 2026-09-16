@@ -3,9 +3,7 @@ package no.nav.tiltaksarrangor.service
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkResponse
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.utils.toTitleCase
 import no.nav.tiltaksarrangor.api.request.RegistrerVurderingRequest
 import no.nav.tiltaksarrangor.api.response.UlestEndringResponse
@@ -122,20 +120,14 @@ class TiltaksarrangorService(
         val overordnetArrangor = deltakerlisteMedArrangor.arrangorDbo.overordnetArrangorId?.let { arrangorRepository.getArrangor(it) }
 
         val arrangorNavn = overordnetArrangor?.navn ?: deltakerlisteMedArrangor.arrangorDbo.navn
-        return historikk
-            .filterNot {
-                deltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING &&
-                    it is DeltakerHistorikk.Vedtak
-            }.let {
-                DeltakerHistorikkResponse.fromModels(
-                    models = it,
-                    ansatte = ansatte,
-                    arrangornavn = arrangorNavn.toTitleCase(),
-                    enheter = enheter,
-                    oppstartstype = deltaker.deltakerliste.oppstartstype,
-                    pameldingstype = null,
-                )
-            }
+        return DeltakerHistorikkResponse.fromModels(
+            models = historikk,
+            ansatte = ansatte,
+            arrangornavn = arrangorNavn.toTitleCase(),
+            enheter = enheter,
+            oppstartstype = deltaker.deltakerliste.oppstartstype,
+            pameldingstype = deltaker.deltakerliste.pameldingstype,
+        )
     }
 
     fun registrerVurdering(

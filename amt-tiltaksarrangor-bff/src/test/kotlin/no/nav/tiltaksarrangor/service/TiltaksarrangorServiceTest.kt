@@ -5,10 +5,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
+import no.nav.amt.internapi.deltaker.response.VedtakResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.tiltaksarrangor.IntegrationTestBase
@@ -49,6 +53,7 @@ import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
 import no.nav.tiltaksarrangor.testutils.getNavEnhet
+import no.nav.tiltaksarrangor.testutils.getVedtak
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -1111,5 +1116,67 @@ class TiltaksarrangorServiceTest(
         adresse?.poststed shouldBe "OSLO"
         adresse?.tilleggsnavn shouldBe "Gården"
         adresse?.adressenavn shouldBe "C/O Gutterommet"
+    }
+
+    @Nested
+    inner class GetDeltakerHistorikk {
+        private val personIdent = "12345678910"
+
+        private fun setupDeltakerMedVedtak(pameldingstype: GjennomforingPameldingType): Pair<UUID, Vedtak> {
+            val arrangorId = UUID.randomUUID()
+            arrangorRepository.insertOrUpdateArrangor(getArrangor(arrangorId))
+            val deltakerliste = getDeltakerliste(arrangorId).copy(pameldingstype = pameldingstype)
+            deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+
+            val deltakerId = UUID.randomUUID()
+            val navAnsattId = UUID.randomUUID()
+            val navEnhetId = UUID.randomUUID()
+            val vedtak = getVedtak(deltakerId, navAnsattId, navEnhetId)
+
+            deltakerRepository.insertOrUpdateDeltaker(
+                getDeltaker(deltakerId, deltakerliste.id).copy(
+                    historikk = listOf(DeltakerHistorikk.Vedtak(vedtak)),
+                ),
+            )
+
+            tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+                AnsattDbo(
+                    id = UUID.randomUUID(),
+                    personIdent = personIdent,
+                    fornavn = "Fornavn",
+                    mellomnavn = null,
+                    etternavn = "Etternavn",
+                    roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
+                    deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerliste.id)),
+                    veilederDeltakere = emptyList(),
+                ),
+            )
+
+            every { navAnsattService.hentAnsatteForHistorikk(any()) } returns mapOf(navAnsattId to getNavAnsatt(navAnsattId))
+            every { navEnhetService.hentEnheterForHistorikk(any()) } returns mapOf(navEnhetId to getNavEnhet(navEnhetId))
+
+            return deltakerId to vedtak
+        }
+
+        @Test
+        fun `getDeltakerHistorikk - deltakerliste har direkte vedtak - returnerer vedtak i historikken`() {
+            val (deltakerId, vedtak) = setupDeltakerMedVedtak(GjennomforingPameldingType.DIREKTE_VEDTAK)
+
+            val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
+
+            historikk.size shouldBe 1
+            val vedtakResponse = historikk.first() as VedtakResponse
+            vedtakResponse.fattet shouldBe vedtak.fattet
+            vedtakResponse.fattetAvNav shouldBe true
+        }
+
+        @Test
+        fun `getDeltakerHistorikk - deltakerliste trenger godkjenning - filtrerer bort vedtak`() {
+            val (deltakerId, _) = setupDeltakerMedVedtak(GjennomforingPameldingType.TRENGER_GODKJENNING)
+
+            val historikk = tiltaksarrangorService.getDeltakerHistorikk(personIdent, deltakerId)
+
+            historikk shouldBe emptyList()
+        }
     }
 }

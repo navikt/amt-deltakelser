@@ -5,7 +5,9 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -289,3 +291,42 @@ fun getNavEnhet(id: UUID = UUID.randomUUID()) = NavEnhet(
     enhetsnummer = (100000..999999).random().toString(),
     navn = "NAV Grünerløkka",
 )
+
+fun getVedtak(
+    deltakerId: UUID,
+    navAnsattId: UUID = UUID.randomUUID(),
+    navEnhetId: UUID = UUID.randomUUID(),
+): Vedtak {
+    val opprettet = LocalDateTime.now().minusMonths(1)
+    return Vedtak(
+        id = UUID.randomUUID(),
+        deltakerId = deltakerId,
+        fattet = opprettet,
+        gyldigTil = null,
+        deltakerVedVedtak = DeltakerVedVedtak(
+            id = deltakerId,
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = null,
+            dagerPerUke = null,
+            deltakelsesprosent = null,
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = null,
+            status = DeltakerStatus(
+                id = UUID.randomUUID(),
+                type = DeltakerStatus.Type.DELTAR,
+                aarsak = null,
+                gyldigFra = opprettet,
+                gyldigTil = null,
+                opprettet = opprettet,
+            ),
+        ),
+        fattetAvNav = true,
+        opprettet = opprettet,
+        opprettetAv = navAnsattId,
+        opprettetAvEnhet = navEnhetId,
+        sistEndret = opprettet,
+        sistEndretAv = navAnsattId,
+        sistEndretAvEnhet = navEnhetId,
+    )
+}
+
