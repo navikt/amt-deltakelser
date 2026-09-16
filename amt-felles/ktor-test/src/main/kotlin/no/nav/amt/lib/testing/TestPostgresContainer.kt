@@ -22,19 +22,19 @@ object TestPostgresContainer {
         val sql =
             """
             DO $$
-            DECLARE r RECORD;
+            DECLARE table_names TEXT;
             
             BEGIN
-                FOR r IN (
-                    SELECT tablename
-                    FROM pg_tables
-                    WHERE 
-                        schemaname = 'public'
-                        AND tablename NOT IN ('flyway_schema_history')
-                ) 
-                LOOP
-                    EXECUTE format('TRUNCATE TABLE %I CASCADE', r.tablename);
-                END LOOP;
+                SELECT string_agg(format('%I.%I', schemaname, tablename), ', ')
+                INTO table_names
+                FROM pg_tables
+                WHERE
+                    schemaname = 'public'
+                    AND tablename NOT IN ('flyway_schema_history');
+
+                IF table_names IS NOT NULL THEN
+                    EXECUTE format('TRUNCATE TABLE %s CASCADE', table_names);
+                END IF;
             END $$;                
             """.trimIndent()
 
