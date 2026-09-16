@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.bff.enkeltplass
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 
+// Norske orgnr starter med '8' eller '9'. Utenlandske og test-orgnr følger ikke dette mønsteret.
+// Krever derfor kun at orgnr inneholder 9 siffer.
 val ORGNUMMER_REGEX = Regex("^\\d{9}$")
 
 fun EnkeltplassPameldingRequest.validate(): ValidationResult = when {
