@@ -31,21 +31,32 @@ class EnkeltplassPameldingRequestTest {
     }
 
     @Test
-    fun `validate - skal returnere feil hvis ugyldig arrangorOrgnummer`() {
+    fun `validate - skal returnere feil hvis arrangorOrgnummer inneholder bokstaver`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "abc",
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
-        assertInvalidResult(request.validate(), "Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
+        assertInvalidResult(request.validate(), "Organisasjonsnummeret må inneholde 9 siffer")
+    }
+
+    @Test
+    fun `validate - skal returnere feil hvis arrangorOrgnummer har feil antall siffer`() {
+        val request = EnkeltplassPameldingRequest(
+            beskrivelse = "~beskrivelse~",
+            arrangorUnderenhet = "12345678",
+            prisinformasjon = Anskaffelse(pris = 1000000),
+        )
+
+        assertInvalidResult(request.validate(), "Organisasjonsnummeret må inneholde 9 siffer")
     }
 
     @Test
     fun `validate - skal returnere gyldig resultat hvis alle påkrevde felt er fylt ut`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
-            arrangorUnderenhet = "987654321",
+            arrangorUnderenhet = "123456789",
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
