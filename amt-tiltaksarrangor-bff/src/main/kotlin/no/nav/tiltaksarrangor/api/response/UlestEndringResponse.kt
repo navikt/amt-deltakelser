@@ -39,7 +39,12 @@ data class UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
                     oppdatering = OppdateringResponse.AvvistForslagResponse(
-                        forslag = ForslagResponse(it.oppdatering.forslag, arrangornavn, ansatte, enheter),
+                        forslag = ForslagResponse(
+                            model = it.oppdatering.forslag,
+                            arrangornavn = arrangornavn,
+                            ansatte = ansatte,
+                            enheter = enheter,
+                        ),
                     ),
                 )
 
@@ -101,11 +106,14 @@ data class UlestEndringResponse(
                     id = it.id,
                     deltakerId = it.deltakerId,
                     oppdatering = OppdateringResponse.AvslagResponse(
-                        it.oppdatering.endretAv,
-                        it.oppdatering.endretAvEnhet,
-                        DeltakerStatusResponse.Aarsak(type = it.oppdatering.aarsak.type, beskrivelse = it.oppdatering.aarsak.beskrivelse),
-                        it.oppdatering.begrunnelse,
-                        it.oppdatert,
+                        endretAv = it.oppdatering.endretAv,
+                        endretAvEnhet = it.oppdatering.endretAvEnhet,
+                        aarsak = DeltakerStatusResponse.Aarsak(
+                            type = it.oppdatering.aarsak.type,
+                            beskrivelse = it.oppdatering.aarsak.beskrivelse,
+                        ),
+                        begrunnelse = it.oppdatering.begrunnelse,
+                        endret = it.oppdatert,
                     ),
                 )
             }

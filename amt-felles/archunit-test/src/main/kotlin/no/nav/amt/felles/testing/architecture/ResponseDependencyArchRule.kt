@@ -16,6 +16,16 @@ import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
 
+/**
+ * Sjekker at felter i response-klasser bare bruker tillatte typer.
+ *
+ * - [importedPackages] avgjør hvilke klasser som lastes, og dermed hvilke som i det hele tatt kan bryte regelen.
+ * - [responsePackagePatterns] velger ut hvilke av de lastede klassene som regnes som response-klasser,
+ *   og hvilke typer som er lovlige som felttyper.
+ *
+ * En delt response-pakke som står i [responsePackagePatterns] uten å stå i [importedPackages] blir altså
+ * godtatt som felttype uten at innholdet kontrolleres. Dette er med hensikt, for å unngå rekursiv testing av felles-biblioteker.
+ */
 fun assertResponseFieldsUseAllowedTypes(
     importedPackages: List<String>,
     responsePackagePatterns: Array<String>,
