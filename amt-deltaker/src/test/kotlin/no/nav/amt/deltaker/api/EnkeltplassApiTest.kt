@@ -21,6 +21,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
+import no.nav.amt.deltaker.enkeltplass.EnkeltplassPameldingMedDatoer
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
@@ -279,7 +280,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coEvery {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = deltakerInTest.id,
-                    decoratedRequest = decoratedRequest,
+                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
                 )
             } just Runs
 
@@ -297,7 +298,38 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coVerify {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = deltakerInTest.id,
-                    decoratedRequest = decoratedRequest,
+                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                )
+            }
+        }
+
+        @Test
+        fun `manglende datoer gir BadRequest`() = runTest {
+            // Arrange
+            val deltakerInTest = lagDeltaker()
+            val request = EnkeltplassPameldingDecoratedRequest(
+                wrappedRequest = EnkeltplassPameldingRequest(
+                    beskrivelse = "Testbeskrivelse",
+                    arrangorUnderenhet = "987654322",
+                    prisinformasjon = Anskaffelse(pris = 42),
+                ),
+                endretAvEnhet = "1234",
+                endretAv = "123456789",
+            )
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post("/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte") {
+                    postRequest(request)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.BadRequest
+            coVerify(exactly = 0) {
+                enkeltplassService.meldPaaDirekte(
+                    deltakerId = any(),
+                    pamelding = any(),
                 )
             }
         }

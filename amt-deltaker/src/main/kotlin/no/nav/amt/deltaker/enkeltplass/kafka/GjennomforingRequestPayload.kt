@@ -8,6 +8,7 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import java.time.LocalDate
 import java.util.UUID
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -54,6 +55,8 @@ sealed interface GjennomforingRequestPayload {
         val organisasjonsnummer: String,
         val prisinformasjon: Prisinformasjon,
         val ansvarligEnhet: String, // enhetsnummer
+        val startDato: LocalDate, // deltaker startdato
+        val sluttDato: LocalDate, // deltaker sluttdato
         val opprettetAv: String, // Nav-ident
         val kategorisering: OpplaringKategorisering?,
     ) {

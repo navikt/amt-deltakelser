@@ -8,6 +8,7 @@ import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.readValue
+import java.time.LocalDate
 import java.util.UUID
 
 class GjennomforingRequestPayloadTest {
@@ -173,6 +174,8 @@ class GjennomforingRequestPayloadTest {
                     organisasjonsnummer = "987654321",
                     prisinformasjon = prisinformasjon,
                     ansvarligEnhet = "1234",
+                    startDato = LocalDate.now().minusYears(1),
+                    sluttDato = LocalDate.now(),
                     opprettetAv = "Z123456",
                     kategorisering = null,
                 ),
@@ -190,6 +193,8 @@ class GjennomforingRequestPayloadTest {
                     organisasjonsnummer = "987654321",
                     prisinformasjon = prisinformasjon,
                     ansvarligEnhet = "1234",
+                    startDato = LocalDate.now().minusYears(1),
+                    sluttDato = LocalDate.now(),
                     opprettetAv = "Z123456",
                     kategorisering = null,
                 ),

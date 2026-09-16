@@ -171,20 +171,20 @@ class EnkeltplassService(
     /** Oppdaterer utkastet og setter status til [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] for deling med innbygger. */
     suspend fun delUtkastMedInnbygger(
         deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+        pamelding: EnkeltplassPameldingMedDatoer,
     ): Deltaker = lagreOgPubliser(
         deltakerId = deltakerId,
-        decoratedRequest = decoratedRequest,
+        pamelding = pamelding,
         nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
     )
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+        pamelding: EnkeltplassPameldingMedDatoer,
     ) {
         lagreOgPubliser(
             deltakerId = deltakerId,
-            decoratedRequest = decoratedRequest,
+            pamelding = pamelding,
             nyStatus = DeltakerStatus.Type.SOKT_INN,
         )
     }
@@ -209,6 +209,13 @@ class EnkeltplassService(
         val kategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(
             deltaker.deltakerliste.tiltakstype.tiltakskode,
         )
+        // Datoene er valgfrie ved utkastoppdatering og skal ikke nullstille allerede lagrede datoer.
+        val startdato = oppdaterKladdRequest.startdato ?: deltaker.startdato
+        val sluttdato = oppdaterKladdRequest.sluttdato ?: deltaker.sluttdato
+
+        if (startdato != null && sluttdato != null) {
+            require(!sluttdato.isBefore(startdato)) { "Sluttdato kan ikke være før startdato" }
+        }
 
         return Database.transaction {
             deltakerlisteRepository.update(
@@ -221,8 +228,8 @@ class EnkeltplassService(
             deltakerRepository.updateEnkeltplass(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
-                    startdato = oppdaterKladdRequest.startdato,
-                    sluttdato = oppdaterKladdRequest.sluttdato,
+                    startdato = startdato,
+                    sluttdato = sluttdato,
                     beskrivelse = oppdaterKladdRequest.beskrivelse,
                     dagerPerUke = oppdaterKladdRequest.dagerPerUke,
                 ),
@@ -249,12 +256,12 @@ class EnkeltplassService(
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
-        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
+        pamelding: EnkeltplassPameldingMedDatoer,
         nyStatus: DeltakerStatus.Type,
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste
-        val request = decoratedRequest.wrappedRequest
+        val request = pamelding.request
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
             "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
@@ -265,8 +272,8 @@ class EnkeltplassService(
         }
 
         val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(pamelding.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(pamelding.endretAv)
         val kategoriseringForTiltak = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
 
         return Database.transaction {
@@ -280,14 +287,14 @@ class EnkeltplassService(
             deltakerService.lagreDeltakerStatus(
                 deltakerId = deltaker.id,
                 nyDeltakerStatus = nyDeltakerStatus(type = nyStatus),
-                erDeltakerSluttdatoEndret = deltaker.sluttdato != request.sluttdato,
+                erDeltakerSluttdatoEndret = deltaker.sluttdato != pamelding.sluttdato,
             )
 
             deltakerRepository.updateEnkeltplass(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
-                    startdato = request.startdato,
-                    sluttdato = request.sluttdato,
+                    startdato = pamelding.startdato,
+                    sluttdato = pamelding.sluttdato,
                     beskrivelse = request.beskrivelse,
                     dagerPerUke = request.dagerPerUke,
                 ),
@@ -313,8 +320,8 @@ class EnkeltplassService(
 
             gjennomforingUpserter.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
-                endretAvNavIdent = decoratedRequest.endretAv,
-                endretAvEnhet = decoratedRequest.endretAvEnhet,
+                endretAvNavIdent = pamelding.endretAv,
+                endretAvEnhet = pamelding.endretAvEnhet,
             )
 
             distribuerEndringService.produceHendelseForUtkast(

@@ -255,6 +255,12 @@ fun Routing.registerInternalApi(
                 )
                 request.gjennomforingIder.forEach { gjennomforingId ->
                     val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId).getOrThrow()
+
+                    if (deltaker.startdato == null || deltaker.sluttdato == null) {
+                        log.warn("deltaker ${deltaker.id} mangler start- eller sluttdato")
+                        return@forEach
+                    }
+
                     val gjennomforing = deltaker.deltakerliste
 
                     val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
@@ -285,6 +291,8 @@ fun Routing.registerInternalApi(
                                 organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer
                                     ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),
                                 ansvarligEnhet = ansvarligEnhet,
+                                startDato = deltaker.startdato,
+                                sluttDato = deltaker.sluttdato,
                                 opprettetAv = opprettetAv,
                                 kategorisering = null, // TODO: Skal denne være null?
                             ),

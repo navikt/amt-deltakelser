@@ -290,7 +290,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert
@@ -335,7 +335,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert
@@ -459,6 +459,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
                 prisinformasjon = Anskaffelse(1234),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now(),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -470,14 +472,14 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert
             assertSoftly(oppdatertDeltaker) {
                 id shouldBe deltakerInTest.id
-                startdato shouldBe null
-                sluttdato shouldBe null
+                startdato shouldBe pameldingRequest.startdato
+                sluttdato shouldBe pameldingRequest.sluttdato
                 sistEndret shouldBeCloseTo LocalDateTime.now()
             }
 
@@ -514,6 +516,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
                 prisinformasjon = Anskaffelse(1234),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now(),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -525,7 +529,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert - verify no event was published to DELTAKER_V2 since gjennomforing is KLADD
@@ -539,15 +543,18 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val arrangorInTest = lagArrangor()
             arrangorRepository.upsert(arrangorInTest)
 
-            val deltakerInTest = enkeltplassService.opprettKladd(
-                tiltakInTest.tiltakskode,
-                navBrukerInTest.personident,
-            )
+            val deltakerInTest = enkeltplassService
+                .opprettKladd(
+                    tiltakInTest.tiltakskode,
+                    navBrukerInTest.personident,
+                )
 
             val pameldingRequest = EnkeltplassPameldingRequest(
                 beskrivelse = "Testbeskrivelse",
                 arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
                 prisinformasjon = Anskaffelse(1234),
+                startdato = LocalDate.now().minusMonths(1),
+                sluttdato = LocalDate.now(),
             )
 
             val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
@@ -559,7 +566,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert - verify deltaker was published since gjennomforing is now not KLADD
@@ -570,41 +577,47 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
     @Nested
     inner class MeldPaaDirekteTests {
+        val arrangorInTest = lagArrangor()
+
+        val pameldingRequest = EnkeltplassPameldingRequest(
+            beskrivelse = "Testbeskrivelse",
+            arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
+            prisinformasjon = Anskaffelse(1234),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now(),
+        )
+
+        val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = pameldingRequest,
+            endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+            endretAv = sistEndretAvNavAnsatt.navIdent,
+        )
+
+        @BeforeEach
+        fun setUp() {
+            arrangorRepository.upsert(arrangorInTest)
+        }
+
         @Test
         fun `skal sette status SOKT_INN, fatte vedtak og publisere OpprettEnkeltplass`() = runTest {
             // Arrange
-            val arrangorInTest = lagArrangor()
-            arrangorRepository.upsert(arrangorInTest)
-
             val deltakerInTest = enkeltplassService.opprettKladd(
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
             )
 
-            val pameldingRequest = EnkeltplassPameldingRequest(
-                beskrivelse = "Testbeskrivelse",
-                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Anskaffelse(1234),
-            )
-
-            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                wrappedRequest = pameldingRequest,
-                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-                endretAv = sistEndretAvNavAnsatt.navIdent,
-            )
-
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
             assertSoftly(oppdatertDeltaker) {
                 id shouldBe deltakerInTest.id
-                startdato shouldBe null
-                sluttdato shouldBe null
+                startdato shouldBe pameldingRequest.startdato
+                sluttdato shouldBe pameldingRequest.sluttdato
                 sistEndret shouldBeCloseTo LocalDateTime.now()
             }
 
@@ -622,44 +635,27 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         @Test
         fun `skal sette status SOKT_INN fra UTKAST_TIL_PAMELDING status`() = runTest {
             // Arrange
-            val arrangorInTest = lagArrangor()
-            arrangorRepository.upsert(arrangorInTest)
-
             val deltakerInTest = enkeltplassService.opprettKladd(
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
             )
 
             // First transition to UTKAST_TIL_PAMELDING
-            val pameldingRequest = EnkeltplassPameldingRequest(
-                beskrivelse = "Testbeskrivelse",
-                arrangorUnderenhet = arrangorInTest.organisasjonsnummer,
-                prisinformasjon = Anskaffelse(1234),
-            )
-
-            val decoratedRequest = EnkeltplassPameldingDecoratedRequest(
-                wrappedRequest = pameldingRequest,
-                endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
-                endretAv = sistEndretAvNavAnsatt.navIdent,
-            )
-
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Now call meldPaaDirekte - should work from UTKAST_TIL_PAMELDING status
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                decoratedRequest = decoratedRequest,
+                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
             )
 
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
-            assertSoftly(oppdatertDeltaker.status) {
-                type shouldBe DeltakerStatus.Type.SOKT_INN
-            }
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         }
     }
 

@@ -343,7 +343,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
-                enkeltplassService.delUtkastMedInnbygger(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
+                enkeltplassService.delUtkastMedInnbygger(
+                    deltakerId = deltaker.id,
+                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                )
             }
         }
 
@@ -356,7 +359,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             shouldThrow<IllegalArgumentException> {
                 enkeltplassService.delUtkastMedInnbygger(
                     deltakerId = soktInnDeltakerInTest.id,
-                    decoratedRequest = decoratedRequest,
+                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
                 )
             }
         }
@@ -406,6 +409,73 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `skal beholde datoer når de ikke er oppgitt`() = runTest {
+            val startdato = LocalDate.of(2026, 1, 1)
+            val sluttdato = LocalDate.of(2026, 1, 2)
+            val deltaker = utkastDeltakerInTest.copy(
+                startdato = startdato,
+                sluttdato = sluttdato,
+            )
+            val request = decoratedRequest.copy(
+                wrappedRequest = pameldingRequestInTest.copy(
+                    startdato = null,
+                    sluttdato = null,
+                ),
+            )
+            val oppdatertVedtak = TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                opprettetAv = navAnsattInTest,
+                opprettetAvEnhet = navEnhetInTest,
+                sistEndretAv = navAnsattInTest,
+                sistEndretAvEnhet = navEnhetInTest,
+            )
+
+            stubDeltaker(deltaker)
+            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
+            every { vedtakService.opprettEllerOppdaterVedtak(any(), any(), any(), any(), any()) } returns oppdatertVedtak
+
+            enkeltplassService.oppdaterUtkast(
+                deltakerId = deltaker.id,
+                decoratedRequest = request,
+            )
+
+            verify {
+                deltakerRepository.updateEnkeltplass(
+                    match {
+                        it.startdato == startdato && it.sluttdato == sluttdato
+                    },
+                )
+            }
+        }
+
+        @Test
+        fun `skal kaste exception når delvis oppdatering gir sluttdato før startdato`() = runTest {
+            val deltaker = utkastDeltakerInTest.copy(
+                startdato = LocalDate.of(2026, 2, 1),
+                sluttdato = LocalDate.of(2026, 2, 2),
+            )
+            val request = decoratedRequest.copy(
+                wrappedRequest = pameldingRequestInTest.copy(
+                    startdato = null,
+                    sluttdato = LocalDate.of(2026, 1, 1),
+                ),
+            )
+
+            stubDeltaker(deltaker)
+            every { arrangorRepository.get(any<String>()) } returns arrangorInTest
+
+            shouldThrow<IllegalArgumentException> {
+                enkeltplassService.oppdaterUtkast(
+                    deltakerId = deltaker.id,
+                    decoratedRequest = request,
+                )
+            }
+
+            verify(exactly = 0) { deltakerRepository.updateEnkeltplass(any()) }
+        }
+
+        @Test
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
@@ -448,6 +518,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.of(2026, 1, 1),
+            sluttdato = LocalDate.of(2026, 1, 2),
             prisinformasjon = Anskaffelse(1234),
         )
 
