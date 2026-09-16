@@ -139,8 +139,6 @@ class EnkeltplassService(
 
         return oppdaterKladdEllerUtkast(
             deltaker = deltaker,
-            // TODO: Vurder å benytte kun OppdaterEnkeltplassKladdRequest
-            // EnkeltplassPameldingRequest og OppdaterEnkeltplassKladdRequest er veldig like
             oppdaterKladdRequest = with(decoratedRequest.wrappedRequest) {
                 OppdaterEnkeltplassKladdRequest(
                     beskrivelse = beskrivelse,
