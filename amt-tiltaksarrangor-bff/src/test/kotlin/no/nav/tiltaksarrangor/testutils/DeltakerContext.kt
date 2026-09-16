@@ -2,7 +2,7 @@ package no.nav.tiltaksarrangor.testutils
 
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository

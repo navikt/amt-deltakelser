@@ -1,9 +1,9 @@
 package no.nav.tiltaksarrangor.service
 
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.model.UlestEndring
 import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
 import org.slf4j.LoggerFactory
@@ -45,8 +45,9 @@ class NavAnsattService(
 
 fun NavAnsattResponse.toModel() = NavAnsatt(
     id = id,
-    navident = navIdent,
+    navIdent = navIdent,
     navn = navn,
     epost = epost,
     telefon = telefon,
+    navEnhetId = null,
 )

@@ -4,6 +4,9 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
+import no.nav.amt.internapi.deltaker.response.ForslagEndringResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponseStatus
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -76,9 +79,9 @@ class ForslagResponseTest {
             )
 
             // Assert
-            response.status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
+            val avvistStatus = response.status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
 
-            assertSoftly(response.status) {
+            assertSoftly(avvistStatus) {
                 avvistAv shouldBe navAnsatt.id.toString()
                 avvistAvEnhet shouldBe navEnhet.id.toString()
             }
@@ -96,13 +99,13 @@ class ForslagResponseTest {
             arrangorNavn shouldBe "Arrangør AS"
             endring shouldBe ForslagEndringResponse.fromModel(forslag.endring)
 
-            status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
+            val avvistStatus = status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
 
-            assertSoftly(status) {
+            assertSoftly(avvistStatus) {
                 avvistAv shouldBe navAnsatt.navn
                 avvistAvEnhet shouldBe navEnhet.navn
-                avvist shouldBe status.avvist
-                begrunnelseFraNav shouldBe status.begrunnelseFraNav
+                avvist shouldBe avvistStatus.avvist
+                begrunnelseFraNav shouldBe avvistStatus.begrunnelseFraNav
             }
         }
     }

@@ -3,14 +3,14 @@ package no.nav.amt.deltaker.bff.innbygger.api
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
 import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.internapi.deltaker.response.toDeltakerStatusResponse
 import org.junit.jupiter.api.Test
 
 class InnbyggerDeltakerResponseTest {

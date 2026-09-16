@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
+import no.nav.amt.lib.models.person.NavEnhet
 import java.util.UUID
 
 data class NavEnhetResponse(

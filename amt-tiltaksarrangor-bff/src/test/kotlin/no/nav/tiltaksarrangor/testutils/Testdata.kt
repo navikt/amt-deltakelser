@@ -5,12 +5,16 @@ import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Bostedsadresse
@@ -23,8 +27,6 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
-import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.consumer.model.NavnDto
 import no.nav.tiltaksarrangor.consumer.model.TilknyttetArrangorDto
 import no.nav.tiltaksarrangor.consumer.model.VeilederDto
@@ -277,10 +279,11 @@ fun getVeileder(
 
 fun getNavAnsatt(id: UUID = UUID.randomUUID()) = NavAnsatt(
     id = id,
-    navident = (100000..999999).random().toString(),
+    navIdent = (100000..999999).random().toString(),
     navn = "Veileder Veiledersen",
     epost = "epost@nav.no",
     telefon = "99999999",
+    navEnhetId = null,
 )
 
 fun getNavEnhet(id: UUID = UUID.randomUUID()) = NavEnhet(
@@ -288,3 +291,42 @@ fun getNavEnhet(id: UUID = UUID.randomUUID()) = NavEnhet(
     enhetsnummer = (100000..999999).random().toString(),
     navn = "NAV Grünerløkka",
 )
+
+fun getVedtak(
+    deltakerId: UUID,
+    navAnsattId: UUID = UUID.randomUUID(),
+    navEnhetId: UUID = UUID.randomUUID(),
+): Vedtak {
+    val opprettet = LocalDateTime.now().minusMonths(1)
+    return Vedtak(
+        id = UUID.randomUUID(),
+        deltakerId = deltakerId,
+        fattet = opprettet,
+        gyldigTil = null,
+        deltakerVedVedtak = DeltakerVedVedtak(
+            id = deltakerId,
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = null,
+            dagerPerUke = null,
+            deltakelsesprosent = null,
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = null,
+            status = DeltakerStatus(
+                id = UUID.randomUUID(),
+                type = DeltakerStatus.Type.DELTAR,
+                aarsak = null,
+                gyldigFra = opprettet,
+                gyldigTil = null,
+                opprettet = opprettet,
+            ),
+        ),
+        fattetAvNav = true,
+        opprettet = opprettet,
+        opprettetAv = navAnsattId,
+        opprettetAvEnhet = navEnhetId,
+        sistEndret = opprettet,
+        sistEndretAv = navAnsattId,
+        sistEndretAvEnhet = navEnhetId,
+    )
+}
+

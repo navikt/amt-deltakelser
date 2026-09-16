@@ -1,16 +1,16 @@
 package no.nav.amt.deltaker.bff.innbygger.api.response
 
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.toDeltakerStatusResponse
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
 
 data class InnbyggerDeltakerResponse(
     val deltakerId: UUID,
@@ -26,7 +26,7 @@ data class InnbyggerDeltakerResponse(
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
     val importertFraArena: ImportertFraArenaResponse?,
-    val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
+    val deltakelsesmengder: DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
     val prisinformasjon: String?,
 ) {
@@ -54,7 +54,7 @@ data class InnbyggerDeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
-                deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
+                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
                 prisinformasjon = prisinformasjon,
             )

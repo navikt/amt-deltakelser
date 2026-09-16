@@ -1,8 +1,8 @@
 package no.nav.tiltaksarrangor.service
 
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.model.UlestEndring
 import no.nav.tiltaksarrangor.repositories.NavEnhetRepository
 import org.slf4j.LoggerFactory

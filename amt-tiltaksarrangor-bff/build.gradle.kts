@@ -62,6 +62,7 @@ dependencies {
 
     implementation(project(":amt-lib:spring-boot"))
     implementation(project(":amt-felles:kafka"))
+    implementation(project(":amt-felles:intern-api-kontrakter"))
     implementation(project(":amt-lib:models"))
     implementation(project(":amt-lib:utils"))
 

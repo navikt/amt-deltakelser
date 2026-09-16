@@ -1,6 +1,7 @@
 package no.nav.tiltaksarrangor.consumer
 
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
+import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import no.nav.tiltaksarrangor.consumer.model.TiltakstypePayload
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
@@ -78,7 +79,7 @@ class KafkaConsumer(
             )
 
             NAV_ANSATT_TOPIC -> kafkaConsumerService.lagreNavAnsatt(
-                objectMapper.readValue(consumerRecord.value()),
+                objectMapper.readValue<NavAnsattDto>(consumerRecord.value()).toModel(),
             )
 
             MELDING_TOPIC -> kafkaConsumerService.handleMelding(

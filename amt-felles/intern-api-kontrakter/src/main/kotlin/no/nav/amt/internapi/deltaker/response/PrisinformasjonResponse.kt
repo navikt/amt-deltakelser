@@ -1,7 +1,7 @@
-package no.nav.amt.deltaker.bff.commonresponse
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse.Tilskudd.TilskuddInfo
+import no.nav.amt.internapi.deltaker.response.PrisinformasjonResponse.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
