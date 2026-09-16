@@ -10,6 +10,30 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 object PrisinfoRepository {
+    fun hentPrisinfo(prisinformasjonId: UUID): PrisinfoDbo? {
+        val sql =
+            """
+            SELECT
+                id,
+                deltakerliste_id,
+                status,
+                prisinformasjon_json_type,
+                anskaffelse_pris,
+                tilleggsopplysninger,
+                ingenkostnader_aarsak
+            FROM enkeltplass_prisinformasjon
+            WHERE id = ?
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(sql, prisinformasjonId)
+                    .map(::rowMapper)
+                    .asSingle,
+            )
+        }
+    }
+
     fun hentPrisinfoStatus(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
@@ -158,9 +182,7 @@ object PrisinfoRepository {
         )
     }
 
-    // TODO: Det er besluttet at Nav-ansatt som har godkjent økonomi skal benyttes i stedet for veileder som har opprettet deltakelsen.
-    // Det må derfor legges til nye kolonner for godkjent_av (og evt. godkjent_av_enhet) i tabellen enkeltplass_prisinformasjon
-    fun hentPrisinfoListeForHistorikk(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
+    fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val sql =
             """
             SELECT 

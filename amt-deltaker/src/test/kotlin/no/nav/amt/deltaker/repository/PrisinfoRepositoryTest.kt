@@ -251,7 +251,7 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltaker, vedtak)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert
             result shouldHaveSize 0
@@ -278,7 +278,7 @@ class PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert
             result shouldHaveSize 0
@@ -309,7 +309,7 @@ class PrisinfoRepositoryTest {
             PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert
             result shouldHaveSize 1
@@ -347,7 +347,7 @@ class PrisinfoRepositoryTest {
             PrisinfoRepository.oppdaterStatus(godkjentPrisinfo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert - bare den godkjente returneres
             result shouldHaveSize 1
@@ -366,7 +366,7 @@ class PrisinfoRepositoryTest {
             PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert
             result shouldHaveSize 0
@@ -415,7 +415,7 @@ class PrisinfoRepositoryTest {
             PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
 
             // Act
-            val result = PrisinfoRepository.hentPrisinfoListeForHistorikk(deltaker1.id)
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
 
             // Assert
             result shouldHaveSize 0
