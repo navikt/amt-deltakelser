@@ -10,6 +10,11 @@ object TestPostgresContainer {
     private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
     private var dbInitialized = false
 
+    // Schema doesn't change during a test run (migrations only run once in bootstrap()),
+    // so the table list is resolved once and reused instead of re-querying pg_tables
+    // and building the dynamic TRUNCATE statement before every single test.
+    private var cachedTableNames: List<String>? = null
+
     fun bootstrap() {
         if (!dbInitialized) {
             if (!container.isRunning) container.start()
@@ -19,26 +24,25 @@ object TestPostgresContainer {
     }
 
     fun truncateAllTables() {
-        val sql =
-            """
-            DO $$
-            DECLARE table_names TEXT;
-            
-            BEGIN
-                SELECT string_agg(format('%I.%I', schemaname, tablename), ', ')
-                INTO table_names
+        val tableNames = cachedTableNames ?: resolveTableNames().also { cachedTableNames = it }
+        if (tableNames.isEmpty()) return
+
+        val sql = "TRUNCATE TABLE ${tableNames.joinToString(", ")} CASCADE"
+        Database.query { session -> session.update(queryOf(sql)) }
+    }
+
+    private fun resolveTableNames(): List<String> = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT format('%I.%I', schemaname, tablename) AS table_name
                 FROM pg_tables
                 WHERE
                     schemaname = 'public'
-                    AND tablename NOT IN ('flyway_schema_history');
-
-                IF table_names IS NOT NULL THEN
-                    EXECUTE format('TRUNCATE TABLE %s CASCADE', table_names);
-                END IF;
-            END $$;                
-            """.trimIndent()
-
-        Database.query { session -> session.update(queryOf(sql)) }
+                    AND tablename NOT IN ('flyway_schema_history')
+                """.trimIndent(),
+            ).map { row -> row.string("table_name") }.asList,
+        )
     }
 
     private val container: PostgreSQLContainer by lazy {
