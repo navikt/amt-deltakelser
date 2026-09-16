@@ -89,6 +89,8 @@ class ForslagResponseTest {
         response: ForslagResponse,
         forslag: Forslag,
     ) {
+        val forventetStatus = forslag.status.shouldBeInstanceOf<Forslag.Status.Avvist>()
+
         assertSoftly(response) {
             id shouldBe forslag.id
             opprettet shouldBe forslag.opprettet
@@ -96,13 +98,13 @@ class ForslagResponseTest {
             arrangorNavn shouldBe "Arrangør AS"
             endring shouldBe ForslagEndringResponse.fromModel(forslag.endring)
 
-            status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
+            val avvistStatus = status.shouldBeInstanceOf<ForslagResponseStatus.Avvist>()
 
-            assertSoftly(status) {
+            assertSoftly(avvistStatus) {
                 avvistAv shouldBe navAnsatt.navn
                 avvistAvEnhet shouldBe navEnhet.navn
-                avvist shouldBe status.avvist
-                begrunnelseFraNav shouldBe status.begrunnelseFraNav
+                avvist shouldBe forventetStatus.avvist
+                begrunnelseFraNav shouldBe forventetStatus.begrunnelseFraNav
             }
         }
     }
