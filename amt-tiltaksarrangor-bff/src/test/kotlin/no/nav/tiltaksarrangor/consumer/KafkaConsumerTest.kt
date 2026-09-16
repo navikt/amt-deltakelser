@@ -24,6 +24,7 @@ import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.ARRANGOR_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.DELTAKERLISTE_V2_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.DELTAKER_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.ENDRINGSMELDING_TOPIC
+import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.NAV_ANSATT_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.TILTAKSTYPE_TOPIC
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
@@ -45,6 +46,7 @@ import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
+import no.nav.tiltaksarrangor.repositories.NavAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
@@ -65,6 +67,7 @@ class KafkaConsumerTest(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
+    private val navAnsattRepository: NavAnsattRepository,
     private val kafkaConsumer: KafkaConsumer,
 ) : IntegrationTestBase() {
     private val ack = Acknowledgment { }
@@ -521,6 +524,45 @@ class KafkaConsumerTest(
             )
 
             endringsmeldingRepository.getEndringsmelding(endringsmeldingId)?.status shouldBe Endringsmelding.Status.UTFORT
+        }
+    }
+
+    @Nested
+    inner class ListenNavAnsattTopic {
+        @Test
+        fun `listen - melding pa nav-ansatt-topic - lagres i database`() {
+            val navAnsattId = UUID.randomUUID()
+            val navEnhetId = UUID.randomUUID()
+
+            // Rå JSON fordi topic-kontrakten bruker feltnavnet "navident", ikke "navIdent".
+            // Serialisering av domenemodellen ville skjult et brudd på kontrakten.
+            val payload =
+                """
+                {
+                  "id": "$navAnsattId",
+                  "navident": "Z999999",
+                  "navn": "Navn Navnesen",
+                  "epost": "navn.navnesen@nav.no",
+                  "telefon": "12345678",
+                  "navEnhetId": "$navEnhetId"
+                }
+                """.trimIndent()
+
+            kafkaConsumer.listen(
+                consumerRecord(
+                    NAV_ANSATT_TOPIC,
+                    navAnsattId.toString(),
+                    payload,
+                ),
+                ack,
+            )
+
+            val lagretNavAnsatt = navAnsattRepository.get(navAnsattId)
+            lagretNavAnsatt shouldNotBe null
+            lagretNavAnsatt?.navIdent shouldBe "Z999999"
+            lagretNavAnsatt?.navn shouldBe "Navn Navnesen"
+            lagretNavAnsatt?.epost shouldBe "navn.navnesen@nav.no"
+            lagretNavAnsatt?.telefon shouldBe "12345678"
         }
     }
 }
