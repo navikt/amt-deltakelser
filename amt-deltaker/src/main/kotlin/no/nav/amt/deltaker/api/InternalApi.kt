@@ -261,6 +261,11 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
 
+                    if (deltaker.sluttdato.isBefore(deltaker.startdato)) {
+                        log.warn("deltaker ${deltaker.id} har sluttdato før startdato, hopper over")
+                        return@forEach
+                    }
+
                     val gjennomforing = deltaker.deltakerliste
 
                     val vedtak = vedtakRepository.getForDeltaker(deltaker.id)

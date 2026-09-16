@@ -60,6 +60,10 @@ sealed interface GjennomforingRequestPayload {
         val opprettetAv: String, // Nav-ident
         val kategorisering: OpplaringKategorisering?,
     ) {
+        init {
+            require(!sluttDato.isBefore(startDato)) { "Sluttdato kan ikke være før startdato" }
+        }
+
         data class OpplaringKategorisering(
             val verdier: Map<OpplaringKategoriseringType, Set<UUID>>,
             val sertifiseringer: Set<SertifiseringValg>,
