@@ -322,7 +322,12 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Bygger en ugyldig JSON-body (sluttdato før startdato) fordi
             // EnkeltplassPameldingRequest sin init-blokk hindrer oss i å konstruere den direkte.
             val invalidRequestJson = objectMapper.valueToTree<ObjectNode>(validRequest).apply {
-                (get("wrappedRequest") as ObjectNode).put("sluttdato", LocalDate.now().minusDays(1).toString())
+                (get("wrappedRequest") as ObjectNode).put(
+                    "sluttdato",
+                    validRequest.wrappedRequest.startdato
+                        .minusDays(1)
+                        .toString(),
+                )
             }
 
             // Act
