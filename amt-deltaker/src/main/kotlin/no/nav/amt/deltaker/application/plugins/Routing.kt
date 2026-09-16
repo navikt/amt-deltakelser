@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -108,6 +109,10 @@ fun Application.configureRouting(
         exception<NoSuchElementException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.NotFound, call, cause)
             call.respondText(text = "404: ${cause.message}", status = HttpStatusCode.NotFound)
+        }
+        exception<BadRequestException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
+            call.respondText(text = "400: Ugyldig request", status = HttpStatusCode.BadRequest)
         }
         exception<Throwable> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.InternalServerError, call, cause)

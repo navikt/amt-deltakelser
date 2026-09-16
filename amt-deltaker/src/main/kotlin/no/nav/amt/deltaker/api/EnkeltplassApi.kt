@@ -8,7 +8,6 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
-import no.nav.amt.deltaker.enkeltplass.EnkeltplassPameldingMedDatoer
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.getDeltakerId
@@ -78,11 +77,10 @@ fun Routing.registerEnkeltplassApi(
                  */
                 post("/del-med-innbygger") {
                     val request: EnkeltplassPameldingDecoratedRequest = call.receive()
-                    val pamelding = EnkeltplassPameldingMedDatoer(request)
 
                     val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                         deltakerId = call.getDeltakerId(),
-                        pamelding = pamelding,
+                        decoratedRequest = request,
                     )
 
                     val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(oppdatertDeltaker)
@@ -92,11 +90,10 @@ fun Routing.registerEnkeltplassApi(
 
                 post("/meld-paa-direkte") {
                     val request: EnkeltplassPameldingDecoratedRequest = call.receive()
-                    val pamelding = EnkeltplassPameldingMedDatoer(request)
 
                     enkeltplassService.meldPaaDirekte(
                         deltakerId = call.getDeltakerId(),
-                        pamelding = pamelding,
+                        decoratedRequest = request,
                     )
 
                     call.respond(HttpStatusCode.OK)

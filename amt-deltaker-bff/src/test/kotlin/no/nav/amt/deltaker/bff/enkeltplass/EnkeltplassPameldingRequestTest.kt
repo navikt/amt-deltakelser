@@ -6,6 +6,7 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class EnkeltplassPameldingRequestTest {
     @Test
@@ -13,6 +14,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -24,6 +27,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -35,6 +40,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "abc",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -46,6 +53,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "12345678",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -57,6 +66,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "123456789",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 

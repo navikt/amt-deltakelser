@@ -290,7 +290,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert
@@ -335,7 +335,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert
@@ -472,7 +472,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             val oppdatertDeltaker = enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert
@@ -529,7 +529,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert - verify no event was published to DELTAKER_V2 since gjennomforing is KLADD
@@ -566,7 +566,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert - verify deltaker was published since gjennomforing is now not KLADD
@@ -609,7 +609,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert
@@ -643,14 +643,14 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // First transition to UTKAST_TIL_PAMELDING
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Now call meldPaaDirekte - should work from UTKAST_TIL_PAMELDING status
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
-                pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                decoratedRequest = decoratedRequest,
             )
 
             // Assert

@@ -171,20 +171,20 @@ class EnkeltplassService(
     /** Oppdaterer utkastet og setter status til [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] for deling med innbygger. */
     suspend fun delUtkastMedInnbygger(
         deltakerId: UUID,
-        pamelding: EnkeltplassPameldingMedDatoer,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ): Deltaker = lagreOgPubliser(
         deltakerId = deltakerId,
-        pamelding = pamelding,
+        decoratedRequest = decoratedRequest,
         nyStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
     )
 
     suspend fun meldPaaDirekte(
         deltakerId: UUID,
-        pamelding: EnkeltplassPameldingMedDatoer,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
     ) {
         lagreOgPubliser(
             deltakerId = deltakerId,
-            pamelding = pamelding,
+            decoratedRequest = decoratedRequest,
             nyStatus = DeltakerStatus.Type.SOKT_INN,
         )
     }
@@ -256,12 +256,12 @@ class EnkeltplassService(
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
-        pamelding: EnkeltplassPameldingMedDatoer,
+        decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyStatus: DeltakerStatus.Type,
     ): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         val gjennomforing = deltaker.deltakerliste
-        val request = pamelding.request
+        val request = decoratedRequest.wrappedRequest
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
             "Kan ikke opprette gjennomforing hos Mulighetsrommet for " +
@@ -272,8 +272,8 @@ class EnkeltplassService(
         }
 
         val arrangor = arrangorService.hentArrangor(request.arrangorUnderenhet)
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(pamelding.endretAvEnhet)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(pamelding.endretAv)
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(decoratedRequest.endretAvEnhet)
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(decoratedRequest.endretAv)
         val kategoriseringForTiltak = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
 
         return Database.transaction {
@@ -287,14 +287,14 @@ class EnkeltplassService(
             deltakerService.lagreDeltakerStatus(
                 deltakerId = deltaker.id,
                 nyDeltakerStatus = nyDeltakerStatus(type = nyStatus),
-                erDeltakerSluttdatoEndret = deltaker.sluttdato != pamelding.sluttdato,
+                erDeltakerSluttdatoEndret = deltaker.sluttdato != request.sluttdato,
             )
 
             deltakerRepository.updateEnkeltplass(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
-                    startdato = pamelding.startdato,
-                    sluttdato = pamelding.sluttdato,
+                    startdato = request.startdato,
+                    sluttdato = request.sluttdato,
                     beskrivelse = request.beskrivelse,
                     dagerPerUke = request.dagerPerUke,
                 ),
@@ -320,8 +320,8 @@ class EnkeltplassService(
 
             gjennomforingUpserter.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
-                endretAvNavIdent = pamelding.endretAv,
-                endretAvEnhet = pamelding.endretAvEnhet,
+                endretAvNavIdent = decoratedRequest.endretAv,
+                endretAvEnhet = decoratedRequest.endretAvEnhet,
             )
 
             distribuerEndringService.produceHendelseForUtkast(

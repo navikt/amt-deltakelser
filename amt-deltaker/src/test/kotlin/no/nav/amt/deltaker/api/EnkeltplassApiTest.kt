@@ -21,7 +21,6 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
-import no.nav.amt.deltaker.enkeltplass.EnkeltplassPameldingMedDatoer
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
 import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
@@ -50,6 +49,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -280,7 +280,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coEvery {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = deltakerInTest.id,
-                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                    decoratedRequest = decoratedRequest,
                 )
             } just Runs
 
@@ -298,29 +298,37 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coVerify {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = deltakerInTest.id,
-                    pamelding = EnkeltplassPameldingMedDatoer(decoratedRequest),
+                    decoratedRequest = decoratedRequest,
                 )
             }
         }
 
         @Test
-        fun `manglende datoer gir BadRequest`() = runTest {
+        fun `sluttdato for startdato gir BadRequest`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker()
-            val request = EnkeltplassPameldingDecoratedRequest(
+            val validRequest = EnkeltplassPameldingDecoratedRequest(
                 wrappedRequest = EnkeltplassPameldingRequest(
                     beskrivelse = "Testbeskrivelse",
                     arrangorUnderenhet = "987654322",
+                    startdato = LocalDate.now(),
+                    sluttdato = LocalDate.now().plusDays(1),
                     prisinformasjon = Anskaffelse(pris = 42),
                 ),
                 endretAvEnhet = "1234",
                 endretAv = "123456789",
             )
 
+            // Bygger en ugyldig JSON-body (sluttdato før startdato) fordi
+            // EnkeltplassPameldingRequest sin init-blokk hindrer oss i å konstruere den direkte.
+            val invalidRequestJson = objectMapper.valueToTree<ObjectNode>(validRequest).apply {
+                (get("wrappedRequest") as ObjectNode).put("sluttdato", LocalDate.now().minusDays(1).toString())
+            }
+
             // Act
             val response = withTestApplicationContext { client ->
                 client.post("/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte") {
-                    postRequest(request)
+                    postRequest(invalidRequestJson)
                 }
             }
 
@@ -329,7 +337,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             coVerify(exactly = 0) {
                 enkeltplassService.meldPaaDirekte(
                     deltakerId = any(),
-                    pamelding = any(),
+                    decoratedRequest = any(),
                 )
             }
         }

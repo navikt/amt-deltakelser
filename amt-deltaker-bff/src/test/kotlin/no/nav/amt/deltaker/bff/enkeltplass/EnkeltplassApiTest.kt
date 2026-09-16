@@ -36,6 +36,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassApiTest : IntegrationTestBase() {
@@ -461,6 +462,8 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
     }

@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
@@ -97,6 +98,10 @@ fun Application.configureRouting(
         exception<DeltakerlisteStengtException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.Gone, call, cause)
             call.respondText(text = "410: ${cause.message}", status = HttpStatusCode.Gone)
+        }
+        exception<BadRequestException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
+            call.respondText(text = "400: Ugyldig request", status = HttpStatusCode.BadRequest)
         }
         exception<Throwable> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.InternalServerError, call, cause)
