@@ -5,7 +5,7 @@ import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorRe
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
-import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.kafka.consumer.toModel
@@ -56,10 +56,10 @@ class KafkaConsumerService(
         }
 
         transactionTemplate.executeWithoutResult {
-            when (val result = deltakerRepository.upsert(deltaker.toModel(), offset)) {
+            when (deltakerRepository.upsert(deltaker.toModel(), offset)) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(result.data)
+                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(id)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke oppdatert.")
                         return@executeWithoutResult
@@ -69,7 +69,7 @@ class KafkaConsumerService(
 
                 is RepositoryResult.Created -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Opprettelse")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(result.data)
+                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(id)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
                         return@executeWithoutResult
@@ -217,7 +217,7 @@ class KafkaConsumerService(
 
     private fun avbrytAktivitetskort(
         aktivitetskort: Aktivitetskort,
-        deltaker: Deltaker,
+        deltaker: DeltakerDbo,
     ) {
         if (skalAvbryteAktivtetskort(aktivitetskort.aktivitetStatus)) {
             val avbruttDeltaker = deltaker.copy(status = DeltakerStatusModel(DeltakerStatus.Type.AVBRUTT, null))
@@ -239,7 +239,7 @@ class KafkaConsumerService(
         else -> false
     }
 
-    fun DeltakerKafkaPayload.toModel() = Deltaker(
+    fun DeltakerKafkaPayload.toModel() = DeltakerDbo(
         id = id,
         personident = personalia.personident,
         deltakerlisteId = deltakerliste.id,

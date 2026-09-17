@@ -7,6 +7,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -400,11 +401,13 @@ object TestData {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let {
             no.nav.amt.internapi.deltaker.response.ArrangorResponse(
+                id = it.id,
                 navn = it.navn,
                 organisasjonsnummer = it.organisasjonsnummer,
             )
         },
         pameldingstype = deltakerliste.pameldingstype,
+        visningsnavn = VisningsnavnResponse("Tittel"),
     )
 
     fun lagOpplaringKategorisering(): OpplaringKategoriseringValg = OpplaringKategoriseringValg(

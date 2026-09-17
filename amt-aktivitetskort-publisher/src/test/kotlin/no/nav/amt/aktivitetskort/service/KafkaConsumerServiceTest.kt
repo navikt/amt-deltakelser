@@ -79,24 +79,24 @@ class KafkaConsumerServiceTest {
         @Test
         fun `deltaker modifisert - publiser melding`() {
             every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.Modified(ctx.deltaker)
-            every { aktivitetskortService.lagAktivitetskort(ctx.deltaker) } returns ctx.aktivitetskort
+            every { aktivitetskortService.lagAktivitetskort(ctx.deltaker.id) } returns ctx.aktivitetskort
 
             kafkaConsumerService.deltakerHendelse(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
 
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(ctx.deltaker) }
+            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(ctx.deltaker.id) }
             verify(exactly = 1) { aktivitetskortProducer.send(ctx.aktivitetskort) }
         }
 
         @Test
         fun `deltaker lagd - publiser melding`() {
             every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.Created(ctx.deltaker)
-            every { aktivitetskortService.lagAktivitetskort(ctx.deltaker) } returns ctx.aktivitetskort
+            every { aktivitetskortService.lagAktivitetskort(ctx.deltaker.id) } returns ctx.aktivitetskort
 
             kafkaConsumerService.deltakerHendelse(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
 
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(ctx.deltaker) }
+            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(ctx.deltaker.id) }
             verify(exactly = 1) { aktivitetskortProducer.send(ctx.aktivitetskort) }
         }
 
@@ -107,7 +107,7 @@ class KafkaConsumerServiceTest {
             kafkaConsumerService.deltakerHendelse(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
 
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(ctx.deltaker) }
+            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any<Aktivitetskort>()) }
         }
 
@@ -122,7 +122,7 @@ class KafkaConsumerServiceTest {
             kafkaConsumerService.deltakerHendelse(mockDeltaker.id, mockDeltaker.toDto(), offset)
 
             verify(exactly = 1) { deltakerRepository.upsert(mockDeltaker, offset) }
-            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(mockDeltaker) }
+            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(mockDeltaker.id) }
             verify(exactly = 0) { aktivitetskortProducer.send(any<Aktivitetskort>()) }
         }
 
@@ -133,12 +133,12 @@ class KafkaConsumerServiceTest {
             val mockAktivitetskort = ctx.aktivitetskort.copy(aktivitetStatus = AktivitetStatus.AVBRUTT)
 
             every { deltakerRepository.upsert(mockDeltaker, offset) } returns RepositoryResult.Modified(mockDeltaker)
-            every { aktivitetskortService.lagAktivitetskort(mockDeltaker) } returns mockAktivitetskort
+            every { aktivitetskortService.lagAktivitetskort(mockDeltaker.id) } returns mockAktivitetskort
 
             kafkaConsumerService.deltakerHendelse(mockDeltaker.id, mockDeltaker.toDto(), offset)
 
             verify(exactly = 1) { deltakerRepository.upsert(mockDeltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(mockDeltaker) }
+            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(mockDeltaker.id) }
             verify(exactly = 1) { aktivitetskortProducer.send(mockAktivitetskort) }
         }
     }

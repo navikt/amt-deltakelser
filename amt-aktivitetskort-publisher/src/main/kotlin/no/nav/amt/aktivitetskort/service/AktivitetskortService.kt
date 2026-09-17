@@ -2,10 +2,12 @@ package no.nav.amt.aktivitetskort.service
 
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArenaAclClient
+import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.EndretAv
 import no.nav.amt.aktivitetskort.domain.Handling
@@ -21,8 +23,6 @@ import no.nav.amt.aktivitetskort.exceptions.FeilOppfolgingsperiodeException
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import no.nav.amt.aktivitetskort.exceptions.IngenOppfolgingsperiodeException
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
-import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
-import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
@@ -43,14 +43,13 @@ import java.util.UUID
 class AktivitetskortService(
     private val meldingRepository: MeldingRepository,
     private val arrangorRepository: ArrangorRepository,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val deltakerRepository: DeltakerRepository,
     private val aktivitetArenaAclClient: AktivitetArenaAclClient,
     private val amtArenaAclClient: AmtArenaAclClient,
     private val unleashToggle: CommonUnleashToggle,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
     private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
     private val transactionTemplate: TransactionTemplate,
+    private val amtDeltakerClient: AmtDeltakerClient,
     @Value($$"${veilederurl.basepath}") private val veilederUrlBasePath: String,
     @Value($$"${deltakerurl.basepath}") private val deltakerUrlBasePath: String,
 ) {
@@ -60,24 +59,12 @@ class AktivitetskortService(
         .getByDeltakerId(deltakerId)
         .maxByOrNull { it.createdAt }
 
-    fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort {
-        val deltaker = deltakerRepository.get(deltakerId)
-        if (deltaker == null) {
-            log.error("Deltaker med id $deltakerId finnes ikke")
-            throw RuntimeException("Deltaker $deltakerId finnes ikke")
-        }
-
-        return opprettMelding(deltaker).aktivitetskort
-    }
-
-    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? {
-        val melding = tryOpprettMelding(deltaker)
-
-        return melding?.aktivitetskort
-    }
+    fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? = amtDeltakerClient
+        .getDeltaker(deltakerId)
+        .let { tryOpprettMelding(deltaker = Deltaker.fromDeltakerResponse(it))?.aktivitetskort }
 
     fun oppdaterAktivitetskortForSlettetdeltaker(
-        deltaker: Deltaker,
+        deltaker: DeltakerDbo,
         meldingId: UUID,
     ): Aktivitetskort {
         val melding = opprettMelding(deltaker, meldingId = meldingId)
@@ -90,6 +77,11 @@ class AktivitetskortService(
         .mapNotNull { oppdaterAktivitetskort(it.deltakerId, it.id)?.aktivitetskort }
         .also { log.info("Opprettet nye aktivitetskort for deltakerliste: ${deltakerliste.id}") }
 
+    /*
+    En oppdatering på en arrangør skal medføre at:
+        - Alle aktivitetskort som er koblet til arrangøren blir oppdatert
+        - Alle aktivitetskort som er koblet til en underordnet arrangør av den oppdaterte arrangøren blir oppdatert
+     */
     fun oppdaterAktivitetskort(arrangor: Arrangor): List<Aktivitetskort> {
         val underordnedeArrangorer = arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
         val alleOppdaterteArrangorer = listOf(arrangor) + underordnedeArrangorer
@@ -139,15 +131,15 @@ class AktivitetskortService(
     fun oppdaterAktivitetskort(
         deltakerId: UUID,
         meldingId: UUID,
-    ): Melding? = deltakerRepository
-        .get(deltakerId)
-        ?.let { deltaker -> tryOpprettMelding(deltaker, meldingId) }
+    ): Melding? = amtDeltakerClient
+        .getDeltaker(deltakerId)
+        .let { deltaker -> tryOpprettMelding(Deltaker.fromDeltakerResponse(deltaker), meldingId) }
         ?: run {
             log.warn("Deltaker med id $deltakerId finnes ikke lenger")
             null
         }
 
-    fun tryOpprettMelding(
+    private fun tryOpprettMelding(
         deltaker: Deltaker,
         meldingId: UUID? = null,
     ): Melding? {
@@ -167,14 +159,6 @@ class AktivitetskortService(
         deltaker: Deltaker,
         meldingId: UUID? = null,
     ): Melding {
-        val deltakerliste = deltakerlisteRepository.get(deltaker.deltakerlisteId)
-            ?: throw RuntimeException("Deltakerliste ${deltaker.deltakerlisteId} finnes ikke")
-
-        val arrangor = arrangorRepository.get(deltakerliste.arrangorId)
-            ?: throw RuntimeException("Arrangør ${deltakerliste.arrangorId} finnes ikke")
-
-        val overordnetArrangor = arrangor.overordnetArrangorId?.let { arrangorRepository.get(it) }
-
         val oppfolgingsperiode = veilarboppfolgingClient.hentOppfolgingperiode(deltaker.personident)
             ?: throw IngenOppfolgingsperiodeException(
                 "Kan ikke opprette aktivitetskort på deltaker ${deltaker.id} som ikke er under oppfølging",
@@ -203,19 +187,13 @@ class AktivitetskortService(
         val aktivitetskort = lagAktivitetskort(
             id = aktivitetskortId,
             deltaker = deltaker,
-            deltakerliste = deltakerliste,
-            arrangor = getArrangorForAktivitetskort(
-                arrangor = arrangor,
-                overordnetArrangor = overordnetArrangor,
-                erEnkeltplassOpplaring = deltakerliste.nyForskriftOpplaring,
-            ),
         )
 
         val melding = Melding(
             id = aktivitetskortId,
             deltakerId = deltaker.id,
-            deltakerlisteId = deltakerliste.id,
-            arrangorId = arrangor.id,
+            deltakerlisteId = deltaker.gjennomforing.id,
+            arrangorId = deltaker.gjennomforing.arrangor.id,
             aktivitetskort = aktivitetskort,
             oppfolgingperiode = oppfolgingsperiode.id,
         )
@@ -229,46 +207,38 @@ class AktivitetskortService(
         return melding
     }
 
-    internal fun getArrangorForAktivitetskort(
-        arrangor: Arrangor,
-        overordnetArrangor: Arrangor?,
-        erEnkeltplassOpplaring: Boolean,
-    ): Arrangor = if (erEnkeltplassOpplaring) {
-        arrangor
-    } else {
-        overordnetArrangor
-            ?.takeUnless { it.navn.equals("Ukjent Virksomhet", true) }
-            ?: arrangor
-    }
+    fun opprettMelding(
+        deltaker: DeltakerDbo,
+        meldingId: UUID? = null,
+    ): Melding = opprettMelding(
+        deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltaker.id)),
+        meldingId = meldingId,
+    )
 
     private fun lagAktivitetskort(
         id: UUID,
         deltaker: Deltaker,
-        deltakerliste: Deltakerliste,
-        arrangor: Arrangor,
     ) = Aktivitetskort(
         id = id,
         personident = deltaker.personident,
-        tittel = Aktivitetskort.lagTittel(deltakerliste, arrangor),
+        tittel = deltaker.gjennomforing.visningsnavn,
         aktivitetStatus = deltakerStatusTilAktivitetStatus(deltaker.status.type).getOrThrow(),
-        startDato = deltaker.oppstartsdato,
+        startDato = deltaker.startdato,
         sluttDato = deltaker.sluttdato,
         beskrivelse = null,
         endretAv = EndretAv(AKTIVITETSKORT_APP_NAME, IdentType.SYSTEM),
         endretTidspunkt = LocalDateTime.now(),
         avtaltMedNav = deltaker.status.type !in IKKE_AVTALT_MED_NAV_STATUSER,
-        oppgave = oppgaver(deltaker, deltakerliste),
+        oppgave = oppgaver(deltaker),
         handlinger = getHandlinger(deltaker),
-        detaljer = Aktivitetskort.lagDetaljer(deltaker, deltakerliste, arrangor),
+        detaljer = Aktivitetskort.lagDetaljer(deltaker),
         etiketter = listOfNotNull(deltakerStatusTilEtikett(deltaker.status)),
-        tiltakstype = deltakerliste.tiltak.tiltakskode.toAktivitetskortTiltakstype(),
+        tiltakstype = deltaker.gjennomforing.tiltakstype.tiltakskode
+            .toAktivitetskortTiltakstype(),
     )
 
-    private fun oppgaver(
-        deltaker: Deltaker,
-        deltakerliste: Deltakerliste,
-    ): OppgaveWrapper? {
-        if (!unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltak.tiltakskode)) {
+    private fun oppgaver(deltaker: Deltaker): OppgaveWrapper? {
+        if (!unleashToggle.erKometMasterForTiltakstype(deltaker.gjennomforing.tiltakstype.tiltakskode)) {
             return null
         }
 

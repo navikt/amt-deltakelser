@@ -5,7 +5,7 @@ import no.nav.amt.aktivitetskort.database.TestData.lagDeltaker
 import no.nav.amt.aktivitetskort.database.TestData.lagDeltakerliste
 import no.nav.amt.aktivitetskort.database.TestData.oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Arrangor
-import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
@@ -27,9 +27,9 @@ class TestDatabaseService(
     private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
 ) {
     fun insertDeltaker(
-        deltaker: Deltaker = lagDeltaker(),
+        deltaker: DeltakerDbo = lagDeltaker(),
         offset: Long = 0,
-    ): Deltaker {
+    ): DeltakerDbo {
         insertDeltakerliste(lagDeltakerliste(id = deltaker.deltakerlisteId))
         return when (val result = deltakerRepository.upsert(deltaker, offset)) {
             is RepositoryResult.Created -> result.data

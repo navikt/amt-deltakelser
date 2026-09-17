@@ -17,6 +17,7 @@ import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
@@ -156,6 +157,7 @@ object TestData {
         prisinformasjonTilGodkjenning = PrisinformasjonDto.Anskaffelse(
             pris = 20000,
         ),
+        visningsnavn = VisningsnavnResponse("Tittel"),
     )
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
@@ -177,6 +179,7 @@ object TestData {
         organisasjonsnummer: String = no.nav.amt.lib.testing.utils.TestData
             .randomOrgnr(),
     ) = no.nav.amt.internapi.deltaker.response.ArrangorResponse(
+        id = UUID.randomUUID(),
         navn = navn,
         organisasjonsnummer = organisasjonsnummer,
     )

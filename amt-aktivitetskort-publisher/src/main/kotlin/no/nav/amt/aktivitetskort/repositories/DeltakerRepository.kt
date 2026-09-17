@@ -1,6 +1,6 @@
 package no.nav.amt.aktivitetskort.repositories
 
-import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.aktivitetskort.utils.getNullableLocalDateTime
@@ -27,7 +27,7 @@ class DeltakerRepository(
 
     private val rowMapper = RowMapper { rs, _ ->
         DeltakerMedOffset(
-            deltaker = Deltaker(
+            deltaker = DeltakerDbo(
                 id = UUID.fromString(rs.getString("id")),
                 personident = rs.getString("personident"),
                 deltakerlisteId = UUID.fromString(rs.getString("deltakerliste_id")),
@@ -52,11 +52,11 @@ class DeltakerRepository(
     }
 
     fun upsert(
-        deltaker: Deltaker,
+        deltaker: DeltakerDbo,
         offset: Long,
-    ): RepositoryResult<Deltaker> {
+    ): RepositoryResult<DeltakerDbo> {
         // fix for å reversere endring 26.11.2025 hvor gyldigFra ble lagt til
-        fun Deltaker.isEqualTo(other: Deltaker?): Boolean =
+        fun DeltakerDbo.isEqualTo(other: DeltakerDbo?): Boolean =
             this.copy(status = status.copy(gyldigFra = null)) == other?.copy(status = other.status.copy(gyldigFra = null))
 
         val oldDeltaker = getDeltakerMedOffset(deltaker.id)
@@ -157,7 +157,7 @@ class DeltakerRepository(
         return RepositoryResult.Modified(new.deltaker)
     }
 
-    fun get(id: UUID): Deltaker? = getDeltakerMedOffset(id)?.deltaker
+    fun get(id: UUID): DeltakerDbo? = getDeltakerMedOffset(id)?.deltaker
 
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = template
         .query(
@@ -167,7 +167,7 @@ class DeltakerRepository(
         .firstOrNull() ?: 0
 
     //
-    private fun skalKorrigereTidligereDeltaker(lagretDeltaker: Deltaker?): Boolean =
+    private fun skalKorrigereTidligereDeltaker(lagretDeltaker: DeltakerDbo?): Boolean =
         // Hvis første vi hører om deltakeren er avsluttende status
         // så skal det ikke opprettes aktivitetskort
         !(lagretDeltaker == null || lagretDeltaker.status.type in avsluttendeStatuser)
@@ -187,6 +187,6 @@ class DeltakerRepository(
 }
 
 private data class DeltakerMedOffset(
-    val deltaker: Deltaker,
+    val deltaker: DeltakerDbo,
     val offset: Long,
 )

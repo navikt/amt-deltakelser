@@ -22,9 +22,11 @@ import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -137,10 +139,23 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, false)
 
         // Assert
+        val deltakerlisteArrangor = deltakerliste.arrangor.shouldNotBeNull()
         val expectedArrangor = ArrangorResponse(
-            navn = deltakerliste.arrangor!!.navn,
-            deltakerliste.arrangor.shouldNotBeNull().organisasjonsnummer,
+            id = deltakerlisteArrangor.id,
+            navn = deltakerlisteArrangor.navn,
+            organisasjonsnummer = deltakerlisteArrangor.organisasjonsnummer,
         )
+
+        val expectedVisningsnavn = TiltakVisningsnavn
+            .lagVisningsnavn(
+                tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+                tiltaksnavn = deltakerliste.tiltakstype.navn,
+                gjennomforingsnavn = deltakerliste.navn,
+                gjennomforingType = deltakerliste.gjennomforingstype,
+                erKladd = false,
+                arrangorNavn = deltakerliste.arrangor.shouldNotBeNull().navn,
+                opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
+            ).let { VisningsnavnResponse(it.aktivitetskortTittel) }
 
         assertSoftly(gjennomforingResponse) {
             id shouldBe deltakerliste.id
@@ -154,6 +169,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             oppmoteSted shouldBe deltakerliste.oppmoteSted.shouldNotBeNull()
             arrangor shouldBe expectedArrangor
             pameldingstype shouldBe deltakerliste.pameldingstype.shouldNotBeNull()
+            visningsnavn shouldBe expectedVisningsnavn
         }
     }
 

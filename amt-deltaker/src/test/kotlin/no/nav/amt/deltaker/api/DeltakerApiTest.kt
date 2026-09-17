@@ -59,7 +59,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class VeilederApiTest : IntegrationTestBase() {
+class DeltakerApiTest : IntegrationTestBase() {
     override val deltakerService: DeltakerService = mockk()
     override val veilederEndringService: VeilederEndringService = mockk()
     override val forslagService: ForslagService = mockk()
