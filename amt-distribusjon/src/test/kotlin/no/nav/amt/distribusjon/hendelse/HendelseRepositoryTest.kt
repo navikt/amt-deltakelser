@@ -11,10 +11,10 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.postgresql.util.PGobject
 import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
@@ -277,11 +277,6 @@ class HendelseRepositoryTest {
             put("navn", "Overordnet Arrangør")
         }
 
-        fun json(value: Any) = PGobject().also {
-            it.type = "json"
-            it.value = objectMapper.writeValueAsString(value)
-        }
-
         val sql =
             """
             INSERT INTO hendelse (
@@ -309,9 +304,9 @@ class HendelseRepositoryTest {
         val params = mapOf(
             "id" to hendelse.id,
             "deltaker_id" to hendelse.deltaker.id,
-            "deltaker" to json(deltakerNode),
-            "ansvarlig" to json(hendelse.ansvarlig),
-            "payload" to json(hendelse.payload),
+            "deltaker" to objectMapper.toPGObject(deltakerNode),
+            "ansvarlig" to objectMapper.toPGObject(hendelse.ansvarlig),
+            "payload" to objectMapper.toPGObject(hendelse.payload),
             "distribusjonskanal" to hendelse.distribusjonskanal.name,
             "manuelloppfolging" to hendelse.manuellOppfolging,
             "created_at" to hendelse.opprettet,
