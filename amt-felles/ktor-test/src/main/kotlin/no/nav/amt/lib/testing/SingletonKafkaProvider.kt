@@ -36,9 +36,9 @@ object SingletonKafkaProvider {
         // potensielt ikke-hermetiske resultater når loggen vokser.
         if (reuseConfig.reuse) {
             cleanup()
+            setupShutdownHook()
         }
 
-        setupShutdownHook()
         log.info("Kafka setup finished listening on ${kafkaContainer.bootstrapServers}.")
     }
 
@@ -53,11 +53,7 @@ object SingletonKafkaProvider {
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 log.info("Shutting down Kafka server...")
-                if (reuseConfig.reuse) {
-                    cleanup()
-                } else {
-                    kafkaContainer.stop()
-                }
+                cleanup()
             },
         )
     }

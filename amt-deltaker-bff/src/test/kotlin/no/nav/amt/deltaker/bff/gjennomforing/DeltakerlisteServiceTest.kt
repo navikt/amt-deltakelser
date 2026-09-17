@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
+import io.kotest.assertions.throwables.shouldThrow
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestRepository
@@ -8,7 +9,6 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
@@ -22,15 +22,8 @@ class DeltakerlisteServiceTest {
     }
 
     @Test
-    fun `verifiserTilgjengeligDeltakerliste - deltakerliste har felles oppstart - kaster ikke exception`() {
+    fun `verifiserTilgjengeligDeltakerliste - uten sluttdato - kaster ikke exception`() {
         with(DeltakerlisteContext()) {
-            deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
-        }
-    }
-
-    @Test
-    fun `verifiserTilgjengeligDeltakerliste - deltakerliste har lopende oppstart - kaster ikke exception`() {
-        with(DeltakerlisteContext(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)) {
             deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
         }
     }
@@ -38,17 +31,26 @@ class DeltakerlisteServiceTest {
     @Test
     fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato og graceperiode er passert - kaster exception`() {
         with(DeltakerlisteContext()) {
-            medAvsluttetDeltakerliste()
-            assertThrows<DeltakerlisteStengtException> {
-                deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+            medAvsluttetDeltakerliste(
+                sluttDato = LocalDate.of(2026, 2, 28),
+            )
+            shouldThrow<DeltakerlisteStengtException> {
+                deltakerlisteService.verifiserTilgjengeligDeltakerliste(
+                    id = deltakerliste.id,
+                    today = LocalDate.of(2026, 8, 29),
+                )
             }
         }
     }
 
     @Test
-    fun `verifiserTilgjengeligDeltakerliste - deltakerlistes sluttdato er ikke passert - kaster ikke exception`() {
+    fun `verifiserTilgjengeligDeltakerliste - akkurat ved graceperiode grensen - kaster ikke exception`() {
         with(DeltakerlisteContext()) {
-            deltakerlisteService.verifiserTilgjengeligDeltakerliste(deltakerliste.id)
+            medAvsluttetDeltakerliste(sluttDato = LocalDate.of(2026, 2, 28))
+            deltakerlisteService.verifiserTilgjengeligDeltakerliste(
+                id = deltakerliste.id,
+                today = LocalDate.of(2026, 8, 28),
+            )
         }
     }
 }
@@ -75,11 +77,11 @@ data class DeltakerlisteContext(
         TestRepository.insert(deltakerliste)
     }
 
-    fun medAvsluttetDeltakerliste() {
+    fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now().minusDays(1)) {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            startDato = LocalDate.now().minusMonths(3),
-            sluttDato = LocalDate.now().minus(DeltakerlisteService.tiltakskoordinatorGraceperiode).minusDays(1),
+            startDato = sluttDato.minusMonths(3),
+            sluttDato = sluttDato,
         )
 
         repository.upsert(deltakerliste)
