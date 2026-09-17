@@ -192,9 +192,9 @@ class DeltakerKafkaPayloadBuilder(
             forcedUpdate = forcedUpdate,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
-            sisteEndring = sisteEndring?.let {
+            sisteEndring = sisteEndring?.getSistEndretAv()?.let { utfortAvNavAnsattId ->
                 SisteEndring(
-                    utfortAvNavAnsattId = sisteEndring.getSistEndretAv(),
+                    utfortAvNavAnsattId = utfortAvNavAnsattId,
                     navEnhetId = sisteEndring.getSistEndretAvEnhet(),
                     timestamp = deltaker.sistEndret,
                 )
@@ -233,7 +233,7 @@ class DeltakerKafkaPayloadBuilder(
         },
     )
 
-    private fun DeltakerHistorikk.getSistEndretAv(): UUID = when (this) {
+    private fun DeltakerHistorikk.getSistEndretAv(): UUID? = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
 
         is DeltakerHistorikk.Endring -> endring.endretAv

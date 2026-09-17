@@ -129,8 +129,8 @@ sealed interface DeltakerHistorikkResponse {
 }
 
 data class EnkeltplassOkonomiGodkjentResponse(
-    val endretAv: String,
-    val endretAvEnhet: String,
+    val endretAv: String?,
+    val endretAvEnhet: String?,
     val endret: LocalDateTime,
     val erForsteGodkjenning: Boolean,
     val prisinformasjon: PrisinformasjonResponse?,
@@ -140,12 +140,8 @@ data class EnkeltplassOkonomiGodkjentResponse(
         enheter: Map<UUID, NavEnhet>,
         ansatte: Map<UUID, NavAnsatt>,
     ) : this(
-        endretAv = requireNotNull(ansatte[model.sistEndretAvNavAnsattId]?.navn) {
-            "Fant ikke navn for Nav-ansatt med id=${model.sistEndretAvNavAnsattId}"
-        },
-        endretAvEnhet = requireNotNull(enheter[model.sistEndretAvNavEnhetId]?.navn) {
-            "Fant ikke navn for enhet med id=${model.sistEndretAvNavEnhetId}"
-        },
+        endretAv = model.sistEndretAvNavAnsattId?.let { ansatte[it]?.navn },
+        endretAvEnhet = model.sistEndretAvNavEnhetId?.let { enheter[it]?.navn },
         endret = model.sistEndret,
         erForsteGodkjenning = model.erForsteGodkjenning,
         prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),

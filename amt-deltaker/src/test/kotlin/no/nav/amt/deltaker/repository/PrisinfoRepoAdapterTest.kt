@@ -1030,8 +1030,8 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `faller tilbake pa vedtaket nar godkjenner ikke er lagret`() {
-            // Arrange - godkjenning uten attribusjon (som gamle rader)
+        fun `returnerer null nar godkjenner ikke er lagret`() {
+            // Arrange - godkjenning uten lagret attribusjon
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
@@ -1042,10 +1042,10 @@ class PrisinfoRepoAdapterTest {
             // Act
             val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
 
-            // Assert - attribusjon hentes fra vedtaket
+            // Assert - attribusjon blir stående som null
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe navAnsatt.id
-                sistEndretAvNavEnhetId shouldBe navEnhet.id
+                sistEndretAvNavAnsattId shouldBe null
+                sistEndretAvNavEnhetId shouldBe null
             }
         }
 

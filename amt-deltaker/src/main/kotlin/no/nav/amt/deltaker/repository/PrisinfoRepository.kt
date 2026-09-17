@@ -235,8 +235,8 @@ object PrisinfoRepository {
                 prisinfo.tilleggsopplysninger,
                 prisinfo.ingenkostnader_aarsak,
                 prisinfo.modified_at,
-                COALESCE(prisinfo.godkjent_av, vedtak.sist_endret_av) AS godkjent_av,
-                COALESCE(prisinfo.godkjent_av_enhet, vedtak.sist_endret_av_enhet) AS godkjent_av_enhet,
+                prisinfo.godkjent_av,
+                prisinfo.godkjent_av_enhet,
                 COALESCE(prisinfo.modified_at <= vedtak.fattet, FALSE) AS er_forste_godkjenning
             FROM
                 deltaker                
@@ -255,8 +255,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuid("godkjent_av"),
-                            sistEndretAvNavEnhetId = row.uuid("godkjent_av_enhet"),
+                            sistEndretAvNavAnsattId = row.uuidOrNull("godkjent_av"),
+                            sistEndretAvNavEnhetId = row.uuidOrNull("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,

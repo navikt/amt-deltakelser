@@ -285,7 +285,7 @@ class PrisinfoRepositoryTest {
         }
 
         @Test
-        fun `returnerer prisinfo når status er godkjent`() {
+        fun `returnerer null når godkjent av ikke er lagret`() {
             // Arrange
             val sistEndret = LocalDateTime.now().minusDays(1)
             val vedtak = lagVedtak(
@@ -314,8 +314,8 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 1
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe navAnsatt.id
-                sistEndretAvNavEnhetId shouldBe navEnhet.id
+                sistEndretAvNavAnsattId shouldBe null
+                sistEndretAvNavEnhetId shouldBe null
             }
         }
 
