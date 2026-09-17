@@ -186,8 +186,7 @@ object PrisinfoRepository {
      * Henter alle godkjente prisinfo for en deltaker, sortert med eldste godkjenning først.
      *
      * `er_forste_godkjenning` utledes av vedtaket: den første godkjenningen er den som fattet
-     * vedtaket, mens påfølgende godkjenninger av prisendringer aldri endrer `vedtak.fattet`.
-     * Deltakere uten fattet vedtak (f.eks. importert fra Arena) får `false` på alle godkjenninger.
+     * vedtaket.
      */
     fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<GodkjentPrisinfoDbo> {
         val sql =

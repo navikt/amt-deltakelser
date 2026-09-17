@@ -77,12 +77,6 @@ object PrisinfoRepoAdapter {
         .hentPrisinfoMap(gjennomforingId)
         .mapValues { (_, prisinfo) -> prisinfo.toPrisinformasjonDto() }
 
-    /**
-     * Henter godkjente prisinfo for deltakerhistorikken, eldste godkjenning først.
-     *
-     * Konverterer prisinfo fra database-format til DTO slik at historikken kan vise
-     * hva som faktisk ble godkjent ved hver godkjenning.
-     */
     fun hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> = PrisinfoRepository
         .hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
         .map {
