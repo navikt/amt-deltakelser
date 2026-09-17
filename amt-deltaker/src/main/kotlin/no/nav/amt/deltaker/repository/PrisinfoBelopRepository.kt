@@ -75,13 +75,12 @@ object PrisinfoBelopRepository {
                     queryOf(
                         sql,
                         mapOf("prisinformasjonIder" to prisinformasjonIder.toTypedArray()),
-                    )
-                        .map { row ->
-                            row.uuid("prisinfo_id") to Priskomponent(
-                                type = Tilskuddstype.valueOf(row.string("pristype")),
-                                pris = row.int("pris"),
-                            )
-                        }.asList,
+                    ).map { row ->
+                        row.uuid("prisinfo_id") to Priskomponent(
+                            type = Tilskuddstype.valueOf(row.string("pristype")),
+                            pris = row.int("pris"),
+                        )
+                    }.asList,
                 )
             }.groupBy({ it.first }, { it.second })
     }
