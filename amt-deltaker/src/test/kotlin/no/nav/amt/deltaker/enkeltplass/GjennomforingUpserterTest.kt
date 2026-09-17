@@ -43,6 +43,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class GjennomforingUpserterTest {
@@ -319,6 +320,8 @@ class GjennomforingUpserterTest {
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = this.deltakerliste.arrangor!!.organisasjonsnummer,
             ansvarligEnhet = "1234",
+            startDato = requireNotNull(startdato),
+            sluttDato = requireNotNull(sluttdato),
             opprettetAv = "Z123456",
             kategorisering = OpplaringKategoriseringRepoAdapter
                 .hentOpplaringKategoriseringValg(deltakerliste.id)
@@ -378,7 +381,12 @@ class GjennomforingUpserterTest {
                     behandletAv = navIdent,
                 ),
             )
-            verify { PrisinfoRepository.oppdaterStatus(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
+            verify {
+                PrisinfoRepository.oppdaterStatus(
+                    prisinformasjonId = totrinnsIdInTest,
+                    status = PrisinfoDbo.PrisinfoStatus.SENDT,
+                )
+            }
         }
 
         @Test
@@ -485,6 +493,8 @@ class GjennomforingUpserterTest {
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             organisasjonsnummer = "987654321",
             ansvarligEnhet = "1234",
+            startDato = LocalDate.now().minusMonths(1),
+            sluttDato = LocalDate.now(),
             opprettetAv = "Z123456",
             kategorisering = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
                 verdier = emptyMap(),
@@ -588,18 +598,20 @@ class GjennomforingUpserterTest {
                 prisinformasjon = "1234",
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),
             ),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now(),
         )
 
-        fun createKladdDeltaker() = createBaseDeltaker().copy(
+        private fun createKladdDeltaker() = createBaseDeltaker().copy(
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
         )
 
-        fun createUtkastDeltaker() = createBaseDeltaker().copy(
+        private fun createUtkastDeltaker() = createBaseDeltaker().copy(
             id = UUID.randomUUID(),
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
 
-        fun createSoktInnDeltaker() = createBaseDeltaker().copy(
+        private fun createSoktInnDeltaker() = createBaseDeltaker().copy(
             id = UUID.randomUUID(),
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
         )
