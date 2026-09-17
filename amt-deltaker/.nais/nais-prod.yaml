@@ -48,6 +48,7 @@ spec:
         - application: amt-deltaker-bff
         - application: amt-tiltaksarrangor-bff
         - application: amt-distribusjon
+        - application: amt-aktivitetskort-publisher
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
         - application: veilarboppfolging

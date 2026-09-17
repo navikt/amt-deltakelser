@@ -58,6 +58,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
+        - application: amt-deltaker
         - application: amt-arena-acl
         - application: amt-arrangor
         - application: aktivitet-arena-acl
