@@ -53,7 +53,7 @@ data class DeltakerEndring(
             val prisinfo: PrisinformasjonDto,
             val begrunnelse: String?, // påkrevd i frontend, men følger samme mønster som øvrige endringer
             val prisinformasjonId: UUID? = null,
-            val status: Status?,
+            val status: Status? = null,
         ) : Endring {
             enum class Status {
                 SENDT_TIL_GODKJENNING,
