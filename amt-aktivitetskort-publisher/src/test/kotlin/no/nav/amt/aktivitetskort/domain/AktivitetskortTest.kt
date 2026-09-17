@@ -6,8 +6,26 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
 
 class AktivitetskortTest {
+    private fun deltakerResponse(
+        deltakerliste: Deltakerliste,
+        arrangor: Arrangor,
+        deltaker: DeltakerDbo = TestData.lagDeltaker(
+            deltakerlisteId = deltakerliste.id,
+        ),
+    ) = TestData.lagDeltakerResponse(deltaker = deltaker, deltakerliste = deltakerliste, arrangor = arrangor)
+
+    private fun lagDeltakerMedGjennomforing(
+        deltakerliste: Deltakerliste,
+        arrangor: Arrangor,
+        deltaker: DeltakerDbo = TestData.lagDeltaker(
+            deltakerlisteId = deltakerliste.id,
+        ),
+    ) = Deltaker.fromDeltakerResponse(
+        TestData.lagDeltakerResponse(deltaker = deltaker, deltakerliste = deltakerliste, arrangor = arrangor),
+    )
+
     @Test
-    fun `lagTittel - deltakerliste og arrangor - lager riktig tittel basert på type tiltak`() {
+    fun `lagDeltakerResponse - deltakerliste og arrangor - lager riktig tittel basert på type tiltak`() {
         val arrangor = TestData.lagArrangor()
         val deltakerlister =
             Tiltakskode.entries
@@ -43,7 +61,7 @@ class AktivitetskortTest {
                 }
 
         deltakerlister.forEach {
-            val aktivitetskortTittel = Aktivitetskort.lagTittel(it, arrangor)
+            val aktivitetskortTittel = deltakerResponse(it, arrangor).gjennomforing.visningsnavn.aktivitetskortTittel
             when (it.tiltak.tiltakskode) {
                 Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> aktivitetskortTittel shouldBe "Digitalt jobbsøkerkurs hos ${arrangor.navn}"
 
@@ -71,10 +89,11 @@ class AktivitetskortTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("VTA 100%", Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET),
         )
-        val deltaker = TestData.lagDeltaker(prosentStilling = 100.0, dagerPerUke = 2.5f, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo = TestData.lagDeltaker(prosentStilling = 100.0, dagerPerUke = 2.5f, deltakerlisteId = deltakerliste.id)
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
+        val deltaker = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo)
 
-        val detaljer = Aktivitetskort.lagDetaljer(deltaker, deltakerliste, arrangor)
+        val detaljer = Aktivitetskort.lagDetaljer(deltaker)
 
         detaljer[0] shouldBe Detalj("Status for deltakelse", displayText(deltaker.status))
         detaljer[1] shouldBe Detalj("Deltakelsesmengde", "100%")
@@ -86,10 +105,11 @@ class AktivitetskortTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("AFT 50% 2 dager i uken", Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val deltaker = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = 2.0f, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = 2.0f, deltakerlisteId = deltakerliste.id)
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
+        val deltaker = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo)
 
-        val detaljer = Aktivitetskort.lagDetaljer(deltaker, deltakerliste, arrangor)
+        val detaljer = Aktivitetskort.lagDetaljer(deltaker)
 
         detaljer.first { it.label == "Deltakelsesmengde" } shouldBe Detalj("Deltakelsesmengde", "50% fordelt på 2 dager i uka")
     }
@@ -101,11 +121,13 @@ class AktivitetskortTest {
         )
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
 
-        val deltaker1 = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = 0.0f, deltakerlisteId = deltakerliste.id)
-        val deltaker2 = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = null, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo1 = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = 0.0f, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo2 = TestData.lagDeltaker(prosentStilling = 50.0, dagerPerUke = null, deltakerlisteId = deltakerliste.id)
+        val response1 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo1)
+        val response2 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo2)
 
-        val detaljer1 = Aktivitetskort.lagDetaljer(deltaker1, deltakerliste, arrangor)
-        val detaljer2 = Aktivitetskort.lagDetaljer(deltaker2, deltakerliste, arrangor)
+        val detaljer1 = Aktivitetskort.lagDetaljer(response1)
+        val detaljer2 = Aktivitetskort.lagDetaljer(response2)
 
         detaljer1.first { it.label == "Deltakelsesmengde" } shouldBe Detalj("Deltakelsesmengde", "50%")
         detaljer2.first { it.label == "Deltakelsesmengde" } shouldBe Detalj("Deltakelsesmengde", "50%")
@@ -118,11 +140,13 @@ class AktivitetskortTest {
         )
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
 
-        val deltaker1 = TestData.lagDeltaker(prosentStilling = 0.0, dagerPerUke = 5f, deltakerlisteId = deltakerliste.id)
-        val deltaker2 = TestData.lagDeltaker(prosentStilling = null, dagerPerUke = 1f, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo1 = TestData.lagDeltaker(prosentStilling = 0.0, dagerPerUke = 5f, deltakerlisteId = deltakerliste.id)
+        val deltakerDbo2 = TestData.lagDeltaker(prosentStilling = null, dagerPerUke = 1f, deltakerlisteId = deltakerliste.id)
+        val response1 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo1)
+        val response2 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo2)
 
-        val detaljer1 = Aktivitetskort.lagDetaljer(deltaker1, deltakerliste, arrangor)
-        val detaljer2 = Aktivitetskort.lagDetaljer(deltaker2, deltakerliste, arrangor)
+        val detaljer1 = Aktivitetskort.lagDetaljer(response1)
+        val detaljer2 = Aktivitetskort.lagDetaljer(response2)
 
         detaljer1.first { it.label == "Deltakelsesmengde" } shouldBe Detalj("Deltakelsesmengde", "fordelt på 5 dager i uka")
         detaljer2.first { it.label == "Deltakelsesmengde" } shouldBe Detalj("Deltakelsesmengde", "fordelt på 1 dag i uka")
@@ -133,12 +157,14 @@ class AktivitetskortTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("AFT", Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
-        val deltaker1 = TestData.lagDeltaker(dagerPerUke = 0f, prosentStilling = 0.0)
-        val deltaker2 = TestData.lagDeltaker(dagerPerUke = null, prosentStilling = null)
+        val deltakerDbo1 = TestData.lagDeltaker(dagerPerUke = 0f, prosentStilling = 0.0)
+        val deltakerDbo2 = TestData.lagDeltaker(dagerPerUke = null, prosentStilling = null)
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
+        val response1 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo1)
+        val response2 = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo2)
 
-        val detaljer1 = Aktivitetskort.lagDetaljer(deltaker1, deltakerliste, arrangor)
-        val detaljer2 = Aktivitetskort.lagDetaljer(deltaker2, deltakerliste, arrangor)
+        val detaljer1 = Aktivitetskort.lagDetaljer(response1)
+        val detaljer2 = Aktivitetskort.lagDetaljer(response2)
 
         detaljer1.find { it.label == "Deltakelsesmengde" } shouldBe null
         detaljer2.find { it.label == "Deltakelsesmengde" } shouldBe null
@@ -149,10 +175,11 @@ class AktivitetskortTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("Tilrettelagt arbeid i ordinær virksomhet", Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
         )
-        val deltaker = TestData.lagDeltaker(deltakerlisteId = deltakerliste.id)
+        val deltakerDbo = TestData.lagDeltaker(deltakerlisteId = deltakerliste.id)
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
+        val deltaker = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo)
 
-        val detaljer = Aktivitetskort.lagDetaljer(deltaker, deltakerliste, arrangor)
+        val detaljer = Aktivitetskort.lagDetaljer(deltaker)
 
         detaljer.find { it.label == "Deltakelsesmengde" } shouldBe null
     }
@@ -162,10 +189,11 @@ class AktivitetskortTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("Oppfølgingstiltak", Tiltakskode.OPPFOLGING),
         )
-        val deltaker = TestData.lagDeltaker()
+        val deltakerDbo = TestData.lagDeltaker()
         val arrangor = TestData.lagArrangor(id = deltakerliste.arrangorId)
+        val deltaker = lagDeltakerMedGjennomforing(deltakerliste, arrangor, deltakerDbo)
 
-        val detaljer = Aktivitetskort.lagDetaljer(deltaker, deltakerliste, arrangor)
+        val detaljer = Aktivitetskort.lagDetaljer(deltaker)
 
         detaljer.find { it.label == "Deltakelsesmengde" } shouldBe null
     }
