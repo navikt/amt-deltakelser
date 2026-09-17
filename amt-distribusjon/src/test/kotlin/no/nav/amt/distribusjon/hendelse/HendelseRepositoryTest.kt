@@ -5,13 +5,13 @@ import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -304,9 +304,9 @@ class HendelseRepositoryTest {
         val params = mapOf(
             "id" to hendelse.id,
             "deltaker_id" to hendelse.deltaker.id,
-            "deltaker" to toPGObject(deltakerNode),
-            "ansvarlig" to toPGObject(hendelse.ansvarlig),
-            "payload" to toPGObject(hendelse.payload),
+            "deltaker" to objectMapper.toPGObject(deltakerNode),
+            "ansvarlig" to objectMapper.toPGObject(hendelse.ansvarlig),
+            "payload" to objectMapper.toPGObject(hendelse.payload),
             "distribusjonskanal" to hendelse.distribusjonskanal.name,
             "manuelloppfolging" to hendelse.manuellOppfolging,
             "created_at" to hendelse.opprettet,
