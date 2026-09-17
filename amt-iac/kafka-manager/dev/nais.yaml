@@ -131,6 +131,12 @@ spec:
                "valueDeserializerType": "STRING"
             },
             {
+               "name": "pto.siste-14a-vedtak-v1",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
+            },
+            {
                "name": "team-mulighetsrommet.siste-tiltaksgjennomforinger-v1",
                "location": "AIVEN",
                "keyDeserializerType": "STRING",
