@@ -132,6 +132,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
     val endretAv: String,
     val endretAvEnhet: String,
     val endret: LocalDateTime,
+    val erForsteGodkjenning: Boolean,
 ) : DeltakerHistorikkResponse {
     constructor(
         model: OkonomiGodkjentForHistorikk,
@@ -145,6 +146,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
             "Fant ikke navn for enhet med id=${model.sistEndretAvNavEnhetId}"
         },
         endret = model.sistEndret,
+        erForsteGodkjenning = model.erForsteGodkjenning,
     )
 }
 

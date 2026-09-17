@@ -182,13 +182,21 @@ object PrisinfoRepository {
         )
     }
 
+    /**
+     * Henter alle godkjente prisinfo for en deltaker, sortert med eldste godkjenning først.
+     *
+     * `er_forste_godkjenning` utledes av vedtaket: den første godkjenningen er den som fattet
+     * vedtaket, mens påfølgende godkjenninger av prisendringer aldri endrer `vedtak.fattet`.
+     * Deltakere uten fattet vedtak (f.eks. importert fra Arena) får `false` på alle godkjenninger.
+     */
     fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val sql =
             """
             SELECT 
                 prisinfo.modified_at,
                 vedtak.sist_endret_av,
-                vedtak.sist_endret_av_enhet
+                vedtak.sist_endret_av_enhet,
+                COALESCE(prisinfo.modified_at <= vedtak.fattet, FALSE) AS er_forste_godkjenning
             FROM
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
@@ -207,6 +215,7 @@ object PrisinfoRepository {
                             sistEndret = row.localDateTime("modified_at"),
                             sistEndretAvNavAnsattId = row.uuid("sist_endret_av"),
                             sistEndretAvNavEnhetId = row.uuid("sist_endret_av_enhet"),
+                            erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
             )

@@ -420,5 +420,70 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 0
         }
+
+        @Test
+        fun `setter erForsteGodkjenning til true når godkjenning skjedde før vedtaket ble fattet`() {
+            // Arrange - vedtaket fattes etter at prisinfo ble godkjent
+            insertDeltakerMedVedtak(fattet = LocalDateTime.now().plusMinutes(5))
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            result.first().erForsteGodkjenning shouldBe true
+        }
+
+        @Test
+        fun `setter erForsteGodkjenning til false når godkjenning skjedde etter at vedtaket ble fattet`() {
+            // Arrange - prisendring godkjennes etter at vedtaket er fattet
+            insertDeltakerMedVedtak(fattet = LocalDateTime.now().minusMinutes(5))
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            result.first().erForsteGodkjenning shouldBe false
+        }
+
+        @Test
+        fun `setter erForsteGodkjenning til false når vedtaket ikke er fattet`() {
+            // Arrange
+            insertDeltakerMedVedtak(fattet = null)
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            result.first().erForsteGodkjenning shouldBe false
+        }
+
+        private fun insertDeltakerMedVedtak(fattet: LocalDateTime?) {
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                fattet = fattet,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+        }
+
+        private fun godkjennNyPrisinfo() {
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 20000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+        }
     }
 }
