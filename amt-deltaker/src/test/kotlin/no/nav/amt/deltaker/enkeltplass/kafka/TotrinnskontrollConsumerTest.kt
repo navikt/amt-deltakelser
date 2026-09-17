@@ -293,6 +293,39 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING attribuerer godkjenning til besluttetAv`() = runTest {
+            // Arrange - behandletAv (Z123456) og besluttetAv (Z654321) er ulike personer
+            val besluttetEnhet = lagNavEnhet()
+            val besluttetAnsatt = lagNavAnsatt(navEnhetId = besluttetEnhet.id)
+            coEvery { navAnsattService.hentNavAnsattOgEnhet("Z123456") } returns Pair(navAnsattInTest, navEnhetInTest)
+            coEvery { navAnsattService.hentNavAnsattOgEnhet("Z654321") } returns Pair(besluttetAnsatt, besluttetEnhet)
+
+            val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            stubEnkeltplassDeltaker(deltakerInTest)
+            stubGjeldendePrisinfo(
+                PrisinformasjonDto.IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
+            )
+
+            // Act
+            consumer.consume(
+                key = totrinnskontrollId,
+                value = godkjentEnkeltplassPrisinformasjonPayload(
+                    gjennomforingId = gjennomforingId,
+                    totrinnskontrollId = totrinnskontrollId,
+                ),
+            )
+
+            // Assert - godkjenning attribueres til besluttetAv, hendelsen til behandletAv
+            verify {
+                PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, besluttetAnsatt.id, besluttetEnhet.id)
+            }
+            verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
+        }
+
+        @Test
         fun `consume - godkjent ENKELTPLASS_PRISENDRING for SOKT_INN prosesseres som innsoking`() = runTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.SOKT_INN)
@@ -492,6 +525,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -542,6 +577,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -575,6 +612,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -616,6 +655,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -661,6 +702,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -699,6 +742,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -739,6 +784,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert - godkjennOkonomi feiler når beforeUpsert kjøres
@@ -797,6 +844,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -823,6 +872,8 @@ class TotrinnskontrollConsumerTest {
                     prisinfoId = totrinnskontrollId,
                     behandletAvNavAnsatt = navAnsatt,
                     behandletAvNavEnhet = navEnhet,
+                    godkjentAvNavAnsatt = navAnsatt,
+                    godkjentAvNavEnhet = navEnhet,
                 )
             }
         }
@@ -838,6 +889,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
