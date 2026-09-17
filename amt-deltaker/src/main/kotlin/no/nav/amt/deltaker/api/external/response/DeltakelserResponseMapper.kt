@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
+import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
@@ -88,7 +89,7 @@ class DeltakelserResponseMapper(
     private fun lagArrangorTittel(deltaker: Deltaker): String = TiltakVisningsnavn.lagTittel(
         tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
         tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
-        arrangorNavn = deltaker.deltakerliste.arrangor?.navn ?: "Ukjent arrangør",
+        arrangorNavn = deltaker.deltakerliste.arrangor?.navn ?: ARRANGOR_MANGLER,
         opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
     )
 

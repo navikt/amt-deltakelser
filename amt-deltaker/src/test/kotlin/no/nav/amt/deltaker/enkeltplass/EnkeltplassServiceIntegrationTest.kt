@@ -111,7 +111,6 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 oppstart shouldBe Oppstartstype.ENKELTPLASS
                 apentForPamelding shouldBe false
                 oppmoteSted shouldBe null
-                arrangor.shouldNotBeNull().navn shouldBe "Ukjent Arrangør"
                 pameldingstype shouldBe GjennomforingPameldingType.TRENGER_GODKJENNING
                 status shouldBe GjennomforingStatusType.KLADD
             }

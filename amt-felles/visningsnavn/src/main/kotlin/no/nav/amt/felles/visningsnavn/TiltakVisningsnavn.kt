@@ -6,6 +6,8 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 // https://confluence.adeo.no/spaces/SFAMT/pages/800078787/Visning+av+navn+p%C3%A5+tiltaket+gjennomf%C3%B8ring+i+aktivitetsplanenen+og+p%C3%A5+tiltakssidene
+const val ARRANGOR_MANGLER = "Ukjent arrangør"
+
 data class TiltakVisningsnavn(
     val tittel: String,
     val aktivitetskortTittel: String,
@@ -183,7 +185,7 @@ private fun hentTittel(
     arrangorNavn: String?,
     tekst: String,
 ): String {
-    val navn = arrangorNavn ?: "Ukjent arrangør"
+    val navn = arrangorNavn ?: ARRANGOR_MANGLER
     return "$tekst hos $navn"
 }
 

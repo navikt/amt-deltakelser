@@ -26,8 +26,8 @@ class ArrangorServiceTest {
         )
 
         val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
-        funksjonellArrangor.id shouldBe arrangor.id
-        funksjonellArrangor.navn shouldBe "Test Arrangør"
+        funksjonellArrangor?.id shouldBe arrangor.id
+        funksjonellArrangor?.navn shouldBe "Test Arrangør"
     }
 
     @Test
@@ -40,19 +40,19 @@ class ArrangorServiceTest {
         )
 
         val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
-        funksjonellArrangor.id shouldBe overordnetArrangor.id
-        funksjonellArrangor.navn shouldBe "Test Arrangør"
+        funksjonellArrangor?.id shouldBe overordnetArrangor.id
+        funksjonellArrangor?.navn shouldBe "Test Arrangør"
     }
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer ukjent navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer null`() {
         val gjennomforing = lagDeltakerliste(
             arrangor = null,
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
 
         val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
-        funksjonellArrangor.navn shouldBe "Ukjent Arrangør"
+        funksjonellArrangor shouldBe null
     }
 
     @Test
@@ -64,7 +64,7 @@ class ArrangorServiceTest {
             gjennomforingstype = GjennomforingType.Gruppe,
         )
 
-        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing).navn shouldBe "Test Arrangør"
+        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)?.navn shouldBe "Test Arrangør"
     }
 
     @Test
@@ -77,8 +77,8 @@ class ArrangorServiceTest {
         )
 
         val funksjonellArrangor = arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)
-        funksjonellArrangor.id shouldBe underordnetArrangor.id
-        funksjonellArrangor.navn shouldBe "Underenhet Oslo"
+        funksjonellArrangor?.id shouldBe underordnetArrangor.id
+        funksjonellArrangor?.navn shouldBe "Underenhet Oslo"
     }
 
     @Test
@@ -89,7 +89,7 @@ class ArrangorServiceTest {
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
 
-        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing).navn shouldBe "Underenhet Oslo AS"
+        arrangorService.getFunksjonellArrangorForGjennomforing(gjennomforing)?.navn shouldBe "Underenhet Oslo AS"
     }
 
     private fun lagreArrangor(
