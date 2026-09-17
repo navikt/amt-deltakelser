@@ -8,3 +8,8 @@ ALTER TABLE enkeltplass_prisinformasjon
 CREATE INDEX enkeltplass_prisinformasjon_godkjent_av_idx ON enkeltplass_prisinformasjon (godkjent_av);
 CREATE INDEX enkeltplass_prisinformasjon_godkjent_av_enhet_idx ON enkeltplass_prisinformasjon (godkjent_av_enhet);
 
+-- Historikk-oppslag filtrerer enkeltplass_prisinformasjon på deltakerliste_id og status = 'GODKJENT',
+-- og sorterer på modified_at. Partiell indeks på GODKJENT-radene dekker både filteret og sorteringen.
+CREATE INDEX enkeltplass_prisinformasjon_deltakerliste_godkjent_idx
+    ON enkeltplass_prisinformasjon (deltakerliste_id, modified_at)
+    WHERE status = 'GODKJENT';
