@@ -2,6 +2,7 @@
 
 package no.nav.amt.deltaker.repository
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -404,7 +405,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = returnertPrisinfo,
             )
-            PrisinfoRepository.oppdaterStatus(
+            PrisinfoRepository.oppdaterStatusIkkeGodkjent(
                 prisinformasjonId = returnertPrisinfoId,
                 status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
             )
@@ -956,6 +957,58 @@ class PrisinfoRepoAdapterTest {
             result[0].prisinformasjon shouldBe Anskaffelse(pris = 10000)
             result[1].erForsteGodkjenning shouldBe false
             result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000)
+        }
+
+        @Test
+        fun `attribuerer senere godkjenning til den som godkjente prisendringen, ikke vedtaket`() {
+            // Arrange - en annen ansatt/enhet godkjenner prisendringen enn den som fattet vedtaket
+            val annenEnhet = lagNavEnhet()
+            val annenAnsatt = lagNavAnsatt(navEnhetId = annenEnhet.id)
+            NavEnhetRepository().upsert(annenEnhet)
+            TestRepository.insert(annenAnsatt)
+
+            val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = endringId,
+                godkjentAv = annenAnsatt.id,
+                godkjentAvEnhet = annenEnhet.id,
+            )
+            settGodkjenningstidspunkt(endringId, vedtakFattet.plusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert
+            result.size shouldBe 1
+            assertSoftly(result.first()) {
+                erForsteGodkjenning shouldBe false
+                sistEndretAvNavAnsattId shouldBe annenAnsatt.id
+                sistEndretAvNavEnhetId shouldBe annenEnhet.id
+            }
+        }
+
+        @Test
+        fun `faller tilbake pa vedtaket nar godkjenner ikke er lagret`() {
+            // Arrange - godkjenning uten attribusjon (som gamle rader)
+            val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId)
+            settGodkjenningstidspunkt(endringId, vedtakFattet.minusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert - attribusjon hentes fra vedtaket
+            assertSoftly(result.first()) {
+                sistEndretAvNavAnsattId shouldBe navAnsatt.id
+                sistEndretAvNavEnhetId shouldBe navEnhet.id
+            }
         }
 
         private fun settGodkjenningstidspunkt(

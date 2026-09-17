@@ -68,7 +68,7 @@ class TotrinnskontrollConsumerTest {
             firstArg<() -> Any>().invoke()
         }
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
         every { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), any<PrisinfoDbo.Rolle>()) } returns PrisinformasjonDto.IngenKostnader(
             aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = null,
@@ -122,7 +122,7 @@ class TotrinnskontrollConsumerTest {
         }
 
         private fun stubGodkjennOkonomi(result: Boolean) {
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns result
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns result
         }
 
         private fun stubGjeldendePrisinfo(prisinfo: PrisinformasjonDto) {
@@ -242,7 +242,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_OKONOMI oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -252,7 +252,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify {
-                PrisinfoRepository.oppdaterStatus(
+                PrisinfoRepository.oppdaterStatusIkkeGodkjent(
                     prisinformasjonId = any(),
                     status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
                 )
@@ -285,7 +285,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
             hendelseSlot.captured shouldBe HendelseType.EnkeltplassGodkjennPrisendring(
                 prisinfo = godkjentPrisinfo,
@@ -358,7 +358,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
 
@@ -382,6 +382,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = gjennomforingId,
                     prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             }
         }
@@ -406,6 +408,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = any(),
                     prisinformasjonId = any(),
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             }
         }
@@ -413,7 +417,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_PRISENDRING oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -422,7 +426,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { PrisinfoRepository.oppdaterStatus(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
+            verify { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
         }
     }
@@ -472,7 +476,7 @@ class TotrinnskontrollConsumerTest {
 
         @BeforeEach
         fun setup() {
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
             every { vedtakService.godkjentOkonomiFattVedtak(any(), any(), any()) } just Runs
             every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
         }
@@ -550,7 +554,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentInnsoking - skipper videre prosessering naar prisinfo ikke kan godkjennes`() = runTest {
             // Arrange
             val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
@@ -592,7 +596,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentInnsoking - beforeUpsert kaster exception ved historisk prisinfo`() = runTest {
             // Arrange
             val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
@@ -715,7 +719,7 @@ class TotrinnskontrollConsumerTest {
             val deltakerInTest = lagSoktInnDeltaker()
             val dbError = RuntimeException("Database error")
 
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } throws dbError
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws dbError
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
@@ -760,6 +764,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = any(),
                     prisinformasjonId = any(),
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             } returns true
             every {
@@ -798,6 +804,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = gjennomforingId,
                     prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
                 )
             }
         }
@@ -806,7 +814,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() = runTest {
             // Arrange
             val exception = RuntimeException("Database error")
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } throws exception
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws exception
 
             // Act & Assert
             shouldThrow<RuntimeException> {
@@ -822,7 +830,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `processGodkjentPrisEndring - publiserer ikke når godkjennOkonomi returnerer false`() = runTest {
             // Arrange
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
 
             // Act
             consumer.processGodkjentPrisEndring(
@@ -833,7 +841,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
             verify(exactly = 0) { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), PrisinfoDbo.Rolle.GJELDENDE) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }

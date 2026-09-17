@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.GodkjentPrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.database.Database
@@ -163,9 +164,39 @@ object PrisinfoRepository {
         }
     }
 
-    fun oppdaterStatus(
+    fun oppdaterStatusIkkeGodkjent(
         prisinformasjonId: UUID,
-        status: PrisinfoDbo.PrisinfoStatus,
+        status: PrisinfoStatus,
+    ): Int {
+        if (status == PrisinfoStatus.GODKJENT) {
+            throw IllegalArgumentException("Status kan ikke settes til GODKJENT med denne metoden. Bruk settGodkjent()")
+        }
+        return Database.query { session ->
+            session.update(
+                queryOf(
+                    """
+                    UPDATE enkeltplass_prisinformasjon
+                    SET 
+                        status = ?,
+                        modified_at = now()
+                    WHERE id = ?
+                    """.trimIndent(),
+                    status.name,
+                    prisinformasjonId,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Setter prisinfo til GODKJENT og lagrer hvem som godkjente den.
+     *
+     * Godkjenneren lagres per godkjenning fordi den ikke kan utledes i etterkant.
+     */
+    fun settGodkjent(
+        prisinformasjonId: UUID,
+        godkjentAv: UUID?,
+        godkjentAvEnhet: UUID?,
     ) = Database.query { session ->
         session.update(
             queryOf(
@@ -173,10 +204,14 @@ object PrisinfoRepository {
                 UPDATE enkeltplass_prisinformasjon
                 SET 
                     status = ?,
+                    godkjent_av = ?,
+                    godkjent_av_enhet = ?,
                     modified_at = now()
                 WHERE id = ?
                 """.trimIndent(),
-                status.name,
+                PrisinfoDbo.PrisinfoStatus.GODKJENT.name,
+                godkjentAv,
+                godkjentAvEnhet,
                 prisinformasjonId,
             ),
         )
@@ -187,6 +222,9 @@ object PrisinfoRepository {
      *
      * `er_forste_godkjenning` utledes av vedtaket: den første godkjenningen er den som fattet
      * vedtaket.
+     *
+     * Godkjenneren hentes fra prisinfoen. Rader godkjent før `godkjent_av` ble innført faller
+     * tilbake på vedtaket, som er riktig for den første godkjenningen.
      */
     fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<GodkjentPrisinfoDbo> {
         val sql =
@@ -200,8 +238,8 @@ object PrisinfoRepository {
                 prisinfo.tilleggsopplysninger,
                 prisinfo.ingenkostnader_aarsak,
                 prisinfo.modified_at,
-                vedtak.sist_endret_av,
-                vedtak.sist_endret_av_enhet,
+                COALESCE(prisinfo.godkjent_av, vedtak.sist_endret_av) AS godkjent_av,
+                COALESCE(prisinfo.godkjent_av_enhet, vedtak.sist_endret_av_enhet) AS godkjent_av_enhet,
                 COALESCE(prisinfo.modified_at <= vedtak.fattet, FALSE) AS er_forste_godkjenning
             FROM
                 deltaker                
@@ -220,8 +258,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuid("sist_endret_av"),
-                            sistEndretAvNavEnhetId = row.uuid("sist_endret_av_enhet"),
+                            sistEndretAvNavAnsattId = row.uuid("godkjent_av"),
+                            sistEndretAvNavEnhetId = row.uuid("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,

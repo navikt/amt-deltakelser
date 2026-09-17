@@ -97,7 +97,7 @@ class TotrinnskontrollConsumer(
 
         // hvis hendelse ikke omhandler Status.GODKJENT, lagre status i databasen og returner
         if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) {
-            PrisinfoRepository.oppdaterStatus(
+            PrisinfoRepository.oppdaterStatusIkkeGodkjent(
                 prisinformasjonId = totrinnskontrollHendelse.id,
                 status = PrisinfoDbo.PrisinfoStatus.valueOf(totrinnskontrollHendelse.status.name),
             )
@@ -191,6 +191,8 @@ class TotrinnskontrollConsumer(
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjonId = prisinfoId,
+                godkjentAv = behandletAvNavAnsatt.id,
+                godkjentAvEnhet = behandletAvNavEnhet.id,
             )
 
             if (!skalPublisereHendelse) return@transaction
@@ -245,6 +247,8 @@ class TotrinnskontrollConsumer(
                     val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                         gjennomforingId = deltaker.deltakerliste.id,
                         prisinformasjonId = prisinfoId,
+                        godkjentAv = behandletAvNavAnsatt.id,
+                        godkjentAvEnhet = behandletAvNavEnhet.id,
                     )
 
                     if (!skalPublisereHendelse) {

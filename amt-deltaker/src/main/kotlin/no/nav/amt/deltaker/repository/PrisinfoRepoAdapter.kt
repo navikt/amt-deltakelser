@@ -41,15 +41,19 @@ object PrisinfoRepoAdapter {
      * Utfører tre steg:
      * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
      * 2. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
-     * 3. Setter status på prisinfo til GODKJENT
+     * 3. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
      * @param prisinformasjonId ID til prisinfoen som skal godkjennes
+     * @param godkjentAv ID til Nav-ansatt som godkjente prisinfoen
+     * @param godkjentAvEnhet ID til Nav-enheten som godkjente prisinfoen
      * @return `true` hvis godkjenningen var vellykket, `false` hvis prisinfoen ikke finnes eller ikke er ENDRING
      */
     fun godkjennOkonomi(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
+        godkjentAv: UUID? = null,
+        godkjentAvEnhet: UUID? = null,
     ): Boolean {
         val endringFinnes = Deltakerliste2PrisinfoRepository.delete(
             gjennomforingId = gjennomforingId,
@@ -65,9 +69,10 @@ object PrisinfoRepoAdapter {
             rolle = PrisinfoDbo.Rolle.GJELDENDE,
         )
 
-        PrisinfoRepository.oppdaterStatus(
+        PrisinfoRepository.settGodkjent(
             prisinformasjonId = prisinformasjonId,
-            status = PrisinfoDbo.PrisinfoStatus.GODKJENT,
+            godkjentAv = godkjentAv,
+            godkjentAvEnhet = godkjentAvEnhet,
         )
 
         return true
