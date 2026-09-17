@@ -15,7 +15,7 @@ data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
     val tiltakskode: TiltakskodeResponse,
-    // Denne brukes fortsatt av frontend noen stede for å få "ukjent arrangør" når arrangør mangler
+    // Denne brukes fortsatt av frontend noen steder for å få "ukjent arrangør" når arrangør mangler
     val arrangorNavn: String, // skal fjernes
     val visningsnavn: VisningsnavnResponse,
     // Denne brukes av frontend for Enkeltplasser fordi de har egen arrangør comboboks

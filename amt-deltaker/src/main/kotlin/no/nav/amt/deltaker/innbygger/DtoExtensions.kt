@@ -37,7 +37,9 @@ fun Deltaker.toHendelseDeltaker(
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
-        arrangor = deltakerliste.arrangor!!.toHendelseArrangor(),
+        arrangor =
+            deltakerliste.arrangor?.toHendelseArrangor()
+                ?: throw IllegalStateException("kan ikke publisere deltaker $id som mangler arrangor til hendelse topic"),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
         oppstartstype = deltakerliste.oppstart,

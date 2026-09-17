@@ -45,7 +45,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer ukjent navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass uten arrangør - returnerer null`() {
         val gjennomforing = lagDeltakerliste(
             arrangor = null,
             gjennomforingstype = GjennomforingType.Enkeltplass,

@@ -29,7 +29,7 @@ class ArrangorService(
        Henter arrangør med korrekt navn i forhold til tiltakstypen.
      * Gruppetiltak skal bruke overordnet arrangørs navn der det er tilgjengelig
      * Enkeltplasser skal bruke enheten som er koblet til gjennomføringen("underordnet arrangør")
-     * Enkeltplasser kan i visse tilfeller mangle arrangør(i kladd status), da brukes "Ukjent arrangør" som fallback
+     * Enkeltplasser kan i visse tilfeller mangle arrangør(i kladd status), da brukes null som fallback
      */
     fun getFunksjonellArrangorForGjennomforing(gjennomforing: Deltakerliste): Arrangor? {
         val arrangor = if (gjennomforing.gjennomforingstype === GjennomforingType.Gruppe) {
