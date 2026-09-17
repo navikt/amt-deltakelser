@@ -5,7 +5,6 @@ import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import no.nav.amt.distribusjon.utils.DbUtils.toPGObject
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
@@ -15,6 +14,7 @@ import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.postgresql.util.PGobject
 import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
@@ -277,6 +277,11 @@ class HendelseRepositoryTest {
             put("navn", "Overordnet Arrangør")
         }
 
+        fun json(value: Any) = PGobject().also {
+            it.type = "json"
+            it.value = objectMapper.writeValueAsString(value)
+        }
+
         val sql =
             """
             INSERT INTO hendelse (
@@ -304,9 +309,9 @@ class HendelseRepositoryTest {
         val params = mapOf(
             "id" to hendelse.id,
             "deltaker_id" to hendelse.deltaker.id,
-            "deltaker" to toPGObject(deltakerNode),
-            "ansvarlig" to toPGObject(hendelse.ansvarlig),
-            "payload" to toPGObject(hendelse.payload),
+            "deltaker" to json(deltakerNode),
+            "ansvarlig" to json(hendelse.ansvarlig),
+            "payload" to json(hendelse.payload),
             "distribusjonskanal" to hendelse.distribusjonskanal.name,
             "manuelloppfolging" to hendelse.manuellOppfolging,
             "created_at" to hendelse.opprettet,
