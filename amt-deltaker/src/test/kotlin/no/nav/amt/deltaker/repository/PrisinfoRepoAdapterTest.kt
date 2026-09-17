@@ -958,7 +958,10 @@ class PrisinfoRepoAdapterTest {
             result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000)
         }
 
-        private fun settGodkjenningstidspunkt(prisinformasjonId: UUID, tidspunkt: LocalDateTime) = Database.query { session ->
+        private fun settGodkjenningstidspunkt(
+            prisinformasjonId: UUID,
+            tidspunkt: LocalDateTime,
+        ) = Database.query { session ->
             session.update(
                 queryOf(
                     "UPDATE enkeltplass_prisinformasjon SET modified_at = ? WHERE id = ?",

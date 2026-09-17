@@ -16,6 +16,7 @@ import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class EndringRequestMapperTest {
@@ -173,6 +174,33 @@ class EndringRequestMapperTest {
             EndringRequestMapper.toEndring(request)
         }
     }
+
+    @Test
+    fun `endret prisinfo - vedtak ikke fattet - mapper til ENDRET_DIREKTE`() {
+        val endring = EndringRequestMapper.toEndring(
+            request = lagEndretPrisinfoRequest(),
+            vedtakFattet = null,
+        ) as DeltakerEndring.Endring.EndrePrisinfo
+
+        endring.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.ENDRET_DIREKTE
+    }
+
+    @Test
+    fun `endret prisinfo - vedtak fattet - mapper til SENDT_TIL_GODKJENNING`() {
+        val endring = EndringRequestMapper.toEndring(
+            request = lagEndretPrisinfoRequest(),
+            vedtakFattet = LocalDateTime.now(),
+        ) as DeltakerEndring.Endring.EndrePrisinfo
+
+        endring.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING
+    }
+
+    private fun lagEndretPrisinfoRequest() = EndretPrisinfoRequest(
+        endretAv = randomNavIdent(),
+        endretAvEnhet = randomEnhetsnummer(),
+        prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000),
+        begrunnelse = "Begrunnelse",
+    )
 
     private fun lagTiltakstype() = Tiltakstype(
         id = UUID.randomUUID(),
