@@ -38,7 +38,7 @@ data class Deltaker(
                             navn = it.navn,
                             overordnetArrangorId = null,
                         )
-                    } ?: throw IllegalStateException("Arrangør mangler id for deltaker $id"),
+                    } ?: throw IllegalStateException("Arrangør mangler for deltaker $id"),
                 ),
                 startdato = startdato,
                 sluttdato = sluttdato,

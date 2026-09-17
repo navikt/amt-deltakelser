@@ -37,16 +37,22 @@ data class DeltakerDbo(
     private fun isEqual(
         dagerPerUke: Float?,
         otherDagerPerUke: Float?,
-    ): Boolean = (dagerPerUke == otherDagerPerUke) ||
-        (dagerPerUke == null && otherDagerPerUke == 0.0F) ||
-        (dagerPerUke == 0.0F && otherDagerPerUke == null)
+    ): Boolean = when {
+        dagerPerUke == null && otherDagerPerUke == null -> true
+        dagerPerUke == null -> otherDagerPerUke == 0.0F
+        otherDagerPerUke == null -> dagerPerUke == 0.0F
+        else -> dagerPerUke.compareTo(otherDagerPerUke) == 0
+    }
 
     private fun isEqual(
         prosentStilling: Double?,
         otherProsentStilling: Double?,
-    ): Boolean = (prosentStilling == otherProsentStilling) ||
-        (prosentStilling == null && otherProsentStilling == 0.0) ||
-        (prosentStilling == 0.0 && otherProsentStilling == null)
+    ): Boolean = when {
+        prosentStilling == null && otherProsentStilling == null -> true
+        prosentStilling == null -> otherProsentStilling == 0.0
+        otherProsentStilling == null -> prosentStilling == 0.0
+        else -> prosentStilling.compareTo(otherProsentStilling) == 0
+    }
 
     override fun hashCode(): Int = Objects.hash(
         id,
