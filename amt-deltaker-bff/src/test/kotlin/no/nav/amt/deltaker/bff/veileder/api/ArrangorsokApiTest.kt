@@ -36,7 +36,6 @@ class ArrangorsokApiTest : IntegrationTestBase() {
             val expectedResponse = listOf(
                 EnhetResponse(
                     organisasjonsnummer = ORGNUMMER_IN_TEST,
-                    organisasjonsform = "AS",
                     navn = "Firma AS",
                     overordnetEnhet = null,
                 ),

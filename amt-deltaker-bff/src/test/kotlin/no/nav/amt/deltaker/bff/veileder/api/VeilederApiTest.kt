@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
@@ -55,7 +56,7 @@ import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
@@ -76,6 +77,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 "POST" to "/deltaker/$id",
                 "GET" to "/deltaker/$id/historikk",
                 "POST" to "/deltaker/$id/endre-prisinfo",
+                "POST" to "/deltaker/$id/tilbakekall-prisendring",
                 "POST" to "/deltaker/$id/endre-innhold-kodeverk",
                 "POST" to "/deltaker/$id/bakgrunnsinformasjon",
                 "POST" to "/deltaker/$id/innhold",
@@ -125,6 +127,7 @@ class VeilederApiTest : IntegrationTestBase() {
                 { httpClient.post("/deltaker/$id") { createPostRequest(deltakerRequest) } },
                 { httpClient.get("/deltaker/$id/historikk") { noBodyRequest() } },
                 { httpClient.post("/deltaker/$id/endre-prisinfo") { createPostRequest(endrePrisinfoRequest) } },
+                { httpClient.post("/deltaker/$id/tilbakekall-prisendring") { createPostRequest(tilbakekallPrisendringRequest) } },
                 { httpClient.post("/deltaker/$id/endre-innhold-kodeverk") { createPostRequest(endreOpplaringKategoriseringRequest) } },
                 { httpClient.post("/deltaker/$id/bakgrunnsinformasjon") { createPostRequest(bakgrunnsinformasjonRequest) } },
                 { httpClient.post("/deltaker/$id/innhold") { createPostRequest(innholdRequest) } },
@@ -214,7 +217,7 @@ class VeilederApiTest : IntegrationTestBase() {
         withTestApplicationContext { httpClient ->
             httpClient.get("/deltaker/${deltaker.id}/historikk") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
-                val expected = objectMapper.writePolymorphicListAsString(
+                val expected = objectMapper.writePolymorphicCollectionAsString(
                     DeltakerHistorikkResponse.fromModels(
                         models = historikk,
                         arrangornavn = arrangornavn,
@@ -433,6 +436,22 @@ class VeilederApiTest : IntegrationTestBase() {
                             // Response should not be a valid DeltakerResponse
                             val body = bodyAsText()
                             body.contains("Prisinformasjon er ikke gyldig: Pris må være større enn 0") shouldBe true
+                        }
+                }
+            }
+
+            @Test
+            fun `tilbakekall prisendring - har tilgang - returnerer deltaker`() {
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                val expected = setupMocksLocal(deltaker, deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/tilbakekall-prisendring") {
+                            createPostRequest(tilbakekallPrisendringRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
                         }
                 }
             }
@@ -687,6 +706,7 @@ class VeilederApiTest : IntegrationTestBase() {
         ),
         begrunnelse = "begrunnelse",
     )
+    private val tilbakekallPrisendringRequest = TilbakekallPrisendringRequest()
 
     private val endreOpplaringKategoriseringRequest = EndreOpplaringKategoriseringRequest(
         opplaringKategoriseringValg = setOf(

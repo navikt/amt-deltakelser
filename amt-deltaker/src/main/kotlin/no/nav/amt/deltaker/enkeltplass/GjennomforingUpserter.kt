@@ -215,6 +215,8 @@ class GjennomforingUpserter(
         organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
             ?: error("Organisasjonsnummer kan ikke være null"),
         ansvarligEnhet = ansvarligEnhet,
+        startDato = deltaker.startdato ?: error("Deltaker må ha startdato"),
+        sluttDato = deltaker.sluttdato ?: error("Deltaker må ha sluttdato"),
         opprettetAv = opprettetAvNavIdent,
         prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
             PrisinfoRepoAdapter.hentPrisinfo(

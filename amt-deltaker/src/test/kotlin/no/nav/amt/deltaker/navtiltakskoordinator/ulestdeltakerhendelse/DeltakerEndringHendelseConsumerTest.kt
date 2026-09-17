@@ -76,7 +76,6 @@ class DeltakerEndringHendelseConsumerTest : IntegrationTestBase() {
                     id = UUID.randomUUID(),
                     organisasjonsnummer = "999888777",
                     navn = "Arrangor",
-                    overordnetArrangor = null,
                 ),
                 tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
                     navn = "Tiltak",

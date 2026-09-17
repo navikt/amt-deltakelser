@@ -356,7 +356,6 @@ abstract class IntegrationTestBase {
 
     protected open val endringFraArrangorService: EndringFraArrangorService by lazy {
         EndringFraArrangorService(
-            deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             endringFraArrangorRepository = endringFraArrangorRepository,
             distribuerEndringService = distribuerEndringService,

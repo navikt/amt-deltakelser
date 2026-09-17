@@ -324,6 +324,60 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify { deltakerRepository.updateEnkeltplass(any()) }
         }
+
+        @Test
+        fun `skal beholde datoer når de ikke er oppgitt`() = runTest {
+            val startdato = LocalDate.of(2026, 1, 1)
+            val sluttdato = LocalDate.of(2026, 1, 2)
+            val deltaker = kladdDeltakerInTest.copy(
+                startdato = startdato,
+                sluttdato = sluttdato,
+            )
+            val request = oppdaterKladdRequest.copy(
+                startdato = null,
+                sluttdato = null,
+            )
+
+            stubDeltaker(deltaker)
+            every { deltakerlisteRepository.update(any()) } just Runs
+            every { deltakerRepository.updateEnkeltplass(any()) } just Runs
+
+            enkeltplassService.oppdaterKladd(
+                deltakerId = deltaker.id,
+                oppdaterKladdRequest = request,
+            )
+
+            verify {
+                deltakerRepository.updateEnkeltplass(
+                    match {
+                        it.startdato == startdato && it.sluttdato == sluttdato
+                    },
+                )
+            }
+        }
+
+        @Test
+        fun `skal kaste exception når delvis oppdatering gir sluttdato før startdato`() = runTest {
+            val deltaker = kladdDeltakerInTest.copy(
+                startdato = LocalDate.of(2026, 2, 1),
+                sluttdato = LocalDate.of(2026, 2, 2),
+            )
+            val request = oppdaterKladdRequest.copy(
+                startdato = null,
+                sluttdato = LocalDate.of(2026, 1, 1),
+            )
+
+            stubDeltaker(deltaker)
+
+            shouldThrow<IllegalArgumentException> {
+                enkeltplassService.oppdaterKladd(
+                    deltakerId = deltaker.id,
+                    oppdaterKladdRequest = request,
+                )
+            }
+
+            verify(exactly = 0) { deltakerRepository.updateEnkeltplass(any()) }
+        }
     }
 
     @Nested
@@ -343,7 +397,10 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
-                enkeltplassService.delUtkastMedInnbygger(deltakerId = deltaker.id, decoratedRequest = decoratedRequest)
+                enkeltplassService.delUtkastMedInnbygger(
+                    deltakerId = deltaker.id,
+                    decoratedRequest = decoratedRequest,
+                )
             }
         }
 
@@ -448,6 +505,8 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         private val pameldingRequestInTest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.of(2026, 1, 1),
+            sluttdato = LocalDate.of(2026, 1, 2),
             prisinformasjon = Anskaffelse(1234),
         )
 

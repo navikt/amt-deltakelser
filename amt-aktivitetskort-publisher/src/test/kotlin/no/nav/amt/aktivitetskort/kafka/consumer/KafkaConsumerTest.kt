@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.aktivitetskort.IntegrationTestBase
-import no.nav.amt.aktivitetskort.TestUtils.staticObjectMapper
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.database.TestData.toDto
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
@@ -21,6 +20,7 @@ import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -50,7 +50,7 @@ class KafkaConsumerTest(
         val arrangor = TestData.lagArrangor()
 
         kafkaConsumer.listen(
-            ConsumerRecord(ARRANGOR_TOPIC, 0, offset, arrangor.id.toString(), staticObjectMapper.writeValueAsString(arrangor.toDto())),
+            ConsumerRecord(ARRANGOR_TOPIC, 0, offset, arrangor.id.toString(), objectMapper.writeValueAsString(arrangor.toDto())),
             ack,
         )
 
@@ -67,7 +67,7 @@ class KafkaConsumerTest(
                 0,
                 offset,
                 ctx.tiltakstype.id.toString(),
-                staticObjectMapper.writeValueAsString(ctx.tiltakstype),
+                objectMapper.writeValueAsString(ctx.tiltakstype),
             ),
             ack,
         )
@@ -91,7 +91,7 @@ class KafkaConsumerTest(
                 0,
                 offset,
                 deltakerlistePayload.id.toString(),
-                staticObjectMapper.writeValueAsString(deltakerlistePayload),
+                objectMapper.writeValueAsString(deltakerlistePayload),
             ),
             ack,
         )
@@ -115,7 +115,7 @@ class KafkaConsumerTest(
                 0,
                 offset,
                 ctx.deltaker.id.toString(),
-                staticObjectMapper.writeValueAsString(ctx.deltaker.toDto()),
+                objectMapper.writeValueAsString(ctx.deltaker.toDto()),
             ),
             ack,
         )
@@ -171,7 +171,7 @@ class KafkaConsumerTest(
                 0,
                 offset,
                 ctx.deltaker.id.toString(),
-                staticObjectMapper.writeValueAsString(endretDeltaker.toDto()),
+                objectMapper.writeValueAsString(endretDeltaker.toDto()),
             ),
             ack,
         )

@@ -139,8 +139,6 @@ class EnkeltplassService(
 
         return oppdaterKladdEllerUtkast(
             deltaker = deltaker,
-            // TODO: Vurder å benytte kun OppdaterEnkeltplassKladdRequest
-            // EnkeltplassPameldingRequest og OppdaterEnkeltplassKladdRequest er veldig like
             oppdaterKladdRequest = with(decoratedRequest.wrappedRequest) {
                 OppdaterEnkeltplassKladdRequest(
                     beskrivelse = beskrivelse,
@@ -209,6 +207,13 @@ class EnkeltplassService(
         val kategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(
             deltaker.deltakerliste.tiltakstype.tiltakskode,
         )
+        // Datoene er valgfrie ved utkastoppdatering og skal ikke nullstille allerede lagrede datoer.
+        val startdato = oppdaterKladdRequest.startdato ?: deltaker.startdato
+        val sluttdato = oppdaterKladdRequest.sluttdato ?: deltaker.sluttdato
+
+        if (startdato != null && sluttdato != null) {
+            require(!sluttdato.isBefore(startdato)) { "Sluttdato kan ikke være før startdato" }
+        }
 
         return Database.transaction {
             deltakerlisteRepository.update(
@@ -221,8 +226,8 @@ class EnkeltplassService(
             deltakerRepository.updateEnkeltplass(
                 lagDeltakerUpdateDbo(
                     deltaker = deltaker,
-                    startdato = oppdaterKladdRequest.startdato,
-                    sluttdato = oppdaterKladdRequest.sluttdato,
+                    startdato = startdato,
+                    sluttdato = sluttdato,
                     beskrivelse = oppdaterKladdRequest.beskrivelse,
                     dagerPerUke = oppdaterKladdRequest.dagerPerUke,
                 ),

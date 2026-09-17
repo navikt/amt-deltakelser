@@ -28,6 +28,9 @@ import java.util.UUID
  * 4. `hentPrisinfo()` → returnerer GJELDENDE dersom den finnes, ellers ENDRING
  */
 object PrisinfoRepoAdapter {
+    fun hentPrisinfoById(prisinformasjonId: UUID): PrisinformasjonDto? =
+        PrisinfoRepository.hentPrisinfo(prisinformasjonId)?.toPrisinformasjonDto()
+
     fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
         Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
 

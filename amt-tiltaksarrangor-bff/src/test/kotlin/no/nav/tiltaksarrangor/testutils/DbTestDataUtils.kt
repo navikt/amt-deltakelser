@@ -20,18 +20,29 @@ object DbTestDataUtils {
         expected.shouldNotBeNull().shouldBeWithin(Duration.ofSeconds(2), this)
     }
 
+    // Skjemaet endres ikke i løpet av en test-kjøring (migreringer kjører kun ved oppstart),
+    // så tabell- og sekvensnavn hentes fra information_schema kun én gang og caches, i stedet
+    // for å spørre databasen på nytt før hver eneste test.
+    private var cachedTables: List<String>? = null
+    private var cachedSequences: List<String>? = null
+
     fun cleanDatabase(dataSource: DataSource) {
         val jdbcTemplate = JdbcTemplate(dataSource)
 
-        val tables = getAllTables(jdbcTemplate).filter { it != FLYWAY_SCHEMA_HISTORY_TABLE_NAME }
-        val sequences = getAllSequences(jdbcTemplate)
+        val tables = cachedTables ?: getAllTables(jdbcTemplate)
+            .filter { it != FLYWAY_SCHEMA_HISTORY_TABLE_NAME }
+            .also { cachedTables = it }
 
-        tables.forEach {
-            jdbcTemplate.update("TRUNCATE TABLE $it CASCADE")
+        val sequences = cachedSequences ?: getAllSequences(jdbcTemplate).also { cachedSequences = it }
+
+        // Én kombinert TRUNCATE for alle tabeller og batchet ALTER SEQUENCE i stedet for
+        // ett JDBC-kall per tabell/sekvens - reduserer antall network round-trips per test.
+        if (tables.isNotEmpty()) {
+            jdbcTemplate.update("TRUNCATE TABLE ${tables.joinToString(", ")} CASCADE")
         }
 
-        sequences.forEach {
-            jdbcTemplate.update("ALTER SEQUENCE $it RESTART WITH 1")
+        if (sequences.isNotEmpty()) {
+            jdbcTemplate.batchUpdate(*sequences.map { "ALTER SEQUENCE $it RESTART WITH 1" }.toTypedArray())
         }
     }
 

@@ -3,10 +3,12 @@
 package no.nav.amt.internapi.enkeltplass
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Companion.MAX_LENGTH_TILLEGGSOPPLYSNINGER
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class EnkeltplassPameldingRequestTest {
     @Test
@@ -23,8 +25,8 @@ class EnkeltplassPameldingRequestTest {
             beskrivelse = longString,
             prisinformasjon = prisinformasjonInTest,
             arrangorUnderenhet = longString,
-            startdato = null,
-            sluttdato = null,
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
         ).sanitized()
 
         // Assert
@@ -33,6 +35,22 @@ class EnkeltplassPameldingRequestTest {
             arrangorUnderenhet shouldBe longString.take(MAX_LENGTH_ARRANGOR_UNDERENHET)
             prisinformasjon shouldBe prisinformasjonInTest.copy(
                 tilleggsopplysninger = longString.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
+            )
+        }
+    }
+
+    @Test
+    fun `kaster exception naar sluttdato er for startdato`() {
+        shouldThrow<IllegalArgumentException> {
+            EnkeltplassPameldingRequest(
+                beskrivelse = "Beskrivelse",
+                arrangorUnderenhet = "987654321",
+                startdato = LocalDate.of(2026, 1, 2),
+                sluttdato = LocalDate.of(2026, 1, 1),
+                prisinformasjon = PrisinformasjonDto.IngenKostnader(
+                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
             )
         }
     }

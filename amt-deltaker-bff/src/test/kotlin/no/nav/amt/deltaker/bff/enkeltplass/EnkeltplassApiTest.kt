@@ -33,9 +33,12 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.node.ObjectNode
+import java.time.LocalDate
 import java.util.UUID
 
 class EnkeltplassApiTest : IntegrationTestBase() {
@@ -409,6 +412,27 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Assert
             response.status shouldBe HttpStatusCode.OK
         }
+
+        @Test
+        fun `skal returnere BadRequest nar sluttdato er for startdato`() = runTest {
+            // Arrange
+            // Bygger en ugyldig JSON-body (sluttdato før startdato) fordi
+            // EnkeltplassPameldingRequest sin init-blokk hindrer oss i å konstruere den direkte.
+            val invalidRequestJson = objectMapper.valueToTree<ObjectNode>(enkeltplassPameldingRequest).apply {
+                put("sluttdato", enkeltplassPameldingRequest.startdato.minusDays(1).toString())
+            }
+
+            // Act
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    createPostRequest(invalidRequestJson)
+                }
+            }
+
+            // Assert
+            response.status shouldBe HttpStatusCode.BadRequest
+            coVerify(exactly = 0) { enkeltplassClient.meldPaaDirekte(any(), any()) }
+        }
     }
 
     @Nested
@@ -461,6 +485,8 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         private val enkeltplassPameldingRequest = EnkeltplassPameldingRequest(
             beskrivelse = "Testbeskrivelse",
             arrangorUnderenhet = "987654322",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
     }

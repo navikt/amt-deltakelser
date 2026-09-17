@@ -1,7 +1,6 @@
 package no.nav.amt.lib.testing
 
 import kotliquery.queryOf
-import no.nav.amt.lib.testing.utils.ContainerReuseConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.DatabaseConfig
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -11,7 +10,10 @@ object TestPostgresContainer {
     private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
     private var dbInitialized = false
 
-    private val reuseConfig = ContainerReuseConfig()
+    // Schema doesn't change during a test run (migrations only run once in bootstrap()),
+    // so the table list is resolved once and reused instead of re-querying pg_tables
+    // and building the dynamic TRUNCATE statement before every single test.
+    private var cachedTableNames: List<String>? = null
 
     fun bootstrap() {
         if (!dbInitialized) {
@@ -22,34 +24,31 @@ object TestPostgresContainer {
     }
 
     fun truncateAllTables() {
-        val sql =
-            """
-            DO $$
-            DECLARE r RECORD;
-            
-            BEGIN
-                FOR r IN (
-                    SELECT tablename
-                    FROM pg_tables
-                    WHERE 
-                        schemaname = 'public'
-                        AND tablename NOT IN ('flyway_schema_history')
-                ) 
-                LOOP
-                    EXECUTE format('TRUNCATE TABLE %I CASCADE', r.tablename);
-                END LOOP;
-            END $$;                
-            """.trimIndent()
+        val tableNames = cachedTableNames ?: resolveTableNames().also { cachedTableNames = it }
+        if (tableNames.isEmpty()) return
 
+        val sql = "TRUNCATE TABLE ${tableNames.joinToString(", ")} CASCADE"
         Database.query { session -> session.update(queryOf(sql)) }
+    }
+
+    private fun resolveTableNames(): List<String> = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT format('%I.%I', schemaname, tablename) AS table_name
+                FROM pg_tables
+                WHERE
+                    schemaname = 'public'
+                    AND tablename NOT IN ('flyway_schema_history')
+                """.trimIndent(),
+            ).map { row -> row.string("table_name") }.asList,
+        )
     }
 
     private val container: PostgreSQLContainer by lazy {
         PostgreSQLContainer(POSTGRES_DOCKER_IMAGE_NAME)
             .withCommand("postgres", "-c", "wal_level=logical")
             .waitingFor(HostPortWaitStrategy())
-            .withReuse(reuseConfig.reuse)
-            .withLabel("reuse.UUID", reuseConfig.reuseLabel)
             .apply { addEnv("TZ", "Europe/Oslo") }
     }
 

@@ -6,6 +6,7 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class EnkeltplassPameldingRequestTest {
     @Test
@@ -13,6 +14,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -24,6 +27,8 @@ class EnkeltplassPameldingRequestTest {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
@@ -31,21 +36,38 @@ class EnkeltplassPameldingRequestTest {
     }
 
     @Test
-    fun `validate - skal returnere feil hvis ugyldig arrangorOrgnummer`() {
+    fun `validate - skal returnere feil hvis arrangorOrgnummer inneholder bokstaver`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
             arrangorUnderenhet = "abc",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 
-        assertInvalidResult(request.validate(), "Organisasjonsnummeret må starte med 8 eller 9 og inneholde 9 siffer")
+        assertInvalidResult(request.validate(), "Organisasjonsnummeret må inneholde 9 siffer")
+    }
+
+    @Test
+    fun `validate - skal returnere feil hvis arrangorOrgnummer har feil antall siffer`() {
+        val request = EnkeltplassPameldingRequest(
+            beskrivelse = "~beskrivelse~",
+            arrangorUnderenhet = "12345678",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
+            prisinformasjon = Anskaffelse(pris = 1000000),
+        )
+
+        assertInvalidResult(request.validate(), "Organisasjonsnummeret må inneholde 9 siffer")
     }
 
     @Test
     fun `validate - skal returnere gyldig resultat hvis alle påkrevde felt er fylt ut`() {
         val request = EnkeltplassPameldingRequest(
             beskrivelse = "~beskrivelse~",
-            arrangorUnderenhet = "987654321",
+            arrangorUnderenhet = "123456789",
+            startdato = LocalDate.now(),
+            sluttdato = LocalDate.now().plusDays(1),
             prisinformasjon = Anskaffelse(pris = 1000000),
         )
 

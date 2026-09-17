@@ -59,7 +59,7 @@ class DeltakerService(
 
         return deltaker.copy(
             deltakerliste = deltaker.deltakerliste.copy(
-                arrangor = deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor,
+                arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
             ),
         )
     }
@@ -76,7 +76,7 @@ class DeltakerService(
             )
             deltaker.copy(
                 deltakerliste = deltaker.deltakerliste.copy(
-                    arrangor = deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor,
+                    arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
                 ),
             )
         }

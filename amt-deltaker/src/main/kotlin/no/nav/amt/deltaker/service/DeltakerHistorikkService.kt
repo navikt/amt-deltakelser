@@ -97,7 +97,7 @@ class DeltakerHistorikkService(
         },
         { deltakerId ->
             PrisinfoRepository
-                .hentPrisinfoListeForHistorikk(deltakerId)
+                .hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
                 .map { prisinformasjonForHistorikk ->
                     DeltakerHistorikk.EnkeltplassOkonomiGodkjent(prisinformasjonForHistorikk)
                 }

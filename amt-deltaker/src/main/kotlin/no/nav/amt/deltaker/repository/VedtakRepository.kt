@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
@@ -52,7 +52,7 @@ class VedtakRepository {
             "deltaker_id" to vedtak.deltakerId,
             "fattet" to vedtak.fattet,
             "gyldig_til" to vedtak.gyldigTil,
-            "deltaker_ved_vedtak" to toPGObject(vedtak.deltakerVedVedtak),
+            "deltaker_ved_vedtak" to objectMapper.toPGObject(vedtak.deltakerVedVedtak),
             "fattet_av_nav" to vedtak.fattetAvNav,
             "opprettet_av" to vedtak.opprettetAv,
             "opprettet_av_enhet" to vedtak.opprettetAvEnhet,

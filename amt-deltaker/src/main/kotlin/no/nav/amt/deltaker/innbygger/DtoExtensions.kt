@@ -10,6 +10,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
 
 fun Deltaker.toUtkastDto() = UtkastDto(
@@ -36,7 +37,9 @@ fun Deltaker.toHendelseDeltaker(
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
-        arrangor = deltakerliste.arrangor!!.toHendelseArrangor(),
+        arrangor =
+            deltakerliste.arrangor?.toHendelseArrangor()
+                ?: throw IllegalStateException("kan ikke publisere deltaker $id som mangler arrangor til hendelse topic"),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
         oppstartstype = deltakerliste.oppstart,
@@ -64,8 +67,5 @@ private fun List<Innhold>.toInnholdDtoList() = this.map {
 private fun Arrangor.toHendelseArrangor() = HendelseDeltaker.Deltakerliste.Arrangor(
     id,
     organisasjonsnummer,
-    navn,
-    // TODO: Overordnet arrangør skal fjernes her fordi amt-deltaker sørger for å sende den som skal brukes
-    // Dette kan fjernes etter at meldinger er spist
-    null,
+    navn.toTitleCase(),
 )

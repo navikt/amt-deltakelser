@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
+import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import java.time.LocalDate
 import java.util.UUID
@@ -68,7 +69,7 @@ data class DeltakerResponse(
                 forslag = endringsforslagFraArrangor.map {
                     ForslagResponse.fromForslag(
                         forslag = it,
-                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                        arrangornavn = gjennomforing.arrangor?.navn ?: ARRANGOR_MANGLER,
                         enheter = emptyMap(),
                         ansatte = emptyMap(),
                     )

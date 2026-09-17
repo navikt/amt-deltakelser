@@ -22,7 +22,7 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.PersonIdentResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.writePolymorphicListAsString
+import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
@@ -149,7 +149,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${deltakerResponse.id}/historikk") { noBodyRequest() }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writePolymorphicListAsString(
+                bodyAsText() shouldBe objectMapper.writePolymorphicCollectionAsString(
                     DeltakerHistorikkResponse.fromModels(
                         models = historikk,
                         arrangornavn = arrangornavn,

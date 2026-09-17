@@ -1,6 +1,7 @@
 package no.nav.amt.distribusjon.hendelse
 
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
@@ -8,9 +9,13 @@ import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.toPGObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -256,5 +261,65 @@ class HendelseRepositoryTest {
 
         // Assert
         hendelser.size shouldBe 1
+    }
+
+    @Test
+    fun `getHendelser - deltaker med legacy overordnetArrangor i json - leses uten feil`() {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+        val deltakerNode = objectMapper.valueToTree<ObjectNode>(hendelse.deltaker)
+        val deltakerlisteNode = deltakerNode.get("deltakerliste") as ObjectNode
+        val arrangorNode = deltakerlisteNode.get("arrangor") as ObjectNode
+
+        arrangorNode.putObject("overordnetArrangor").apply {
+            put("id", UUID.randomUUID().toString())
+            put("organisasjonsnummer", "999999999")
+            put("navn", "Overordnet Arrangør")
+        }
+
+        val sql =
+            """
+            INSERT INTO hendelse (
+                id,
+                deltaker_id,
+                deltaker,
+                ansvarlig,
+                payload,
+                distribusjonskanal,
+                manuelloppfolging,
+                created_at
+            )
+            VALUES (
+                :id,
+                :deltaker_id,
+                :deltaker,
+                :ansvarlig,
+                :payload,
+                :distribusjonskanal,
+                :manuelloppfolging,
+                :created_at
+            )
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to hendelse.id,
+            "deltaker_id" to hendelse.deltaker.id,
+            "deltaker" to objectMapper.toPGObject(deltakerNode),
+            "ansvarlig" to objectMapper.toPGObject(hendelse.ansvarlig),
+            "payload" to objectMapper.toPGObject(hendelse.payload),
+            "distribusjonskanal" to hendelse.distribusjonskanal.name,
+            "manuelloppfolging" to hendelse.manuellOppfolging,
+            "created_at" to hendelse.opprettet,
+        )
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
+
+        // Act
+        val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
+
+        // Assert
+        hendelser.size shouldBe 1
+        hendelser.first().id shouldBe hendelse.id
+        hendelser.first().deltaker.id shouldBe hendelse.deltaker.id
     }
 }

@@ -5,12 +5,14 @@ import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService
 import no.nav.amt.internapi.deltaker.request.EndretOpplaringKategoriseringRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequestMapper
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -100,11 +102,18 @@ class DeltakerEndringService(
         } else {
             null
         }
+        val prisinfo = if (endringRequest is TilbakekaltPrisendringRequest) {
+            endringRequest.prisinformasjonId?.let { PrisinfoRepoAdapter.hentPrisinfoById(it) }
+                ?: throw IllegalArgumentException("Fant ingen matchende prisinformasjon: ${endringRequest.prisinformasjonId}")
+        } else {
+            null
+        }
 
         return EndringRequestMapper.toEndring(
             request = endringRequest,
             tiltakstype = deltaker.deltakerliste.tiltakstype,
             opplaringKategoriseringValg = opplaringKategoriseringValg,
+            prisinfo = prisinfo,
         )
     }
 

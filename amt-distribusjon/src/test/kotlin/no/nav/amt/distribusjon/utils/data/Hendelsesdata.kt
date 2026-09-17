@@ -137,8 +137,7 @@ object Hendelsesdata {
         id: UUID = UUID.randomUUID(),
         organisasjonsnummer: String = randomOrgnr(),
         navn: String = "Arrangornavn",
-        overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null,
-    ) = HendelseDeltaker.Deltakerliste.Arrangor(id, organisasjonsnummer, navn, overordnetArrangor)
+    ) = HendelseDeltaker.Deltakerliste.Arrangor(id, organisasjonsnummer, navn)
 
     fun tiltak(
         navn: String = "Tiltaksnavn",
