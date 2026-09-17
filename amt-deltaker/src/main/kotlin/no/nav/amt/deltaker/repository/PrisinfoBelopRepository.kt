@@ -66,13 +66,16 @@ object PrisinfoBelopRepository {
                 pristype, 
                 pris 
             FROM enkeltplass_prisinformasjon_belop
-            WHERE prisinfo_id = ANY(?)
+            WHERE prisinfo_id = ANY(:prisinformasjonIder)
             """.trimIndent()
 
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, session.createArrayOf("uuid", prisinformasjonIder))
+                    queryOf(
+                        sql,
+                        mapOf("prisinformasjonIder" to prisinformasjonIder.toTypedArray()),
+                    )
                         .map { row ->
                             row.uuid("prisinfo_id") to Priskomponent(
                                 type = Tilskuddstype.valueOf(row.string("pristype")),
