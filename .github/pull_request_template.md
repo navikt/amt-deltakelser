@@ -4,9 +4,6 @@
 ## Trello card
 <!-- Link related trello card -->
 
-## Related Issues
-<!-- Link to any related issues (e.g., Fixes #123) -->
-
 ## Type of Change
 - [ ] Bug fix
 - [ ] New feature
@@ -19,3 +16,7 @@
 - [ ] I have added tests that prove my fix is effective or that my feature works.
 - [ ] I have commented my code, particularly in hard-to-understand areas.
 - [ ] I have linked this PR in related Trello card.
+- [ ] I have deployed and manually tested the changes in this PR.
+
+## Manuelle tester
+<!-- Testing done by author -->

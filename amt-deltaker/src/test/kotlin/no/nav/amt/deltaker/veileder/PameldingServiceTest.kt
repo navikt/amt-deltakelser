@@ -70,7 +70,9 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() = runTest {
             // Arrange
+            val arrangor = lagArrangor(navn = "TEST ARRANGØR")
             val expectedDeltaker = lagDeltaker(
+                deltakerliste = lagDeltakerliste(arrangor = arrangor),
                 sluttdato = null,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -84,6 +86,9 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             actualDeltaker.id shouldBe expectedDeltaker.id
+            actualDeltaker.deltakerliste.arrangor
+                .shouldNotBeNull()
+                .navn shouldBe "Test Arrangør"
         }
 
         @Test
@@ -421,6 +426,28 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 expectedKey = deltakerId,
                 expectedTopic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             )
+        }
+
+        @Test
+        fun `innbyggerGodkjennUtkast - returnerer deltaker med formatert arrangornavn`() = runTest {
+            // Arrange
+            val arrangor = lagArrangor(navn = "TEST ARRANGØR")
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(arrangor = arrangor),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = null)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+            // Act
+            val result = pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+
+            // Assert
+            val resultArrangor = result.deltakerliste.arrangor.shouldNotBeNull()
+            resultArrangor.id shouldBe arrangor.id
+            resultArrangor.navn shouldBe "Test Arrangør"
         }
 
         @Test
