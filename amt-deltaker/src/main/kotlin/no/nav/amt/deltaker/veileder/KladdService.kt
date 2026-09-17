@@ -36,7 +36,7 @@ class KladdService(
 
         if (eksisterendeDeltaker != null) {
             log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
-            return eksisterendeDeltaker
+            return deltakerService.getOrThrow(eksisterendeDeltaker.id)
         }
 
         return deltakerService

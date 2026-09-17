@@ -389,7 +389,6 @@ fun Application.module() {
     )
 
     val endringFraArrangorService = EndringFraArrangorService(
-        deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         endringFraArrangorRepository = endringFraArrangorRepository,
         distribuerEndringService = distribuerEndringService,
