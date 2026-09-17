@@ -17,4 +17,3 @@ data class GodkjentPrisinfoDbo(
     val sistEndretAvNavEnhetId: UUID?,
     val erForsteGodkjenning: Boolean,
 )
-
