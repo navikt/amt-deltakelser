@@ -4,7 +4,6 @@ import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.utils.emptyUUID
 import no.nav.amt.lib.utils.toTitleCase
 
 class ArrangorService(
@@ -13,7 +12,6 @@ class ArrangorService(
 ) {
     companion object {
         const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
-        const val ARRANGOR_MANGLER = "Ukjent arrangør"
     }
 
     suspend fun hentArrangor(orgnr: String): Arrangor = arrangorRepository.get(orgnr) ?: opprettArrangor(orgnr)
@@ -33,7 +31,7 @@ class ArrangorService(
      * Enkeltplasser skal bruke enheten som er koblet til gjennomføringen("underordnet arrangør")
      * Enkeltplasser kan i visse tilfeller mangle arrangør(i kladd status), da brukes "Ukjent arrangør" som fallback
      */
-    fun getFunksjonellArrangorForGjennomforing(gjennomforing: Deltakerliste): Arrangor {
+    fun getFunksjonellArrangorForGjennomforing(gjennomforing: Deltakerliste): Arrangor? {
         val arrangor = if (gjennomforing.gjennomforingstype === GjennomforingType.Gruppe) {
             gjennomforing.arrangor
                 ?.overordnetArrangorId
@@ -42,13 +40,8 @@ class ArrangorService(
                 ?: gjennomforing.arrangor
         } else {
             gjennomforing.arrangor
-        } ?: Arrangor(
-            id = emptyUUID(),
-            organisasjonsnummer = "0",
-            navn = ARRANGOR_MANGLER,
-            overordnetArrangorId = null,
-        )
+        }
 
-        return arrangor.copy(navn = arrangor.navn.toTitleCase())
+        return arrangor?.copy(navn = arrangor.navn.toTitleCase())
     }
 }

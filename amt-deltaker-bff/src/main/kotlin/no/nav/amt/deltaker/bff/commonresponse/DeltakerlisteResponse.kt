@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.veileder.api.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.TilgjengeligInnholdResponse
+import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -14,8 +15,10 @@ data class DeltakerlisteResponse(
     val deltakerlisteId: UUID,
     val deltakerlisteNavn: String,
     val tiltakskode: TiltakskodeResponse,
+    // Denne brukes fortsatt av frontend noen stede for å få "ukjent arrangør" når arrangør mangler
     val arrangorNavn: String, // skal fjernes
     val visningsnavn: VisningsnavnResponse,
+    // Denne brukes av frontend for Enkeltplasser fordi de har egen arrangør comboboks
     val arrangor: ArrangorResponse?,
     val oppstartstype: Oppstartstype?,
     val startdato: LocalDate?,
@@ -33,7 +36,7 @@ data class DeltakerlisteResponse(
         deltakerlisteId = model.id,
         deltakerlisteNavn = model.navn,
         tiltakskode = TiltakskodeResponse(model.tiltak.tiltakskode),
-        arrangorNavn = model.arrangor?.navn ?: "Ukjent arrangør",
+        arrangorNavn = model.arrangor?.navn ?: ARRANGOR_MANGLER,
         visningsnavn = VisningsnavnResponse.fraGjennomforing(model),
         arrangor = model.arrangor?.let(::ArrangorResponse),
         oppstartstype = model.oppstart,

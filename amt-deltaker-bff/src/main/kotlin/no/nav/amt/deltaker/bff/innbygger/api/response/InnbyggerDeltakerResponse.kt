@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
+import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
@@ -47,7 +48,7 @@ data class InnbyggerDeltakerResponse(
                 forslag = endringsforslagFraArrangor.map {
                     ForslagResponse.fromForslag(
                         forslag = it,
-                        arrangornavn = gjennomforing.arrangor?.navn ?: "Ukjent arrangør",
+                        arrangornavn = gjennomforing.arrangor?.navn ?: ARRANGOR_MANGLER,
                         enheter = emptyMap(),
                         ansatte = emptyMap(),
                     )
