@@ -931,6 +931,44 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
+        fun `mapper flere godkjente tilskudd med riktige belop i ett kall`() {
+            // Arrange - forste tilskudd godkjennes for vedtaket fattes
+            val forsteTilskudd = Tilskudd(
+                tilleggsopplysninger = "Forste",
+                tilskudd = listOf(TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 8000)),
+            )
+            val forsteId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = forsteTilskudd,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId)
+            settGodkjenningstidspunkt(forsteId, vedtakFattet.minusMinutes(1))
+
+            // Arrange - senere tilskuddsendring med andre komponenter
+            val andreTilskudd = Tilskudd(
+                tilleggsopplysninger = "Andre",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.EKSAMENSGEBYR, pris = 2000),
+                    TilskuddInfo(type = Tilskuddstype.STUDIEREISE, pris = 3000),
+                ),
+            )
+            val andreId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = andreTilskudd,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, andreId)
+            settGodkjenningstidspunkt(andreId, vedtakFattet.plusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert - hvert innslag beholder sine egne komponenter
+            result.size shouldBe 2
+            result[0].prisinformasjon shouldBe forsteTilskudd
+            result[1].prisinformasjon shouldBe andreTilskudd
+        }
+
+        @Test
         fun `skiller forste godkjenning fra senere prisendring`() {
             // Arrange - forste godkjenning skjedde da vedtaket ble fattet
             val forsteId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(

@@ -49,27 +49,41 @@ object PrisinfoBelopRepository {
         )
     }
 
-    fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> {
+    fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> =
+        hentPrisinfoBelop(listOf(prisinformasjonId))[prisinformasjonId].orEmpty()
+
+    /**
+     * Henter priskomponenter for flere prisinfoer i én spørring.
+     *
+     * Brukes ved bygging av deltakerhistorikk for å unngå N+1: én batch-oppslag
+     * i stedet for ett kall per tilskudd-innslag.
+     *
+     * @return Map fra prisinfo-id til komponentene, uten nøkler for prisinfoer uten komponenter.
+     */
+    fun hentPrisinfoBelop(prisinformasjonIder: List<UUID>): Map<UUID, List<Priskomponent>> {
+        if (prisinformasjonIder.isEmpty()) return emptyMap()
+
         val sql =
             """
             SELECT 
+                prisinfo_id,
                 pristype, 
                 pris 
             FROM enkeltplass_prisinformasjon_belop
-            WHERE prisinfo_id = ?
+            WHERE prisinfo_id = ANY(?)
             """.trimIndent()
 
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, prisinformasjonId)
+                    queryOf(sql, session.createArrayOf("uuid", prisinformasjonIder))
                         .map { row ->
-                            Priskomponent(
+                            row.uuid("prisinfo_id") to Priskomponent(
                                 type = Tilskuddstype.valueOf(row.string("pristype")),
                                 pris = row.int("pris"),
                             )
                         }.asList,
                 )
-            }
+            }.groupBy({ it.first }, { it.second })
     }
 }

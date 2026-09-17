@@ -150,7 +150,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 10000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
@@ -159,7 +159,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+            result shouldBe PrisinfoDbo.PrisinfoStatus.RETURNERT
         }
 
         @Test
@@ -306,7 +306,7 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Opplysning",
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -344,7 +344,7 @@ class PrisinfoRepositoryTest {
             )
             PrisinfoRepository.upsertPrisinfo(godkjentPrisinfo)
             PrisinfoRepository.upsertPrisinfo(kladdPrisinfo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(godkjentPrisinfo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(godkjentPrisinfo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -363,7 +363,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 15000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -412,7 +412,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 30000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
@@ -486,7 +486,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 20000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
         }
     }
 }
