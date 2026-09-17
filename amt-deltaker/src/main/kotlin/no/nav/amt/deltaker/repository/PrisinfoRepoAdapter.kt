@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
@@ -75,6 +76,24 @@ object PrisinfoRepoAdapter {
     fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository
         .hentPrisinfoMap(gjennomforingId)
         .mapValues { (_, prisinfo) -> prisinfo.toPrisinformasjonDto() }
+
+    /**
+     * Henter godkjente prisinfo for deltakerhistorikken, eldste godkjenning først.
+     *
+     * Konverterer prisinfo fra database-format til DTO slik at historikken kan vise
+     * hva som faktisk ble godkjent ved hver godkjenning.
+     */
+    fun hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> = PrisinfoRepository
+        .hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
+        .map {
+            OkonomiGodkjentForHistorikk(
+                sistEndret = it.sistEndret,
+                sistEndretAvNavAnsattId = it.sistEndretAvNavAnsattId,
+                sistEndretAvNavEnhetId = it.sistEndretAvNavEnhetId,
+                erForsteGodkjenning = it.erForsteGodkjenning,
+                prisinformasjon = it.prisinfo.toPrisinformasjonDto(),
+            )
+        }
 
     /**
      * Henter prisinfo for en gjennomføring, med prioritet på godkjente records.

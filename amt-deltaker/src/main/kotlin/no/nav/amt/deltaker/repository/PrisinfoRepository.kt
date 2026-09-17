@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.repository.dbo.GodkjentPrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
-import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
@@ -189,10 +189,17 @@ object PrisinfoRepository {
      * vedtaket, mens påfølgende godkjenninger av prisendringer aldri endrer `vedtak.fattet`.
      * Deltakere uten fattet vedtak (f.eks. importert fra Arena) får `false` på alle godkjenninger.
      */
-    fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
+    fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<GodkjentPrisinfoDbo> {
         val sql =
             """
             SELECT 
+                prisinfo.id,
+                prisinfo.deltakerliste_id,
+                prisinfo.status,
+                prisinfo.prisinformasjon_json_type,
+                prisinfo.anskaffelse_pris,
+                prisinfo.tilleggsopplysninger,
+                prisinfo.ingenkostnader_aarsak,
                 prisinfo.modified_at,
                 vedtak.sist_endret_av,
                 vedtak.sist_endret_av_enhet,
@@ -211,7 +218,8 @@ object PrisinfoRepository {
             session.run(
                 queryOf(sql, deltakerId)
                     .map { row ->
-                        OkonomiGodkjentForHistorikk(
+                        GodkjentPrisinfoDbo(
+                            prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
                             sistEndretAvNavAnsattId = row.uuid("sist_endret_av"),
                             sistEndretAvNavEnhetId = row.uuid("sist_endret_av_enhet"),

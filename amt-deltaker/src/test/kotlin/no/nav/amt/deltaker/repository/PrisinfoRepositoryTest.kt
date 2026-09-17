@@ -432,7 +432,10 @@ class PrisinfoRepositoryTest {
 
             // Assert
             result shouldHaveSize 1
-            result.first().erForsteGodkjenning shouldBe true
+            assertSoftly(result.first()) {
+                erForsteGodkjenning shouldBe true
+                prisinfo.anskaffelsePris shouldBe 20000
+            }
         }
 
         @Test

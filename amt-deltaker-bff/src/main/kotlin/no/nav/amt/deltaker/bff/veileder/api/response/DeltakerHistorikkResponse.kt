@@ -133,6 +133,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
     val endretAvEnhet: String,
     val endret: LocalDateTime,
     val erForsteGodkjenning: Boolean,
+    val prisinformasjon: PrisinformasjonResponse?,
 ) : DeltakerHistorikkResponse {
     constructor(
         model: OkonomiGodkjentForHistorikk,
@@ -147,6 +148,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
         },
         endret = model.sistEndret,
         erForsteGodkjenning = model.erForsteGodkjenning,
+        prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
     )
 }
 
