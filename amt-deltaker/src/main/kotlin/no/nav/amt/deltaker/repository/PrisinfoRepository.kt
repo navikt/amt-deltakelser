@@ -222,9 +222,6 @@ object PrisinfoRepository {
      *
      * `er_forste_godkjenning` utledes av vedtaket: den første godkjenningen er den som fattet
      * vedtaket.
-     *
-     * Godkjenneren hentes fra prisinfoen. Rader godkjent før `godkjent_av` ble innført faller
-     * tilbake på vedtaket, som er riktig for den første godkjenningen.
      */
     fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<GodkjentPrisinfoDbo> {
         val sql =

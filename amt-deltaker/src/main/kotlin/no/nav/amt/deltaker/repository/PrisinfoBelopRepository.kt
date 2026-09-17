@@ -49,17 +49,13 @@ object PrisinfoBelopRepository {
         )
     }
 
+    /**
+     * Bekvemmelighetsmetode for å hente en enkelt prisinformasjon.
+     * Trenger du flere, bruk den andre [hentPrisinfoBelop]-metoden.
+     */
     fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> =
         hentPrisinfoBelop(listOf(prisinformasjonId))[prisinformasjonId].orEmpty()
 
-    /**
-     * Henter priskomponenter for flere prisinfoer i én spørring.
-     *
-     * Brukes ved bygging av deltakerhistorikk for å unngå N+1: én batch-oppslag
-     * i stedet for ett kall per tilskudd-innslag.
-     *
-     * @return Map fra prisinfo-id til komponentene, uten nøkler for prisinfoer uten komponenter.
-     */
     fun hentPrisinfoBelop(prisinformasjonIder: List<UUID>): Map<UUID, List<Priskomponent>> {
         if (prisinformasjonIder.isEmpty()) return emptyMap()
 

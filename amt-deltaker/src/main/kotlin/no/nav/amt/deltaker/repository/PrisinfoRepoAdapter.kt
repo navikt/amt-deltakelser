@@ -87,7 +87,7 @@ object PrisinfoRepoAdapter {
     fun hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val godkjente = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
 
-        // Batch-hent tilskuddskomponenter for å unngå N+1 ved bygging av historikk.
+        // Hent tilskuddssbeløp i batch for å kunne effektivt lage Dto nedenfor
         val tilskuddIder = godkjente
             .map { it.prisinfo }
             .filter { it.prisinfoJsonSubtype == TILSKUDD_SUB_TYPE }
