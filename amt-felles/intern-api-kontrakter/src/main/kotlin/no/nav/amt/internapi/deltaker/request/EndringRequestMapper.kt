@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.FjernOppstartsdato
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.ForlengDeltakelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.IkkeAktuell
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.ReaktiverDeltakelse
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -41,6 +42,7 @@ object EndringRequestMapper {
         tiltakstype: Tiltakstype? = null,
         opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         prisinfo: PrisinformasjonDto? = null,
+        deltakerStatus: DeltakerStatus.Type? = null,
     ): DeltakerEndring.Endring = when (request) {
         is AvbrytDeltakelseRequest -> AvbrytDeltakelse(
             aarsak = request.aarsak,
@@ -95,6 +97,7 @@ object EndringRequestMapper {
             prisinfo = request.prisinfo,
             begrunnelse = request.begrunnelse,
             prisinformasjonId = request.prisinformasjonId,
+            status = if (deltakerStatus == DeltakerStatus.Type.KLADD) Status.ENDRET_DIREKTE else Status.SENDT_TIL_GODKJENNING,
         )
 
         is TilbakekaltPrisendringRequest -> EndrePrisinfo(
