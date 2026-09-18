@@ -120,7 +120,7 @@ sealed interface DeltakerHistorikkResponse {
                 ansatte = ansatte,
             )
 
-            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse(
+            is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse.fromModel(
                 model = model.data,
                 enheter = enheter,
                 ansatte = ansatte,
@@ -158,18 +158,6 @@ data class EnkeltplassOkonomiGodkjentResponse(
             )
         }
     }
-
-    constructor(
-        model: OkonomiGodkjentForHistorikk,
-        enheter: Map<UUID, NavEnhet>,
-        ansatte: Map<UUID, NavAnsatt>,
-    ) : this(
-        endretAv = model.sistEndretAvNavAnsattId.let { ansatte[it]?.navn },
-        endretAvEnhet = model.sistEndretAvNavEnhetId.let { enheter[it]?.navn },
-        endret = model.sistEndret,
-        erForsteGodkjenning = model.erForsteGodkjenning,
-        prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
-    )
 }
 
 data class DeltakerEndringResponse(
