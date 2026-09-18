@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.repository
 
-import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter.hentTilskuddBelop
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
@@ -32,7 +31,7 @@ import java.util.UUID
 object PrisinfoRepoAdapter {
     fun hentPrisinfoById(prisinformasjonId: UUID): PrisinformasjonDto? = PrisinfoRepository
         .hentPrisinfo(prisinformasjonId)
-        ?.let { it.toPrisinformasjonDto(it.hentTilskuddBelop()) }
+        ?.hentBelopOgKonverterTilDto()
 
     fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
         Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
@@ -82,7 +81,7 @@ object PrisinfoRepoAdapter {
 
     fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository
         .hentPrisinfoMap(gjennomforingId)
-        .mapValues { (_, prisinfo) -> prisinfo.toPrisinformasjonDto(prisinfo.hentTilskuddBelop()) }
+        .mapValues { (_, prisinfo) -> prisinfo.hentBelopOgKonverterTilDto() }
 
     fun hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
         val godkjente = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
@@ -124,7 +123,7 @@ object PrisinfoRepoAdapter {
             .hentPrisinfo(
                 gjennomforingId = gjennomforingId,
                 rolle = rolle,
-            )?.let { it.toPrisinformasjonDto(it.hentTilskuddBelop()) }
+            )?.hentBelopOgKonverterTilDto()
     } else {
         val prisinfoMap = hentPrisinfoMap(gjennomforingId)
         prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE] ?: prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
@@ -237,15 +236,17 @@ object PrisinfoRepoAdapter {
         return prisinformasjonId
     }
 
-    private fun PrisinfoDbo.hentTilskuddBelop(): List<Priskomponent> = if (prisinfoJsonSubtype == TILSKUDD_SUB_TYPE) {
-        PrisinfoBelopRepository.hentPrisinfoBelop(id)
-    } else {
-        emptyList()
-    }
-
     /**
-     * Ren mapping uten databasekall – `belop` må hentes av kalleren (se [hentTilskuddBelop]).
+     * Henter tilskuddsbeløp der det er relevant (databasekall) og konverterer til DTO.
      */
+    private fun PrisinfoDbo.hentBelopOgKonverterTilDto(): PrisinformasjonDto = toPrisinformasjonDto(
+        if (prisinfoJsonSubtype == TILSKUDD_SUB_TYPE) {
+            PrisinfoBelopRepository.hentPrisinfoBelop(id)
+        } else {
+            emptyList()
+        },
+    )
+
     fun PrisinfoDbo.toPrisinformasjonDto(belop: List<Priskomponent>): PrisinformasjonDto = when (prisinfoJsonSubtype) {
         ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
             this.anskaffelsePris
@@ -347,7 +348,7 @@ object PrisinfoRepoAdapter {
                 gjennomforingId = gjennomforingId,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )?.takeUnless { it.status == PrisinfoDbo.PrisinfoStatus.RETURNERT }
-            ?.let { it.toPrisinformasjonDto(it.hentTilskuddBelop()) }
+            ?.hentBelopOgKonverterTilDto()
             ?: hentPrisinfo(
                 gjennomforingId = gjennomforingId,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
