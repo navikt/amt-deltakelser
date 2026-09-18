@@ -150,7 +150,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 10000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(

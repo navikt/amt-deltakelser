@@ -405,7 +405,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = returnertPrisinfo,
             )
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = returnertPrisinfoId,
                 status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
             )

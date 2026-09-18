@@ -189,7 +189,7 @@ class GjennomforingUpserter(
         gjennomforingRequestProducer.produce(gjennomforingRequestPayload)
 
         if (gjennomforingRequestPayload is GjennomforingRequestPayload.EnkeltplassSoktInn) {
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = gjennomforingRequestPayload.totrinnskontroll.id,
                 status = PrisinfoDbo.PrisinfoStatus.SENDT,
             )

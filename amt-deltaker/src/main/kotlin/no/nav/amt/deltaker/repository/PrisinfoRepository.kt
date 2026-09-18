@@ -164,7 +164,7 @@ object PrisinfoRepository {
         }
     }
 
-    fun oppdaterStatusIkkeGodkjent(
+    fun oppdaterStatusSomIkkeErGodkjent(
         prisinformasjonId: UUID,
         status: PrisinfoStatus,
     ): Int {

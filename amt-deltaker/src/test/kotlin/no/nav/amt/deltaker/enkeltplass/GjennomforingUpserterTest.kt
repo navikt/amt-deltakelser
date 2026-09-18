@@ -100,7 +100,7 @@ class GjennomforingUpserterTest {
             )
         }
         every { PrisinfoRepository.hentPrisinfoMap(any()) } returns emptyMap()
-        every { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) } returns 1
+        every { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) } returns 1
 
         mockkObject(PrisinfoRepoAdapter)
         every {
@@ -351,7 +351,7 @@ class GjennomforingUpserterTest {
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = payload,
             )
-            verify(exactly = 0) { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) }
+            verify(exactly = 0) { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) }
         }
 
         @Test
@@ -381,7 +381,7 @@ class GjennomforingUpserterTest {
                     behandletAv = navIdent,
                 ),
             )
-            verify { PrisinfoRepository.oppdaterStatusIkkeGodkjent(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
         }
 
         @Test

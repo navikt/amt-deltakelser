@@ -97,7 +97,7 @@ class TotrinnskontrollConsumer(
 
         // hvis hendelse ikke omhandler Status.GODKJENT, lagre status i databasen og returner
         if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) {
-            PrisinfoRepository.oppdaterStatusIkkeGodkjent(
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = totrinnskontrollHendelse.id,
                 status = PrisinfoDbo.PrisinfoStatus.valueOf(totrinnskontrollHendelse.status.name),
             )
@@ -140,14 +140,11 @@ class TotrinnskontrollConsumer(
         // Godkjenningen skal attribueres til den som besluttet (besluttetAv), ikke den som forespurte
         // (behandletAv).
         val besluttetAv = totrinnskontrollHendelse.besluttetAv
-        val (godkjentAvNavAnsatt, godkjentAvNavEnhet) =
-            if (besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt) {
-                navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
-            } else {
-                error(
-                    "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv",
-                )
-            }
+        require(besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt)
+        {
+            "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv"
+        }
+        val (godkjentAvNavAnsatt, godkjentAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
 
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {

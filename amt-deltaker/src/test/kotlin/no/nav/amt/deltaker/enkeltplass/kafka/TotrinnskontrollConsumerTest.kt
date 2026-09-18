@@ -242,7 +242,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_OKONOMI oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -252,7 +252,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify {
-                PrisinfoRepository.oppdaterStatusIkkeGodkjent(
+                PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                     prisinformasjonId = any(),
                     status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
                 )
@@ -490,7 +490,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_PRISENDRING oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -499,7 +499,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { PrisinfoRepository.oppdaterStatusIkkeGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
         }
     }
