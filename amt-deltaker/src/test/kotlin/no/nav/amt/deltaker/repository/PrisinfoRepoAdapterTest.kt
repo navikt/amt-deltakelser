@@ -43,6 +43,23 @@ class PrisinfoRepoAdapterTest {
         private val gjennomforingInTest = lagDeltakerliste()
     }
 
+    private val navEnhetInTest = lagNavEnhet()
+    private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
+
+    private fun godkjennOkonomiMedTestbruker(
+        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
+    ): Boolean {
+        NavEnhetRepository().upsert(navEnhetInTest)
+        TestRepository.insert(navAnsattInTest)
+        return PrisinfoRepoAdapter.godkjennOkonomi(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
+            godkjentAv = navAnsattInTest.id,
+            godkjentAvEnhet = navEnhetInTest.id,
+        )
+    }
+
     private val godkjennerEnhet = lagNavEnhet()
     private val godkjennerAnsatt = lagNavAnsatt(navEnhetId = godkjennerEnhet.id)
 
@@ -652,8 +669,18 @@ class PrisinfoRepoAdapterTest {
             val tilskudd = Tilskudd(
                 tilleggsopplysninger = "Tilskuddinformasjon",
                 tilskudd = listOf(
-                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 8000),
-                    TilskuddInfo(type = Tilskuddstype.EKSAMENSGEBYR, pris = 1500),
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 8000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 1500,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.STUDIEREISE,
+                        pris = 3000,
+                    ),
                 ),
             )
 
