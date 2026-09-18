@@ -9,13 +9,11 @@ import java.util.UUID
  * @property prisinfo prisinformasjonen som ble godkjent
  * @property erForsteGodkjenning `true` for godkjenningen som fattet vedtaket,
  * `false` for påfølgende godkjenninger av prisendringer
- * @property sistEndretAvNavAnsattId `null` hvis godkjenneren ikke er kjent (f.eks. historiske data)
- * @property sistEndretAvNavEnhetId `null` hvis godkjenneren ikke er kjent (f.eks. historiske data)
  */
 data class GodkjentPrisinfoDbo(
     val prisinfo: PrisinfoDbo,
     val sistEndret: LocalDateTime,
-    val sistEndretAvNavAnsattId: UUID?,
-    val sistEndretAvNavEnhetId: UUID?,
+    val sistEndretAvNavAnsattId: UUID,
+    val sistEndretAvNavEnhetId: UUID,
     val erForsteGodkjenning: Boolean,
 )
