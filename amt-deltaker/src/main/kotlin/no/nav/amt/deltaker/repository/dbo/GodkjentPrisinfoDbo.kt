@@ -13,7 +13,7 @@ import java.util.UUID
 data class GodkjentPrisinfoDbo(
     val prisinfo: PrisinfoDbo,
     val sistEndret: LocalDateTime,
-    val sistEndretAvNavAnsattId: UUID?,
-    val sistEndretAvNavEnhetId: UUID?,
+    val sistEndretAvNavAnsattId: UUID,
+    val sistEndretAvNavEnhetId: UUID,
     val erForsteGodkjenning: Boolean,
 )
