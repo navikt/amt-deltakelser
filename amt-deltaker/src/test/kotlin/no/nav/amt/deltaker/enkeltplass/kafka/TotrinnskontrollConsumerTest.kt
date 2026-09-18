@@ -68,7 +68,7 @@ class TotrinnskontrollConsumerTest {
             firstArg<() -> Any>().invoke()
         }
         mockkObject(PrisinfoRepoAdapter)
-        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
         every { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), any<PrisinfoDbo.Rolle>()) } returns PrisinformasjonDto.IngenKostnader(
             aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = null,
@@ -122,7 +122,7 @@ class TotrinnskontrollConsumerTest {
         }
 
         private fun stubGodkjennOkonomi(result: Boolean) {
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns result
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns result
         }
 
         private fun stubGjeldendePrisinfo(prisinfo: PrisinformasjonDto) {
@@ -242,7 +242,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_OKONOMI oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -252,7 +252,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify {
-                PrisinfoRepository.oppdaterStatus(
+                PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                     prisinformasjonId = any(),
                     status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
                 )
@@ -285,11 +285,84 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
             hendelseSlot.captured shouldBe HendelseType.EnkeltplassGodkjennPrisendring(
                 prisinfo = godkjentPrisinfo,
             )
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING attribuerer godkjenning til besluttetAv`() = runTest {
+            // Arrange - behandletAv (Z123456) og besluttetAv (Z654321) er ulike personer
+            val besluttetEnhet = lagNavEnhet()
+            val besluttetAnsatt = lagNavAnsatt(navEnhetId = besluttetEnhet.id)
+            coEvery { navAnsattService.hentNavAnsattOgEnhet("Z123456") } returns Pair(navAnsattInTest, navEnhetInTest)
+            coEvery { navAnsattService.hentNavAnsattOgEnhet("Z654321") } returns Pair(besluttetAnsatt, besluttetEnhet)
+
+            val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            stubEnkeltplassDeltaker(deltakerInTest)
+            stubGjeldendePrisinfo(
+                PrisinformasjonDto.IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
+            )
+
+            // Act
+            consumer.consume(
+                key = totrinnskontrollId,
+                value = godkjentEnkeltplassPrisinformasjonPayload(
+                    gjennomforingId = gjennomforingId,
+                    totrinnskontrollId = totrinnskontrollId,
+                ),
+            )
+
+            // Assert - godkjenning attribueres til besluttetAv, hendelsen til behandletAv
+            verify {
+                PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, besluttetAnsatt.id, besluttetEnhet.id)
+            }
+            verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
+        }
+
+        @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING feiler når besluttetAv er systembruker`() = runTest {
+            // Arrange
+            val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            stubEnkeltplassDeltaker(deltakerInTest)
+            stubGjeldendePrisinfo(
+                PrisinformasjonDto.IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                consumer.consume(
+                    key = totrinnskontrollId,
+                    value = godkjentEnkeltplassPrisinformasjonPayload(
+                        gjennomforingId = gjennomforingId,
+                        totrinnskontrollId = totrinnskontrollId,
+                        besluttetAv =
+                            """
+                            {
+                              "type": "SYSTEM",
+                              "system": "maskinell godkjenning"
+                            }
+                            """.trimIndent(),
+                    ),
+                )
+            }
+
+            // Assert
+            exception.message shouldBe
+                "Totrinnskontroll $totrinnskontrollId er godkjent med uventet type for `besluttetAv`. Avbryter behandling: System(system=maskinell godkjenning)"
+            verify(exactly = 0) {
+                PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any())
+            }
+            verify(exactly = 0) {
+                distribuerEndringService.produceHendelse(any(), any(), any(), any())
+            }
         }
 
         @Test
@@ -358,7 +431,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
 
@@ -382,6 +455,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = gjennomforingId,
                     prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             }
         }
@@ -406,6 +481,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = any(),
                     prisinformasjonId = any(),
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             }
         }
@@ -413,7 +490,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `consume - avvist ENKELTPLASS_PRISENDRING oppdaterer status`() = runTest {
             // Arrange
-            every { PrisinfoRepository.oppdaterStatus(any(), any()) } returns 1
+            every { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) } returns 1
 
             // Act
             consumer.consume(
@@ -422,7 +499,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { PrisinfoRepository.oppdaterStatus(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
         }
     }
@@ -472,7 +549,7 @@ class TotrinnskontrollConsumerTest {
 
         @BeforeEach
         fun setup() {
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns true
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
             every { vedtakService.godkjentOkonomiFattVedtak(any(), any(), any()) } just Runs
             every { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) } just Runs
         }
@@ -488,6 +565,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -538,6 +617,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -550,7 +631,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentInnsoking - skipper videre prosessering naar prisinfo ikke kan godkjennes`() = runTest {
             // Arrange
             val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
                 deltakerService.upsertAndProduceDeltaker(
@@ -571,6 +652,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -592,7 +675,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentInnsoking - beforeUpsert kaster exception ved historisk prisinfo`() = runTest {
             // Arrange
             val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
@@ -612,6 +695,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -657,6 +742,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -695,6 +782,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -715,7 +804,7 @@ class TotrinnskontrollConsumerTest {
             val deltakerInTest = lagSoktInnDeltaker()
             val dbError = RuntimeException("Database error")
 
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } throws dbError
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws dbError
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
             every {
@@ -735,6 +824,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert - godkjennOkonomi feiler når beforeUpsert kjøres
@@ -760,6 +851,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = any(),
                     prisinformasjonId = any(),
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
                 )
             } returns true
             every {
@@ -791,6 +884,8 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
@@ -798,6 +893,8 @@ class TotrinnskontrollConsumerTest {
                 PrisinfoRepoAdapter.godkjennOkonomi(
                     gjennomforingId = gjennomforingId,
                     prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
                 )
             }
         }
@@ -806,7 +903,7 @@ class TotrinnskontrollConsumerTest {
         fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() = runTest {
             // Arrange
             val exception = RuntimeException("Database error")
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } throws exception
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws exception
 
             // Act & Assert
             shouldThrow<RuntimeException> {
@@ -815,6 +912,8 @@ class TotrinnskontrollConsumerTest {
                     prisinfoId = totrinnskontrollId,
                     behandletAvNavAnsatt = navAnsatt,
                     behandletAvNavEnhet = navEnhet,
+                    godkjentAvNavAnsatt = navAnsatt,
+                    godkjentAvNavEnhet = navEnhet,
                 )
             }
         }
@@ -822,7 +921,7 @@ class TotrinnskontrollConsumerTest {
         @Test
         fun `processGodkjentPrisEndring - publiserer ikke når godkjennOkonomi returnerer false`() = runTest {
             // Arrange
-            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) } returns false
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
 
             // Act
             consumer.processGodkjentPrisEndring(
@@ -830,10 +929,12 @@ class TotrinnskontrollConsumerTest {
                 prisinfoId = totrinnskontrollId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
             )
 
             // Assert
-            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any()) }
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
             verify(exactly = 0) { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), PrisinfoDbo.Rolle.GJELDENDE) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
@@ -1009,6 +1110,13 @@ class TotrinnskontrollConsumerTest {
         private fun godkjentEnkeltplassPrisinformasjonPayload(
             gjennomforingId: UUID,
             totrinnskontrollId: UUID,
+            besluttetAv: String =
+                """
+                {
+                  "type": "NAV_ANSATT",
+                  "navIdent": "Z654321"
+                }
+                """.trimIndent(),
         ): String =
             """
             {
@@ -1017,7 +1125,7 @@ class TotrinnskontrollConsumerTest {
               "type": "ENKELTPLASS_PRISENDRING",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+              "besluttetAv": $besluttetAv,
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
               "status": "GODKJENT",
               "aarsaker": [],

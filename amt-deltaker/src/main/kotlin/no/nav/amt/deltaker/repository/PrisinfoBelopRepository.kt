@@ -49,27 +49,39 @@ object PrisinfoBelopRepository {
         )
     }
 
-    fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> {
+    /**
+     * Bekvemmelighetsmetode for å hente en enkelt prisinformasjon.
+     * Trenger du flere, bruk den andre [hentPrisinfoBelop]-metoden.
+     */
+    fun hentPrisinfoBelop(prisinformasjonId: UUID): List<Priskomponent> =
+        hentPrisinfoBelop(listOf(prisinformasjonId))[prisinformasjonId].orEmpty()
+
+    fun hentPrisinfoBelop(prisinformasjonIder: List<UUID>): Map<UUID, List<Priskomponent>> {
+        if (prisinformasjonIder.isEmpty()) return emptyMap()
+
         val sql =
             """
             SELECT 
+                prisinfo_id,
                 pristype, 
                 pris 
             FROM enkeltplass_prisinformasjon_belop
-            WHERE prisinfo_id = ?
+            WHERE prisinfo_id = ANY(:prisinformasjonIder)
             """.trimIndent()
 
         return Database
             .query { session ->
                 session.run(
-                    queryOf(sql, prisinformasjonId)
-                        .map { row ->
-                            Priskomponent(
-                                type = Tilskuddstype.valueOf(row.string("pristype")),
-                                pris = row.int("pris"),
-                            )
-                        }.asList,
+                    queryOf(
+                        sql,
+                        mapOf("prisinformasjonIder" to prisinformasjonIder.toTypedArray()),
+                    ).map { row ->
+                        row.uuid("prisinfo_id") to Priskomponent(
+                            type = Tilskuddstype.valueOf(row.string("pristype")),
+                            pris = row.int("pris"),
+                        )
+                    }.asList,
                 )
-            }
+            }.groupBy({ it.first }, { it.second })
     }
 }

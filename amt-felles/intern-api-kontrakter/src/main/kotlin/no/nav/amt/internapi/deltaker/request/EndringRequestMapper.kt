@@ -21,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 object EndringRequestMapper {
     /**
@@ -33,6 +34,8 @@ object EndringRequestMapper {
      * @param request requesten som skal konverteres
      * @param tiltakstype tiltakstypen til deltakerens gjennomføring
      * @param opplaringKategoriseringValg gjeldende kategorisering for gjennomføringen
+     * @param vedtakFattet tidspunktet deltakerens vedtak ble fattet, eller `null` hvis det ikke er fattet.
+     * Avgjør om en prisendring vises direkte i historikken eller som sendt til godkjenning.
      * @return domeneobjektet som representerer endringen
      * @throws IllegalArgumentException hvis påkrevd kontekst mangler for den aktuelle request-typen
      */
@@ -41,6 +44,7 @@ object EndringRequestMapper {
         tiltakstype: Tiltakstype? = null,
         opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
         prisinfo: PrisinformasjonDto? = null,
+        vedtakFattet: LocalDateTime? = null,
     ): DeltakerEndring.Endring = when (request) {
         is AvbrytDeltakelseRequest -> AvbrytDeltakelse(
             aarsak = request.aarsak,
@@ -95,6 +99,9 @@ object EndringRequestMapper {
             prisinfo = request.prisinfo,
             begrunnelse = request.begrunnelse,
             prisinformasjonId = request.prisinformasjonId,
+            // Før vedtaket er fattet inngår prisendringen i den opprinnelige godkjenningen av deltakelsen,
+            // og vises direkte i historikken. Etter at vedtaket er fattet må endringen godkjennes for seg.
+            status = if (vedtakFattet == null) Status.ENDRET_DIREKTE else Status.SENDT_TIL_GODKJENNING,
         )
 
         is TilbakekaltPrisendringRequest -> EndrePrisinfo(

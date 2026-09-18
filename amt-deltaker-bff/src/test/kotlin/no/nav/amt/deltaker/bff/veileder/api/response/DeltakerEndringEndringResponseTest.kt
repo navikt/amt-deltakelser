@@ -14,6 +14,7 @@ class DeltakerEndringEndringResponseTest {
         val endring = DeltakerEndring.Endring.EndrePrisinfo(
             prisinfo = prisinfo,
             begrunnelse = "Begrunnelse",
+            status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
         )
 
         // Act
@@ -38,6 +39,7 @@ class DeltakerEndringEndringResponseTest {
         val endring = DeltakerEndring.Endring.EndrePrisinfo(
             prisinfo = prisinfo,
             begrunnelse = "Begrunnelse",
+            status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
         )
 
         // Act
@@ -60,6 +62,7 @@ class DeltakerEndringEndringResponseTest {
         val endring = DeltakerEndring.Endring.EndrePrisinfo(
             prisinfo = prisinfo,
             begrunnelse = "Begrunnelse",
+            status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
         )
 
         // Act

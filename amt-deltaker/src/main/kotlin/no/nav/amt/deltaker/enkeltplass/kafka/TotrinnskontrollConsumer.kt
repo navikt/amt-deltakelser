@@ -97,7 +97,7 @@ class TotrinnskontrollConsumer(
 
         // hvis hendelse ikke omhandler Status.GODKJENT, lagre status i databasen og returner
         if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) {
-            PrisinfoRepository.oppdaterStatus(
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = totrinnskontrollHendelse.id,
                 status = PrisinfoDbo.PrisinfoStatus.valueOf(totrinnskontrollHendelse.status.name),
             )
@@ -137,6 +137,15 @@ class TotrinnskontrollConsumer(
             totrinnskontrollHendelse.behandletAv.navIdent,
         )
 
+        // Godkjenningen skal attribueres til den som besluttet (besluttetAv), ikke den som forespurte
+        // (behandletAv).
+        val besluttetAv = totrinnskontrollHendelse.besluttetAv
+        require(besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt)
+        {
+            "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv"
+        }
+        val (godkjentAvNavAnsatt, godkjentAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
+
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
                 processGodkjentInnsoking(
@@ -144,6 +153,8 @@ class TotrinnskontrollConsumer(
                     prisinfoId = totrinnskontrollHendelse.id,
                     behandletAvNavAnsatt = behandletAvNavAnsatt,
                     behandletAvNavEnhet = behandletAvNavEnhet,
+                    godkjentAvNavAnsatt = godkjentAvNavAnsatt,
+                    godkjentAvNavEnhet = godkjentAvNavEnhet,
                 )
             }
 
@@ -154,6 +165,8 @@ class TotrinnskontrollConsumer(
                         prisinfoId = totrinnskontrollHendelse.id,
                         behandletAvNavAnsatt = behandletAvNavAnsatt,
                         behandletAvNavEnhet = behandletAvNavEnhet,
+                        godkjentAvNavAnsatt = godkjentAvNavAnsatt,
+                        godkjentAvNavEnhet = godkjentAvNavEnhet,
                     )
                 } else {
                     processGodkjentPrisEndring(
@@ -161,6 +174,8 @@ class TotrinnskontrollConsumer(
                         prisinfoId = totrinnskontrollHendelse.id,
                         behandletAvNavAnsatt = behandletAvNavAnsatt,
                         behandletAvNavEnhet = behandletAvNavEnhet,
+                        godkjentAvNavAnsatt = godkjentAvNavAnsatt,
+                        godkjentAvNavEnhet = godkjentAvNavEnhet,
                     )
                 }
             }
@@ -175,22 +190,21 @@ class TotrinnskontrollConsumer(
      * Prosesserer godkjent prisendring for en deltaker.
      *
      * Setter prisinfo til rolle GJELDENDE og status GODKJENT.
-     *
-     * @param deltaker Deltakeren hvis prisinfo skal godkjennes.
-     * @param prisinfoId ID til prisinfoen som skal godkjennes.
-     * @param behandletAvNavAnsatt  Nav-ansatt som registrerte prisendringen
-     * @param behandletAvNavEnhet Nav-enhet for Nav-ansatt som registrerte prisendringen
      */
     internal fun processGodkjentPrisEndring(
         deltaker: Deltaker,
         prisinfoId: UUID,
         behandletAvNavAnsatt: NavAnsatt,
         behandletAvNavEnhet: NavEnhet,
+        godkjentAvNavAnsatt: NavAnsatt,
+        godkjentAvNavEnhet: NavEnhet,
     ) {
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjonId = prisinfoId,
+                godkjentAv = godkjentAvNavAnsatt.id,
+                godkjentAvEnhet = godkjentAvNavEnhet.id,
             )
 
             if (!skalPublisereHendelse) return@transaction
@@ -217,17 +231,14 @@ class TotrinnskontrollConsumer(
      * - `VENTER_PA_OPPSTART` når startdato er i fremtiden
      * - `DELTAR` når startdato er i dag eller fortid og sluttdato er i fremtiden
      * - `FULLFORT` når startdato og sluttdato er i fortid
-     *
-     * @param deltaker Deltakeren hvor økonomi skal godkjennes
-     * @param prisinfoId ID til prisinfoen som skal godkjennes.
-     * @param behandletAvNavAnsatt  Nav-ansatt som initierte behandlingen
-     * @param behandletAvNavEnhet Nav-enhet for Nav-ansatt som initierte behandlingen
      */
     internal fun processGodkjentInnsoking(
         deltaker: Deltaker,
         prisinfoId: UUID,
         behandletAvNavAnsatt: NavAnsatt,
         behandletAvNavEnhet: NavEnhet,
+        godkjentAvNavAnsatt: NavAnsatt,
+        godkjentAvNavEnhet: NavEnhet,
     ) {
         log.info("Behandler godkjent totrinnskontroll for deltaker ${deltaker.id}")
 
@@ -245,6 +256,8 @@ class TotrinnskontrollConsumer(
                     val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                         gjennomforingId = deltaker.deltakerliste.id,
                         prisinformasjonId = prisinfoId,
+                        godkjentAv = godkjentAvNavAnsatt.id,
+                        godkjentAvEnhet = godkjentAvNavEnhet.id,
                     )
 
                     if (!skalPublisereHendelse) {

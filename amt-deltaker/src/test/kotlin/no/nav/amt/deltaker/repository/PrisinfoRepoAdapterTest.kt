@@ -2,15 +2,22 @@
 
 package no.nav.amt.deltaker.repository
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotliquery.queryOf
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
@@ -18,9 +25,14 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
+import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.utils.database.Database
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.time.LocalDateTime
 import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
@@ -393,7 +405,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = returnertPrisinfo,
             )
-            PrisinfoRepository.oppdaterStatus(
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = returnertPrisinfoId,
                 status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
             )
@@ -858,6 +870,196 @@ class PrisinfoRepoAdapterTest {
             )
 
             result shouldBe ingenKostnader
+        }
+    }
+
+    @Nested
+    inner class HentGodkjentPrisinfoForHistorikkTests {
+        private val navEnhet = lagNavEnhet()
+        private val navAnsatt = lagNavAnsatt()
+        private val deltakerliste = lagDeltakerliste()
+        private val deltaker = lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
+        )
+        private val vedtakFattet = LocalDateTime.now()
+
+        @BeforeEach
+        fun beforeEach() {
+            NavEnhetRepository().upsert(navEnhet)
+            TestRepository.insert(navAnsatt)
+            TestRepository.insert(
+                deltaker,
+                lagVedtak(
+                    deltakerId = deltaker.id,
+                    deltakerVedVedtak = deltaker,
+                    fattet = vedtakFattet,
+                    opprettetAv = navAnsatt,
+                    opprettetAvEnhet = navEnhet,
+                    sistEndretAv = navAnsatt,
+                    sistEndretAvEnhet = navEnhet,
+                ),
+            )
+        }
+
+        @Test
+        fun `mapper godkjent tilskudd med belop til prisinformasjon`() {
+            // Arrange
+            val tilskudd = Tilskudd(
+                tilleggsopplysninger = "Tilskuddsinformasjon",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 8000),
+                    TilskuddInfo(type = Tilskuddstype.EKSAMENSGEBYR, pris = 2000),
+                ),
+            )
+            val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = tilskudd,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinformasjonId,
+            )
+            settGodkjenningstidspunkt(prisinformasjonId, vedtakFattet.minusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert
+            result.size shouldBe 1
+            result.first().prisinformasjon shouldBe tilskudd
+        }
+
+        @Test
+        fun `mapper flere godkjente tilskudd med riktige belop i ett kall`() {
+            // Arrange - forste tilskudd godkjennes for vedtaket fattes
+            val forsteTilskudd = Tilskudd(
+                tilleggsopplysninger = "Forste",
+                tilskudd = listOf(TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 8000)),
+            )
+            val forsteId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = forsteTilskudd,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId)
+            settGodkjenningstidspunkt(forsteId, vedtakFattet.minusMinutes(1))
+
+            // Arrange - senere tilskuddsendring med andre komponenter
+            val andreTilskudd = Tilskudd(
+                tilleggsopplysninger = "Andre",
+                tilskudd = listOf(
+                    TilskuddInfo(type = Tilskuddstype.EKSAMENSGEBYR, pris = 2000),
+                    TilskuddInfo(type = Tilskuddstype.STUDIEREISE, pris = 3000),
+                ),
+            )
+            val andreId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = andreTilskudd,
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, andreId)
+            settGodkjenningstidspunkt(andreId, vedtakFattet.plusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert - hvert innslag beholder sine egne komponenter
+            result.size shouldBe 2
+            result[0].prisinformasjon shouldBe forsteTilskudd
+            result[1].prisinformasjon shouldBe andreTilskudd
+        }
+
+        @Test
+        fun `skiller forste godkjenning fra senere prisendring`() {
+            // Arrange - forste godkjenning skjedde da vedtaket ble fattet
+            val forsteId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId)
+            settGodkjenningstidspunkt(forsteId, vedtakFattet.minusMinutes(1))
+
+            // Arrange - prisendringen ble godkjent etter at vedtaket var fattet
+            val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId)
+            settGodkjenningstidspunkt(endringId, vedtakFattet.plusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert
+            result.size shouldBe 2
+            result[0].erForsteGodkjenning shouldBe true
+            result[0].prisinformasjon shouldBe Anskaffelse(pris = 10000)
+            result[1].erForsteGodkjenning shouldBe false
+            result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000)
+        }
+
+        @Test
+        fun `attribuerer senere godkjenning til den som godkjente prisendringen, ikke vedtaket`() {
+            // Arrange - en annen ansatt/enhet godkjenner prisendringen enn den som fattet vedtaket
+            val annenEnhet = lagNavEnhet()
+            val annenAnsatt = lagNavAnsatt(navEnhetId = annenEnhet.id)
+            NavEnhetRepository().upsert(annenEnhet)
+            TestRepository.insert(annenAnsatt)
+
+            val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = endringId,
+                godkjentAv = annenAnsatt.id,
+                godkjentAvEnhet = annenEnhet.id,
+            )
+            settGodkjenningstidspunkt(endringId, vedtakFattet.plusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert
+            result.size shouldBe 1
+            assertSoftly(result.first()) {
+                erForsteGodkjenning shouldBe false
+                sistEndretAvNavAnsattId shouldBe annenAnsatt.id
+                sistEndretAvNavEnhetId shouldBe annenEnhet.id
+            }
+        }
+
+        @Test
+        fun `returnerer null nar godkjenner ikke er lagret`() {
+            // Arrange - godkjenning uten lagret attribusjon
+            val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId)
+            settGodkjenningstidspunkt(endringId, vedtakFattet.minusMinutes(1))
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
+
+            // Assert - attribusjon blir stående som null
+            assertSoftly(result.first()) {
+                sistEndretAvNavAnsattId shouldBe null
+                sistEndretAvNavEnhetId shouldBe null
+            }
+        }
+
+        private fun settGodkjenningstidspunkt(
+            prisinformasjonId: UUID,
+            tidspunkt: LocalDateTime,
+        ) = Database.query { session ->
+            session.update(
+                queryOf(
+                    "UPDATE enkeltplass_prisinformasjon SET modified_at = ? WHERE id = ?",
+                    tidspunkt,
+                    prisinformasjonId,
+                ),
+            )
         }
     }
 }

@@ -16,6 +16,7 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.util.UUID
 
 class PrisinfoBelopRepositoryTest {
     companion object {
@@ -90,6 +91,57 @@ class PrisinfoBelopRepositoryTest {
 
             // Assert
             resultat.shouldBeEmpty()
+        }
+    }
+
+    @Nested
+    inner class HentPrisinfoBelopBatchTests {
+        @Test
+        fun `tom liste - returnerer tomt map uten databasekall`() {
+            PrisinfoBelopRepository.hentPrisinfoBelop(emptyList<UUID>()) shouldBe emptyMap()
+        }
+
+        @Test
+        fun `flere prisinfoer - grupperer komponenter per prisinfo-id`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+
+            val prisinfoA = PrisinfoUpsertDbo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 1000,
+            )
+            val prisinfoB = PrisinfoUpsertDbo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 2000,
+            )
+            val prisinfoUtenBelop = PrisinfoUpsertDbo(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 3000,
+            )
+            PrisinfoRepository.upsertPrisinfo(prisinfoA)
+            PrisinfoRepository.upsertPrisinfo(prisinfoB)
+            PrisinfoRepository.upsertPrisinfo(prisinfoUtenBelop)
+
+            val belopA = setOf(
+                Priskomponent(Tilskuddstype.SKOLEPENGER, 1),
+                Priskomponent(Tilskuddstype.EKSAMENSGEBYR, 2),
+            )
+            val belopB = setOf(Priskomponent(Tilskuddstype.STUDIEREISE, 3))
+            PrisinfoBelopRepository.lagrePrisinfoBelop(prisinfoA.id, belopA)
+            PrisinfoBelopRepository.lagrePrisinfoBelop(prisinfoB.id, belopB)
+
+            // Act
+            val resultat = PrisinfoBelopRepository.hentPrisinfoBelop(
+                listOf(prisinfoA.id, prisinfoB.id, prisinfoUtenBelop.id),
+            )
+
+            // Assert - kun prisinfoer med komponenter får nøkkel
+            resultat.keys shouldContainExactlyInAnyOrder listOf(prisinfoA.id, prisinfoB.id)
+            resultat[prisinfoA.id].orEmpty() shouldContainExactlyInAnyOrder belopA.toList()
+            resultat[prisinfoB.id].orEmpty() shouldContainExactlyInAnyOrder belopB.toList()
         }
     }
 

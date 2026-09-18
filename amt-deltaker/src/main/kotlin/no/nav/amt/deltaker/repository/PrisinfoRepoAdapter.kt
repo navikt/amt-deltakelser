@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
@@ -28,8 +29,9 @@ import java.util.UUID
  * 4. `hentPrisinfo()` → returnerer GJELDENDE dersom den finnes, ellers ENDRING
  */
 object PrisinfoRepoAdapter {
-    fun hentPrisinfoById(prisinformasjonId: UUID): PrisinformasjonDto? =
-        PrisinfoRepository.hentPrisinfo(prisinformasjonId)?.toPrisinformasjonDto()
+    fun hentPrisinfoById(prisinformasjonId: UUID): PrisinformasjonDto? = PrisinfoRepository
+        .hentPrisinfo(prisinformasjonId)
+        ?.hentBelopOgKonverterTilDto()
 
     fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
         Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
@@ -40,15 +42,19 @@ object PrisinfoRepoAdapter {
      * Utfører tre steg:
      * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
      * 2. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
-     * 3. Setter status på prisinfo til GODKJENT
+     * 3. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
      * @param prisinformasjonId ID til prisinfoen som skal godkjennes
+     * @param godkjentAv ID til Nav-ansatt som godkjente prisinfoen
+     * @param godkjentAvEnhet ID til Nav-enheten som godkjente prisinfoen
      * @return `true` hvis godkjenningen var vellykket, `false` hvis prisinfoen ikke finnes eller ikke er ENDRING
      */
     fun godkjennOkonomi(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
+        godkjentAv: UUID? = null,
+        godkjentAvEnhet: UUID? = null,
     ): Boolean {
         val endringFinnes = Deltakerliste2PrisinfoRepository.delete(
             gjennomforingId = gjennomforingId,
@@ -64,9 +70,10 @@ object PrisinfoRepoAdapter {
             rolle = PrisinfoDbo.Rolle.GJELDENDE,
         )
 
-        PrisinfoRepository.oppdaterStatus(
+        PrisinfoRepository.settGodkjent(
             prisinformasjonId = prisinformasjonId,
-            status = PrisinfoDbo.PrisinfoStatus.GODKJENT,
+            godkjentAv = godkjentAv,
+            godkjentAvEnhet = godkjentAvEnhet,
         )
 
         return true
@@ -74,7 +81,28 @@ object PrisinfoRepoAdapter {
 
     fun hentPrisinfoMap(gjennomforingId: UUID): Map<PrisinfoDbo.Rolle, PrisinformasjonDto> = PrisinfoRepository
         .hentPrisinfoMap(gjennomforingId)
-        .mapValues { (_, prisinfo) -> prisinfo.toPrisinformasjonDto() }
+        .mapValues { (_, prisinfo) -> prisinfo.hentBelopOgKonverterTilDto() }
+
+    fun hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId: UUID): List<OkonomiGodkjentForHistorikk> {
+        val godkjente = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId)
+
+        // Hent tilskuddsbeløp i batch for å kunne effektivt lage Dto nedenfor
+        val tilskuddIder = godkjente
+            .map { it.prisinfo }
+            .filter { it.prisinfoJsonSubtype == TILSKUDD_SUB_TYPE }
+            .map { it.id }
+        val belopPerPrisinfo = PrisinfoBelopRepository.hentPrisinfoBelop(tilskuddIder)
+
+        return godkjente.map {
+            OkonomiGodkjentForHistorikk(
+                sistEndret = it.sistEndret,
+                sistEndretAvNavAnsattId = it.sistEndretAvNavAnsattId,
+                sistEndretAvNavEnhetId = it.sistEndretAvNavEnhetId,
+                erForsteGodkjenning = it.erForsteGodkjenning,
+                prisinformasjon = it.prisinfo.toPrisinformasjonDto(belopPerPrisinfo[it.prisinfo.id].orEmpty()),
+            )
+        }
+    }
 
     /**
      * Henter prisinfo for en gjennomføring, med prioritet på godkjente records.
@@ -95,7 +123,7 @@ object PrisinfoRepoAdapter {
             .hentPrisinfo(
                 gjennomforingId = gjennomforingId,
                 rolle = rolle,
-            )?.toPrisinformasjonDto()
+            )?.hentBelopOgKonverterTilDto()
     } else {
         val prisinfoMap = hentPrisinfoMap(gjennomforingId)
         prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE] ?: prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
@@ -208,7 +236,18 @@ object PrisinfoRepoAdapter {
         return prisinformasjonId
     }
 
-    fun PrisinfoDbo.toPrisinformasjonDto(): PrisinformasjonDto = when (prisinfoJsonSubtype) {
+    /**
+     * Henter tilskuddsbeløp der det er relevant (databasekall) og konverterer til DTO.
+     */
+    private fun PrisinfoDbo.hentBelopOgKonverterTilDto(): PrisinformasjonDto = toPrisinformasjonDto(
+        if (prisinfoJsonSubtype == TILSKUDD_SUB_TYPE) {
+            PrisinfoBelopRepository.hentPrisinfoBelop(id)
+        } else {
+            emptyList()
+        },
+    )
+
+    fun PrisinfoDbo.toPrisinformasjonDto(belop: List<Priskomponent>): PrisinformasjonDto = when (prisinfoJsonSubtype) {
         ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
             this.anskaffelsePris
                 ?: throw IllegalStateException("Anskaffelsepris kan ikke være null"),
@@ -216,8 +255,7 @@ object PrisinfoRepoAdapter {
 
         TILSKUDD_SUB_TYPE -> Tilskudd(
             tilleggsopplysninger = this.tilleggsopplysninger,
-            tilskudd = PrisinfoBelopRepository
-                .hentPrisinfoBelop(this.id)
+            tilskudd = belop
                 .map {
                     TilskuddInfo(
                         type = it.type,
@@ -310,7 +348,7 @@ object PrisinfoRepoAdapter {
                 gjennomforingId = gjennomforingId,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )?.takeUnless { it.status == PrisinfoDbo.PrisinfoStatus.RETURNERT }
-            ?.toPrisinformasjonDto()
+            ?.hentBelopOgKonverterTilDto()
             ?: hentPrisinfo(
                 gjennomforingId = gjennomforingId,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,

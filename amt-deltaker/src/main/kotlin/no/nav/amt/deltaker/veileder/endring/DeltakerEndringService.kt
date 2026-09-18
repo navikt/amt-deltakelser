@@ -114,6 +114,7 @@ class DeltakerEndringService(
             tiltakstype = deltaker.deltakerliste.tiltakstype,
             opplaringKategoriseringValg = opplaringKategoriseringValg,
             prisinfo = prisinfo,
+            vedtakFattet = deltaker.vedtaksinformasjon?.fattet,
         )
     }
 

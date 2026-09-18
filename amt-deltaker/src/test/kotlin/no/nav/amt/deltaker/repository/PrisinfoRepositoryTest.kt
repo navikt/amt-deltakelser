@@ -150,7 +150,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 10000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
@@ -159,7 +159,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+            result shouldBe PrisinfoDbo.PrisinfoStatus.RETURNERT
         }
 
         @Test
@@ -285,7 +285,7 @@ class PrisinfoRepositoryTest {
         }
 
         @Test
-        fun `returnerer prisinfo når status er godkjent`() {
+        fun `returnerer null når godkjent av ikke er lagret`() {
             // Arrange
             val sistEndret = LocalDateTime.now().minusDays(1)
             val vedtak = lagVedtak(
@@ -306,7 +306,7 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Opplysning",
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -314,8 +314,8 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 1
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe navAnsatt.id
-                sistEndretAvNavEnhetId shouldBe navEnhet.id
+                sistEndretAvNavAnsattId shouldBe null
+                sistEndretAvNavEnhetId shouldBe null
             }
         }
 
@@ -344,7 +344,7 @@ class PrisinfoRepositoryTest {
             )
             PrisinfoRepository.upsertPrisinfo(godkjentPrisinfo)
             PrisinfoRepository.upsertPrisinfo(kladdPrisinfo)
-            PrisinfoRepository.oppdaterStatus(godkjentPrisinfo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(godkjentPrisinfo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -363,7 +363,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 15000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -412,13 +412,81 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 30000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatus(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.GODKJENT)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
 
             // Assert
             result shouldHaveSize 0
+        }
+
+        @Test
+        fun `setter erForsteGodkjenning til true når godkjenning skjedde før vedtaket ble fattet`() {
+            // Arrange - vedtaket fattes etter at prisinfo ble godkjent
+            insertDeltakerMedVedtak(fattet = LocalDateTime.now().plusMinutes(5))
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            assertSoftly(result.first()) {
+                erForsteGodkjenning shouldBe true
+                prisinfo.anskaffelsePris shouldBe 20000
+            }
+        }
+
+        @Test
+        fun `setter erForsteGodkjenning til false når godkjenning skjedde etter at vedtaket ble fattet`() {
+            // Arrange - prisendring godkjennes etter at vedtaket er fattet
+            insertDeltakerMedVedtak(fattet = LocalDateTime.now().minusMinutes(5))
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            result.first().erForsteGodkjenning shouldBe false
+        }
+
+        @Test
+        fun `setter erForsteGodkjenning til false når vedtaket ikke er fattet`() {
+            // Arrange
+            insertDeltakerMedVedtak(fattet = null)
+            godkjennNyPrisinfo()
+
+            // Act
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
+
+            // Assert
+            result shouldHaveSize 1
+            result.first().erForsteGodkjenning shouldBe false
+        }
+
+        private fun insertDeltakerMedVedtak(fattet: LocalDateTime?) {
+            val vedtak = lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                fattet = fattet,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndretAv = navAnsatt,
+                sistEndretAvEnhet = navEnhet,
+            )
+            TestRepository.insert(deltaker, vedtak)
+        }
+
+        private fun godkjennNyPrisinfo() {
+            val upsertDbo = PrisinfoUpsertDbo(
+                gjennomforingId = deltakerliste.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 20000,
+            )
+            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
         }
     }
 }
