@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
+import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.repositories.RepositoryTestBase
 import no.nav.amt.aktivitetskort.unleash.UnleashTestConfiguration
@@ -26,6 +27,9 @@ abstract class IntegrationTestBase : RepositoryTestBase() {
 
     @MockkBean
     lateinit var amtArrangorClient: AmtArrangorClient
+
+    @MockkBean
+    lateinit var amtDeltakerClient: AmtDeltakerClient
 
     @MockkBean
     lateinit var veilarboppfolgingClient: VeilarboppfolgingClient

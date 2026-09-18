@@ -4,11 +4,14 @@ import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
+import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.Vurdering
@@ -73,6 +76,7 @@ internal object SharedResponseMappers {
         oppmoteSted = deltakerliste.oppmoteSted,
         arrangor = deltakerliste.arrangor?.let { arrangor ->
             ArrangorResponse(
+                id = arrangor.id,
                 navn = arrangor.navn.toTitleCase(),
                 organisasjonsnummer = arrangor.organisasjonsnummer,
             )
@@ -82,6 +86,16 @@ internal object SharedResponseMappers {
         opplaringKategoriseringValg = opplaringKategoriseringValg,
         prisinformasjon = prisinformasjon?.aktiv,
         prisinformasjonTilGodkjenning = prisinformasjon?.tilGodkjenning,
+        visningsnavn = TiltakVisningsnavn
+            .lagVisningsnavn(
+                tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+                tiltaksnavn = deltakerliste.tiltakstype.navn,
+                gjennomforingsnavn = deltakerliste.navn,
+                gjennomforingType = deltakerliste.gjennomforingstype,
+                erKladd = false,
+                arrangorNavn = deltakerliste.arrangor?.navn ?: ARRANGOR_MANGLER,
+                opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
+            ).let { VisningsnavnResponse(it.aktivitetskortTittel) },
     )
 
     fun buildVedtaksinformasjonResponse(

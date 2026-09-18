@@ -57,6 +57,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
+        - application: amt-deltaker
         - application: amt-arena-acl
         - application: amt-arrangor
         - application: aktivitet-arena-acl
@@ -80,6 +81,10 @@ spec:
       value: api://dev-gcp.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_DELTAKER_SCOPE
+      value: api://dev-gcp.amt.amt-deltaker/.default
     - name: AKTIVITET_ARENA_ACL_URL
       value: http://aktivitet-arena-acl.dab.svc.cluster.local
     - name: AKTIVITET_ARENA_ACL_SCOPE

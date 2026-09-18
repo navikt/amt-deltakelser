@@ -1,6 +1,6 @@
 package no.nav.amt.aktivitetskort.repositories
 
-import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.aktivitetskort.utils.getNullableLocalDateTime
@@ -27,7 +27,7 @@ class DeltakerRepository(
 
     private val rowMapper = RowMapper { rs, _ ->
         DeltakerMedOffset(
-            deltaker = Deltaker(
+            deltaker = DeltakerDbo(
                 id = UUID.fromString(rs.getString("id")),
                 personident = rs.getString("personident"),
                 deltakerlisteId = UUID.fromString(rs.getString("deltakerliste_id")),
@@ -51,16 +51,26 @@ class DeltakerRepository(
         )
     }
 
+    /*
+        Verifiserer faktisk endring utifra lokalt lagrede data, og upserter endring i database
+
+        @buypassEqualityCheck: Hvis true, sjekkes ikke objekt ekvalitet. Dette fordi vi ønsker å skrive oss bort fra
+        å stadig skrive nye felter til databasen(som kreves av sjekken). Det uklart om ekvalitetssjekken er viktig selv etter at vi
+        har innført sjekk på gjeldende oppfølgingsperiode+aktivitetskort id hentes fra dab(for å unngå å opprette dupliserte aktivitetskort).
+        Det er antagelig tryggere å buypasse sjekken for opplæringstiltak siden disse ikke opprinnelig ble opprettet i arena
+     */
     fun upsert(
-        deltaker: Deltaker,
+        deltaker: DeltakerDbo,
         offset: Long,
-    ): RepositoryResult<Deltaker> {
+        buyPassEqualityCheck: Boolean = false,
+    ): RepositoryResult<DeltakerDbo> {
         // fix for å reversere endring 26.11.2025 hvor gyldigFra ble lagt til
-        fun Deltaker.isEqualTo(other: Deltaker?): Boolean =
+        fun DeltakerDbo.isEqualTo(other: DeltakerDbo?): Boolean =
             this.copy(status = status.copy(gyldigFra = null)) == other?.copy(status = other.status.copy(gyldigFra = null))
 
         val oldDeltaker = getDeltakerMedOffset(deltaker.id)
 
+        // Hvorfor denne sjekken?
         if (oldDeltaker != null && oldDeltaker.offset > offset) {
             log.info("Har lagret melding med offset ${oldDeltaker.offset} for deltaker ${deltaker.id}, ignorerer offset $offset")
             return RepositoryResult.NoChange()
@@ -71,7 +81,8 @@ class DeltakerRepository(
         }
 
         if (deltaker.isEqualTo(oldDeltaker?.deltaker) &&
-            !unleashToggle.skalOppdatereUendredeAktivitetskort()
+            !unleashToggle.skalOppdatereUendredeAktivitetskort() &&
+            !buyPassEqualityCheck
         ) {
             return RepositoryResult.NoChange()
         }
@@ -157,7 +168,7 @@ class DeltakerRepository(
         return RepositoryResult.Modified(new.deltaker)
     }
 
-    fun get(id: UUID): Deltaker? = getDeltakerMedOffset(id)?.deltaker
+    fun get(id: UUID): DeltakerDbo? = getDeltakerMedOffset(id)?.deltaker
 
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = template
         .query(
@@ -167,7 +178,7 @@ class DeltakerRepository(
         .firstOrNull() ?: 0
 
     //
-    private fun skalKorrigereTidligereDeltaker(lagretDeltaker: Deltaker?): Boolean =
+    private fun skalKorrigereTidligereDeltaker(lagretDeltaker: DeltakerDbo?): Boolean =
         // Hvis første vi hører om deltakeren er avsluttende status
         // så skal det ikke opprettes aktivitetskort
         !(lagretDeltaker == null || lagretDeltaker.status.type in avsluttendeStatuser)
@@ -186,7 +197,7 @@ class DeltakerRepository(
     }
 }
 
-private data class DeltakerMedOffset(
-    val deltaker: Deltaker,
+data class DeltakerMedOffset(
+    val deltaker: DeltakerDbo,
     val offset: Long,
 )

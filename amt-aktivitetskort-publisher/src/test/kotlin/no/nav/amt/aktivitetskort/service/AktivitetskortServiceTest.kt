@@ -11,8 +11,11 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArenaAclClient
+import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.database.TestData
+import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Tiltak
@@ -29,7 +32,6 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.test.context.TestPropertySource
@@ -39,7 +41,6 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.function.Consumer
 
 @TestPropertySource(properties = ["NAIS_CLUSTER_NAME=dev-gcp"])
 class AktivitetskortServiceTest {
@@ -49,6 +50,7 @@ class AktivitetskortServiceTest {
     private val deltakerRepository = mockk<DeltakerRepository>()
     private val aktivitetArenaAclClient = mockk<AktivitetArenaAclClient>()
     private val amtArenaAclClient = mockk<AmtArenaAclClient>()
+    private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val unleash = mockk<DefaultUnleash>()
     private val veilarboppfolgingClient = mockk<VeilarboppfolgingClient>()
     private val oppfolgingsperiodeRepository = mockk<OppfolgingsperiodeRepository>()
@@ -57,12 +59,11 @@ class AktivitetskortServiceTest {
     private val aktivitetskortService = AktivitetskortService(
         meldingRepository = meldingRepository,
         arrangorRepository = arrangorRepository,
-        deltakerlisteRepository = deltakerlisteRepository,
-        deltakerRepository = deltakerRepository,
         aktivitetArenaAclClient = aktivitetArenaAclClient,
         amtArenaAclClient = amtArenaAclClient,
         unleashToggle = CommonUnleashToggle(unleash),
         veilarboppfolgingClient = veilarboppfolgingClient,
+        amtDeltakerClient = amtDeltakerClient,
         oppfolgingsperiodeRepository = oppfolgingsperiodeRepository,
         transactionTemplate = transactionTemplate,
         veilederUrlBasePath = TestData.VEILEDER_URL_BASEPATH,
@@ -76,14 +77,31 @@ class AktivitetskortServiceTest {
 
     @BeforeEach
     fun setup() {
-        every { transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>()) } answers {
-            (firstArg() as Consumer<TransactionStatus>).accept(SimpleTransactionStatus())
+        every { transactionTemplate.executeWithoutResult(any<java.util.function.Consumer<TransactionStatus>>()) } answers {
+            (firstArg() as java.util.function.Consumer<TransactionStatus>).accept(SimpleTransactionStatus())
         }
         every { oppfolgingsperiodeRepository.upsert(any()) } returns TestData.oppfolgingsperiode()
     }
 
+    private fun TestData.MockContext.deltakerModel(deltaker: DeltakerDbo = this.deltaker): Deltaker = Deltaker.fromDeltakerResponse(
+        TestData.lagDeltakerResponse(
+            deltaker = deltaker,
+            deltakerliste = this.deltakerliste,
+            arrangor = this.arrangor,
+        ),
+    )
+
+    private fun TestData.MockContext.stubDeltakerFraAmtDeltaker(deltaker: DeltakerDbo = this.deltaker): Deltaker =
+        deltakerModel(deltaker).also {
+            every { amtDeltakerClient.getDeltaker(deltaker.id) } returns TestData.lagDeltakerResponse(
+                deltaker = deltaker,
+                deltakerliste = this.deltakerliste,
+                arrangor = this.arrangor,
+            )
+        }
+
     @Test
-    fun `lagAktivitetskort(deltaker) - kilde=ARENA - lager nytt aktivitetskort`() {
+    fun `lagAktivitetskort - kilde=ARENA - lager nytt aktivitetskort`() {
         val ctx = TestData.MockContext()
         val aktivitetskordId = UUID.randomUUID()
         every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
@@ -93,7 +111,7 @@ class AktivitetskortServiceTest {
         every { aktivitetArenaAclClient.getAktivitetIdForArenaId(1L) } returns aktivitetskordId
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
 
@@ -116,7 +134,20 @@ class AktivitetskortServiceTest {
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - kilde=KOMET - lager nytt aktivitetskort med lenker`() {
+    fun `lagAktivitetskort - henter deltaker fra amt-deltaker`() = mockCluster {
+        val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET)
+        val ctx = TestData.MockContext(deltaker = deltaker)
+
+        every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+        every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
+
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
+
+        aktivitetskort shouldNotBe null
+    }
+
+    @Test
+    fun `lagAktivitetskort - kilde=KOMET - lager nytt aktivitetskort med lenker`() {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("Arbeidsforberedende trening", Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
@@ -129,7 +160,7 @@ class AktivitetskortServiceTest {
         every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
 
@@ -151,7 +182,7 @@ class AktivitetskortServiceTest {
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - kilde=ARENA, kall til amt-arena-acl feiler - oppretting feiler`() {
+    fun `lagAktivitetskort - kilde=ARENA, kall til amt-arena-acl feiler - oppretting feiler`() {
         val ctx = TestData.MockContext()
         val aktivitetskordId = UUID.randomUUID()
         every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
@@ -162,7 +193,7 @@ class AktivitetskortServiceTest {
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
         assertThrows<IllegalStateException> {
-            aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+            aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
         }
 
         verify(exactly = 0) { meldingRepository.upsert(any()) }
@@ -170,7 +201,7 @@ class AktivitetskortServiceTest {
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - kilde=KOMET, arenaId finnes ikke - oppretter med ny aktivitetskortId`() = mockCluster {
+    fun `lagAktivitetskort - kilde=KOMET, arenaId finnes ikke - oppretter med ny aktivitetskortId`() = mockCluster {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltak = Tiltak("Arbeidsforberedende trening", Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
@@ -184,14 +215,14 @@ class AktivitetskortServiceTest {
         every { unleash.isEnabled(any()) } returns true
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
         verify(exactly = 0) { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) }
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - oppdatering på hist deltaker - oppretter ikke aktivitetskort`() {
+    fun `lagAktivitetskort - oppdatering på hist deltaker - oppretter ikke aktivitetskort`() {
         val ctx = TestData.MockContext()
         every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
         every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
@@ -199,11 +230,11 @@ class AktivitetskortServiceTest {
         every { amtArenaAclClient.getArenaIdForAmtId(ctx.deltaker.id) } throws HistoriskArenaDeltakerException("Noe gikk galt")
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        aktivitetskortService.lagAktivitetskort(ctx.deltaker) shouldBe null
+        aktivitetskortService.lagAktivitetskort(ctx.deltakerModel()) shouldBe null
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - kilde=ARENA klarer ikke hente id - oppretting feiler`() {
+    fun `lagAktivitetskort - kilde=ARENA klarer ikke hente id - oppretting feiler`() {
         val ctx = TestData.MockContext()
         every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
         every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
@@ -214,7 +245,7 @@ class AktivitetskortServiceTest {
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
         assertThrows<IllegalStateException> {
-            aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+            aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
         }
 
         verify(exactly = 0) { meldingRepository.upsert(any()) }
@@ -222,21 +253,21 @@ class AktivitetskortServiceTest {
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - tidligere meldinger uten oppfølgingsperiode - oppdaterer eksisterende aktivitetskort`() {
+    fun `lagAktivitetskort - tidligere meldinger uten oppfølgingsperiode - oppdaterer eksisterende aktivitetskort`() {
         val ctx = TestData.MockContext(oppfolgingsperiodeId = null, deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
         every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(ctx.melding)
         every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
         every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
         aktivitetskort shouldBe ctx.aktivitetskort
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - meldinger finnes med en annen oppfølgingsperiode - lager nytt aktivitetskort`() {
+    fun `lagAktivitetskort - meldinger finnes med en annen oppfølgingsperiode - lager nytt aktivitetskort`() {
         val ctx = TestData.MockContext(
             oppfolgingsperiodeId = UUID.randomUUID(),
             deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET),
@@ -246,14 +277,14 @@ class AktivitetskortServiceTest {
         every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
         aktivitetskort?.id shouldNotBe ctx.aktivitetskort.id
     }
 
     @Test
-    fun `lagAktivitetskort(deltaker) - gamle arenameldinger fra tidligere oppfølgingsperiode - ignorerer`() {
+    fun `lagAktivitetskort - gamle arenameldinger fra tidligere oppfølgingsperiode - ignorerer`() {
         val ctx = TestData.MockContext(
             deltaker = TestData.lagDeltaker(
                 kilde = Kilde.ARENA,
@@ -265,13 +296,14 @@ class AktivitetskortServiceTest {
         every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltaker)
+        val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
         aktivitetskort shouldBe null
     }
 
     @Test
     fun `oppdaterAktivitetskort(deltakerliste) - meldinger finnes - lager nye aktivitetskort`() {
         val ctx = TestData.MockContext()
+        ctx.stubDeltakerFraAmtDeltaker()
 
         every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returns listOf(ctx.melding)
         every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker
@@ -294,6 +326,7 @@ class AktivitetskortServiceTest {
         val ctx = TestData.MockContext()
         val deltakerSluttdato = LocalDate.now().plusWeeks(3)
         val mockAktivitetskort = ctx.aktivitetskort.copy(sluttDato = deltakerSluttdato)
+        ctx.stubDeltakerFraAmtDeltaker(ctx.deltaker.copy(sluttdato = deltakerSluttdato))
 
         every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returns listOf(ctx.melding.copy(aktivitetskort = mockAktivitetskort))
         every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker.copy(sluttdato = deltakerSluttdato)
@@ -325,6 +358,8 @@ class AktivitetskortServiceTest {
         val underarrangorMelding = ctxUnderarrangor.melding.copy(
             aktivitetskort = mockAktivitetskortUnderarrangor,
         )
+        ctx.stubDeltakerFraAmtDeltaker(ctx.deltaker.copy(sluttdato = deltakerSluttdato))
+        ctxUnderarrangor.stubDeltakerFraAmtDeltaker(ctxUnderarrangor.deltaker.copy(sluttdato = deltakerSluttdato))
 
         every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returns listOf(ctx.melding.copy(aktivitetskort = mockAktivitetskort))
         every { meldingRepository.getByArrangorId(underarrangor.id) } returns listOf(underarrangorMelding)
@@ -359,6 +394,7 @@ class AktivitetskortServiceTest {
         val ctx = TestData.MockContext()
         val deltakerSluttdato = LocalDate.now().minusWeeks(3)
         val mockAktivitetskort = ctx.aktivitetskort.copy(sluttDato = deltakerSluttdato)
+        ctx.stubDeltakerFraAmtDeltaker(ctx.deltaker.copy(sluttdato = deltakerSluttdato))
 
         every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returns listOf(ctx.melding.copy(aktivitetskort = mockAktivitetskort))
         every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker.copy(sluttdato = deltakerSluttdato)
@@ -371,63 +407,5 @@ class AktivitetskortServiceTest {
         verify(exactly = 0) { meldingRepository.upsert(any()) }
 
         aktivitetskort shouldHaveSize 0
-    }
-
-    @Nested
-    inner class GetArrangorForAktivitetskortTests {
-        @Test
-        fun `getArrangorForAktivitetskort - enkeltplassopplaering - bruker arrangor`() {
-            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
-            val overordnetArrangor = TestData.lagArrangor(navn = "Overordnet arrangor")
-
-            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
-                arrangor = arrangor,
-                overordnetArrangor = overordnetArrangor,
-                erEnkeltplassOpplaring = true,
-            )
-
-            valgtArrangor shouldBe arrangor
-        }
-
-        @Test
-        fun `getArrangorForAktivitetskort - gruppeopplaering med gyldig overordnet arrangor - bruker overordnet arrangor`() {
-            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
-            val overordnetArrangor = TestData.lagArrangor(navn = "Overordnet arrangor")
-
-            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
-                arrangor = arrangor,
-                overordnetArrangor = overordnetArrangor,
-                erEnkeltplassOpplaring = false,
-            )
-
-            valgtArrangor shouldBe overordnetArrangor
-        }
-
-        @Test
-        fun `getArrangorForAktivitetskort - gruppeopplaering uten overordnet arrangor - bruker arrangor`() {
-            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
-
-            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
-                arrangor = arrangor,
-                overordnetArrangor = null,
-                erEnkeltplassOpplaring = false,
-            )
-
-            valgtArrangor shouldBe arrangor
-        }
-
-        @Test
-        fun `getArrangorForAktivitetskort - gruppeopplaering med ukjent virksomhet som overordnet arrangor - bruker arrangor`() {
-            val arrangor = TestData.lagArrangor(navn = "Underordnet arrangor")
-            val overordnetArrangor = TestData.lagArrangor(navn = "ukjent virksomhet")
-
-            val valgtArrangor = aktivitetskortService.getArrangorForAktivitetskort(
-                arrangor = arrangor,
-                overordnetArrangor = overordnetArrangor,
-                erEnkeltplassOpplaring = false,
-            )
-
-            valgtArrangor shouldBe arrangor
-        }
     }
 }

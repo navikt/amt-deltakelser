@@ -14,6 +14,7 @@ data class GjennomforingResponse(
     val id: UUID,
     val type: GjennomforingType,
     val tiltakstype: Tiltakstype,
+    val visningsnavn: VisningsnavnResponse,
     val navn: String,
     val status: GjennomforingStatusType,
     val startDato: LocalDate?,

@@ -46,13 +46,11 @@ fun Routing.registerTiltakskoordinatorDeltakerApi(
 
                 val ulesteHendelser = tiltakskoordinatorClient.getUlesteHendelserForDeltaker(deltakerId)
 
-                val responseBody = deltaker.let {
-                    ResponseMapper.buildDeltakerDetaljerResponse(
-                        deltaker = it,
-                        tilgangTilBruker = harTilgangTilBruker,
-                        ulesteHendelser = ulesteHendelser,
-                    )
-                }
+                val responseBody = ResponseMapper.buildDeltakerDetaljerResponse(
+                    deltaker = deltaker,
+                    tilgangTilBruker = harTilgangTilBruker,
+                    ulesteHendelser = ulesteHendelser,
+                )
 
                 call.respond(responseBody)
             }

@@ -3,7 +3,7 @@ package no.nav.amt.aktivitetskort.database
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
-import no.nav.amt.aktivitetskort.domain.Deltaker
+import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.Detalj
@@ -21,6 +21,12 @@ import no.nav.amt.aktivitetskort.domain.toAktivitetskortTiltakstype
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilEtikett
+import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -38,6 +44,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.amt.lib.models.person.Oppfolgingsperiode as NavOppfolgingsperiode
 
 object TestData {
     const val VEILEDER_URL_BASEPATH = "https://intern.veileder"
@@ -64,7 +71,7 @@ object TestData {
         avtaltMedNav: Boolean = true,
         detaljer: List<Detalj> = listOf(Detalj("Label", "Verdi")),
         etiketter: List<Tag> = listOf(),
-        tiltakstype: Tiltakskode = Tiltakskode.OPPFOLGING,
+        tiltakskode: Tiltakskode = Tiltakskode.OPPFOLGING,
     ) = Aktivitetskort(
         id = id,
         personident = personIdent,
@@ -80,18 +87,18 @@ object TestData {
         handlinger = null,
         detaljer = detaljer,
         etiketter = etiketter,
-        tiltakstype = tiltakstype.toAktivitetskortTiltakstype(),
+        tiltakstype = tiltakskode.toAktivitetskortTiltakstype(),
     )
 
     fun aktivitetskort(
         id: UUID,
-        deltaker: Deltaker,
+        deltaker: DeltakerDbo,
         deltakerliste: Deltakerliste,
         arrangor: Arrangor,
     ) = Aktivitetskort(
         id = id,
         personident = deltaker.personident,
-        tittel = Aktivitetskort.lagTittel(deltakerliste, arrangor),
+        tittel = lagDeltakerResponse(deltaker, deltakerliste, arrangor).gjennomforing.visningsnavn.aktivitetskortTittel,
         aktivitetStatus = deltakerStatusTilAktivitetStatus(deltaker.status.type).getOrThrow(),
         startDato = deltaker.oppstartsdato,
         sluttDato = deltaker.sluttdato,
@@ -119,8 +126,88 @@ object TestData {
             Detalj("Arrangør", arrangor.navn),
         ),
         etiketter = listOfNotNull(deltakerStatusTilEtikett(deltaker.status)),
-        tiltakstype = deltakerliste.tiltak.tiltakskode.toAktivitetskortTiltakstype(),
+        tiltakstype = Tiltakskode.OPPFOLGING.toAktivitetskortTiltakstype(),
     )
+
+    fun lagDeltakerResponse(
+        deltaker: DeltakerDbo,
+        deltakerliste: Deltakerliste = lagDeltakerliste(id = deltaker.deltakerlisteId),
+        arrangor: Arrangor = lagArrangor(id = deltakerliste.arrangorId),
+    ): DeltakerResponse {
+        val status = deltaker.status.toDeltakerStatus()
+        val tiltakstypeResponse = no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype(
+            id = UUID.randomUUID(),
+            navn = deltakerliste.tiltak.navn,
+            tiltakskode = deltakerliste.tiltak.tiltakskode,
+            innsatsgrupper = setOf(no.nav.amt.lib.models.deltaker.Innsatsgruppe.STANDARD_INNSATS),
+            innhold = null,
+        )
+        val gjennomforingTittel = TiltakVisningsnavn.lagAktivitetskortTittel(
+            tiltakskode = deltakerliste.tiltak.tiltakskode,
+            tiltaksnavn = deltakerliste.tiltak.navn,
+            gjennomforingsnavn = deltakerliste.navn,
+            arrangorNavn = arrangor.navn,
+        )
+
+        return DeltakerResponse(
+            id = deltaker.id,
+            status = status,
+            navBruker = NavBrukerResponse(
+                personident = deltaker.personident,
+                fornavn = "Fornavn",
+                mellomnavn = null,
+                etternavn = "Etternavn",
+                telefon = null,
+                epost = null,
+                erSkjermet = false,
+                adresse = null,
+                adressebeskyttelse = null,
+                oppfolgingsperioder = emptyList<NavOppfolgingsperiode>(),
+                innsatsgruppe = null,
+                navVeileder = null,
+                navEnhet = null,
+                erDigital = true,
+            ),
+            gjennomforing = GjennomforingResponse(
+                id = deltakerliste.id,
+                type = deltakerliste.gjennomforingstype ?: GjennomforingType.Gruppe,
+                tiltakstype = tiltakstypeResponse,
+                visningsnavn = VisningsnavnResponse(gjennomforingTittel),
+                navn = deltakerliste.navn,
+                status = deltakerliste.status ?: GjennomforingStatusType.GJENNOMFORES,
+                startDato = deltaker.oppstartsdato,
+                sluttDato = deltaker.sluttdato,
+                antallPlasser = null,
+                oppstart = deltakerliste.oppstart ?: Oppstartstype.LOPENDE,
+                apentForPamelding = true,
+                oppmoteSted = null,
+                arrangor = no.nav.amt.internapi.deltaker.response.ArrangorResponse(
+                    id = arrangor.id,
+                    navn = arrangor.navn,
+                    organisasjonsnummer = arrangor.organisasjonsnummer,
+                ),
+                pameldingstype = deltakerliste.pameldingstype,
+            ),
+            startdato = deltaker.oppstartsdato,
+            sluttdato = deltaker.sluttdato,
+            dagerPerUke = deltaker.dagerPerUke,
+            deltakelsesprosent = deltaker.prosentStilling?.toFloat(),
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = null,
+            vedtaksinformasjon = null,
+            erManueltDeltMedArrangor = false,
+            kilde = deltaker.kilde ?: Kilde.ARENA,
+            sistEndret = LocalDateTime.now(),
+            opprettet = LocalDateTime.now(),
+            soktInnDato = null,
+            deltakelsesmengder = DeltakelsesmengderResponse(),
+            erLaastForEndringer = false,
+            endringsforslagFraArrangor = emptyList(),
+            prisinformasjon = null,
+            sisteVurdering = null,
+            importertFraArena = null,
+        )
+    }
 
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
@@ -138,7 +225,7 @@ object TestData {
         sluttdato: LocalDate? = LocalDate.now().plusWeeks(4),
         deltarPaKurs: Boolean = false,
         kilde: Kilde = Kilde.ARENA,
-    ) = Deltaker(
+    ) = DeltakerDbo(
         id,
         personident,
         deltakerlisteId,
@@ -163,6 +250,15 @@ object TestData {
         navn: String = "Navn",
         overordnetArrangorId: UUID? = null,
     ) = Arrangor(id, organisasjonsnummer, navn, overordnetArrangorId)
+
+    private fun DeltakerStatusModel.toDeltakerStatus() = DeltakerStatus(
+        id = UUID.randomUUID(),
+        type = type,
+        aarsak = aarsak?.let { DeltakerStatus.Aarsak(it, null) },
+        gyldigFra = gyldigFra ?: LocalDateTime.now(),
+        gyldigTil = null,
+        opprettet = gyldigFra ?: LocalDateTime.now(),
+    )
 
     fun lagTiltak(
         navn: String = "Jobbklubb",
@@ -224,7 +320,7 @@ object TestData {
     )
 
     data class MockContext(
-        val deltaker: Deltaker = lagDeltaker(),
+        val deltaker: DeltakerDbo = lagDeltaker(),
         val deltakerliste: Deltakerliste = lagDeltakerliste(id = deltaker.deltakerlisteId),
         val arrangor: Arrangor = lagArrangor(id = deltakerliste.arrangorId),
         val tiltakstype: Tiltakstype = Tiltakstype(
@@ -257,7 +353,7 @@ object TestData {
         ),
     )
 
-    fun Deltaker.toDto() = DeltakerKafkaPayload(
+    fun DeltakerDbo.toDto() = DeltakerKafkaPayload(
         id = this.id,
         personalia = Personalia(
             personId = UUID.randomUUID(),

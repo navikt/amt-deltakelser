@@ -3,9 +3,11 @@ package no.nav.amt.aktivitetskort.config
 import no.nav.amt.aktivitetskort.client.AKTIVITET_ARENA_ACL_CLIENT_ID
 import no.nav.amt.aktivitetskort.client.AMT_ARENA_ACL_CLIENT_ID
 import no.nav.amt.aktivitetskort.client.AMT_ARRANGOR_CLIENT_ID
+import no.nav.amt.aktivitetskort.client.AMT_DELTAKER_CLIENT_ID
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclApi
 import no.nav.amt.aktivitetskort.client.AmtArenaAclApi
 import no.nav.amt.aktivitetskort.client.AmtArrangorApi
+import no.nav.amt.aktivitetskort.client.AmtDeltakerApi
 import no.nav.amt.aktivitetskort.client.NAV_CONSUMER_ID_HEADER
 import no.nav.amt.aktivitetskort.client.NAV_CONSUMER_ID_HEADER_VALUE
 import no.nav.amt.aktivitetskort.client.VEILARBOPPFOLGING_CLIENT_ID
@@ -22,6 +24,7 @@ import org.springframework.web.service.registry.ImportHttpServices
 @ImportHttpServices(group = AMT_ARENA_ACL_CLIENT_ID, types = [AmtArenaAclApi::class])
 @ImportHttpServices(group = AKTIVITET_ARENA_ACL_CLIENT_ID, types = [AktivitetArenaAclApi::class])
 @ImportHttpServices(group = AMT_ARRANGOR_CLIENT_ID, types = [AmtArrangorApi::class])
+@ImportHttpServices(group = AMT_DELTAKER_CLIENT_ID, types = [AmtDeltakerApi::class])
 @ImportHttpServices(group = VEILARBOPPFOLGING_CLIENT_ID, types = [VeilarboppfolgingApi::class])
 class ClientConfig {
     @Bean
