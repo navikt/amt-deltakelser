@@ -331,7 +331,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = prisinfo,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennOkonomiMedTestbruker(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )

@@ -53,8 +53,8 @@ object PrisinfoRepoAdapter {
     fun godkjennOkonomi(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
-        godkjentAv: UUID? = null,
-        godkjentAvEnhet: UUID? = null,
+        godkjentAv: UUID,
+        godkjentAvEnhet: UUID,
     ): Boolean {
         val endringFinnes = Deltakerliste2PrisinfoRepository.delete(
             gjennomforingId = gjennomforingId,

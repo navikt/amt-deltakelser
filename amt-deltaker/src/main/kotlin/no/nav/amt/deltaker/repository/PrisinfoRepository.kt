@@ -189,15 +189,16 @@ object PrisinfoRepository {
     }
 
     /**
-     * Setter prisinfo til GODKJENT og lagrer hvem som godkjente den, hvis kjent.
+     * Setter prisinfo til GODKJENT og lagrer hvem som godkjente den.
      *
      * Godkjenneren lagres per godkjenning fordi den ikke kan utledes i etterkant.
      */
     fun settGodkjent(
         prisinformasjonId: UUID,
-        godkjentAv: UUID?,
-        godkjentAvEnhet: UUID?,
+        godkjentAv: UUID,
+        godkjentAvEnhet: UUID,
     ) = Database.query { session ->
+        // TODO: transaction?
         session.update(
             queryOf(
                 """
@@ -207,27 +208,25 @@ object PrisinfoRepository {
                     modified_at = now()
                 WHERE id = ?
                 """.trimIndent(),
-                PrisinfoDbo.PrisinfoStatus.GODKJENT.name,
+                PrisinfoStatus.GODKJENT.name,
                 prisinformasjonId,
             ),
         )
 
-        if (godkjentAv != null && godkjentAvEnhet != null) {
-            session.update(
-                queryOf(
-                    """
-                    INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT (prisinformasjon_id) DO UPDATE SET
-                        godkjent_av = EXCLUDED.godkjent_av,
-                        godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
-                    """.trimIndent(),
-                    prisinformasjonId,
-                    godkjentAv,
-                    godkjentAvEnhet,
-                ),
-            )
-        }
+        session.update(
+            queryOf(
+                """
+                INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
+                VALUES (?, ?, ?)
+                ON CONFLICT (prisinformasjon_id) DO UPDATE SET
+                    godkjent_av = EXCLUDED.godkjent_av,
+                    godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
+                """.trimIndent(),
+                prisinformasjonId,
+                godkjentAv,
+                godkjentAvEnhet,
+            ),
+        )
     }
 
     /**
@@ -255,7 +254,7 @@ object PrisinfoRepository {
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
                 JOIN enkeltplass_prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.deltakerliste_id
-                LEFT JOIN enkeltplass_prisinfo_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
+                JOIN enkeltplass_prisinfo_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
                 AND prisinfo.status = 'GODKJENT'
@@ -269,8 +268,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuidOrNull("godkjent_av"),
-                            sistEndretAvNavEnhetId = row.uuidOrNull("godkjent_av_enhet"),
+                            sistEndretAvNavAnsattId = row.uuid("godkjent_av"),
+                            sistEndretAvNavEnhetId = row.uuid("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
