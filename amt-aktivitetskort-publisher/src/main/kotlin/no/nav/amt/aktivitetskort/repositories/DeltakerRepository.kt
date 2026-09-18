@@ -51,9 +51,18 @@ class DeltakerRepository(
         )
     }
 
+    /*
+        Verifiserer faktisk endring utifra lokalt lagrede data, og upserter endring i database
+
+        @buypassEqualityCheck: Hvis true, sjekkes ikke objekt ekvalitet. Dette fordi vi ønsker å skrive oss bort fra
+        å stadig skrive nye felter til databasen(som kreves av sjekken). Det uklart om ekvalitetssjekken er viktig selv etter at vi
+        har innført sjekk på gjeldende oppfølgingsperiode+aktivitetskort id hentes fra dab(for å unngå å opprette dupliserte aktivitetskort).
+        Det er antagelig tryggere å buypasse sjekken for opplæringstiltak siden disse ikke opprinnelig ble opprettet i arena
+     */
     fun upsert(
         deltaker: DeltakerDbo,
         offset: Long,
+        buyPassEqualityCheck: Boolean = false,
     ): RepositoryResult<DeltakerDbo> {
         // fix for å reversere endring 26.11.2025 hvor gyldigFra ble lagt til
         fun DeltakerDbo.isEqualTo(other: DeltakerDbo?): Boolean =
@@ -61,6 +70,7 @@ class DeltakerRepository(
 
         val oldDeltaker = getDeltakerMedOffset(deltaker.id)
 
+        // Hvorfor denne sjekken?
         if (oldDeltaker != null && oldDeltaker.offset > offset) {
             log.info("Har lagret melding med offset ${oldDeltaker.offset} for deltaker ${deltaker.id}, ignorerer offset $offset")
             return RepositoryResult.NoChange()
@@ -71,7 +81,8 @@ class DeltakerRepository(
         }
 
         if (deltaker.isEqualTo(oldDeltaker?.deltaker) &&
-            !unleashToggle.skalOppdatereUendredeAktivitetskort()
+            !unleashToggle.skalOppdatereUendredeAktivitetskort() &&
+            !buyPassEqualityCheck
         ) {
             return RepositoryResult.NoChange()
         }
@@ -186,7 +197,7 @@ class DeltakerRepository(
     }
 }
 
-private data class DeltakerMedOffset(
+data class DeltakerMedOffset(
     val deltaker: DeltakerDbo,
     val offset: Long,
 )

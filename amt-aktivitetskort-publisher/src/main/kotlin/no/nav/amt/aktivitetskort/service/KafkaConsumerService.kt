@@ -1,10 +1,12 @@
 package no.nav.amt.aktivitetskort.service
 
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
+import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
+import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
@@ -17,6 +19,7 @@ import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
@@ -40,28 +43,37 @@ class KafkaConsumerService(
     private val transactionTemplate: TransactionTemplate,
     private val unleashToggle: CommonUnleashToggle,
     private val objectMapper: ObjectMapper,
+    private val amtDeltakerClient: AmtDeltakerClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun deltakerHendelse(
         id: UUID,
-        deltaker: DeltakerKafkaPayload?,
+        deltakerPayload: DeltakerKafkaPayload?,
         offset: Long,
     ) {
-        if (deltaker == null) return handterSlettetDeltaker(id)
+        if (deltakerPayload == null) return handterSlettetDeltaker(id)
 
-        if (deltakerStatusTilAktivitetStatus(deltaker.status.type).isFailure) {
-            log.info("Kan ikke lage aktivitetskort for deltaker ${deltaker.id} med status ${deltaker.status.type}")
+        if (deltakerStatusTilAktivitetStatus(deltakerPayload.status.type).isFailure) {
+            log.info("Kan ikke lage aktivitetskort for deltaker ${deltakerPayload.id} med status ${deltakerPayload.status.type}")
             return
         }
+        val deltaker = amtDeltakerClient
+            .getDeltaker(deltakerPayload.id)
+            .let { Deltaker.fromDeltakerResponse(it) }
 
         transactionTemplate.executeWithoutResult {
-            when (deltakerRepository.upsert(deltaker.toModel(), offset)) {
+            val deltakerUpsertResult = deltakerRepository.upsert(
+                deltaker = deltakerPayload.toDbo(),
+                offset = offset,
+                buyPassEqualityCheck = deltaker.gjennomforing.tiltakstype.erOpplaeringstiltak && deltaker.kilde == Kilde.KOMET,
+            )
+            when (deltakerUpsertResult) {
                 is RepositoryResult.Modified -> {
-                    log.info("Ny hendelse for deltaker ${deltaker.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(id)
+                    log.info("Ny hendelse for deltaker ${deltakerPayload.id}: Oppdatering")
+                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
                     if (aktivitetskort == null) {
-                        log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke oppdatert.")
+                        log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
                         return@executeWithoutResult
                     }
                     aktivitetskortProducer.send(aktivitetskort)
@@ -69,7 +81,7 @@ class KafkaConsumerService(
 
                 is RepositoryResult.Created -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Opprettelse")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(id)
+                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
                         return@executeWithoutResult
@@ -239,7 +251,7 @@ class KafkaConsumerService(
         else -> false
     }
 
-    fun DeltakerKafkaPayload.toModel() = DeltakerDbo(
+    fun DeltakerKafkaPayload.toDbo() = DeltakerDbo(
         id = id,
         personident = personalia.personident,
         deltakerlisteId = deltakerliste.id,
