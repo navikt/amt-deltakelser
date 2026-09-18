@@ -95,6 +95,10 @@ spec:
       value: {{veilederurl_basepath}}
     - name: DELTAKERURL_BASEPATH
       value: {{deltakerurl_basepath}}
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_DELTAKER_SCOPE
+      value: api://{{cluster}}.amt.amt-deltaker/.default
 
   observability:
     autoInstrumentation:
