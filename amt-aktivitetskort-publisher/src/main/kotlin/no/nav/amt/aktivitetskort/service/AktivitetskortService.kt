@@ -59,6 +59,8 @@ class AktivitetskortService(
         .getByDeltakerId(deltakerId)
         .maxByOrNull { it.createdAt }
 
+    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker = deltaker)?.aktivitetskort
+
     fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? = amtDeltakerClient
         .getDeltaker(deltakerId)
         .let { tryOpprettMelding(deltaker = Deltaker.fromDeltakerResponse(it))?.aktivitetskort }
@@ -94,6 +96,13 @@ class AktivitetskortService(
         }
     }
 
+    /*
+    Henter aktivitetskortId for deltaker
+     * Komet deltakere som ble opprettet før vi begynte å koble aktivitetskort til oppfølgingsperiode
+     * Arenadeltakere må alltid hente id fra dab fordi de kan ha opprettet flere aktivitetskort for en
+     deltaker uten komets innblanding
+     *
+     */
     private fun getAktivitetskortId(
         deltaker: Deltaker,
         oppfolgingsperiode: Oppfolgingsperiode,
