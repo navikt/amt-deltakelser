@@ -314,8 +314,8 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 1
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe navAnsatt.id
-                sistEndretAvNavEnhetId shouldBe navEnhet.id
+                godkjentAvNavAnsattId shouldBe navAnsatt.id
+                godkjentAvNavEnhetId shouldBe navEnhet.id
             }
         }
 

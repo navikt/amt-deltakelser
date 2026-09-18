@@ -96,8 +96,8 @@ object PrisinfoRepoAdapter {
         return godkjente.map {
             OkonomiGodkjentForHistorikk(
                 sistEndret = it.sistEndret,
-                sistEndretAvNavAnsattId = it.sistEndretAvNavAnsattId,
-                sistEndretAvNavEnhetId = it.sistEndretAvNavEnhetId,
+                godkjentAvNavAnsattId = it.godkjentAvNavAnsattId,
+                godkjentAvNavEnhetId = it.godkjentAvNavEnhetId,
                 erForsteGodkjenning = it.erForsteGodkjenning,
                 prisinformasjon = it.prisinfo.toPrisinformasjonDto(belopPerPrisinfo[it.prisinfo.id].orEmpty()),
             )

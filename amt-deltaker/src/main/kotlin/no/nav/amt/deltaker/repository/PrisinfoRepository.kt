@@ -38,7 +38,7 @@ object PrisinfoRepository {
     fun hentPrisinfoStatus(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
-    ): PrisinfoDbo.PrisinfoStatus? {
+    ): PrisinfoStatus? {
         val sql =
             """
             SELECT status 
@@ -52,7 +52,7 @@ object PrisinfoRepository {
             session.run(
                 queryOf(sql, prisinformasjonId, gjennomforingId)
                     .map { row ->
-                        PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status"))
+                        PrisinfoStatus.valueOf(row.string("status"))
                     }.asSingle,
             )
         }
@@ -268,8 +268,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuid("godkjent_av"),
-                            sistEndretAvNavEnhetId = row.uuid("godkjent_av_enhet"),
+                            godkjentAvNavAnsattId = row.uuid("godkjent_av"),
+                            godkjentAvNavEnhetId = row.uuid("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
@@ -280,7 +280,7 @@ object PrisinfoRepository {
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
         id = row.uuid("id"),
         gjennomforingId = row.uuid("deltakerliste_id"),
-        status = PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status")),
+        status = PrisinfoStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),

@@ -265,7 +265,7 @@ class DeltakerKafkaPayloadBuilder(
 
         is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.innsoktAvEnhet
 
-        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> data.sistEndretAvNavEnhetId
+        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> data.godkjentAvNavEnhetId
 
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
 
