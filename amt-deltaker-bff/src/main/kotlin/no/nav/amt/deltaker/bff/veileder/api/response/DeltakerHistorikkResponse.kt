@@ -20,6 +20,7 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -135,6 +136,29 @@ data class EnkeltplassOkonomiGodkjentResponse(
     val erForsteGodkjenning: Boolean,
     val prisinformasjon: PrisinformasjonResponse?,
 ) : DeltakerHistorikkResponse {
+    companion object {
+        private val log = LoggerFactory.getLogger(javaClass)
+
+        fun fromModel(
+            model: OkonomiGodkjentForHistorikk,
+            enheter: Map<UUID, NavEnhet>,
+            ansatte: Map<UUID, NavAnsatt>,
+        ): EnkeltplassOkonomiGodkjentResponse {
+            val endretAv = model.sistEndretAvNavAnsattId.let { ansatte[it]?.navn }
+            val endretAvEnhet = model.sistEndretAvNavEnhetId.let { enheter[it]?.navn }
+            if (endretAv == null || endretAvEnhet == null) {
+                log.warn("Kunne ikke slå opp forventet Nav-ansatt-info for modell: $model")
+            }
+            return EnkeltplassOkonomiGodkjentResponse(
+                endretAv = endretAv,
+                endretAvEnhet = endretAvEnhet,
+                endret = model.sistEndret,
+                erForsteGodkjenning = model.erForsteGodkjenning,
+                prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
+            )
+        }
+    }
+
     constructor(
         model: OkonomiGodkjentForHistorikk,
         enheter: Map<UUID, NavEnhet>,
