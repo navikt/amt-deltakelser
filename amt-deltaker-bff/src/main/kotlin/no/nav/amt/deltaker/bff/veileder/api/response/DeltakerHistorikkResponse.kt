@@ -144,8 +144,8 @@ data class EnkeltplassOkonomiGodkjentResponse(
             enheter: Map<UUID, NavEnhet>,
             ansatte: Map<UUID, NavAnsatt>,
         ): EnkeltplassOkonomiGodkjentResponse {
-            val endretAv = model.godkjentAvNavAnsattId?.let { ansatte[it]?.navn }
-            val endretAvEnhet = model.godkjentAvNavEnhetId?.let { enheter[it]?.navn }
+            val endretAv = model.godkjentAvNavAnsattId.let { ansatte[it]?.navn }
+            val endretAvEnhet = model.godkjentAvNavEnhetId.let { enheter[it]?.navn }
             if (endretAv == null || endretAvEnhet == null) {
                 log.warn("Kunne ikke slå opp forventet Nav-ansatt-info for modell: $model")
             }
