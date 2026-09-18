@@ -192,9 +192,9 @@ class DeltakerKafkaPayloadBuilder(
             forcedUpdate = forcedUpdate,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
-            sisteEndring = sisteEndring?.getSistEndretAv()?.let { utfortAvNavAnsattId ->
+            sisteEndring = sisteEndring?.let {
                 SisteEndring(
-                    utfortAvNavAnsattId = utfortAvNavAnsattId,
+                    utfortAvNavAnsattId = sisteEndring.getSistEndretAv(),
                     navEnhetId = sisteEndring.getSistEndretAvEnhet(),
                     timestamp = deltaker.sistEndret,
                 )
@@ -233,7 +233,7 @@ class DeltakerKafkaPayloadBuilder(
         },
     )
 
-    private fun DeltakerHistorikk.getSistEndretAv(): UUID? = when (this) {
+    private fun DeltakerHistorikk.getSistEndretAv(): UUID = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
 
         is DeltakerHistorikk.Endring -> endring.endretAv
@@ -242,8 +242,7 @@ class DeltakerKafkaPayloadBuilder(
 
         is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.innsoktAv
 
-        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> data.sistEndretAvNavAnsattId
-
+        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent,
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
@@ -258,7 +257,7 @@ class DeltakerKafkaPayloadBuilder(
 
         is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.innsoktAvEnhet
 
-        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> data.sistEndretAvNavEnhetId
+        is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> data.godkjentAvNavEnhetId
 
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
 

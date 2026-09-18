@@ -22,9 +22,9 @@ sealed interface DeltakerHistorikk {
     ) : DeltakerHistorikk {
         override val sistEndret = data.sistEndret
 
-        override fun navAnsatte() = listOfNotNull(data.sistEndretAvNavAnsattId)
+        override fun navAnsatte() = listOf(data.godkjentAvNavAnsattId)
 
-        override fun navEnheter() = listOfNotNull(data.sistEndretAvNavEnhetId)
+        override fun navEnheter() = listOf(data.godkjentAvNavEnhetId)
     }
 
     data class VurderingFraArrangor(
