@@ -43,27 +43,13 @@ class PrisinfoRepoAdapterTest {
         private val gjennomforingInTest = lagDeltakerliste()
     }
 
-    private val navEnhetInTest = lagNavEnhet()
-    private val navAnsattInTest = lagNavAnsatt(navEnhetId = navEnhetInTest.id)
-
-    private fun godkjennOkonomiMedTestbruker(
-        gjennomforingId: UUID,
-        prisinformasjonId: UUID,
-    ): Boolean {
-        NavEnhetRepository().upsert(navEnhetInTest)
-        TestRepository.insert(navAnsattInTest)
-        return PrisinfoRepoAdapter.godkjennOkonomi(
-            gjennomforingId = gjennomforingId,
-            prisinformasjonId = prisinformasjonId,
-            godkjentAv = navAnsattInTest.id,
-            godkjentAvEnhet = navEnhetInTest.id,
-        )
-    }
-
     private val godkjennerEnhet = lagNavEnhet()
     private val godkjennerAnsatt = lagNavAnsatt(navEnhetId = godkjennerEnhet.id)
 
-    private fun godkjennMedTestGodkjenner(gjennomforingId: UUID, prisinformasjonId: UUID): Boolean {
+    private fun godkjennMedTestGodkjenner(
+        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
+    ): Boolean {
         NavEnhetRepository().upsert(godkjennerEnhet)
         TestRepository.insert(godkjennerAnsatt)
         return PrisinfoRepoAdapter.godkjennOkonomi(
