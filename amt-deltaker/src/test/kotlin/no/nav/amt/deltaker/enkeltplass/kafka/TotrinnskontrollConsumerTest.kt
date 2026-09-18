@@ -343,12 +343,13 @@ class TotrinnskontrollConsumerTest {
                     value = godkjentEnkeltplassPrisinformasjonPayload(
                         gjennomforingId = gjennomforingId,
                         totrinnskontrollId = totrinnskontrollId,
-                        besluttetAv = """
+                        besluttetAv =
+                            """
                             {
                               "type": "SYSTEM",
                               "system": "maskinell godkjenning"
                             }
-                        """.trimIndent(),
+                            """.trimIndent(),
                     ),
                 )
             }
@@ -1109,12 +1110,13 @@ class TotrinnskontrollConsumerTest {
         private fun godkjentEnkeltplassPrisinformasjonPayload(
             gjennomforingId: UUID,
             totrinnskontrollId: UUID,
-            besluttetAv: String = """
+            besluttetAv: String =
+                """
                 {
                   "type": "NAV_ANSATT",
                   "navIdent": "Z654321"
                 }
-            """.trimIndent(),
+                """.trimIndent(),
         ): String =
             """
             {
