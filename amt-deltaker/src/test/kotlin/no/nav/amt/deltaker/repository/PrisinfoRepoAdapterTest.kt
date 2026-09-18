@@ -1024,8 +1024,8 @@ class PrisinfoRepoAdapterTest {
             result.size shouldBe 1
             assertSoftly(result.first()) {
                 erForsteGodkjenning shouldBe false
-                sistEndretAvNavAnsattId shouldBe annenAnsatt.id
-                sistEndretAvNavEnhetId shouldBe annenEnhet.id
+                godkjentAvNavAnsattId shouldBe annenAnsatt.id
+                godkjentAvNavEnhetId shouldBe annenEnhet.id
             }
         }
 
@@ -1044,8 +1044,8 @@ class PrisinfoRepoAdapterTest {
 
             // Assert - attribusjon blir stående som null
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe null
-                sistEndretAvNavEnhetId shouldBe null
+                godkjentAvNavAnsattId shouldBe null
+                godkjentAvNavEnhetId shouldBe null
             }
         }
 
