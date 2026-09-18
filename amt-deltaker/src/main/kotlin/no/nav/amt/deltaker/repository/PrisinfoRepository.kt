@@ -255,8 +255,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuid("godkjent_av"),
-                            sistEndretAvNavEnhetId = row.uuid("godkjent_av_enhet"),
+                            sistEndretAvNavAnsattId = row.uuidOrNull("godkjent_av"),
+                            sistEndretAvNavEnhetId = row.uuidOrNull("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
