@@ -326,6 +326,45 @@ class TotrinnskontrollConsumerTest {
         }
 
         @Test
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING feiler når besluttetAv er systembruker`() = runTest {
+            // Arrange
+            val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            stubEnkeltplassDeltaker(deltakerInTest)
+            stubGjeldendePrisinfo(
+                PrisinformasjonDto.IngenKostnader(
+                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+                    tilleggsopplysninger = null,
+                ),
+            )
+
+            val exception = shouldThrow<IllegalStateException> {
+                consumer.consume(
+                    key = totrinnskontrollId,
+                    value = godkjentEnkeltplassPrisinformasjonPayload(
+                        gjennomforingId = gjennomforingId,
+                        totrinnskontrollId = totrinnskontrollId,
+                        besluttetAv = """
+                            {
+                              "type": "SYSTEM",
+                              "system": "maskinell godkjenning"
+                            }
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            // Assert
+            exception.message shouldBe
+                "Totrinnskontroll $totrinnskontrollId er godkjent med uventet type for `besluttetAv`. Avbryter behandling: System(system=maskinell godkjenning)"
+            verify(exactly = 0) {
+                PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any())
+            }
+            verify(exactly = 0) {
+                distribuerEndringService.produceHendelse(any(), any(), any(), any())
+            }
+        }
+
+        @Test
         fun `consume - godkjent ENKELTPLASS_PRISENDRING for SOKT_INN prosesseres som innsoking`() = runTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.SOKT_INN)
@@ -1070,6 +1109,12 @@ class TotrinnskontrollConsumerTest {
         private fun godkjentEnkeltplassPrisinformasjonPayload(
             gjennomforingId: UUID,
             totrinnskontrollId: UUID,
+            besluttetAv: String = """
+                {
+                  "type": "NAV_ANSATT",
+                  "navIdent": "Z654321"
+                }
+            """.trimIndent(),
         ): String =
             """
             {
@@ -1078,7 +1123,7 @@ class TotrinnskontrollConsumerTest {
               "type": "ENKELTPLASS_PRISENDRING",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+              "besluttetAv": $besluttetAv,
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
               "status": "GODKJENT",
               "aarsaker": [],
