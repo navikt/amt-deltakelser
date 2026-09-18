@@ -134,10 +134,6 @@ class AktivitetskortService(
     ): Melding? = amtDeltakerClient
         .getDeltaker(deltakerId)
         .let { deltaker -> tryOpprettMelding(Deltaker.fromDeltakerResponse(deltaker), meldingId) }
-        ?: run {
-            log.warn("Deltaker med id $deltakerId finnes ikke lenger")
-            null
-        }
 
     private fun tryOpprettMelding(
         deltaker: Deltaker,

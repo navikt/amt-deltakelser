@@ -28,6 +28,8 @@ spring:
         base-url: ${AKTIVITET_ARENA_ACL_URL}
       veilarboppfolging:
         base-url: ${VEILARBOPPFOLGING_URL}
+      amt-deltaker:
+        base-url: ${AMT_DELTAKER_URL}
 
   security:
     oauth2:
@@ -60,6 +62,14 @@ spring:
             authorization-grant-type: client_credentials
             scope:
               - ${AKTIVITET_ARENA_ACL_SCOPE}
+
+          amt-deltaker:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_DELTAKER_SCOPE}
 
           veilarboppfolging:
             provider: azuread

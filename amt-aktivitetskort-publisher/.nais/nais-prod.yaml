@@ -82,6 +82,10 @@ spec:
       value: api://prod-gcp.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_DELTAKER_SCOPE
+      value: api://prod-gcp.amt.amt-deltaker/.default
     - name: AKTIVITET_ARENA_ACL_URL
       value: http://aktivitet-arena-acl.dab.svc.cluster.local
     - name: AKTIVITET_ARENA_ACL_SCOPE
