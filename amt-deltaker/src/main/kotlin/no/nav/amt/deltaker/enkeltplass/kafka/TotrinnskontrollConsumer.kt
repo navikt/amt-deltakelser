@@ -144,11 +144,9 @@ class TotrinnskontrollConsumer(
             if (besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt) {
                 navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
             } else {
-                log.warn(
-                    "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent uten Nav-ansatt besluttetAv " +
-                        "(besluttetAv=$besluttetAv), godkjenner lagres ikke.",
+                error(
+                    "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv",
                 )
-                null to null
             }
 
         when (totrinnskontrollHendelse.type) {
@@ -201,15 +199,15 @@ class TotrinnskontrollConsumer(
         prisinfoId: UUID,
         behandletAvNavAnsatt: NavAnsatt,
         behandletAvNavEnhet: NavEnhet,
-        godkjentAvNavAnsatt: NavAnsatt?,
-        godkjentAvNavEnhet: NavEnhet?,
+        godkjentAvNavAnsatt: NavAnsatt,
+        godkjentAvNavEnhet: NavEnhet,
     ) {
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjonId = prisinfoId,
-                godkjentAv = godkjentAvNavAnsatt?.id,
-                godkjentAvEnhet = godkjentAvNavEnhet?.id,
+                godkjentAv = godkjentAvNavAnsatt.id,
+                godkjentAvEnhet = godkjentAvNavEnhet.id,
             )
 
             if (!skalPublisereHendelse) return@transaction
@@ -242,8 +240,8 @@ class TotrinnskontrollConsumer(
         prisinfoId: UUID,
         behandletAvNavAnsatt: NavAnsatt,
         behandletAvNavEnhet: NavEnhet,
-        godkjentAvNavAnsatt: NavAnsatt?,
-        godkjentAvNavEnhet: NavEnhet?,
+        godkjentAvNavAnsatt: NavAnsatt,
+        godkjentAvNavEnhet: NavEnhet,
     ) {
         log.info("Behandler godkjent totrinnskontroll for deltaker ${deltaker.id}")
 
@@ -261,8 +259,8 @@ class TotrinnskontrollConsumer(
                     val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                         gjennomforingId = deltaker.deltakerliste.id,
                         prisinformasjonId = prisinfoId,
-                        godkjentAv = godkjentAvNavAnsatt?.id,
-                        godkjentAvEnhet = godkjentAvNavEnhet?.id,
+                        godkjentAv = godkjentAvNavAnsatt.id,
+                        godkjentAvEnhet = godkjentAvNavEnhet.id,
                     )
 
                     if (!skalPublisereHendelse) {

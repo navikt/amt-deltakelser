@@ -140,8 +140,8 @@ data class EnkeltplassOkonomiGodkjentResponse(
         enheter: Map<UUID, NavEnhet>,
         ansatte: Map<UUID, NavAnsatt>,
     ) : this(
-        endretAv = model.sistEndretAvNavAnsattId?.let { ansatte[it]?.navn },
-        endretAvEnhet = model.sistEndretAvNavEnhetId?.let { enheter[it]?.navn },
+        endretAv = model.sistEndretAvNavAnsattId.let { ansatte[it]?.navn },
+        endretAvEnhet = model.sistEndretAvNavEnhetId.let { enheter[it]?.navn },
         endret = model.sistEndret,
         erForsteGodkjenning = model.erForsteGodkjenning,
         prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
