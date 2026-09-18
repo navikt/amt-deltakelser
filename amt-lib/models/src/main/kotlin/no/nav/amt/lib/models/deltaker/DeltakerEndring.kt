@@ -56,8 +56,19 @@ data class DeltakerEndring(
             val status: Status? = null,
         ) : Endring {
             enum class Status {
-                SENDT_TIL_GODKJENNING,
+                /**
+                 * Før vedtak er fattet kan veileder endre prisinfo direkte på påmeldingen
+                 */
                 ENDRET_DIREKTE,
+
+                /**
+                 * Hvis vedtak er fattet må prisinfo-endring godkjennes av eksternt system
+                 */
+                SENDT_TIL_GODKJENNING,
+
+                /**
+                 * Veileder kan tilbakekalle en endring
+                 */
                 TILBAKEKALT,
             }
         }
