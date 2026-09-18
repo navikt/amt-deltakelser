@@ -337,7 +337,7 @@ class TotrinnskontrollConsumerTest {
                 ),
             )
 
-            val exception = shouldThrow<IllegalStateException> {
+            val exception = shouldThrow<IllegalArgumentException> {
                 consumer.consume(
                     key = totrinnskontrollId,
                     value = godkjentEnkeltplassPrisinformasjonPayload(
