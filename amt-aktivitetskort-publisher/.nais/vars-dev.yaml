@@ -8,4 +8,3 @@ kafka_pool: nav-dev
 cluster: dev-gcp
 veilederurl_basepath: https://veilarbpersonflate.intern.dev.nav.no/arbeidsmarkedstiltak/deltakelse/deltaker
 deltakerurl_basepath: https://amt.intern.dev.nav.no/arbeidsmarkedstiltak
-database_insights: false

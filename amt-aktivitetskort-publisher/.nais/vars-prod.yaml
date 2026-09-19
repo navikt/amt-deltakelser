@@ -9,4 +9,3 @@ kafka_pool: nav-prod
 cluster: prod-gcp
 veilederurl_basepath: https://veilarbpersonflate.intern.nav.no/arbeidsmarkedstiltak/deltakelse/deltaker
 deltakerurl_basepath: https://www.nav.no/arbeidsmarkedstiltak
-database_insights: true

@@ -16,8 +16,6 @@ spec:
           - name: amt-aktivitetskort-publisher
             envVarPrefix: DB
         diskAutoresize: false
-        insights:
-          enabled: {{database_insights}}
   port: 8080
   terminationGracePeriodSeconds: 60
 

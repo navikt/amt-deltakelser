@@ -80,8 +80,6 @@ spec:
             value: "{{value}}"
 {{/each}}
         diskAutoresize: {{database_disk_autoresize}}
-        insights:
-          enabled: {{database_insights}}
   observability:
     autoInstrumentation:
       enabled: true

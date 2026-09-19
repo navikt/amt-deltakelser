@@ -11,7 +11,6 @@ database_tier: db-custom-1-3840
 database_users: [{name: datastream}]
 database_flags: [{name: cloudsql.logical_decoding, value: "on"}]
 database_disk_autoresize: true
-database_insights: true
 external_hosts: [{host: dokarkiv.prod-fss-pub.nais.io}, {host: dokdistkanal.prod-fss-pub.nais.io}, {host: dokdistfordeling.prod-fss-pub.nais.io}]
 dokarkiv_url: https://dokarkiv.prod-fss-pub.nais.io
 dokarkiv_scope: api://prod-fss.teamdokumenthandtering.dokarkiv/.default

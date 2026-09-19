@@ -118,9 +118,6 @@ spec:
             envVarPrefix: DB
         diskAutoresize: {{database_disk_autoresize}}
         pointInTimeRecovery: {{database_point_in_time_recovery}}
-        insights:
-          enabled: {{database_insights}}
-
   observability:
       autoInstrumentation:
         enabled: true

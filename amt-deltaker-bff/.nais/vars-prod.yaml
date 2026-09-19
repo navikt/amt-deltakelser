@@ -13,4 +13,3 @@ database_instance: amt-deltaker-bff
 database_tier: db-custom-1-3840
 database_disk_autoresize: true
 database_point_in_time_recovery: true
-database_insights: true

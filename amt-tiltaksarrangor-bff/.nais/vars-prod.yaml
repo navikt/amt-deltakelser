@@ -13,4 +13,3 @@ database_disk_autoresize: true
 database_point_in_time_recovery: true
 tiltak_tokenx_client_id: prod-gcp:amt:amt-tiltak
 arrangor_tokenx_client_id: prod-gcp:amt:amt-arrangor
-database_insights: true
