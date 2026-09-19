@@ -1,10 +1,10 @@
 [versions]
-kotlin-version = "2.4.20"
+kotlin-version = "2.4.10"
 ktor-version = "3.5.1"
 logback-version = "1.6.3"
 logstash-encoder-version = "9.0"
 prometheus-version = "1.17.1"
-ktlint-version = "14.0.1"
+ktlint-version = "14.2.0"
 ktlint-cli-version = "1.8.0"
 jackson2-version = "2.22.2"
 nav-common-version = "4.2026.09.14_05.43-2bd32bda23c4"
