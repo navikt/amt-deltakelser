@@ -20,6 +20,13 @@ dependencies {
         implementation(libsWrapper.getLibrary("jackson.core")) {
             because("GHSA-72hv-8253-57qq")
         }
+
+        implementation("at.yawk.lz4:lz4-java") {
+            version {
+                strictly("1.11.2")
+            }
+            because("Fixes CVE-2026-59949")
+        }
     }
 
     // Netty BOM — holder alle io.netty-moduler på samme versjon og fikser CVE-er samlet
