@@ -9,7 +9,11 @@ dependencies {
         ),
     )
     api("org.springframework:spring-web")
+    api("org.springframework.security:spring-security-core")
+    api("org.springframework.security:spring-security-web")
+    api("jakarta.servlet:jakarta.servlet-api")
 
+    testImplementation("org.springframework:spring-test")
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.kotest.assertions.core)
 }

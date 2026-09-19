@@ -1,4 +1,4 @@
-package no.nav.amt.aktivitetskort.internal
+package no.nav.amt.lib.spring.boot.security
 
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.authorization.AuthorizationManager
@@ -12,5 +12,5 @@ class InternalAuthorizationManager : AuthorizationManager<RequestAuthorizationCo
     override fun authorize(
         authentication: Supplier<out Authentication>,
         context: RequestAuthorizationContext,
-    ) = AuthorizationDecision(context.request.remoteAddr == "127.0.0.1")
+    ): AuthorizationDecision = AuthorizationDecision(context.request.remoteAddr == "127.0.0.1")
 }

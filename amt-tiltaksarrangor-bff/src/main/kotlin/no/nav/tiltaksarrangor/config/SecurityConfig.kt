@@ -1,11 +1,12 @@
 package no.nav.tiltaksarrangor.config
 
-import no.nav.tiltaksarrangor.api.InternalAuthorizationManager
+import no.nav.amt.lib.spring.boot.security.InternalAuthorizationManager
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.micrometer.metrics.autoconfigure.export.prometheus.PrometheusScrapeEndpoint
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -13,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 
 @Configuration(proxyBeanMethods = false)
+@Import(InternalAuthorizationManager::class)
 class SecurityConfig {
     @Bean
     fun securityFilterChain(
