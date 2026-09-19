@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.api
+package no.nav.amt.lib.spring.boot.security
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
