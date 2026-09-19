@@ -1,3 +1,4 @@
+---
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
@@ -6,80 +7,31 @@ metadata:
   labels:
     team: amt
 spec:
-  image: {{image}}
   port: 8080
   prometheus:
     enabled: true
-    path: /internal/prometheus
-
+    path: "/internal/prometheus"
   startup:
-    path: /internal/health/liveness
+    path: "/internal/health/liveness"
     initialDelay: 20
     failureThreshold: 20
   readiness:
-    path: /internal/health/readiness
+    path: "/internal/health/readiness"
   liveness:
-    path: /internal/health/liveness
-
-  replicas:
-    min: {{replicas_min}}
-    max: {{replicas_max}}
-{{#if cpu_scaling_threshold}}
-    scalingStrategy:
-      cpu:
-        thresholdPercentage: {{cpu_scaling_threshold}}
-{{else}}
-    disableAutoScaling: true
-{{/if}}
-
+    path: "/internal/health/liveness"
+    timeout: 3
   resources:
-    requests:
-      cpu: {{cpu_request}}
-      memory: {{memory_request}}
     limits:
-      memory: {{memory_limit}}
+      memory: 1024Mi
   azure:
     application:
       enabled: true
   leaderElection: true
-  kafka:
-    pool: {{kafka_pool}}
   accessPolicy:
     inbound:
       rules:
         - application: amt-deltaker-bff
         - application: amt-deltaker
-    outbound:
-      rules:
-        - application: amt-pdfgen
-        - application: amt-person-service
-        - application: amt-deltaker
-        - application: veilarboppfolging
-          namespace: poao
-          cluster: {{cluster}}
-      external:
-{{#each external_hosts}}
-        - host: {{host}}
-{{/each}}
-  gcp:
-    sqlInstances:
-      - name: {{database_instance}}
-        tier: {{database_tier}}
-        collation: nb_NO.UTF8
-        type: POSTGRES_17
-        databases:
-          - name: amt-distribusjon
-            envVarPrefix: DB
-            users:
-{{#each database_users}}
-              - name: {{name}}
-{{/each}}
-        flags:
-{{#each database_flags}}
-          - name: {{name}}
-            value: "{{value}}"
-{{/each}}
-        diskAutoresize: {{database_disk_autoresize}}
   observability:
     autoInstrumentation:
       enabled: true
@@ -88,34 +40,3 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-  env:
-    - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
-    - name: AMT_PERSONSERVICE_SCOPE
-      value: api://{{cluster}}.amt.amt-person-service/.default
-    - name: AMT_PERSONSERVICE_URL
-      value: http://amt-person-service
-    - name: AMT_DELTAKER_SCOPE
-      value: api://{{cluster}}.amt.amt-deltaker/.default
-    - name: AMT_DELTAKER_URL
-      value: http://amt-deltaker
-    - name: AMT_PDFGEN_SCOPE
-      value: api://{{cluster}}.amt.amt-pdfgen/.default
-    - name: AMT_PDFGEN
-      value: http://amt-pdfgen
-    - name: VEILARBOPPFOLGING_SCOPE
-      value: api://{{cluster}}.poao.veilarboppfolging/.default
-    - name: VEILARBOPPFOLGING_URL
-      value: http://veilarboppfolging.poao
-    - name: DOKARKIV_URL
-      value: {{dokarkiv_url}}
-    - name: DOKARKIV_SCOPE
-      value: {{dokarkiv_scope}}
-    - name: DOKDISTKANAL_URL
-      value: {{dokdistkanal_url}}
-    - name: DOKDISTKANAL_SCOPE
-      value: {{dokdistkanal_scope}}
-    - name: DOKDISTFORDELING_URL
-      value: {{dokdistfordeling_url}}
-    - name: DOKDISTFORDELING_SCOPE
-      value: {{dokdistfordeling_scope}}

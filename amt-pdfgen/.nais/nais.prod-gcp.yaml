@@ -1,0 +1,14 @@
+---
+spec:
+  replicas:
+    disableAutoScaling: true
+    min: 2
+    max: 2
+  resources:
+    requests:
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
