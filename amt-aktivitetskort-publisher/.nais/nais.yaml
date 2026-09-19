@@ -14,7 +14,7 @@ spec:
     path: "/actuator/prometheus"
   startup:
     port: 8081
-    path: "/actuator/health/liveness"/quit
+    path: "/actuator/health/liveness"
     initialDelay: 20
     failureThreshold: 20
   readiness:
