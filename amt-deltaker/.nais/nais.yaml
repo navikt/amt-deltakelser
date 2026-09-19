@@ -75,7 +75,7 @@ spec:
     pool: {{kafka_pool}}
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=80 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+      value: "-XX:MaxRAMPercentage=80.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE
       value: api://{{cluster}}.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL

@@ -76,7 +76,7 @@ spec:
     - secret: amt-aktivitetskort-publisher-unleash-api-token
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=75 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+      value: "-XX:MaxRAMPercentage=75.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_ARENA_ACL_URL
       value: http://amt-arena-acl.amt.svc.cluster.local
     - name: AMT_ARENA_ACL_SCOPE
