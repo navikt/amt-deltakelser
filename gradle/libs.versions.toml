@@ -42,6 +42,7 @@ pdfgen-core-version = "1.1.82"
 
 # CVE-fixes
 netty-version = "4.2.17.Final"
+lz4-java-version = { strictly = "1.11.2" }
 
 [libraries]
 
@@ -49,6 +50,7 @@ netty-version = "4.2.17.Final"
 # fikser CVE-2023-3635 ved å gjøre en oppgradering av okhttp som er en transitive dependency av unleash
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty-version" }
+lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4-java-version" }
 tools-jackson-core = { module = "tools.jackson.core:jackson-core", version.ref = "tools-jackson-version" }
 
 # amt-pdfgen spesifikt (bruker Jackson 2 via pdfgen-core)
@@ -143,6 +145,9 @@ archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-version" }
 ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlint-version" }
 ktor-plugin = { module = "io.ktor.plugin:io.ktor.plugin.gradle.plugin", version.ref = "ktor-version" }
+spring-boot-gradle-plugin = { module = "org.springframework.boot:org.springframework.boot.gradle.plugin", version.ref = "spring-boot-version" }
+spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management-version" }
+kotlin-spring-gradle-plugin = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin-version" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot-version" }

@@ -29,7 +29,11 @@ jobs:
             amt-lib: amt-lib/**
             amt-pdfgen: amt-pdfgen/**
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
-            all: gradle/libs.versions.toml
+            all:
+              - gradle/libs.versions.toml
+              - amt-felles/**
+              - amt-lib/**
+              - buildSrc/**
 
       - name: Debug changed modules
         run: |

@@ -21,10 +21,7 @@ dependencies {
             because("GHSA-72hv-8253-57qq")
         }
 
-        implementation("at.yawk.lz4:lz4-java") {
-            version {
-                strictly("1.11.2")
-            }
+        implementation(libsWrapper.getLibrary("lz4.java")) {
             because("Fixes CVE-2026-59949")
         }
     }
