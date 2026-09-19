@@ -1,3 +1,0 @@
-replicas: 1
-memory_request: 256Mi
-memory_limit: 1024Mi

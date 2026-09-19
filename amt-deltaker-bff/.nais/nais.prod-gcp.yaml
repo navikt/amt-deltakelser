@@ -1,0 +1,80 @@
+---
+spec:
+  ingresses:
+    - https://amt-deltaker-bff.intern.nav.no
+  replicas:
+    min: 2
+    max: 3
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 200
+  resources:
+    requests:
+      cpu: 30m
+      memory: 700Mi
+    limits:
+      memory: 1Gi
+  kafka:
+    pool: nav-prod
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-flate
+        - application: amt-deltaker-innbyggers-flate
+        - application: veilarbpersonflate
+          namespace: poao
+        - application: tiltaksadministrasjon-flate
+          namespace: team-mulighetsrommet
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=80.0 -Xshare:off --enable-native-access=ALL-UNNAMED
+      --sun-misc-unsafe-memory-access=allow"
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://prod-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
+    - name: POAO_TILGANG_SCOPE
+      value: api://prod-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://prod-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
+    - name: AMT_DELTAKER_SCOPE
+      value: api://prod-gcp.amt.amt-deltaker/.default
+    - name: AMT_DELTAKER_URL
+      value: http://amt-deltaker
+    - name: AMT_DISTRIBUSJON_SCOPE
+      value: api://prod-gcp.amt.amt-distribusjon/.default
+    - name: AMT_DISTRIBUSJON_URL
+      value: http://amt-distribusjon
+    - name: AD_ROLLE_TILTAKSKOORDINATOR
+      value: 27c7f710-df2d-456d-8690-801ab37b90c1
+    - name: MULIGHETSROMMET_API_SCOPE
+      value: api://prod-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
+    - name: MULIGHETSROMMET_API_URL
+      value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
+  azure:
+    application:
+      claims:
+        groups:
+          - id: 27c7f710-df2d-456d-8690-801ab37b90c1
+  gcp:
+    sqlInstances:
+      - name: amt-deltaker-bff
+        tier: db-custom-1-3840
+        collation: nb_NO.UTF8
+        type: POSTGRES_17
+        databases:
+          - name: amt-deltaker-bff
+            envVarPrefix: DB
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: 'on'
+          - name: pgaudit.log
+            value: write,ddl,role
+          - name: pgaudit.log_parameter
+            value: 'on'

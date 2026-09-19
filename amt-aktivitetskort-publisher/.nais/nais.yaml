@@ -1,3 +1,4 @@
+---
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
@@ -6,96 +7,36 @@ metadata:
   labels:
     team: amt
 spec:
-  image: {{image}}
-  gcp:
-    sqlInstances:
-      - name: {{database_instance}}
-        type: POSTGRES_17
-        tier: {{database_tier}}
-        databases:
-          - name: amt-aktivitetskort-publisher
-            envVarPrefix: DB
-        diskAutoresize: false
   port: 8080
-  terminationGracePeriodSeconds: 60
-
   prometheus:
     enabled: true
-    port: "8081"
-    path: /actuator/prometheus
+    port: '8081'
+    path: "/actuator/prometheus"
   startup:
     port: 8081
-    path: /actuator/health/liveness
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 10
+    path: "/actuator/health/liveness"/quit
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     port: 8081
-    path: /actuator/health/readiness
+    path: "/actuator/health/readiness"
   liveness:
     port: 8081
-    path: /actuator/health/liveness
-
+    path: "/actuator/health/liveness"
   replicas:
-    min: {{replicas_min}}
-    max: {{replicas_max}}
-{{#if cpu_scaling_threshold}}
-    scalingStrategy:
-      cpu:
-        thresholdPercentage: {{cpu_scaling_threshold}}
-{{else}}
-    disableAutoScaling: true
-{{/if}}
+    min: 1
   resources:
     requests:
       cpu: 10m
-      memory: {{memory_request}}
-    limits:
-      memory: {{memory_limit}}
   azure:
     application:
       enabled: true
-  kafka:
-    pool: {{kafka_pool}}
   accessPolicy:
     outbound:
-      rules:
-        - application: amt-arena-acl
-        - application: amt-arrangor
-        - application: aktivitet-arena-acl
-          namespace: dab
-          cluster: {{cluster}}
-        - application: veilarboppfolging
-          namespace: poao
-          cluster: {{cluster}}
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   envFrom:
     - secret: amt-aktivitetskort-publisher-unleash-api-token
-  env:
-    - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=75.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
-    - name: AMT_ARENA_ACL_URL
-      value: http://amt-arena-acl.amt.svc.cluster.local
-    - name: AMT_ARENA_ACL_SCOPE
-      value: api://{{cluster}}.amt.amt-arena-acl/.default
-    - name: AMT_ARRANGOR_SCOPE
-      value: api://{{cluster}}.amt.amt-arrangor/.default
-    - name: AMT_ARRANGOR_URL
-      value: http://amt-arrangor
-    - name: AKTIVITET_ARENA_ACL_URL
-      value: http://aktivitet-arena-acl.dab.svc.cluster.local
-    - name: AKTIVITET_ARENA_ACL_SCOPE
-      value: api://{{cluster}}.dab.aktivitet-arena-acl/.default
-    - name: VEILARBOPPFOLGING_SCOPE
-      value: api://{{cluster}}.poao.veilarboppfolging/.default
-    - name: VEILARBOPPFOLGING_URL
-      value: http://veilarboppfolging.poao
-    - name: VEILEDERURL_BASEPATH
-      value: {{veilederurl_basepath}}
-    - name: DELTAKERURL_BASEPATH
-      value: {{deltakerurl_basepath}}
-
   observability:
     autoInstrumentation:
       enabled: true

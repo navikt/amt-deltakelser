@@ -1,0 +1,57 @@
+---
+spec:
+  gcp:
+    sqlInstances:
+      - name: amt-aktivitetskort-publisher-1
+        tier: db-f1-micro
+        type: POSTGRES_17
+        databases:
+          - name: amt-aktivitetskort-publisher
+            envVarPrefix: DB
+        diskAutoresize: false
+        highAvailability: false
+  terminationGracePeriodSeconds: 60
+  replicas:
+    disableAutoScaling: true
+    max: 1
+  resources:
+    requests:
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
+  kafka:
+    pool: nav-dev
+  accessPolicy:
+    outbound:
+      rules:
+        - application: amt-arena-acl
+        - application: amt-arrangor
+        - application: aktivitet-arena-acl
+          namespace: dab
+          cluster: dev-gcp
+        - application: veilarboppfolging
+          namespace: poao
+          cluster: dev-gcp
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=60.0"
+    - name: AMT_ARENA_ACL_URL
+      value: http://amt-arena-acl.amt.svc.cluster.local
+    - name: AMT_ARENA_ACL_SCOPE
+      value: api://dev-gcp.amt.amt-arena-acl/.default
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://dev-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
+    - name: AKTIVITET_ARENA_ACL_URL
+      value: http://aktivitet-arena-acl.dab.svc.cluster.local
+    - name: AKTIVITET_ARENA_ACL_SCOPE
+      value: api://dev-gcp.dab.aktivitet-arena-acl/.default
+    - name: VEILARBOPPFOLGING_SCOPE
+      value: api://dev-gcp.poao.veilarboppfolging/.default
+    - name: VEILARBOPPFOLGING_URL
+      value: http://veilarboppfolging.poao
+    - name: VEILEDERURL_BASEPATH
+      value: https://veilarbpersonflate.intern.dev.nav.no/arbeidsmarkedstiltak/deltakelse/deltaker
+    - name: DELTAKERURL_BASEPATH
+      value: https://amt.intern.dev.nav.no/arbeidsmarkedstiltak
