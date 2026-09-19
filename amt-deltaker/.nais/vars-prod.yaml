@@ -1,0 +1,15 @@
+kafka_pool: nav-prod
+cluster: prod-gcp
+ingress: https://amt-deltaker.intern.nav.no
+memory_request: 700Mi
+cpu_request: 30m
+memory_limit: 1Gi
+replicas_min: 2
+replicas_max: 3
+cpu_scaling_threshold: 150
+database_instance: amt-deltaker-2
+database_tier: db-custom-1-3840
+database_users: [{name: datastream}]
+database_flags: [{name: cloudsql.logical_decoding, value: "on"}, {name: cloudsql.enable_pgaudit, value: "on"}, {name: pgaudit.log, value: "write,ddl,role"}, {name: pgaudit.log_parameter, value: "on"}, {name: pgaudit.log_relation, value: "on"}]
+database_disk_autoresize: true
+database_point_in_time_recovery: true

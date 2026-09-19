@@ -1,1 +1,15 @@
 ad_rolle_tiltak_koordinator: 27c7f710-df2d-456d-8690-801ab37b90c1
+kafka_pool: nav-prod
+cluster: prod-gcp
+ingress: https://amt-deltaker-bff.intern.nav.no
+memory_request: 700Mi
+cpu_request: 30m
+memory_limit: 1Gi
+replicas_min: 2
+replicas_max: 3
+cpu_scaling_threshold: 200
+inbound_rules: [{application: amt-deltaker-flate}, {application: amt-deltaker-innbyggers-flate}, {application: veilarbpersonflate, namespace: poao}, {application: tiltaksadministrasjon-flate, namespace: team-mulighetsrommet}]
+database_instance: amt-deltaker-bff
+database_tier: db-custom-1-3840
+database_disk_autoresize: true
+database_point_in_time_recovery: true

@@ -14,9 +14,8 @@ spec:
 
   startup:
     path: /internal/is_alive
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 30
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     path: /internal/is_alive
   liveness:
@@ -24,14 +23,14 @@ spec:
 
   replicas:
     disableAutoScaling: true
-    min: 2
-    max: 2
+    min: {{replicas}}
+    max: {{replicas}}
   resources:
     requests:
       cpu: 10m
-      memory: 512Mi
+      memory: {{memory_request}}
     limits:
-      memory: 2Gi
+      memory: {{memory_limit}}
   accessPolicy:
     inbound:
       rules:

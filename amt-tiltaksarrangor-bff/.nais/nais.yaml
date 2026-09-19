@@ -9,49 +9,50 @@ spec:
   image: {{image}}
   gcp:
     sqlInstances:
-      - name: amt-tiltaksarrangor-bff-2
+      - name: {{database_instance}}
         type: POSTGRES_17
-        tier: db-custom-1-3840
+        tier: {{database_tier}}
         databases:
           - name: amt-tiltaksarrangor-bff
             envVarPrefix: DB
-        diskAutoresize: true
-        pointInTimeRecovery: true
-        insights:
-          enabled: true
+        diskAutoresize: {{database_disk_autoresize}}
+        pointInTimeRecovery: {{database_point_in_time_recovery}}
 
   port: 8080
   ingresses:
-    - https://amt-tiltaksarrangor-bff.intern.nav.no
+    - {{ingress}}
 
   prometheus:
     enabled: true
     path: /actuator/prometheus
   startup:
     path: /actuator/health/liveness
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 10
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     path: /actuator/health/readiness
   liveness:
     path: /actuator/health/liveness
 
   replicas:
-    min: 2
-    max: 3
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
     scalingStrategy:
       cpu:
-        thresholdPercentage: 300
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
 
   resources:
     requests:
-      cpu: 30m
-      memory: 800Mi
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
     limits:
-      memory: 1100Mi
+      memory: {{memory_limit}}
   kafka:
-    pool: nav-prod
+    pool: {{kafka_pool}}
   tokenx:
     enabled: true
   azure:
@@ -76,15 +77,15 @@ spec:
     - name: JDK_JAVA_OPTIONS
       value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_TILTAK_TOKENX_CLIENT_ID
-      value: prod-gcp:amt:amt-tiltak
+      value: {{tiltak_tokenx_client_id}}
     - name: AMT_ARRANGOR_TOKENX_CLIENT_ID
-      value: prod-gcp:amt:amt-arrangor
+      value: {{arrangor_tokenx_client_id}}
     - name: AMT_ARRANGOR_AAD_CLIENT_ID
-      value: api://prod-gcp.amt.amt-arrangor/.default
+      value: api://{{cluster}}.amt.amt-arrangor/.default
     - name: AMT_PERSON_AAD_CLIENT_ID
-      value: api://prod-gcp.amt.amt-person-service/.default
+      value: api://{{cluster}}.amt.amt-person-service/.default
     - name: AMT_DELTAKER_AAD_CLIENT_ID
-      value: api://prod-gcp.amt.amt-deltaker/.default
+      value: api://{{cluster}}.amt.amt-deltaker/.default
 
   observability:
     autoInstrumentation:

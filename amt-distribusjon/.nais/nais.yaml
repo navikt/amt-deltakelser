@@ -14,31 +14,36 @@ spec:
 
   startup:
     path: /internal/health/liveness
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 15
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     path: /internal/health/readiness
   liveness:
     path: /internal/health/liveness
-    timeout: 3
 
   replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
     disableAutoScaling: true
-    min: 1
-    max: 1
+{{/if}}
+
   resources:
     requests:
-      cpu: 20m
-      memory: 512Mi
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
     limits:
-      memory: 1024Mi
+      memory: {{memory_limit}}
   azure:
     application:
       enabled: true
   leaderElection: true
   kafka:
-    pool: nav-dev
+    pool: {{kafka_pool}}
   accessPolicy:
     inbound:
       rules:
@@ -51,23 +56,30 @@ spec:
         - application: amt-deltaker
         - application: veilarboppfolging
           namespace: poao
-          cluster: dev-gcp
+          cluster: {{cluster}}
       external:
-        - host: dokarkiv-q2.dev-fss-pub.nais.io
+{{#each external_hosts}}
+        - host: {{host}}
+{{/each}}
   gcp:
     sqlInstances:
-      - name: amt-distribusjon-2
-        tier: db-f1-micro
+      - name: {{database_instance}}
+        tier: {{database_tier}}
         collation: nb_NO.UTF8
         type: POSTGRES_17
         databases:
           - name: amt-distribusjon
             envVarPrefix: DB
             users:
-              - name: datastream
+{{#each database_users}}
+              - name: {{name}}
+{{/each}}
         flags:
-          - name: cloudsql.logical_decoding
-            value: "on"
+{{#each database_flags}}
+          - name: {{name}}
+            value: "{{value}}"
+{{/each}}
+        diskAutoresize: {{database_disk_autoresize}}
   observability:
     autoInstrumentation:
       enabled: true
@@ -78,32 +90,32 @@ spec:
         - id: loki
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=60.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+      value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE
-      value: api://dev-gcp.amt.amt-person-service/.default
+      value: api://{{cluster}}.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
       value: http://amt-person-service
     - name: AMT_DELTAKER_SCOPE
-      value: api://dev-gcp.amt.amt-deltaker/.default
+      value: api://{{cluster}}.amt.amt-deltaker/.default
     - name: AMT_DELTAKER_URL
       value: http://amt-deltaker
     - name: AMT_PDFGEN_SCOPE
-      value: api://dev-gcp.amt.amt-pdfgen/.default
+      value: api://{{cluster}}.amt.amt-pdfgen/.default
     - name: AMT_PDFGEN
       value: http://amt-pdfgen
     - name: VEILARBOPPFOLGING_SCOPE
-      value: api://dev-gcp.poao.veilarboppfolging/.default
+      value: api://{{cluster}}.poao.veilarboppfolging/.default
     - name: VEILARBOPPFOLGING_URL
       value: http://veilarboppfolging.poao
     - name: DOKARKIV_URL
-      value: https://dokarkiv-q2.dev-fss-pub.nais.io
+      value: {{dokarkiv_url}}
     - name: DOKARKIV_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+      value: {{dokarkiv_scope}}
     - name: DOKDISTKANAL_URL
-      value: https://dokdistkanal-q2.dev-fss-pub.nais.io
+      value: {{dokdistkanal_url}}
     - name: DOKDISTKANAL_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
+      value: {{dokdistkanal_scope}}
     - name: DOKDISTFORDELING_URL
-      value: https://dokdistfordeling.dev-fss-pub.nais.io
+      value: {{dokdistfordeling_url}}
     - name: DOKDISTFORDELING_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default
+      value: {{dokdistfordeling_scope}}
