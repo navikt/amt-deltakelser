@@ -12,5 +12,5 @@ database_disk_size: 15
 database_users: [{name: datastream}]
 database_flags: [{name: cloudsql.logical_decoding, value: "on"}]
 database_disk_autoresize: false
-database_point_in_time_recovery: true
+database_point_in_time_recovery: false
 database_insights: false
