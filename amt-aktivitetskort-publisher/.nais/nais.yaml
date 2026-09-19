@@ -9,17 +9,17 @@ spec:
   image: {{image}}
   gcp:
     sqlInstances:
-      - name: amt-aktivitetskort-publisher-2
+      - name: {{database_instance}}
         type: POSTGRES_17
-        tier: db-custom-1-3840
+        tier: {{database_tier}}
         databases:
           - name: amt-aktivitetskort-publisher
             envVarPrefix: DB
         diskAutoresize: false
-        highAvailability: false
         insights:
-          enabled: true
+          enabled: {{database_insights}}
   port: 8080
+  terminationGracePeriodSeconds: 60
 
   prometheus:
     enabled: true
@@ -39,22 +39,26 @@ spec:
     path: /actuator/health/liveness
 
   replicas:
-    min: 1
-    max: 3
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
     scalingStrategy:
       cpu:
-        thresholdPercentage: 500
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
   resources:
     requests:
       cpu: 10m
-      memory: 800Mi
+      memory: {{memory_request}}
     limits:
-      memory: 1100Mi
+      memory: {{memory_limit}}
   azure:
     application:
       enabled: true
   kafka:
-    pool: nav-prod
+    pool: {{kafka_pool}}
   accessPolicy:
     outbound:
       rules:
@@ -62,37 +66,37 @@ spec:
         - application: amt-arrangor
         - application: aktivitet-arena-acl
           namespace: dab
-          cluster: prod-gcp
+          cluster: {{cluster}}
         - application: veilarboppfolging
           namespace: poao
-          cluster: prod-gcp
+          cluster: {{cluster}}
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   envFrom:
     - secret: amt-aktivitetskort-publisher-unleash-api-token
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=75.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+      value: "-XX:MaxRAMPercentage=75 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_ARENA_ACL_URL
       value: http://amt-arena-acl.amt.svc.cluster.local
     - name: AMT_ARENA_ACL_SCOPE
-      value: api://prod-gcp.amt.amt-arena-acl/.default
+      value: api://{{cluster}}.amt.amt-arena-acl/.default
     - name: AMT_ARRANGOR_SCOPE
-      value: api://prod-gcp.amt.amt-arrangor/.default
+      value: api://{{cluster}}.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
     - name: AKTIVITET_ARENA_ACL_URL
       value: http://aktivitet-arena-acl.dab.svc.cluster.local
     - name: AKTIVITET_ARENA_ACL_SCOPE
-      value: api://prod-gcp.dab.aktivitet-arena-acl/.default
+      value: api://{{cluster}}.dab.aktivitet-arena-acl/.default
     - name: VEILARBOPPFOLGING_SCOPE
-      value: api://prod-gcp.poao.veilarboppfolging/.default
+      value: api://{{cluster}}.poao.veilarboppfolging/.default
     - name: VEILARBOPPFOLGING_URL
       value: http://veilarboppfolging.poao
     - name: VEILEDERURL_BASEPATH
-      value: https://veilarbpersonflate.intern.nav.no/arbeidsmarkedstiltak/deltakelse/deltaker
+      value: {{veilederurl_basepath}}
     - name: DELTAKERURL_BASEPATH
-      value: https://www.nav.no/arbeidsmarkedstiltak
+      value: {{deltakerurl_basepath}}
 
   observability:
     autoInstrumentation:

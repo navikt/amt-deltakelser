@@ -1,0 +1,16 @@
+kafka_pool: nav-prod
+cluster: prod-gcp
+ingress: https://amt-tiltaksarrangor-bff.intern.nav.no
+memory_request: 800Mi
+cpu_request: 30m
+memory_limit: 1100Mi
+replicas_min: 2
+replicas_max: 3
+cpu_scaling_threshold: 300
+database_instance: amt-tiltaksarrangor-bff-2
+database_tier: db-custom-1-3840
+database_disk_autoresize: true
+database_point_in_time_recovery: true
+tiltak_tokenx_client_id: prod-gcp:amt:amt-tiltak
+arrangor_tokenx_client_id: prod-gcp:amt:amt-arrangor
+database_insights: true

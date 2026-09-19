@@ -1,0 +1,12 @@
+database_instance: amt-aktivitetskort-publisher-2
+database_tier: db-custom-1-3840
+replicas_min: 1
+replicas_max: 3
+cpu_scaling_threshold: 500
+memory_request: 800Mi
+memory_limit: 1100Mi
+kafka_pool: nav-prod
+cluster: prod-gcp
+veilederurl_basepath: https://veilarbpersonflate.intern.nav.no/arbeidsmarkedstiltak/deltakelse/deltaker
+deltakerurl_basepath: https://www.nav.no/arbeidsmarkedstiltak
+database_insights: true

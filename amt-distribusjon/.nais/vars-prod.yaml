@@ -1,0 +1,21 @@
+kafka_pool: nav-prod
+cluster: prod-gcp
+memory_request: 650Mi
+cpu_request: 10m
+memory_limit: 1024Mi
+replicas_min: 2
+replicas_max: 3
+cpu_scaling_threshold: 150
+database_instance: amt-distribusjon
+database_tier: db-custom-1-3840
+database_users: [{name: datastream}]
+database_flags: [{name: cloudsql.logical_decoding, value: "on"}]
+database_disk_autoresize: true
+database_insights: true
+external_hosts: [{host: dokarkiv.prod-fss-pub.nais.io}, {host: dokdistkanal.prod-fss-pub.nais.io}, {host: dokdistfordeling.prod-fss-pub.nais.io}]
+dokarkiv_url: https://dokarkiv.prod-fss-pub.nais.io
+dokarkiv_scope: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+dokdistkanal_url: https://dokdistkanal.prod-fss-pub.nais.io
+dokdistkanal_scope: api://prod-fss.teamdokumenthandtering.dokdistkanal/.default
+dokdistfordeling_url: https://dokdistfordeling.prod-fss-pub.nais.io
+dokdistfordeling_scope: api://prod-fss.teamdokumenthandtering.dokdistfordeling/.default

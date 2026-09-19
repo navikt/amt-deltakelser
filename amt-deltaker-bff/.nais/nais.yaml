@@ -9,31 +9,37 @@ spec:
   image: {{image}}
   port: 8080
   ingresses:
-    - https://amt-deltaker-bff.intern.dev.nav.no
+    - {{ingress}}
   prometheus:
     enabled: true
     path: /internal/prometheus
 
   startup:
     path: /internal/health/liveness
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 15
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     path: /internal/health/readiness
   liveness:
     path: /internal/health/liveness
 
   replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
     disableAutoScaling: true
-    min: 1
-    max: 1
+{{/if}}
+
   resources:
     requests:
-      cpu: 20m
-      memory: 450Mi
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
     limits:
-      memory: 512Mi
+      memory: {{memory_limit}}
   envFrom:
     - secret: amt-deltaker-bff-unleash-api-token
   azure:
@@ -47,21 +53,18 @@ spec:
       enabled: true
   leaderElection: true
   kafka:
-    pool: nav-dev
+    pool: {{kafka_pool}}
   tokenx:
     enabled: true
   accessPolicy:
     inbound:
       rules:
-        - application: amt-deltaker-flate
-        - application: amt-deltaker-innbyggers-flate
-        - application: amt-tiltakskoordinator-flate
-        - application: tiltaksadministrasjon-flate
-          namespace: team-mulighetsrommet
-        - application: veilarbpersonflate
-          namespace: poao
-        - application: tiltakspenger-tiltak
-          namespace: tpts
+{{#each inbound_rules}}
+        - application: {{application}}
+{{#if namespace}}
+          namespace: {{namespace}}
+{{/if}}
+{{/each}}
     outbound:
       rules:
         - application: amt-arrangor
@@ -76,43 +79,47 @@ spec:
         - host: amt-unleash-api.nav.cloud.nais.io
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+      value: "-XX:MaxRAMPercentage=80 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_ARRANGOR_SCOPE
-      value: api://dev-gcp.amt.amt-arrangor/.default
+      value: api://{{cluster}}.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
     - name: POAO_TILGANG_SCOPE
-      value: api://dev-gcp.poao.poao-tilgang/.default
+      value: api://{{cluster}}.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
     - name: AMT_PERSONSERVICE_SCOPE
-      value: api://dev-gcp.amt.amt-person-service/.default
+      value: api://{{cluster}}.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
       value: http://amt-person-service
     - name: AMT_DELTAKER_SCOPE
-      value: api://dev-gcp.amt.amt-deltaker/.default
+      value: api://{{cluster}}.amt.amt-deltaker/.default
     - name: AMT_DELTAKER_URL
       value: http://amt-deltaker
     - name: AMT_DISTRIBUSJON_SCOPE
-      value: api://dev-gcp.amt.amt-distribusjon/.default
+      value: api://{{cluster}}.amt.amt-distribusjon/.default
     - name: AMT_DISTRIBUSJON_URL
       value: http://amt-distribusjon
     - name: AD_ROLLE_TILTAKSKOORDINATOR
       value: {{ad_rolle_tiltak_koordinator}}
     - name: MULIGHETSROMMET_API_SCOPE
-      value: api://dev-gcp.team-mulighetsrommet.mulighetsrommet-api/.default
+      value: api://{{cluster}}.team-mulighetsrommet.mulighetsrommet-api/.default
     - name: MULIGHETSROMMET_API_URL
       value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
 
   gcp:
     sqlInstances:
-      - name: amt-deltaker-bff-2
-        tier: db-f1-micro
+      - name: {{database_instance}}
+        tier: {{database_tier}}
         collation: nb_NO.UTF8
         type: POSTGRES_17
         databases:
           - name: amt-deltaker-bff
             envVarPrefix: DB
+        diskAutoresize: {{database_disk_autoresize}}
+        pointInTimeRecovery: {{database_point_in_time_recovery}}
+        insights:
+          enabled: {{database_insights}}
 
   observability:
       autoInstrumentation:
