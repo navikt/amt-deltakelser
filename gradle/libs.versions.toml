@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "2.4.10"
+kotlin-version = "2.4.20"
 ktor-version = "3.5.1"
 logback-version = "1.6.3"
 logstash-encoder-version = "9.0"
@@ -9,8 +9,8 @@ ktlint-cli-version = "1.8.0"
 jackson2-version = "2.22.2"
 nav-common-version = "4.2026.09.14_05.43-2bd32bda23c4"
 poao-tilgang-version = "2026.05.05_13.02-76cbce4f654a"
-kotest-version = "6.2.4"
-flyway-version = "13.5.0"
+kotest-version = "6.2.5"
+flyway-version = "13.6.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.13"
@@ -33,7 +33,7 @@ archunit-version = "1.5.0"
 spring-boot-version = "4.1.1"
 spring-dependency-management-version = "1.1.7"
 tools-jackson-version = "3.2.2"
-shedlock-spring-version = "7.10.0"
+shedlock-spring-version = "7.10.1"
 springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
@@ -41,7 +41,7 @@ jsoup-version = "1.23.2"
 pdfgen-core-version = "1.1.82"
 
 # CVE-fixes
-netty-version = "4.2.17.Final"
+netty-version = "4.2.18.Final"
 lz4-java-version = { strictly = "1.11.2" }
 
 [libraries]
