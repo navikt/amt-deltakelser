@@ -17,8 +17,9 @@ spec:
 
   startup:
     path: /internal/health/liveness
-    initialDelay: 20
-    failureThreshold: 20
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 15
   readiness:
     path: /internal/health/readiness
   liveness:
