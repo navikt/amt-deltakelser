@@ -20,6 +20,7 @@ spec:
     path: /internal/health/readiness
   liveness:
     path: /internal/health/liveness
+    timeout: 3
 
   replicas:
     min: {{replicas_min}}
