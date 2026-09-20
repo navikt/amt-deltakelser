@@ -26,9 +26,8 @@ spec:
   startup:
     port: 8081
     path: /actuator/health/liveness
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 10
+    initialDelay: 20
+    failureThreshold: 20
   readiness:
     port: 8081
     path: /actuator/health/readiness
