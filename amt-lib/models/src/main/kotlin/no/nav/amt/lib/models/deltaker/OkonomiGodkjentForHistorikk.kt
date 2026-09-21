@@ -8,8 +8,8 @@ import java.util.UUID
  */
 data class OkonomiGodkjentForHistorikk(
     val sistEndret: LocalDateTime,
-    val godkjentAvNavAnsattId: UUID,
-    val godkjentAvNavEnhetId: UUID,
+    val sistEndretAvNavAnsattId: UUID,
+    val sistEndretAvNavEnhetId: UUID,
     val erForsteGodkjenning: Boolean = false,
     val prisinformasjon: PrisinformasjonDto? = null,
 )
