@@ -1,4 +1,3 @@
----
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
@@ -7,24 +6,35 @@ metadata:
   labels:
     team: amt
 spec:
+  image: {{image}}
   port: 8080
   prometheus:
     enabled: true
-    path: "/internal/prometheus"
+    path: /internal/prometheus
+
   startup:
-    path: "/internal/is_alive"
+    path: /internal/is_alive
     initialDelay: 20
     failureThreshold: 20
   readiness:
-    path: "/internal/is_alive"
+    path: /internal/is_alive
   liveness:
-    path: "/internal/is_alive"
+    path: /internal/is_alive
+
   replicas:
     disableAutoScaling: true
+    min: {{replicas}}
+    max: {{replicas}}
   resources:
     requests:
       cpu: 10m
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
   accessPolicy:
     inbound:
       rules:
         - application: amt-distribusjon
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"

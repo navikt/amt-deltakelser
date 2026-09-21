@@ -1,0 +1,19 @@
+kafka_pool: nav-dev
+cluster: dev-gcp
+memory_request: 512Mi
+cpu_request: 20m
+memory_limit: 1024Mi
+replicas_min: 1
+replicas_max: 1
+database_instance: amt-distribusjon-2
+database_tier: db-f1-micro
+database_users: [{name: datastream}]
+database_flags: [{name: cloudsql.logical_decoding, value: "on"}]
+database_disk_autoresize: false
+external_hosts: [{host: dokarkiv-q2.dev-fss-pub.nais.io}, {host: dokdistkanal-q2.dev-fss-pub.nais.io}, {host: dokdistfordeling.dev-fss-pub.nais.io}]
+dokarkiv_url: https://dokarkiv-q2.dev-fss-pub.nais.io
+dokarkiv_scope: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+dokdistkanal_url: https://dokdistkanal-q2.dev-fss-pub.nais.io
+dokdistkanal_scope: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
+dokdistfordeling_url: https://dokdistfordeling.dev-fss-pub.nais.io
+dokdistfordeling_scope: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default

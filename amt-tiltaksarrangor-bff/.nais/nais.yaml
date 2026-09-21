@@ -1,4 +1,3 @@
----
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
@@ -7,18 +6,53 @@ metadata:
   labels:
     team: amt
 spec:
+  image: {{image}}
+  gcp:
+    sqlInstances:
+      - name: {{database_instance}}
+        type: POSTGRES_17
+        tier: {{database_tier}}
+        databases:
+          - name: amt-tiltaksarrangor-bff
+            envVarPrefix: DB
+        diskAutoresize: {{database_disk_autoresize}}
+        pointInTimeRecovery: {{database_point_in_time_recovery}}
+
   port: 8080
+  ingresses:
+    - {{ingress}}
+
   prometheus:
     enabled: true
-    path: "/actuator/prometheus"
+    path: /actuator/prometheus
   startup:
-    path: "/actuator/health/liveness"
+    path: /actuator/health/liveness
     initialDelay: 20
     failureThreshold: 20
   readiness:
-    path: "/actuator/health/readiness"
+    path: /actuator/health/readiness
   liveness:
-    path: "/actuator/health/liveness"
+    path: /actuator/health/liveness
+
+  replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
+
+  resources:
+    requests:
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
+  kafka:
+    pool: {{kafka_pool}}
   tokenx:
     enabled: true
   azure:
@@ -39,6 +73,20 @@ spec:
   leaderElection: true
   envFrom:
     - secret: amt-tiltaksarrangor-bff-unleash-api-token
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+    - name: AMT_TILTAK_TOKENX_CLIENT_ID
+      value: {{tiltak_tokenx_client_id}}
+    - name: AMT_ARRANGOR_TOKENX_CLIENT_ID
+      value: {{arrangor_tokenx_client_id}}
+    - name: AMT_ARRANGOR_AAD_CLIENT_ID
+      value: api://{{cluster}}.amt.amt-arrangor/.default
+    - name: AMT_PERSON_AAD_CLIENT_ID
+      value: api://{{cluster}}.amt.amt-person-service/.default
+    - name: AMT_DELTAKER_AAD_CLIENT_ID
+      value: api://{{cluster}}.amt.amt-deltaker/.default
+
   observability:
     autoInstrumentation:
       enabled: true

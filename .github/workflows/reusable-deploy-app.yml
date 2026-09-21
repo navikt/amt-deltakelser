@@ -77,17 +77,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Nais
-        uses: nais/setup@ea33c90b68228e6f04fb34b88bfd8ab6ad523ce8 # v1.0.2
-        with:
-          team: amt
-
       - name: Deploy application
-        run: |
-          nais apply ${{ inputs.module_path }}/.nais/nais.yaml \
-            --environment dev-gcp \
-            --set spec.image="${{ needs.test-build-and-push.outputs.image }}" \
-            --wait
+        uses: nais/deploy/actions/deploy@027a91857992525139798892f2804b0ca21f4af6 # v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VARS: ${{ inputs.module_path }}/.nais/vars-dev.yaml
 
   deploy-prod:
     name: Deploy ${{ inputs.module_path }} to prod
@@ -101,14 +97,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Nais
-        uses: nais/setup@ea33c90b68228e6f04fb34b88bfd8ab6ad523ce8 # v1.0.2
-        with:
-          team: amt
-
       - name: Deploy application
-        run: |
-          nais apply ${{ inputs.module_path }}/.nais/nais.yaml \
-            --environment prod-gcp \
-            --set spec.image="${{ needs.test-build-and-push.outputs.image }}" \
-            --wait
+        uses: nais/deploy/actions/deploy@027a91857992525139798892f2804b0ca21f4af6 # v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+          VARS: ${{ inputs.module_path }}/.nais/vars-prod.yaml
