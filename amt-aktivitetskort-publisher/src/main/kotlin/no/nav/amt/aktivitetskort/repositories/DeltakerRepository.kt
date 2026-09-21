@@ -51,13 +51,12 @@ class DeltakerRepository(
         )
     }
 
-    /*
-        Verifiserer faktisk endring utifra lokalt lagrede data, og upserter endring i database
-
-        @buypassEqualityCheck: Hvis true, sjekkes ikke objekt ekvalitet. Dette fordi vi ønsker å skrive oss bort fra
-        å stadig skrive nye felter til databasen(som kreves av sjekken). Det uklart om ekvalitetssjekken er viktig selv etter at vi
-        har innført sjekk på gjeldende oppfølgingsperiode+aktivitetskort id hentes fra dab(for å unngå å opprette dupliserte aktivitetskort).
-        Det er antagelig tryggere å buypasse sjekken for opplæringstiltak siden disse ikke opprinnelig ble opprettet i arena
+    /**
+     * Verifiserer faktisk endring utifra lokalt lagrede data, og upserter endring i database
+     * @buypassEqualityCheck: Hvis true, sjekkes ikke objekt ekvalitet. Dette fordi vi ønsker å skrive oss bort fra
+     * å stadig skrive nye felter til databasen(som kreves av sjekken). Det uklart om ekvalitetssjekken er viktig selv etter at vi
+     * har innført sjekk på gjeldende oppfølgingsperiode+aktivitetskort id hentes fra dab(for å unngå å opprette dupliserte aktivitetskort).
+     * Det er antagelig tryggere å buypasse sjekken for opplæringstiltak siden disse ikke opprinnelig ble opprettet i arena
      */
     fun upsert(
         deltaker: DeltakerDbo,
