@@ -4,8 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.distribusjon.application.plugins.AuthorizationException
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
