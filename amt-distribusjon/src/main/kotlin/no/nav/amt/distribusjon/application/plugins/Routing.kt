@@ -15,6 +15,8 @@ import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.digitalbruker.api.registerDigitalBrukerApi
 import no.nav.amt.distribusjon.internal.registerInternalApi
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
+import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -83,11 +85,3 @@ object StatusPageLogger {
         }
     }
 }
-
-class AuthorizationException(
-    message: String,
-) : Exception(message)
-
-class AuthenticationException(
-    message: String,
-) : Exception(message)
