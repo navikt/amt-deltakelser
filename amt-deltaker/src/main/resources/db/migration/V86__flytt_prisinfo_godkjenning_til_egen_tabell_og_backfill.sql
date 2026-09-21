@@ -42,6 +42,7 @@ WHERE prisinfo.status = 'GODKJENT'
       OR (vedtak_kilde.opprettet_av IS NOT NULL AND vedtak_kilde.opprettet_av_enhet IS NOT NULL)
   );
 
-ALTER TABLE enkeltplass_prisinformasjon
-    DROP COLUMN godkjent_av,
-    DROP COLUMN godkjent_av_enhet;
+-- Kjør opprydning i neste migrasjon:
+-- ALTER TABLE enkeltplass_prisinformasjon
+--    DROP COLUMN godkjent_av,
+--    DROP COLUMN godkjent_av_enhet;
