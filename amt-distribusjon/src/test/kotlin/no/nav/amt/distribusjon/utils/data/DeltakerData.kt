@@ -5,6 +5,7 @@ import no.nav.amt.internapi.deltaker.response.ArrangorResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -58,12 +59,17 @@ object DeltakerData {
         startDato = LocalDate.now(),
         sluttDato = null,
         oppstart = null,
-        arrangor = ArrangorResponse(navn = "arrangor", organisasjonsnummer = "123456789"),
+        arrangor = ArrangorResponse(
+            id = UUID.randomUUID(),
+            navn = "arrangor",
+            organisasjonsnummer = "123456789",
+        ),
         apentForPamelding = true,
         oppmoteSted = "Vet olle",
         pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
         type = GjennomforingType.Gruppe,
         antallPlasser = 45,
+        visningsnavn = VisningsnavnResponse("Tittel"),
     )
 
     fun lagTiltakstype() = Tiltakstype(

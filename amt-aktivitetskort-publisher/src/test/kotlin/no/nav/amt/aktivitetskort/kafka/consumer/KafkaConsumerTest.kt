@@ -108,6 +108,7 @@ class KafkaConsumerTest(
         mockAmtArenaAclClient(ctx.deltaker.id, 1234)
         mockAktivitetArenaAclClient(1234, ctx.melding.id)
         mockVeilarboppfolgingClient()
+        mockAmtDeltakerClient(ctx)
 
         kafkaConsumer.listen(
             ConsumerRecord(
@@ -164,6 +165,7 @@ class KafkaConsumerTest(
         mockAmtArenaAclClient(ctx.deltaker.id, 1234)
         mockAktivitetArenaAclClient(1234, nyId)
         mockVeilarboppfolgingClient()
+        mockAmtDeltakerClient(ctx, endretDeltaker)
 
         kafkaConsumer.listen(
             ConsumerRecord(
@@ -198,6 +200,9 @@ class KafkaConsumerTest(
     fun `listen - tombstone for deltaker som har aktivt aktivitetskort - deltaker slettes og aktivitetskort avbrytes`() {
         val ctx = TestData.MockContext(oppfolgingsperiodeId = UUID.randomUUID())
         ctx.oppfolgingsperiodeId.shouldNotBeNull()
+        val avbruttDeltaker = ctx.deltaker.copy(
+            status = DeltakerStatusModel(DeltakerStatus.Type.AVBRUTT, null),
+        )
 
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
@@ -208,6 +213,7 @@ class KafkaConsumerTest(
         mockAmtArenaAclClient(ctx.deltaker.id, 1234)
         mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
         mockVeilarboppfolgingClient()
+        mockAmtDeltakerClient(ctx, avbruttDeltaker)
 
         kafkaConsumer.listen(
             ConsumerRecord(DELTAKER_TOPIC, 0, offset, ctx.deltaker.id.toString(), null),
@@ -291,6 +297,17 @@ class KafkaConsumerTest(
             id = oppfolgingsperiodeId,
             startDato = LocalDateTime.now().minusDays(5),
             sluttDato = null,
+        )
+    }
+
+    private fun mockAmtDeltakerClient(
+        ctx: TestData.MockContext,
+        deltaker: no.nav.amt.aktivitetskort.domain.DeltakerDbo = ctx.deltaker,
+    ) {
+        every { amtDeltakerClient.getDeltaker(deltaker.id) } returns TestData.lagDeltakerResponse(
+            deltaker = deltaker,
+            deltakerliste = ctx.deltakerliste,
+            arrangor = ctx.arrangor,
         )
     }
 }

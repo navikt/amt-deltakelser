@@ -28,7 +28,9 @@ class InternalApi(
     fun publiserAktivitetskortForDeltaker(
         @PathVariable("deltakerId") deltakerId: UUID,
     ) {
-        val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltakerId)
+        val aktivitetskort =
+            aktivitetskortService.lagAktivitetskort(deltakerId)
+                ?: throw RuntimeException("Kunne ikke opprette aktivitetskort for $deltakerId")
         aktivitetskortProducer.send(aktivitetskort)
         log.info("Publiserte aktivitetskort for deltaker med id $deltakerId")
     }

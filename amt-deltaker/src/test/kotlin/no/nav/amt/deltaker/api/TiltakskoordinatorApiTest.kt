@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
+import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -74,6 +75,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
                 oppmoteSted = deltakerliste.oppmoteSted,
                 arrangor = null,
                 pameldingstype = deltakerliste.pameldingstype,
+                visningsnavn = VisningsnavnResponse("Tittel"),
             )
 
             every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)

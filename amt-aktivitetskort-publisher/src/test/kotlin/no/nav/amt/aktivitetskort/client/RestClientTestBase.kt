@@ -12,6 +12,7 @@ import org.springframework.test.web.client.MockRestServiceServer
         "spring.http.serviceclient.aktivitet-arena-acl.base-url=http://aktivitet-arena-acl",
         "spring.http.serviceclient.amt-arena-acl.base-url=http://amt-arena-acl",
         "spring.http.serviceclient.amt-arrangor.base-url=http://amt-arrangor",
+        "spring.http.serviceclient.amt-deltaker.base-url=http://amt-deltaker",
         "spring.http.serviceclient.veilarboppfolging.base-url=http://veilarboppfolging",
         "spring.test.restclient.mockrestserviceserver.enabled=false",
     ],

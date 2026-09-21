@@ -1,7 +1,6 @@
 package no.nav.amt.aktivitetskort.domain
 
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortDto
-import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -81,41 +80,27 @@ data class Aktivitetskort(
     )
 
     companion object {
-        fun lagTittel(
-            deltakerliste: Deltakerliste,
-            arrangor: Arrangor,
-        ): String = TiltakVisningsnavn.lagAktivitetskortTittel(
-            tiltakskode = deltakerliste.tiltak.tiltakskode,
-            tiltaksnavn = deltakerliste.tiltak.navn,
-            gjennomforingsnavn = deltakerliste.navn,
-            arrangorNavn = arrangor.navn,
-        )
-
-        fun lagDetaljer(
-            deltaker: Deltaker,
-            deltakerliste: Deltakerliste,
-            arrangor: Arrangor,
-        ): List<Detalj> {
+        fun lagDetaljer(deltaker: Deltaker): List<Detalj> {
             val detaljer = mutableListOf<Detalj>()
-
+            val arrangorNavn = deltaker.gjennomforing.arrangor.navn
             detaljer.add(Detalj("Status for deltakelse", displayText(deltaker.status)))
 
-            if (deltakerliste.tiltak.tiltakskode in tiltakMedDeltakelsesmengder) {
+            if (deltaker.gjennomforing.tiltakstype.tiltakskode in tiltakMedDeltakelsesmengder) {
                 deltakelseMengdeDetalj(deltaker)?.let { detaljer.add(it) }
             }
 
-            detaljer.add(Detalj("Arrangør", arrangor.navn))
+            detaljer.add(Detalj("Arrangør", arrangorNavn))
 
             return detaljer
         }
 
         private fun deltakelseMengdeDetalj(deltaker: Deltaker): Detalj? {
             val harDagerPerUke = deltaker.dagerPerUke?.let { it in 1.0f..5.0f } == true
-            val harProsentStilling = deltaker.prosentStilling?.let { it in 1.0..100.0 } == true
+            val harProsentStilling = deltaker.deltakelsesprosent?.let { it in 1.0f..100.0f } == true
 
             val label = "Deltakelsesmengde"
 
-            fun fmtProsent(pct: Double) = "${DecimalFormat("#.#").format(pct)}%"
+            fun fmtProsent(pct: Float) = "${DecimalFormat("#.#").format(pct)}%"
 
             fun fmtDager(antall: Float) =
                 "fordelt på ${DecimalFormat("#.#").format(antall)} ${if (antall == 1.0f) "dag" else "dager"} i uka"
@@ -125,8 +110,8 @@ data class Aktivitetskort(
                     null
                 }
 
-                deltaker.prosentStilling == 100.0 || !harDagerPerUke -> {
-                    deltaker.prosentStilling?.let { Detalj(label, fmtProsent(it)) }
+                deltaker.deltakelsesprosent == 100.0F || !harDagerPerUke -> {
+                    deltaker.deltakelsesprosent?.let { Detalj(label, fmtProsent(it)) }
                 }
 
                 !harProsentStilling -> {
@@ -134,7 +119,7 @@ data class Aktivitetskort(
                 }
 
                 else -> {
-                    Detalj(label, "${fmtProsent(deltaker.prosentStilling)} ${fmtDager(deltaker.dagerPerUke)}")
+                    Detalj(label, "${fmtProsent(deltaker.deltakelsesprosent)} ${fmtDager(deltaker.dagerPerUke)}")
                 }
             }
         }

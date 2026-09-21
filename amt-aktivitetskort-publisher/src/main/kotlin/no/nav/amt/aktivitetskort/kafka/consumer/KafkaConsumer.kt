@@ -54,7 +54,7 @@ class KafkaConsumer(
 
             DELTAKER_TOPIC -> kafkaConsumerService.deltakerHendelse(
                 id = UUID.fromString(record.key()),
-                deltaker = record.value()?.let { objectMapper.readValue(it) },
+                deltakerPayload = record.value()?.let { objectMapper.readValue(it) },
                 offset = record.offset(),
             )
 

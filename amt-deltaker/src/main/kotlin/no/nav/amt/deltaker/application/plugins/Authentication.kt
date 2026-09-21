@@ -25,7 +25,11 @@ fun Application.configureAuthentication(environment: Environment) {
 
     install(Authentication) {
         jwt("SYSTEM") {
-            validerPreAuthorizedApps(jwkProvider, setOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff"), environment)
+            validerPreAuthorizedApps(
+                jwkProvider,
+                setOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff", "amt-aktivitetskort-publisher"),
+                environment,
+            )
         }
 
         jwt("EXTERNAL-SYSTEM") {
