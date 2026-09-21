@@ -8,7 +8,8 @@ CREATE TABLE enkeltplass_prisinfo_godkjenning (
 );
 
 -- Backfill inn i ny tabell.
--- Prioriterer eksisterende verdier på prisinfo-raden, og faller tilbake til vedtak når de mangler.
+-- Velg enten komplett prisinfo-par eller komplett vedtak-par, og ignorer rader der
+-- ingen av disse gir et gyldig godkjenningspar.
 WITH vedtak_kilde AS (
     SELECT DISTINCT ON (deltaker.deltakerliste_id)
         deltaker.deltakerliste_id,
@@ -25,13 +26,21 @@ WITH vedtak_kilde AS (
 INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
 SELECT
     prisinfo.id,
-    COALESCE(prisinfo.godkjent_av, vedtak_kilde.opprettet_av),
-    COALESCE(prisinfo.godkjent_av_enhet, vedtak_kilde.opprettet_av_enhet)
+    CASE
+        WHEN prisinfo.godkjent_av IS NOT NULL AND prisinfo.godkjent_av_enhet IS NOT NULL THEN prisinfo.godkjent_av
+        WHEN vedtak_kilde.opprettet_av IS NOT NULL AND vedtak_kilde.opprettet_av_enhet IS NOT NULL THEN vedtak_kilde.opprettet_av
+    END AS godkjent_av,
+    CASE
+        WHEN prisinfo.godkjent_av IS NOT NULL AND prisinfo.godkjent_av_enhet IS NOT NULL THEN prisinfo.godkjent_av_enhet
+        WHEN vedtak_kilde.opprettet_av IS NOT NULL AND vedtak_kilde.opprettet_av_enhet IS NOT NULL THEN vedtak_kilde.opprettet_av_enhet
+    END AS godkjent_av_enhet
 FROM enkeltplass_prisinformasjon prisinfo
 LEFT JOIN vedtak_kilde ON vedtak_kilde.deltakerliste_id = prisinfo.deltakerliste_id
 WHERE prisinfo.status = 'GODKJENT'
-  AND COALESCE(prisinfo.godkjent_av, vedtak_kilde.opprettet_av) IS NOT NULL
-  AND COALESCE(prisinfo.godkjent_av_enhet, vedtak_kilde.opprettet_av_enhet) IS NOT NULL;
+  AND (
+      (prisinfo.godkjent_av IS NOT NULL AND prisinfo.godkjent_av_enhet IS NOT NULL)
+      OR (vedtak_kilde.opprettet_av IS NOT NULL AND vedtak_kilde.opprettet_av_enhet IS NOT NULL)
+  );
 
 ALTER TABLE enkeltplass_prisinformasjon
     DROP COLUMN godkjent_av,
