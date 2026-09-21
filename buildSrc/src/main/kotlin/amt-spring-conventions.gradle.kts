@@ -25,7 +25,6 @@ dependencies {
 
     // --- Spring Boot ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
@@ -38,11 +37,14 @@ dependencies {
 
     implementation(libsWrapper.getLibrary("tools.jackson.module.kotlin"))
     implementation(libsWrapper.getLibrary("kafka.clients"))
-    implementation(libsWrapper.getLibrary("flyway.postgres"))
-    implementation(libsWrapper.getLibrary("postgresql"))
-    implementation(libsWrapper.getLibrary("micrometer.prometheus"))
-    implementation(libsWrapper.getLibrary("logstash.encoder"))
+    runtimeOnly(libsWrapper.getLibrary("flyway.postgres"))
+    runtimeOnly(libsWrapper.getLibrary("postgresql"))
+    runtimeOnly(libsWrapper.getLibrary("micrometer.prometheus"))
+    runtimeOnly(libsWrapper.getLibrary("logstash.encoder"))
     implementation(libsWrapper.getLibrary("unleash"))
+
+    // --- nav.commot ---
+    runtimeOnly(libsWrapper.getLibrary("nav.common.log"))
 
     // --- amt-lib ---
     implementation(project(":amt-lib:spring-boot"))
