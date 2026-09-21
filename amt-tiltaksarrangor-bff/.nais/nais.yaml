@@ -70,7 +70,6 @@ spec:
         - application: amt-deltaker
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
-  leaderElection: true
   envFrom:
     - secret: amt-tiltaksarrangor-bff-unleash-api-token
   env:

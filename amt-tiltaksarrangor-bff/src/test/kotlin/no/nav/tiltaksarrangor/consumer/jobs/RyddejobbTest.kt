@@ -1,19 +1,15 @@
 package no.nav.tiltaksarrangor.consumer.jobs
 
-import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.tiltaksarrangor.IntegrationTestBase
-import no.nav.tiltaksarrangor.consumer.jobs.leaderelection.LeaderElection
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -23,13 +19,7 @@ class RyddejobbTest(
     private val tiltaksarrangorAnsattRepository: TiltaksarrangorAnsattRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
     private val ryddejobb: Ryddejobb,
-    @MockkBean private val leaderElection: LeaderElection,
 ) : IntegrationTestBase() {
-    @BeforeEach
-    fun setUp() {
-        every { leaderElection.isLeader() } returns true
-    }
-
     @Test
     fun `slettUtdaterteDeltakerlisterOgDeltakere - deltakerliste avsluttet for 42 dager siden - sletter deltakerliste og deltaker`() {
         with(DeltakerContext(applicationContext)) {
@@ -39,7 +29,7 @@ class RyddejobbTest(
                     sluttDato = LocalDate.now().minusDays(42),
                 ),
             )
-            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakereInternal()
 
             deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldBe null
             deltakerRepository.getDeltaker(deltaker.id) shouldBe null
@@ -56,7 +46,7 @@ class RyddejobbTest(
         )
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
 
-        ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+        ryddejobb.slettUtdaterteDeltakerlisterOgDeltakereInternal()
 
         deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
     }
@@ -67,7 +57,7 @@ class RyddejobbTest(
             medStatus(DeltakerStatus.Type.HAR_SLUTTET, 42)
             medEndringsmelding()
 
-            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakereInternal()
 
             deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
             deltakerRepository.getDeltaker(deltaker.id) shouldBe null
@@ -83,7 +73,7 @@ class RyddejobbTest(
             medStatus(DeltakerStatus.Type.HAR_SLUTTET, 38)
             medEndringsmelding()
 
-            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakereInternal()
 
             deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
             deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null
@@ -93,7 +83,7 @@ class RyddejobbTest(
     @Test
     fun `slettUtdaterteDeltakerlisterOgDeltakere - ingenting skal slettes - sletter ingenting`() {
         with(DeltakerContext(applicationContext)) {
-            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakere()
+            ryddejobb.slettUtdaterteDeltakerlisterOgDeltakereInternal()
 
             deltakerlisteRepository.getDeltakerliste(deltakerliste.id) shouldNotBe null
             deltakerRepository.getDeltaker(deltaker.id) shouldNotBe null

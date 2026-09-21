@@ -11,6 +11,3 @@ management:
 
 kafka:
   enabled: false
-
-elector:
-  path: dont_look_for_leader
