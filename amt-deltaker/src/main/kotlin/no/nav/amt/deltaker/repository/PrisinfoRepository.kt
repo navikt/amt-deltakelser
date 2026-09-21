@@ -197,37 +197,35 @@ object PrisinfoRepository {
         prisinformasjonId: UUID,
         godkjentAv: UUID,
         godkjentAvEnhet: UUID,
-    ) = Database.transaction {
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    """
-                    UPDATE enkeltplass_prisinformasjon
-                    SET 
-                        status = ?,
-                        modified_at = now()
-                    WHERE id = ?
-                    """.trimIndent(),
-                    PrisinfoStatus.GODKJENT.name,
-                    prisinformasjonId,
-                ),
-            )
+    ) = Database.query { session ->
+        session.update(
+            queryOf(
+                """
+                UPDATE enkeltplass_prisinformasjon
+                SET 
+                    status = ?,
+                    modified_at = now()
+                WHERE id = ?
+                """.trimIndent(),
+                PrisinfoStatus.GODKJENT.name,
+                prisinformasjonId,
+            ),
+        )
 
-            session.update(
-                queryOf(
-                    """
-                    INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT (prisinformasjon_id) DO UPDATE SET
-                        godkjent_av = EXCLUDED.godkjent_av,
-                        godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
-                    """.trimIndent(),
-                    prisinformasjonId,
-                    godkjentAv,
-                    godkjentAvEnhet,
-                ),
-            )
-        }
+        session.update(
+            queryOf(
+                """
+                INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
+                VALUES (?, ?, ?)
+                ON CONFLICT (prisinformasjon_id) DO UPDATE SET
+                    godkjent_av = EXCLUDED.godkjent_av,
+                    godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
+                """.trimIndent(),
+                prisinformasjonId,
+                godkjentAv,
+                godkjentAvEnhet,
+            ),
+        )
     }
 
     /**
