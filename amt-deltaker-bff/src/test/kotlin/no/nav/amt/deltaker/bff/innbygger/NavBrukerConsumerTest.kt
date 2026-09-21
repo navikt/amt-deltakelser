@@ -4,9 +4,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
 import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
@@ -39,12 +36,7 @@ class NavBrukerConsumerTest {
         repository = NavEnhetRepository(),
         amtPersonServiceClient = amtPersonServiceClient,
     )
-    private val deltakerRepository = DeltakerRepository()
-    private val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockk(relaxed = true),
-        forslagRepository = mockk(relaxed = true),
-    )
+
     private val navBrukerRepository = NavBrukerRepository()
     private val navBrukerService = NavBrukerService(
         amtPersonServiceClient = amtPersonServiceClient,
@@ -53,18 +45,12 @@ class NavBrukerConsumerTest {
         navEnhetService = navEnhetService,
     )
 
-    private var pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        paameldingClient = mockk(relaxed = true),
-    )
-
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() = runTest {
         val navBruker = lagNavBruker()
         val navVeileder = lagNavAnsatt(navBruker.navVeilederId!!)
         val navEnhet = lagNavEnhet(navBruker.navEnhetId!!)
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+        val navBrukerConsumer = NavBrukerConsumer(navBrukerService)
 
         coEvery { amtPersonServiceClient.hentNavAnsatt(navVeileder.id) } returns navVeileder
         coEvery { amtPersonServiceClient.hentNavEnhet(navEnhet.id) } returns navEnhet
@@ -83,7 +69,7 @@ class NavBrukerConsumerTest {
 
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
 
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+        val navBrukerConsumer = NavBrukerConsumer(navBrukerService)
 
         navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
@@ -108,12 +94,11 @@ class NavBrukerConsumerTest {
             ),
         )
 
-        val navBrukerConsumer = NavBrukerConsumer(navBrukerService, pameldingService)
+        val navBrukerConsumer = NavBrukerConsumer(navBrukerService)
 
         navBrukerConsumer.consume(navBruker.personId, oppdatertNavBruker.toDto(navEnhet).toJSON())
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        deltakerRepository.get(kladd.id).getOrNull() shouldBe null
     }
 
     companion object {

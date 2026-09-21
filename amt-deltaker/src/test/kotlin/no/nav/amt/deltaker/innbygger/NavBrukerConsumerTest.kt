@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhetDto
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
@@ -32,6 +33,7 @@ class NavBrukerConsumerTest {
     private val navAnsattRepository = NavAnsattRepository()
     private val navBrukerRepository = NavBrukerRepository()
     private val deltakerService = mockk<DeltakerService>()
+    private val kladdService = mockk<KladdService>()
 
     private val navEnhet = lagNavEnhet()
     private val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
@@ -63,7 +65,7 @@ class NavBrukerConsumerTest {
 
     @BeforeEach
     fun setup() {
-        clearMocks(deltakerService)
+        clearMocks(deltakerService, kladdService)
 
         navEnhetRepository.upsert(navEnhet)
         navAnsattRepository.upsert(navAnsatt)
@@ -83,6 +85,7 @@ class NavBrukerConsumerTest {
                 amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
+            kladdService = kladdService,
         )
 
         navBrukerConsumer.consume(
@@ -108,6 +111,7 @@ class NavBrukerConsumerTest {
                 amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
+            kladdService = kladdService,
         )
 
         navBrukerConsumer.consume(
@@ -133,6 +137,7 @@ class NavBrukerConsumerTest {
                 amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
+            kladdService = kladdService,
         )
 
         navBrukerConsumer.consume(
@@ -161,6 +166,7 @@ class NavBrukerConsumerTest {
                 amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
+            kladdService = kladdService,
         )
 
         navBrukerConsumer.consume(
@@ -184,6 +190,7 @@ class NavBrukerConsumerTest {
                 amtPersonServiceClient = mockk(),
             ),
             deltakerService = deltakerService,
+            kladdService = kladdService,
         )
 
         navBrukerConsumer.consume(

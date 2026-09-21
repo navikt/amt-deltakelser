@@ -30,10 +30,7 @@ import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.DeltakerV2Consumer
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
@@ -58,8 +55,6 @@ import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorConsumer
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -244,20 +239,8 @@ fun Application.module() {
 
     val sporbarhetsloggService = SporbarhetsloggService(AuditLoggerImpl())
 
-    val deltakerRepository = DeltakerRepository()
-
-    val forslagRepository = ForslagRepository()
-
     val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
         amtDeltakerClient = amtDeltakerClient,
-        forslagRepository = forslagRepository,
-    )
-
-    val pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        paameldingClient = paameldingClient,
     )
 
     val tilgangskontrollService = TilgangskontrollService(
@@ -282,25 +265,15 @@ fun Application.module() {
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         GjennomforingConsumer(
-            deltakerRepository = deltakerRepository,
             deltakerlisteRepository = deltakerlisteRepository,
             arrangorService = arrangorService,
             tiltakRepository = tiltakRepository,
-            pameldingService = pameldingService,
             unleashToggle = unleashToggle,
             selfServiceTilgangService = selfServiceTilgangService,
         ),
         NavAnsattConsumer(navAnsattService),
-        NavBrukerConsumer(navBrukerService, pameldingService),
+        NavBrukerConsumer(navBrukerService),
         TiltakConsumer(tiltakRepository),
-        DeltakerV2Consumer(
-            deltakerRepository,
-            deltakerService,
-            deltakerlisteRepository,
-            navBrukerService,
-            unleashToggle,
-        ),
-        ArrangorMeldingConsumer(forslagRepository),
         NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }
@@ -310,10 +283,8 @@ fun Application.module() {
     configureRouting(
         tilgangskontrollService = tilgangskontrollService,
         deltakerService = deltakerService,
-        pameldingService = pameldingService,
         paameldingClient = paameldingClient,
         navAnsattService = navAnsattService,
-        forslagRepository = forslagRepository,
         amtDistribusjonClient = amtDistribusjonClient,
         amtDeltakerClient = amtDeltakerClient,
         arrangorsokClient = arrangorsokClient,

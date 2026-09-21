@@ -83,7 +83,13 @@ class GjennomforingConsumer(
         )
 
         val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
-
+        if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
+            val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
+            kladderSomSkalSlettes.forEach {
+                deltakerRepository.slettDeltaker(it.id)
+            }
+            log.info("Slettet ${kladderSomSkalSlettes.size} for deltakerliste ${gjennomforing.id} med status ${gjennomforing.status.name}")
+        }
         if (eksisterendeGjennomforing != null) {
             if (eksisterendeGjennomforing == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")

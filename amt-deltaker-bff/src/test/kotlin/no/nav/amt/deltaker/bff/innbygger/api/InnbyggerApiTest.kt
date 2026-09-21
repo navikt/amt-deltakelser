@@ -41,7 +41,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
 
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.Forbidden
@@ -54,8 +53,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste tilgangskontroll - mangler token - returnerer 401`() {
-        every { deltakerRepository.get(any()) } returns Result.success(TestData.lagDeltakerOld())
-
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
             httpClient.post("/innbygger/${UUID.randomUUID()}/godkjenn-utkast").status shouldBe HttpStatusCode.Unauthorized
@@ -89,7 +86,6 @@ class InnbyggerApiTest : IntegrationTestBase() {
 
     @Test
     fun `get id - deltaker finnes ikke - returnerer 404`() {
-        every { deltakerRepository.get(any()) } returns Result.failure(NoSuchElementException())
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
         withTestApplicationContext { httpClient ->
             httpClient.get("/innbygger/${UUID.randomUUID()}") { noBodyRequest() }.status shouldBe HttpStatusCode.NotFound

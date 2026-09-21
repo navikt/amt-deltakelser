@@ -2,23 +2,17 @@ package no.nav.amt.deltaker.bff.gjennomforing
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
-import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorService
-import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagArrangorClientResponse
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.bff.utils.TestData.lagGruppeDeltakerlistePayload
@@ -26,9 +20,7 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
@@ -56,25 +48,10 @@ class DeltakerlisteConsumerTest {
     private val selfServiceTilgangService: SelfServiceTilgangService = mockk(relaxed = true)
     private val unleashToggle: CommonUnleashToggle = mockk()
 
-    private val deltakerRepository = DeltakerRepository()
-    private val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
-        amtDeltakerClient = mockk(relaxed = true),
-        forslagRepository = mockk(relaxed = true),
-    )
-
-    private val pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
-        deltakerService = deltakerService,
-        paameldingClient = mockk(relaxed = true),
-    )
-
     private val consumer = GjennomforingConsumer(
-        deltakerRepository = deltakerRepository,
         deltakerlisteRepository = deltakerlisteRepository,
         arrangorService = arrangorService,
         tiltakRepository = tiltakRepository,
-        pameldingService = pameldingService,
         unleashToggle = unleashToggle,
         selfServiceTilgangService = selfServiceTilgangService,
     )
@@ -90,30 +67,6 @@ class DeltakerlisteConsumerTest {
         every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
         coEvery { arrangorClient.hentArrangor(arrangorResponseInTest.organisasjonsnummer) } returns arrangorResponseInTest
         coEvery { arrangorClient.hentArrangor(arrangorResponseInTest.id) } returns arrangorResponseInTest
-    }
-
-    @Test
-    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() {
-        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING)
-        val deltaker = lagDeltakerOld(deltakerliste = deltakerliste)
-        TestRepository.insert(deltaker)
-
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagGruppeDeltakerlistePayload(arrangorInTest, deltakerliste)
-            .copy(
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-            ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-
-        runTest {
-            val thrown = shouldThrow<IllegalArgumentException> {
-                consumer.consume(
-                    deltakerlistePayload.id,
-                    objectMapper.writeValueAsString(deltakerlistePayload),
-                )
-            }
-
-            thrown.message shouldBe
-                "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
-        }
     }
 
     @Test
@@ -241,31 +194,5 @@ class DeltakerlisteConsumerTest {
         consumer.consume(deltakerliste.id, null)
 
         deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
-    }
-
-    @Test
-    fun `consumeDeltakerliste - avbrutt, finnes deltakere - oppdaterer deltakerliste, sletter kladd`() = runTest {
-        val deltakerlisteInTest = lagDeltakerliste(arrangor = arrangorInTest, pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-
-        TestRepository.insert(deltakerlisteInTest)
-
-        val kladd = TestData.lagDeltakerKladd(deltakerliste = deltakerlisteInTest)
-        TestRepository.insert(kladd)
-
-        val deltaker = lagDeltakerOld(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-        )
-        TestRepository.insert(deltaker)
-
-        val mutatedDeltakerliste = deltakerlisteInTest.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
-
-        consumer.consume(
-            deltakerlisteInTest.id,
-            objectMapper.writeValueAsString(lagGruppeDeltakerlistePayload(arrangorInTest, mutatedDeltakerliste)),
-        )
-
-        deltakerlisteRepository.get(deltakerlisteInTest.id).getOrThrow() shouldBe mutatedDeltakerliste
-        deltakerRepository.get(kladd.id).getOrNull() shouldBe null
-        deltakerRepository.get(deltaker.id).getOrNull() shouldNotBe null
     }
 }

@@ -46,7 +46,7 @@ class KladdApiTest : IntegrationTestBase() {
 
     @Test
     fun `post kladd - har tilgang - returnerer deltaker`() {
-        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltakerResponseInTest
+        coEvery { paameldingClient.opprettKladd(any(), any()) } returns deltakerResponseInTest
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
@@ -69,11 +69,7 @@ class KladdApiTest : IntegrationTestBase() {
             null,
             Decision.Deny("Ikke tilgang", ""),
         )
-        every { deltakerRepository.get(any()) } returns Result.success(
-            deltakerInTest.copy(
-                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-            ),
-        )
+
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
@@ -153,7 +149,7 @@ class KladdApiTest : IntegrationTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         coEvery {
-            pameldingService.opprettKladd(any(), any())
+            paameldingClient.opprettKladd(any(), any())
         } throws NoSuchElementException("Deltaker ikke funnet")
 
         val response = withTestApplicationContext { httpClient ->

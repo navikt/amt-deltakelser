@@ -7,6 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.bff.application.metrics.MetricRegister
 import no.nav.amt.deltaker.bff.application.plugins.AuthLevel
 import no.nav.amt.deltaker.bff.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.bff.application.plugins.getNavIdent
@@ -14,7 +15,6 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettKladdRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.sanitize
@@ -26,7 +26,6 @@ fun Routing.registerKladdApi(
     tilgangskontrollService: TilgangskontrollService,
     amtDeltakerClient: AmtDeltakerClient,
     paameldingClient: PaameldingClient,
-    paameldingService: PameldingService,
 ) {
     val log = LoggerFactory.getLogger(javaClass)
 
@@ -36,11 +35,14 @@ fun Routing.registerKladdApi(
 
             tilgangskontrollService.verifiserSkrivetilgang(call.getNavAnsattAzureId(), request.personident)
 
-            paameldingService
-                .opprettKladd(request.deltakerlisteId, request.personident)
-                .let(ModelMapper::toDeltaker)
+            paameldingClient
+                .opprettKladd(
+                    personIdent = request.personident,
+                    deltakerlisteId = request.deltakerlisteId,
+                ).let(ModelMapper::toDeltaker)
                 .let(DeltakerResponse::fromDeltakerModel)
                 .let { call.respond(it) }
+                .also { MetricRegister.OPPRETTET_KLADD.inc() }
         }
 
         post("/kladd/{deltakerId}") {

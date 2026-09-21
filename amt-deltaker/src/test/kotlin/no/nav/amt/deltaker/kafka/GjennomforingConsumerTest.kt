@@ -77,6 +77,7 @@ class GjennomforingConsumerTest {
 
         every { deltakerlisteRepository.upsert(any<Deltakerliste>()) } just runs
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
+        every { deltakerRepository.getKladderForDeltakerliste(any()) } returns emptyList()
         every { deltakerProducerService.produce(any<Deltaker>(), any<Boolean>()) } just runs
         every { deltakerProducerService.produce(any<Deltaker>()) } just runs
         every { deltakerService.avsluttDeltakere(any<List<Deltaker>>()) } just runs
