@@ -6,9 +6,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     implementation(libs.nav.common.audit.log)
-    implementation(libs.nav.common.log) {
-        exclude("com.squareup.okhttp3", "okhttp")
-    }
     implementation(libs.nav.common.rest)
 
     implementation(libs.shedlock.spring)
