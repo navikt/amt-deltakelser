@@ -8,6 +8,5 @@ import java.util.UUID
 class AmtDeltakerClient(
     private val api: AmtDeltakerApi,
 ) {
-    fun getDeltaker(deltakerId: UUID): DeltakerResponse =
-        api.getDeltaker(deltakerId).body ?: throw RuntimeException("Kunne ikke hente deltaker for $deltakerId")
+    fun getDeltaker(deltakerId: UUID): DeltakerResponse = api.getDeltaker(deltakerId)
 }
