@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -30,6 +31,7 @@ class GjennomforingConsumer(
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
     private val deltakerProducerService: DeltakerProducerService,
+    private val kladdService: KladdService,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
@@ -85,9 +87,8 @@ class GjennomforingConsumer(
         val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
         if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
-            kladderSomSkalSlettes.forEach {
-                deltakerRepository.slettDeltaker(it.id)
-            }
+            kladderSomSkalSlettes.forEach { deltaker -> kladdService.slettKladd(deltaker.id) }
+
             log.info("Slettet ${kladderSomSkalSlettes.size} for deltakerliste ${gjennomforing.id} med status ${gjennomforing.status.name}")
         }
         if (eksisterendeGjennomforing != null) {

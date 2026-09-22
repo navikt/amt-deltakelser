@@ -383,6 +383,7 @@ abstract class IntegrationTestBase {
             deltakerService = deltakerService,
             unleashToggle = unleashToggle,
             deltakerProducerService = deltakerProducerService,
+            kladdService = kladdService,
         )
     }
 

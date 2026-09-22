@@ -489,6 +489,7 @@ fun Application.module() {
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             deltakerProducerService = deltakerProducerService,
+            kladdService = kladdService,
             unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(

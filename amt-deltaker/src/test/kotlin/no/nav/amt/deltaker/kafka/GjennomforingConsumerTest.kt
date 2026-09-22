@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -45,6 +46,7 @@ class GjennomforingConsumerTest {
     private val arrangorService = mockk<ArrangorService>()
     private val deltakerService = mockk<DeltakerService>()
     private val deltakerProducerService = mockk<DeltakerProducerService>()
+    private val kladdService = mockk<KladdService>()
     private val unleashToggle = mockk<CommonUnleashToggle>()
 
     private val consumer = GjennomforingConsumer(
@@ -54,6 +56,7 @@ class GjennomforingConsumerTest {
         arrangorService = arrangorService,
         deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
+        kladdService = kladdService,
         unleashToggle = unleashToggle,
     )
 
@@ -81,6 +84,7 @@ class GjennomforingConsumerTest {
         every { deltakerProducerService.produce(any<Deltaker>(), any<Boolean>()) } just runs
         every { deltakerProducerService.produce(any<Deltaker>()) } just runs
         every { deltakerService.avsluttDeltakere(any<List<Deltaker>>()) } just runs
+        every { kladdService.slettKladd(any()) } just runs
     }
 
     @AfterEach

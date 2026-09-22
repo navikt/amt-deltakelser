@@ -84,6 +84,7 @@ class DeltakerRepository {
             d.deltakerliste_id = ?
             AND ds.type = 'KLADD'
             """.trimIndent(),
+            limit = null,
         )
 
         return Database.query { session ->

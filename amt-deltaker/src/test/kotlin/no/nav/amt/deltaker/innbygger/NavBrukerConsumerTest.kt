@@ -13,8 +13,11 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.service.DeltakerService
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhetDto
 import no.nav.amt.deltaker.veileder.KladdService
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
@@ -73,6 +76,7 @@ class NavBrukerConsumerTest {
         every {
             deltakerService.produserDeltakereForPerson(any(), any(), any())
         } just Runs
+        every { kladdService.slettKladd(any()) } just Runs
     }
 
     @Test
@@ -200,5 +204,58 @@ class NavBrukerConsumerTest {
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
         coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(navBruker.personident) }
+    }
+
+    @Test
+    fun `consumeNavBruker - mangler innsatsgruppe - sletter bare kladder`() = runTest {
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id, innsatsgruppe = null)
+        navBrukerRepository.upsert(navBruker)
+
+        val kladd = lagDeltaker(status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD))
+        val aktiv = lagDeltaker(status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR))
+
+        every { deltakerService.getFlereForPerson(navBruker.personident) } returns listOf(kladd, aktiv)
+
+        val navBrukerConsumer = NavBrukerConsumer(
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(),
+            ),
+            deltakerService = deltakerService,
+            kladdService = kladdService,
+        )
+
+        navBrukerConsumer.consume(
+            navBruker.personId,
+            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet).copy(innsatsgruppe = null)),
+        )
+
+        verify(exactly = 1) { kladdService.slettKladd(kladd.id) }
+        verify(exactly = 0) { kladdService.slettKladd(aktiv.id) }
+        coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(any()) }
+    }
+
+    @Test
+    fun `consumeNavBruker - har innsatsgruppe - sletter ikke kladder`() = runTest {
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        navBrukerRepository.upsert(navBruker)
+
+        val navBrukerConsumer = NavBrukerConsumer(
+            repository = navBrukerRepository,
+            navEnhetService = NavEnhetService(
+                repository = navEnhetRepository,
+                amtPersonServiceClient = mockk(),
+            ),
+            deltakerService = deltakerService,
+            kladdService = kladdService,
+        )
+
+        navBrukerConsumer.consume(
+            navBruker.personId,
+            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
+        )
+
+        verify(exactly = 0) { kladdService.slettKladd(any()) }
     }
 }
