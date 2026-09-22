@@ -18,6 +18,7 @@ sealed interface GjennomforingRequestPayload {
     data class Totrinnskontroll(
         val id: UUID, //
         val behandletAv: String, // veileder
+        val begrunnelse: String? = null,
     )
 
     // kommer først
