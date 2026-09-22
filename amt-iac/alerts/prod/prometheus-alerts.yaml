@@ -91,7 +91,19 @@ spec:
                 topic!="min-side.aapen-varsel-hendelse-v1",
                 client_id!="unknown"
               }
-            ) > 10
+            )
+            # stilner alarmer for consumere som er fjernet, dette skal fjernes
+            unless
+            (
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group="amt-deltaker-bff-consumer",
+                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1",
+                  client_id!="unknown"
+                }
+              )
+            )
+            > 10
           for: 5m
           annotations:
             title: 'Konsumenten `{{ $labels.group }}` har treghet på topic `{{ $labels.topic }}`'
