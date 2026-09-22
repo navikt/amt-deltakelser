@@ -68,7 +68,29 @@ spec:
 
         # Sjekk Kafka consumer lag per group og topic
         - alert: KafkaConsumerLag
-          expr: sum by(group, topic) (kafka_consumergroup_group_lag{group=~"^amt-.*",client_id!="unknown"}) > 10
+          expr: |
+            (
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group=~"^amt-.*",
+                  group!="amt-person-service-consumer.v1-innsatsgruppe-replay",
+                  topic!="min-side.aapen-varsel-hendelse-v1",
+                  client_id!="unknown"
+                }
+              ) > 10
+            )
+            # Stilner alarmer for topics som er fjernet fra denne consumer groupen.
+            # TODO: Fjern når gammel consumer er ryddet opp.
+            unless
+            (
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group="amt-deltaker-bff-consumer",
+                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1",
+                  client_id!="unknown"
+                }
+              )
+            )
           for: 3m
           annotations:
             title: 'Konsumenten `{{ $labels.group }}` har treghet på topic `{{ $labels.topic }}`'
