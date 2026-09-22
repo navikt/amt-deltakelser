@@ -34,17 +34,11 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerConsumer
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerService
 import no.nav.amt.deltaker.bff.job.LeaderElection
 import no.nav.amt.deltaker.bff.job.TiltakskoordinatorStengTilgangJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetConsumer
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorClient
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltakerlisteProducer
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
@@ -209,17 +203,7 @@ fun Application.module() {
     val arrangorRepository = ArrangorRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
     val navAnsattRepository = NavAnsattRepository()
-    val navEnhetRepository = NavEnhetRepository()
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
-    val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
-
-    val navBrukerRepository = NavBrukerRepository()
-    val navBrukerService = NavBrukerService(
-        amtPersonServiceClient,
-        navBrukerRepository,
-        navAnsattService,
-        navEnhetService,
-    )
 
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val deltakerlisteService = DeltakerlisteService(deltakerlisteRepository)
@@ -272,9 +256,7 @@ fun Application.module() {
             selfServiceTilgangService = selfServiceTilgangService,
         ),
         NavAnsattConsumer(navAnsattService),
-        NavBrukerConsumer(navBrukerService),
         TiltakConsumer(tiltakRepository),
-        NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }
 

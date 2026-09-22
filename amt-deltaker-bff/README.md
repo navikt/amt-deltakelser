@@ -1,5 +1,15 @@
 # amt-deltaker-bff
-BFF for tiltakssiden for deltaker og veileder. 
+Backend for frontend som brukes for: 
+* Nav veileder (i modia)
+* Nav tiltaksansvarlig (i tiltaksadministrasjon)
+* Innbygger (via aktivitetsplanen)
+
+## ansvarsområde
+* Tilgangsstyring og validering av innkommende forespørsler
+* Self service tilgangsstyring for tiltaksansvarlige
+* Delegering handlinger som skal utføres på deltaker til amt-deltaker
+* Sporbarhetslogger
+  Spor etter andre ting enn dette kan dukke opp men er under utfasing i prosjekt for å forenkle applikasjonen
 
 ### Kjør lokalt
 
@@ -28,3 +38,12 @@ export DB_PORT=5432 &&
 export AZURE_OPENID_CONFIG_JWKS_URI="http://foo.bar"
 ./gradlew run
 ```
+
+
+# Denne applikasjonens ansvar
+amt-deltaker-bff er ansvarlig for: 
+* Tilgangsstyring og validering av innkommende forespørsler
+* Self service tilgangsstyring for tiltaksansvarlige
+* Delegering handlinger som skal utføres på deltaker til amt-deltaker
+* Sporbarhetslogger
+Spor etter andre ting enn dette kan dukke opp men er under utfasing i prosjekt for å forenkle applikasjonen

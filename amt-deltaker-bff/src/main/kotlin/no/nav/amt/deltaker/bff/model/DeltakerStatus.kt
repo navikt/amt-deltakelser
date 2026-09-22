@@ -11,14 +11,6 @@ val AVSLUTTENDE_STATUSER = setOf(
     DeltakerStatus.Type.AVBRUTT_UTKAST,
 )
 
-val AKTIVE_STATUSER = setOf(
-    DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-    DeltakerStatus.Type.VENTER_PA_OPPSTART,
-    DeltakerStatus.Type.DELTAR,
-    DeltakerStatus.Type.SOKT_INN,
-    DeltakerStatus.Type.VENTELISTE,
-)
-
 /**
  * Statuser der begrenset redigering er tillatt for en låst, nylig avsluttet deltakelse.
  * Speiler frontend sin STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING.

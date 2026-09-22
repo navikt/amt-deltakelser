@@ -2,17 +2,12 @@ package no.nav.amt.deltaker.bff.utils
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
-import no.nav.amt.deltaker.bff.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
-import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.lib.models.deltaker.Arrangor
-import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.utils.TestData
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDateTime
 
@@ -28,7 +23,6 @@ object TestRepository {
     }
 
     fun insert(deltaker: Deltaker) {
-        insert(deltaker.navBruker)
         insert(deltaker.deltakerliste)
     }
 
@@ -36,8 +30,6 @@ object TestRepository {
         navEnhet: NavEnhet,
         sistEndret: LocalDateTime,
     ) {
-        NavEnhetRepository().upsert(navEnhet)
-
         Database.query { session ->
             session.update(
                 queryOf(
@@ -49,11 +41,5 @@ object TestRepository {
                 ),
             )
         }
-    }
-
-    fun insert(bruker: NavBruker) {
-        bruker.navVeilederId?.let { NavAnsattRepository().upsert(TestData.lagNavAnsatt(it)) }
-        bruker.navEnhetId?.let { NavEnhetRepository().upsert(TestData.lagNavEnhet(it)) }
-        NavBrukerRepository().upsert(bruker)
     }
 }
