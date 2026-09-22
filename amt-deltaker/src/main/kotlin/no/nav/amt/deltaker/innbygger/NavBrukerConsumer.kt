@@ -4,7 +4,9 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.utils.database.Database
@@ -17,6 +19,7 @@ class NavBrukerConsumer(
     private val repository: NavBrukerRepository,
     private val navEnhetService: NavEnhetService,
     private val deltakerService: DeltakerService,
+    private val kladdService: KladdService,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,16 +37,26 @@ class NavBrukerConsumer(
             return
         }
         val lagretNavBruker = repository.get(key).getOrNull()
-        val navBrukerDto = objectMapper.readValue<NavBrukerDto>(value)
-        if (harEndredePersonopplysninger(lagretNavBruker, navBrukerDto)) {
-            navBrukerDto.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
-            val harEndretPersonident = lagretNavBruker?.personident != navBrukerDto.personident
+        val navBrukerPayload = objectMapper.readValue<NavBrukerDto>(value)
+
+        if (navBrukerPayload.innsatsgruppe == null) {
+            val kladder = deltakerService.getFlereForPerson(navBrukerPayload.personident).filter {
+                it.status.type == DeltakerStatus.Type.KLADD
+            }
+            kladder.forEach {
+                kladdService.slettKladd(it.id)
+                log.info("Slettet kladd med id ${it.id} fordi bruker ikke er under oppfølging")
+            }
+        }
+        if (harEndredePersonopplysninger(lagretNavBruker, navBrukerPayload)) {
+            navBrukerPayload.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
+            val harEndretPersonident = lagretNavBruker?.personident != navBrukerPayload.personident
 
             Database.transaction {
-                repository.upsert(navBrukerDto.toModel())
+                repository.upsert(navBrukerPayload.toModel())
 
                 deltakerService.produserDeltakereForPerson(
-                    navBrukerDto.personident,
+                    navBrukerPayload.personident,
                     publiserTilDeltakerV1 = harEndretPersonident,
                     publiserTilDeltakerEksternV1 = harEndretPersonident,
                 )

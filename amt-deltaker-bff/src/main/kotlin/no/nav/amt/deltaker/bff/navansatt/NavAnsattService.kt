@@ -11,9 +11,6 @@ class NavAnsattService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun hentNavAnsatt(navIdent: String): NavAnsatt =
-        repository.get(navIdent) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med ident $navIdent")
-
     suspend fun hentEllerOpprettNavAnsatt(navIdent: String): NavAnsatt {
         repository.get(navIdent)?.let { return it }
 

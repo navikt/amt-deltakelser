@@ -112,7 +112,6 @@ class VeilederApiTest : IntegrationTestBase() {
         val deltaker = lagDeltakerOld(navBruker = lagNavBruker(personident = "1234"))
         every { commonUnleashToggle.prioriterSynkronKommunikasjon() } returns true
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
-        every { deltakerRepository.get(any()) } returns Result.success(deltaker)
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(any()) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
         coEvery { amtDeltakerClient.getPersonidentForForslag(any()) } returns
@@ -683,8 +682,6 @@ class VeilederApiTest : IntegrationTestBase() {
 
             val expected = setupMocksLocal(deltaker, deltaker)
 
-            every { forslagRepository.delete(forslag.id) } just Runs
-
             withTestApplicationContext { httpClient ->
                 httpClient.post("/forslag/${forslag.id}/avvis") { createPostRequest(avvisForslagRequest) }.apply {
                     status shouldBe HttpStatusCode.OK
@@ -777,7 +774,6 @@ class VeilederApiTest : IntegrationTestBase() {
     private fun setupMocks(deltaker: Deltaker) {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true

@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -45,6 +46,7 @@ class GjennomforingConsumerTest {
     private val arrangorService = mockk<ArrangorService>()
     private val deltakerService = mockk<DeltakerService>()
     private val deltakerProducerService = mockk<DeltakerProducerService>()
+    private val kladdService = mockk<KladdService>()
     private val unleashToggle = mockk<CommonUnleashToggle>()
 
     private val consumer = GjennomforingConsumer(
@@ -54,6 +56,7 @@ class GjennomforingConsumerTest {
         arrangorService = arrangorService,
         deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
+        kladdService = kladdService,
         unleashToggle = unleashToggle,
     )
 
@@ -77,9 +80,11 @@ class GjennomforingConsumerTest {
 
         every { deltakerlisteRepository.upsert(any<Deltakerliste>()) } just runs
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
+        every { deltakerRepository.getKladderForDeltakerliste(any()) } returns emptyList()
         every { deltakerProducerService.produce(any<Deltaker>(), any<Boolean>()) } just runs
         every { deltakerProducerService.produce(any<Deltaker>()) } just runs
         every { deltakerService.avsluttDeltakere(any<List<Deltaker>>()) } just runs
+        every { kladdService.slettKladd(any()) } just runs
     }
 
     @AfterEach
@@ -216,6 +221,37 @@ class GjennomforingConsumerTest {
 
             // Assert
             verify { deltakerService.avsluttDeltakere(any()) }
+        }
+
+        @Test
+        fun `skal slette kun kladder når gruppedeltakerliste blir avbrutt`() = runTest {
+            // Arrange
+            val aktivGruppeDeltakerliste = lagGruppeDeltakerliste()
+            val avbruttGruppeDeltakerliste = lagGruppeDeltakerliste(
+                status = GjennomforingStatusType.AVBRUTT,
+            ).copy(id = aktivGruppeDeltakerliste.id)
+
+            val kladd = lagDeltaker(
+                deltakerliste = aktivGruppeDeltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            val aktivDeltaker = lagDeltaker(
+                deltakerliste = aktivGruppeDeltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+
+            stubEksisterendeDeltakerliste(aktivGruppeDeltakerliste)
+            every { deltakerRepository.getKladderForDeltakerliste(avbruttGruppeDeltakerliste.id) } returns listOf(kladd)
+            every { deltakerRepository.getDeltakereForAvsluttetDeltakerliste(aktivGruppeDeltakerliste.id) } returns emptyList()
+
+            // Act
+            consumePayloadFor(avbruttGruppeDeltakerliste)
+
+            // Assert - kun KLADD slettes
+            verify(exactly = 1) { kladdService.slettKladd(kladd.id) }
+            verify(exactly = 0) { kladdService.slettKladd(aktivDeltaker.id) }
+            // Assert - listeoppdateringen fullfører fortsatt
+            verify { deltakerlisteRepository.upsert(any<Deltakerliste>()) }
         }
     }
 

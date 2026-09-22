@@ -21,7 +21,6 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvvisForslagRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest
@@ -61,7 +60,6 @@ import org.slf4j.LoggerFactory
 
 fun Routing.registerVeilederApi(
     tilgangskontrollService: TilgangskontrollService,
-    forslagRepository: ForslagRepository,
     amtDeltakerClient: AmtDeltakerClient,
     sporbarhetsloggService: SporbarhetsloggService,
 ) {
@@ -429,7 +427,6 @@ fun Routing.registerVeilederApi(
                 .let { DeltakerResponse.fromDeltakerModel(it) }
                 .also {
                     // Usikker på om forslag hentes fra bff db noen steder så beholder denne midlertidig:
-                    forslagRepository.delete(forslagId)
                     call.respond(it)
                 }
         }

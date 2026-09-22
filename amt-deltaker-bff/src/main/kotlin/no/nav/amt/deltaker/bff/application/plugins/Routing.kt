@@ -21,7 +21,6 @@ import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.enkeltplass.registerEnkeltplassApi
 import no.nav.amt.deltaker.bff.enkeltplass.validate
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
@@ -36,7 +35,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.bff.veileder.api.registerArrangorsokApi
 import no.nav.amt.deltaker.bff.veileder.api.registerKladdApi
 import no.nav.amt.deltaker.bff.veileder.api.registerPameldingApi
@@ -61,10 +59,8 @@ fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
     selfServiceTilgangService: SelfServiceTilgangService,
     deltakerService: DeltakerService,
-    pameldingService: PameldingService,
     paameldingClient: PaameldingClient,
     navAnsattService: NavAnsattService,
-    forslagRepository: ForslagRepository,
     amtDistribusjonClient: AmtDistribusjonClient,
     amtDeltakerClient: AmtDeltakerClient,
     arrangorsokClient: ArrangorsokClient,
@@ -121,7 +117,6 @@ fun Application.configureRouting(
 
         registerVeilederApi(
             tilgangskontrollService = tilgangskontrollService,
-            forslagRepository = forslagRepository,
             amtDeltakerClient = amtDeltakerClient,
             sporbarhetsloggService = sporbarhetsloggService,
         )
@@ -137,7 +132,6 @@ fun Application.configureRouting(
             tilgangskontrollService = tilgangskontrollService,
             amtDeltakerClient = amtDeltakerClient,
             paameldingClient = paameldingClient,
-            paameldingService = pameldingService,
         )
 
         registerInnbyggerApi(

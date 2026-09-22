@@ -77,6 +77,26 @@ class DeltakerRepository {
         }
     }
 
+    fun getKladderForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> {
+        val sql = buildDeltakerSql(
+            "getKladderForDeltakerliste",
+            """
+            d.deltakerliste_id = ?
+            AND ds.type = 'KLADD'
+            """.trimIndent(),
+            limit = null,
+        )
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    deltakerlisteId,
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
+    }
+
     fun getKladd(
         personident: String,
         tiltakskode: Tiltakskode,
@@ -581,29 +601,6 @@ class DeltakerRepository {
 
         return Database.query { session ->
             session.run(queryOf(sql).map(::deltakerRowMapper).asList)
-        }
-    }
-
-    fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
-        val sql =
-            """
-            SELECT d.id
-            FROM 
-                deltaker d
-                JOIN deltaker_status ds ON d.id = ds.deltaker_id
-            WHERE 
-                ds.type = :status_type
-                AND ds.gyldig_til IS NULL
-                AND ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimIndent()
-
-        return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf("status_type" to statusType.name),
-                ).map { it.uuid("id") }.asList,
-            )
         }
     }
 

@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
@@ -225,7 +224,6 @@ data class TiltakskoordinatorTilgangContext(
     var deltaker: Deltaker = lagDeltakerOld(deltakerliste = deltakerliste),
 ) {
     val navAnsattRepository = NavAnsattRepository()
-    val deltakerRepository = DeltakerRepository()
     val tilgangsRepository = TiltakskoordinatorTilgangRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
 

@@ -480,7 +480,7 @@ fun Application.module() {
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
-        NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
+        NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService, kladdService),
         TiltakConsumer(tiltakRepository),
         GjennomforingConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
@@ -489,6 +489,7 @@ fun Application.module() {
             arrangorService = arrangorService,
             deltakerService = deltakerService,
             deltakerProducerService = deltakerProducerService,
+            kladdService = kladdService,
             unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(

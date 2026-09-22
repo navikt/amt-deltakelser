@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.navansatt
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -20,25 +19,6 @@ class NavAnsattServiceTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-    }
-
-    @Nested
-    inner class HentNavAnsatt {
-        @Test
-        fun `skal returnere Nav-ansatt nar den finnes i db`() {
-            val navAnsatt = lagNavAnsatt()
-            navAnsattRepository.upsert(navAnsatt)
-
-            val navAnsattFraDb = navAnsattService.hentNavAnsatt(navAnsatt.navIdent)
-            navAnsattFraDb shouldBe navAnsatt
-        }
-
-        @Test
-        fun `skal kaste exception nar Nav-ansatt ikke finnes i db`() {
-            shouldThrow<NoSuchElementException> {
-                navAnsattService.hentNavAnsatt("~nav-ident~")
-            }
-        }
     }
 
     @Nested

@@ -193,31 +193,6 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `endret pameldingstype for deltakerliste med deltakere - skal kaste unntak`() = runTest {
-        // Arrange
-        val deltakerliste = lagDeltakerliste(arrangor = arrangorInTest)
-        val deltaker = lagDeltaker(deltakerliste = deltakerliste)
-        TestRepository.insert(deltaker)
-
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagDeltakerlistePayload(arrangorInTest, deltakerliste)
-            .copy(
-                arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangorInTest.organisasjonsnummer),
-            ).copy(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK)
-
-        // Act
-        val thrown = shouldThrow<IllegalArgumentException> {
-            gjennomforingConsumer.consume(
-                key = deltakerlistePayload.id,
-                value = objectMapper.writeValueAsString(deltakerlistePayload),
-            )
-        }
-
-        // Assert
-        thrown.message shouldBe
-            "Påmeldingstype kan ikke endres for deltakerliste ${deltakerliste.id} med deltakere"
-    }
-
-    @Test
     fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)

@@ -19,9 +19,7 @@ import no.nav.amt.deltaker.bff.clients.AmtDeltakerClient
 import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
-import no.nav.amt.deltaker.bff.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
-import no.nav.amt.deltaker.bff.deltaker.PameldingService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -30,7 +28,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilde
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
@@ -50,13 +47,10 @@ abstract class IntegrationTestBase {
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected val opplaringKategoriseringClient = mockk<OpplaringKategoriseringClient>()
 
-    protected val deltakerRepository: DeltakerRepository = mockk()
     protected val deltakerlisteRepository: DeltakerlisteRepository = mockk()
-    protected val forslagRepository: ForslagRepository = mockk()
     protected val tiltakskoordinatorTilgangRepository: TiltakskoordinatorTilgangRepository = mockk()
 
     protected val deltakerService: DeltakerService = mockk()
-    protected val pameldingService: PameldingService = mockk()
     protected val navAnsattService: NavAnsattService = mockk()
     protected val sporbarhetsloggService: SporbarhetsloggService = mockk()
     protected val deltakerlisteService: DeltakerlisteService = mockk()
@@ -100,9 +94,7 @@ abstract class IntegrationTestBase {
                 configureRouting(
                     tilgangskontrollService = tilgangskontrollService,
                     deltakerService = deltakerService,
-                    pameldingService = pameldingService,
                     navAnsattService = navAnsattService,
-                    forslagRepository = forslagRepository,
                     amtDistribusjonClient = amtDistribusjonClient,
                     amtDeltakerClient = amtDeltakerClient,
                     arrangorsokClient = arrangorsokClient,

@@ -81,9 +81,7 @@ class AuthenticationTest {
             configureRouting(
                 tilgangskontrollService = tilgangskontrollService,
                 deltakerService = mockk(),
-                pameldingService = mockk(),
                 navAnsattService = mockk(),
-                forslagRepository = mockk(),
                 amtDistribusjonClient = mockk(),
                 amtDeltakerClient = mockk(),
                 arrangorsokClient = mockk(),
