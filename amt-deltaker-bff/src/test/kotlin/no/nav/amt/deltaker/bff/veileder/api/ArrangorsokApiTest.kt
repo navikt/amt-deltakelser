@@ -37,7 +37,6 @@ class ArrangorsokApiTest : IntegrationTestBase() {
                 EnhetResponse(
                     organisasjonsnummer = ORGNUMMER_IN_TEST,
                     navn = "Firma AS",
-                    overordnetEnhet = null,
                 ),
             )
 

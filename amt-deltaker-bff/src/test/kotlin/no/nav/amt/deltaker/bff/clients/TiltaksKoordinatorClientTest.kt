@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorDeltakerResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
@@ -354,46 +353,6 @@ class TiltaksKoordinatorClientTest {
         fun `skal returnere tomt kart når deltakerIder er tomt`() = runTest {
             val client = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK)
             client.getUlesteHendelserForDeltakere(emptySet()) shouldBe emptyMap()
-        }
-    }
-
-    @Nested
-    inner class GetUlestHendelseTypeCountsForDeltakere {
-        private val deltakerIder = setOf(UUID.randomUUID(), UUID.randomUUID())
-        private val expectedUrl = "$CLIENT_BASE_URL/tiltakskoordinator/ulest-hendelse/type-counts"
-        private val expectedErrorMessage = "Fant ikke uleste hendelse-teller for deltakere i amt-deltaker."
-        private val getUlestHendelseTypeCountsForDeltakereLambda: suspend (TiltakskoordinatorClient) -> UlestHendelseTypeCounts =
-            { client -> client.getUlestHendelseTypeCountsForDeltakere(deltakerIder) }
-
-        @ParameterizedTest
-        @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
-            val (statusCode, expectedExceptionType) = testCase
-            runFailureTest(
-                expectedExceptionType,
-                statusCode,
-                expectedUrl,
-                expectedErrorMessage,
-                getUlestHendelseTypeCountsForDeltakereLambda,
-                expectedMethod = HttpMethod.Post,
-            )
-        }
-
-        @Test
-        fun `skal returnere uleste hendelse type counts`() {
-            val expectedResponse = UlestHendelseTypeCounts(erNyDeltaker = 3, harOppdateringFraNav = 2)
-            runHappyPathTest(
-                expectedUrl,
-                expectedResponse,
-                getUlestHendelseTypeCountsForDeltakereLambda,
-                expectedMethod = HttpMethod.Post,
-            )
-        }
-
-        @Test
-        fun `skal returnere tom counts når deltakerIder er tomt`() = runTest {
-            val client = createTiltaksKoordinatorClient(expectedUrl, HttpStatusCode.OK)
-            client.getUlestHendelseTypeCountsForDeltakere(emptySet()) shouldBe UlestHendelseTypeCounts()
         }
     }
 

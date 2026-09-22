@@ -5,7 +5,6 @@ import io.ktor.client.call.body
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.AvslagRequest
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
-import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseTypeCounts
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.PaginatedResult
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
@@ -111,16 +110,6 @@ class TiltakskoordinatorClient(
             "tiltakskoordinator/ulest-hendelse/deltakere",
             deltakerIder.toList(),
         ).failIfNotSuccess("Fant ikke uleste hendelser for deltakere i amt-deltaker.")
-            .body()
-    }
-
-    suspend fun getUlestHendelseTypeCountsForDeltakere(deltakerIder: Set<UUID>): UlestHendelseTypeCounts {
-        if (deltakerIder.isEmpty()) return UlestHendelseTypeCounts()
-
-        return performPost(
-            "tiltakskoordinator/ulest-hendelse/type-counts",
-            deltakerIder.toList(),
-        ).failIfNotSuccess("Fant ikke uleste hendelse-teller for deltakere i amt-deltaker.")
             .body()
     }
 

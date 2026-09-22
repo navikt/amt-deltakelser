@@ -42,7 +42,6 @@ class ArrangorsokClientTest {
                     EnhetResponse(
                         organisasjonsnummer = "987654321",
                         navn = "Firma AS",
-                        overordnetEnhet = "987654321",
                     ),
                 ),
                 block = underenhetSokLambda,
