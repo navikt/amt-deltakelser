@@ -123,7 +123,11 @@ class GjennomforingUpserterTest {
         fun `lagrer ny prisinfo og produserer EnkeltplassEndrePrisinformasjon`() {
             // Arrange
             val deltaker = createUtkastDeltaker()
-            val nyPrisinfo = Anskaffelse(pris = 50000)
+            val nyPrisinfo = Anskaffelse(
+                pris = 50000,
+                begrunnelse = "~begrunnelse~",
+            )
+
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
@@ -141,6 +145,7 @@ class GjennomforingUpserterTest {
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
                     behandletAv = "Z123456",
+                    begrunnelse = "~begrunnelse~",
                 ),
                 payload = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
             )

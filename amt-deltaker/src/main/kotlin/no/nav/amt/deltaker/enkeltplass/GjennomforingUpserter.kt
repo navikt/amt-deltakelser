@@ -77,6 +77,7 @@ class GjennomforingUpserter(
             totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                 id = totrinnskontrollId,
                 behandletAv = endretAvNavIdent,
+                begrunnelse = prisinfo.begrunnelse,
             ),
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
