@@ -84,15 +84,18 @@ spec:
         # Sjekk Kafka consumer lag per group
         - alert: KafkaConsumerLag
           expr: |
-            sum by(group, topic) (
-              kafka_consumergroup_group_lag{
-                group=~"^amt-.*",
-                group!="amt-person-service-consumer.v1-innsatsgruppe-replay",
-                topic!="min-side.aapen-varsel-hendelse-v1",
-                client_id!="unknown"
-              }
+            (
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group=~"^amt-.*",
+                  group!="amt-person-service-consumer.v1-innsatsgruppe-replay",
+                  topic!="min-side.aapen-varsel-hendelse-v1",
+                  client_id!="unknown"
+                }
+              ) > 10
             )
-            # stilner alarmer for consumere som er fjernet, dette skal fjernes
+            # Stilner alarmer for topics som er fjernet fra denne consumer groupen.
+            # TODO: Fjern når gammel consumer er ryddet opp.
             unless
             (
               sum by(group, topic) (
@@ -103,7 +106,6 @@ spec:
                 }
               )
             )
-            > 10
           for: 5m
           annotations:
             title: 'Konsumenten `{{ $labels.group }}` har treghet på topic `{{ $labels.topic }}`'
