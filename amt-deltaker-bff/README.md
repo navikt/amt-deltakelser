@@ -7,9 +7,10 @@ Backend for frontend som brukes for:
 ## ansvarsområde
 * Tilgangsstyring og validering av innkommende forespørsler
 * Self service tilgangsstyring for tiltaksansvarlige
-* Delegering handlinger som skal utføres på deltaker til amt-deltaker
+* Delegerer handlinger som skal utføres på deltaker til amt-deltaker
 * Sporbarhetslogger
-  Spor etter andre ting enn dette kan dukke opp men er under utfasing i prosjekt for å forenkle applikasjonen
+
+* Spor etter andre ting enn dette kan dukke opp men er under utfasing i prosjekt for å forenkle applikasjonen
 
 ### Kjør lokalt
 
@@ -38,12 +39,3 @@ export DB_PORT=5432 &&
 export AZURE_OPENID_CONFIG_JWKS_URI="http://foo.bar"
 ./gradlew run
 ```
-
-
-# Denne applikasjonens ansvar
-amt-deltaker-bff er ansvarlig for: 
-* Tilgangsstyring og validering av innkommende forespørsler
-* Self service tilgangsstyring for tiltaksansvarlige
-* Delegering handlinger som skal utføres på deltaker til amt-deltaker
-* Sporbarhetslogger
-Spor etter andre ting enn dette kan dukke opp men er under utfasing i prosjekt for å forenkle applikasjonen
