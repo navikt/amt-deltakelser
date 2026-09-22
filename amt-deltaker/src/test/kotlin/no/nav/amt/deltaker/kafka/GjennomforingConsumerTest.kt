@@ -222,6 +222,37 @@ class GjennomforingConsumerTest {
             // Assert
             verify { deltakerService.avsluttDeltakere(any()) }
         }
+
+        @Test
+        fun `skal slette kun kladder når gruppedeltakerliste blir avbrutt`() = runTest {
+            // Arrange
+            val aktivGruppeDeltakerliste = lagGruppeDeltakerliste()
+            val avbruttGruppeDeltakerliste = lagGruppeDeltakerliste(
+                status = GjennomforingStatusType.AVBRUTT,
+            ).copy(id = aktivGruppeDeltakerliste.id)
+
+            val kladd = lagDeltaker(
+                deltakerliste = aktivGruppeDeltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+            val aktivDeltaker = lagDeltaker(
+                deltakerliste = aktivGruppeDeltakerliste,
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+
+            stubEksisterendeDeltakerliste(aktivGruppeDeltakerliste)
+            every { deltakerRepository.getKladderForDeltakerliste(avbruttGruppeDeltakerliste.id) } returns listOf(kladd)
+            every { deltakerRepository.getDeltakereForAvsluttetDeltakerliste(aktivGruppeDeltakerliste.id) } returns emptyList()
+
+            // Act
+            consumePayloadFor(avbruttGruppeDeltakerliste)
+
+            // Assert - kun KLADD slettes
+            verify(exactly = 1) { kladdService.slettKladd(kladd.id) }
+            verify(exactly = 0) { kladdService.slettKladd(aktivDeltaker.id) }
+            // Assert - listeoppdateringen fullfører fortsatt
+            verify { deltakerlisteRepository.upsert(any<Deltakerliste>()) }
+        }
     }
 
     @Nested

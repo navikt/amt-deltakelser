@@ -335,6 +335,40 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
+    inner class GetKladderForDeltakerlisteTests {
+        val deltakerlisteInTest = lagDeltakerliste()
+
+        @BeforeEach
+        fun setup() = TestRepository.insert(deltakerlisteInTest)
+
+        @Test
+        fun `skal returnere tom liste hvis ingen deltakere`() {
+            val kladder = deltakerRepository.getKladderForDeltakerliste(deltakerlisteInTest.id)
+
+            kladder.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal returnere kun deltakere med status KLADD`() {
+            val kladd = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerlisteInTest,
+            )
+            val deltar = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                deltakerliste = deltakerlisteInTest,
+            )
+            TestRepository.insert(kladd)
+            TestRepository.insert(deltar)
+
+            val kladder = deltakerRepository.getKladderForDeltakerliste(deltakerlisteInTest.id)
+
+            kladder shouldHaveSize 1
+            kladder.first().id shouldBe kladd.id
+        }
+    }
+
+    @Nested
     inner class GetDeltakerHvorSluttdatoSkalEndresTests {
         val deltakerlisteInTest = lagDeltakerliste(sluttDato = LocalDate.now().minusDays(2))
 
