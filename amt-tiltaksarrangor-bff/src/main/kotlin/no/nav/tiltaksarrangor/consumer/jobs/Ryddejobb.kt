@@ -1,6 +1,6 @@
 package no.nav.tiltaksarrangor.consumer.jobs
 
-import no.nav.tiltaksarrangor.consumer.jobs.leaderelection.LeaderElection
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.model.DAGER_AVSLUTTET_DELTAKER_VISES
@@ -11,25 +11,29 @@ import java.time.LocalDate
 
 @Component
 class Ryddejobb(
-    private val leaderElection: LeaderElection,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val deltakerRepository: DeltakerRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(cron = "0 0 3 * * *") // kl 03.00 hver natt
+    @SchedulerLock(
+        name = "slett-utdaterte-deltakerlister-og-deltakere-job",
+        lockAtLeastFor = "10m",
+        lockAtMostFor = "4h",
+    )
     fun slettUtdaterteDeltakerlisterOgDeltakere() {
-        if (leaderElection.isLeader()) {
-            val slettesDato = LocalDate.now().minusDays(DAGER_AVSLUTTET_DELTAKER_VISES)
-            val deltakerlisterSomSkalSlettes = deltakerlisteRepository.getDeltakerlisterSomSkalSlettes(slettesDato)
-            deltakerlisterSomSkalSlettes.forEach { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(it) }
-            log.info("Slettet ${deltakerlisterSomSkalSlettes.size} deltakerlister med deltakere")
+        slettUtdaterteDeltakerlisterOgDeltakereInternal()
+    }
 
-            val deltakereSomSkalSlettes = deltakerRepository.getDeltakereSomSkalSlettes(slettesDato)
-            deltakereSomSkalSlettes.forEach { deltakerRepository.deleteDeltaker(it) }
-            log.info("Slettet ${deltakereSomSkalSlettes.size} deltakere")
-        } else {
-            log.info("Kjører ikke ryddejobb siden denne podden ikke er leader")
-        }
+    internal fun slettUtdaterteDeltakerlisterOgDeltakereInternal() {
+        val slettesDato = LocalDate.now().minusDays(DAGER_AVSLUTTET_DELTAKER_VISES)
+        val deltakerlisterSomSkalSlettes = deltakerlisteRepository.getDeltakerlisterSomSkalSlettes(slettesDato)
+        deltakerlisterSomSkalSlettes.forEach { deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(it) }
+        log.info("Slettet ${deltakerlisterSomSkalSlettes.size} deltakerlister med deltakere")
+
+        val deltakereSomSkalSlettes = deltakerRepository.getDeltakereSomSkalSlettes(slettesDato)
+        deltakereSomSkalSlettes.forEach { deltakerRepository.deleteDeltaker(it) }
+        log.info("Slettet ${deltakereSomSkalSlettes.size} deltakere")
     }
 }
