@@ -199,7 +199,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - - har deltakelsesmengder`() {
+    fun `buildDeltakerEksternV1Record - alle tiltakstyper - har deltakelsesmengder`() {
         Tiltakskode.entries.forEach {
             val deltaker2 = deltaker.copy(
                 deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),

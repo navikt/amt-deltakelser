@@ -164,7 +164,7 @@ på [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=5737102
 
 | Felt                   | Format        | Beskrivelse                                                 |
 |------------------------|---------------|-------------------------------------------------------------|
-| **deltakelsesprosent** | `float`       | Prosentandelen deltakeren opptar av en tiltaksplass.        |
+| **deltakelsesprosent** | `float\|null` | Prosentandelen deltakeren opptar av en tiltaksplass.        |
 | **dagerPerUke**        | `float\|null` | Antall dager deltakeren deltar på tiltaket per uke.         |
 | **gyldigFraDato**      | `date`        | Dato f.o.m. når deltakalesesmengden trer i kraft.           |
 | **opprettetTidspunkt** | `datetime`    | Når endringen ble opprettet. Tidsstempel i ISO-8601 format. |
@@ -219,7 +219,7 @@ data class DeltakerEksternV1Dto(
     )
 
     data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
+        val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
         val gyldigFraDato: LocalDate,
         val opprettetTidspunkt: LocalDateTime,
