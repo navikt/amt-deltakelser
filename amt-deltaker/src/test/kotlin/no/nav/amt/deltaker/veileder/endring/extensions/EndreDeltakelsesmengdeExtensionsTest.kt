@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDelt
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
 import org.junit.jupiter.api.Test
@@ -126,7 +127,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = null,
             sluttdato = null,
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
         )
         val request = DeltakelsesmengdeRequest(
             endretAv = randomNavIdent(),
@@ -186,7 +187,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = startdato,
             sluttdato = today.plusMonths(3),
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
         )
         val request = DeltakelsesmengdeRequest(
             endretAv = randomNavIdent(),

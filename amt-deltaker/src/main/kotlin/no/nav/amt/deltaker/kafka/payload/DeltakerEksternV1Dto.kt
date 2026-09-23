@@ -48,7 +48,7 @@ data class DeltakerEksternV1Dto(
     )
 
     data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
+        val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
         val gyldigFraDato: LocalDate,
         val opprettetTidspunkt: LocalDateTime,

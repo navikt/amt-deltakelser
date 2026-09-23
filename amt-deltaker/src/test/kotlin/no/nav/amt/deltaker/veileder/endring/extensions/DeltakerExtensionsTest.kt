@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -41,7 +42,7 @@ class DeltakerExtensionsTest {
         val gammelStartdato = nyStartdato.minusMonths(1)
 
         val gjeldendeMengde = Deltakelsesmengde(
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = null,
             gyldigFra = gammelStartdato,
             opprettet = gammelStartdato.atStartOfDay(),
@@ -103,7 +104,7 @@ class DeltakerExtensionsTest {
             startdato = gammelStartdato,
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             dagerPerUke = 5F,
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
         )
 
         val endretDeltaker = deltaker.endreDeltakersOppstart(
@@ -125,7 +126,7 @@ class DeltakerExtensionsTest {
         val gammelStartdato = LocalDate.now().minusMonths(1)
 
         val gjeldendeMengde = Deltakelsesmengde(
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = null,
             gyldigFra = gammelStartdato,
             opprettet = gammelStartdato.atStartOfDay(),
@@ -167,7 +168,7 @@ class DeltakerExtensionsTest {
         val nyStartdato = gammelStartdato.minusMonths(1)
 
         val gjeldendeMengde = Deltakelsesmengde(
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = null,
             gyldigFra = gammelStartdato,
             opprettet = gammelStartdato.atStartOfDay(),

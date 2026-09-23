@@ -36,6 +36,7 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -237,7 +238,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                     innhold = listOf(Innhold("Tekst", "kode", true, null)),
                 ),
                 bakgrunnsinformasjon = "Bakgrunn",
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 endretAv = sistEndretAvNavAnsatt.navIdent,
                 endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
@@ -280,7 +281,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             val utkastRequest = UtkastRequest(
                 deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
                 bakgrunnsinformasjon = "Bakgrunn",
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 endretAv = sistEndretAvNavAnsatt.navIdent,
                 endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
@@ -325,7 +326,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                     innhold = listOf(Innhold("Tekst", "kode", true, null)),
                 ),
                 bakgrunnsinformasjon = "Bakgrunn",
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 endretAv = sistEndretAvNavAnsatt.navIdent,
                 endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,

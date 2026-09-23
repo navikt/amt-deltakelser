@@ -9,13 +9,14 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 object TestData {
     fun lagVedtak(
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         dagerPerUke: Float? = 5F,
         fattet: LocalDateTime? = LocalDateTime.now(),
         opprettet: LocalDateTime = fattet ?: LocalDateTime.now(),
@@ -55,7 +56,7 @@ object TestData {
     )
 
     fun lagImportertFraArena(
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         dagerPerUke: Float? = 5F,
         innsoktDato: LocalDate = LocalDate.now(),
         opprettet: LocalDateTime = innsoktDato.atStartOfDay(),

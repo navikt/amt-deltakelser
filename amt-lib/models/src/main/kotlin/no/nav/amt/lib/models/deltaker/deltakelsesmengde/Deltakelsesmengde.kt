@@ -3,6 +3,7 @@ package no.nav.amt.lib.models.deltaker.deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -11,19 +12,20 @@ data class Deltakelsesmengde(
     val dagerPerUke: Float?,
     val gyldigFra: LocalDate,
     val opprettet: LocalDateTime,
-)
-
-fun DeltakerEndring.toDeltakelsesmengde(): Deltakelsesmengde? {
-    val endring = this.endring
-
-    if (endring is DeltakerEndring.Endring.EndreDeltakelsesmengde) {
-        return endring.toDeltakelsesmengde(this.endret)
+) {
+    companion object {
+        const val EMPTY_DELTAKELSESPROSENT = -1F
+        const val FALLBACK_DELTAKELSESPROSENT = 100F
     }
-    return null
+}
+
+fun DeltakerEndring.toDeltakelsesmengde(): Deltakelsesmengde? = when (val endring = this.endring) {
+    is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endring.toDeltakelsesmengde(this.endret)
+    else -> null
 }
 
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengde(opprettet: LocalDateTime) = Deltakelsesmengde(
-    deltakelsesprosent = this.deltakelsesprosent ?: 100F,
+    deltakelsesprosent = this.deltakelsesprosent ?: FALLBACK_DELTAKELSESPROSENT,
     dagerPerUke = this.dagerPerUke,
     gyldigFra = this.gyldigFra ?: opprettet.toLocalDate(),
     opprettet = opprettet,

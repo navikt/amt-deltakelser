@@ -14,6 +14,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.EMPTY_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
@@ -62,7 +63,10 @@ class DeltakerKafkaPayloadBuilder(
             endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
-            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakelsesmengdeV1Dto(),
+            deltakelsesmengder = getDeltakelsesmengder(
+                deltaker = deltaker,
+                historikk = deltakerhistorikk,
+            ).toDeltakelsesmengdeV1Dto(),
         )
     }
 
@@ -107,7 +111,11 @@ class DeltakerKafkaPayloadBuilder(
             endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
-            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakelsesmengdeEksternV1Dto(),
+            deltakelsesmengder = getDeltakelsesmengder(
+                deltaker = deltaker,
+                historikk = deltakerhistorikk,
+                isForDeltakerExternalTopic = true,
+            ).toDeltakelsesmengdeEksternV1Dto(),
         )
     }
 
@@ -285,17 +293,22 @@ class DeltakerKafkaPayloadBuilder(
     private fun getDeltakelsesmengder(
         deltaker: Deltaker,
         historikk: List<DeltakerHistorikk>,
+        isForDeltakerExternalTopic: Boolean = false,
     ): List<Deltakelsesmengde> {
-        val deltakelsesmengder = if (deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde) {
-            val mengder = historikk.toDeltakelsesmengder()
-            deltaker.startdato
-                ?.let { mengder.periode(deltaker.startdato, deltaker.sluttdato) }
-                ?: mengder
-        } else {
-            emptyList()
-        }
+        val skalBeregneDeltakelsesmengder = isForDeltakerExternalTopic || deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde
 
-        return deltakelsesmengder
+        if (!skalBeregneDeltakelsesmengder) return emptyList()
+
+        val mengder = historikk.toDeltakelsesmengder(useNullableDeltakelsesProsent = isForDeltakerExternalTopic)
+
+        return deltaker.startdato
+            ?.let {
+                mengder.periode(
+                    fraOgMed = deltaker.startdato,
+                    tilOgMed = deltaker.sluttdato,
+                )
+            }
+            ?: mengder
     }
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
@@ -309,7 +322,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerEksternV1Dto.DeltakelsesmengdeDto(
-            deltakelsesprosent = it.deltakelsesprosent,
+            deltakelsesprosent = it.deltakelsesprosent.takeIf { prosent -> prosent > EMPTY_DELTAKELSESPROSENT },
             dagerPerUke = it.dagerPerUke,
             gyldigFraDato = it.gyldigFra,
             opprettetTidspunkt = it.opprettet,

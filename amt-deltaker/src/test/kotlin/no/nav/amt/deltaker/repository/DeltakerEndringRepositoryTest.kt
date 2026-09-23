@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -130,7 +131,7 @@ class DeltakerEndringRepositoryTest {
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 gyldigFra = LocalDate.now().plusMonths(1),
                 begrunnelse = null,
@@ -154,7 +155,7 @@ class DeltakerEndringRepositoryTest {
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 gyldigFra = LocalDate.now().plusMonths(1),
                 begrunnelse = null,
