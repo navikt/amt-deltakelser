@@ -299,7 +299,7 @@ class DeltakerKafkaPayloadBuilder(
 
         if (!skalBeregneDeltakelsesmengder) return emptyList()
 
-        val mengder = historikk.toDeltakelsesmengder(useNullableDeltakelsesProsent = isForDeltakerExternalTopic)
+        val mengder = historikk.toDeltakelsesmengder(isForDeltakerExternalTopic = isForDeltakerExternalTopic)
 
         return deltaker.startdato
             ?.let {

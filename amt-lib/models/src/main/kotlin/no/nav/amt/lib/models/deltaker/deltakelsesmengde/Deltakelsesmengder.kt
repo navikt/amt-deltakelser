@@ -4,6 +4,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
+import java.util.Objects
 
 /**
  * Deltakelsesmengder er en liste av alle gyldige deltakelsesmengder, både frem og tilbake i tid, den er sortert på gyldig-fra stigende.
@@ -58,7 +59,7 @@ class Deltakelsesmengder(
     fun validerNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde): Boolean {
         val siste = deltakelsesmengder.lastOrNull() ?: return true
 
-        return siste.dagerPerUke != deltakelsesmengde.dagerPerUke ||
+        return !Objects.equals(siste.dagerPerUke, deltakelsesmengde.dagerPerUke) ||
             siste.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
             deltakelsesmengde.gyldigFra < siste.gyldigFra
     }
@@ -92,7 +93,7 @@ class Deltakelsesmengder(
 
         if (forrige != null &&
             forrige.deltakelsesprosent == periode.deltakelsesprosent &&
-            forrige.dagerPerUke == periode.dagerPerUke
+            Objects.equals(forrige.dagerPerUke, periode.dagerPerUke)
         ) {
             return deltakelsesmengder
         }
@@ -205,10 +206,10 @@ class Deltakelsesmengder(
 }
 
 // Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
-fun List<DeltakerHistorikk>.toDeltakelsesmengder(useNullableDeltakelsesProsent: Boolean = false): Deltakelsesmengder = this
+fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder = this
     .sortedBy { it.sistEndret }
     .fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
-        val deltakelsesmengde = if (useNullableDeltakelsesProsent) {
+        val deltakelsesmengde = if (isForDeltakerExternalTopic) {
             historikk.toDeltakelsesmengdeEkstern()
         } else {
             historikk.toDeltakelsesmengde()
