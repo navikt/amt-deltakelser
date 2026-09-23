@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.EnhetResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
@@ -46,6 +47,33 @@ class ArrangorsokClientTest {
                     ),
                 ),
                 block = underenhetSokLambda,
+            )
+        }
+
+        @Test
+        fun `skal formatere navn til title case`() = runTest {
+            val raNavnFraValp = listOf(
+                EnhetResponse(
+                    organisasjonsnummer = "987654321",
+                    navn = "FIRMA AS",
+                    overordnetEnhet = "987654321",
+                ),
+            )
+
+            val arrangorsokClient = createArrangorsokClient(
+                expectedUrl = EXPECTED_UNDERENHET_SOK_URL,
+                statusCode = HttpStatusCode.OK,
+                responseBody = raNavnFraValp,
+            )
+
+            val underenheter = underenhetSokLambda(arrangorsokClient)
+
+            underenheter shouldBe listOf(
+                EnhetResponse(
+                    organisasjonsnummer = "987654321",
+                    navn = "Firma AS",
+                    overordnetEnhet = "987654321",
+                ),
             )
         }
     }
