@@ -6,6 +6,7 @@ import io.ktor.client.request.parameter
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
+import no.nav.amt.lib.utils.toTitleCase
 
 class ArrangorsokClient(
     baseUrl: String,
@@ -20,5 +21,7 @@ class ArrangorsokClient(
     ) {
     suspend fun underenhetSok(term: String): List<EnhetResponse> = performGet("api/v1/virksomhet/underenhet") {
         parameter("sok", term)
-    }.failIfNotSuccess("Kunne ikke hente underenheter fra Mulighetsrommet").body()
+    }.failIfNotSuccess("Kunne ikke hente underenheter fra Mulighetsrommet")
+        .body<List<EnhetResponse>>()
+        .map { it.copy(navn = it.navn.toTitleCase()) }
 }
