@@ -140,6 +140,9 @@ fun Routing.registerInternalApi(
             call.respond(HttpStatusCode.OK)
         }
 
+        val deltakerIdBlacklist = setOf("e66e6005-b375-48b9-aed6-48f5b7551007")
+            .map { UUID.fromString(it) }
+
         post("/relast/tiltakstyper") {
             requireInternal(call.request.local.remoteAddress)
             val requestBody = call.receive<RepubliserTiltakskoderRequest>()
@@ -147,7 +150,10 @@ fun Routing.registerInternalApi(
                 val tiltakskodeNavn = requestBody.tiltakskoder.map { it.name }
                 log.info("relast/tiltakstyper: Starter relast for tiltakskoder $tiltakskodeNavn")
                 requestBody.tiltakskoder.forEach { tiltakskode ->
-                    val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
+                    val deltakerIder = deltakerRepository
+                        .getDeltakerIderForTiltakskode(tiltakskode)
+                        .filterNot { deltakerId -> deltakerId in deltakerIdBlacklist }
+
                     republiserDeltakere(deltakerIder, requestBody.request)
                 }
                 log.info("relast/tiltakstyper: Fullført relast for tiltakskoder $tiltakskodeNavn")
