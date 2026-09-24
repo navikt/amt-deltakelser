@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import org.junit.jupiter.api.Nested
@@ -67,6 +68,51 @@ class DeltakerlisteRepositoryTest {
         }
 
         @Test
+        fun `ny deltakerliste - persisterer lopenummer og tilgjengeligForArrangorFraOgMedDato`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val tilgjengeligDato = LocalDate.now().minusWeeks(2)
+            val deltakerliste = lagDeltakerliste(
+                arrangor = arrangor,
+                tiltakstype = tiltakstype,
+                lopenummer = "2027-42",
+                tilgjengeligForArrangorFraOgMedDato = tilgjengeligDato,
+            )
+
+            arrangorRepository.upsert(arrangor)
+            tiltakRepository.upsert(tiltakstype)
+            deltakerlisteRepository.upsert(deltakerliste)
+
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+            lagret.lopenummer shouldBe "2027-42"
+            lagret.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
+        }
+
+        @Test
+        fun `oppdatert deltakerliste - oppdaterer lopenummer og tilgjengeligForArrangorFraOgMedDato`() {
+            val arrangor = lagArrangor()
+            val tiltakstype = lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(
+                arrangor = arrangor,
+                tiltakstype = tiltakstype,
+                lopenummer = "2027-01",
+                tilgjengeligForArrangorFraOgMedDato = null,
+            )
+
+            arrangorRepository.upsert(arrangor)
+            tiltakRepository.upsert(tiltakstype)
+            deltakerlisteRepository.upsert(deltakerliste)
+
+            val nyDato = LocalDate.now().plusDays(5)
+            val oppdatert = deltakerliste.copy(lopenummer = "2027-99", tilgjengeligForArrangorFraOgMedDato = nyDato)
+            deltakerlisteRepository.upsert(oppdatert)
+
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+            lagret.lopenummer shouldBe "2027-99"
+            lagret.tilgjengeligForArrangorFraOgMedDato shouldBe nyDato
+        }
+
+        @Test
         fun `ny deltakerliste enkeltplass kladd - inserter`() {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
@@ -79,6 +125,7 @@ class DeltakerlisteRepositoryTest {
                 startDato = null,
                 sluttDato = null,
                 oppmoteSted = null,
+                lopenummer = null,
                 opplaringKategorisering = OpplaringKategoriseringValg(
                     valgteKategoriseringer = emptySet(),
                     valgteSertifiseringer = emptySet(),
@@ -117,6 +164,7 @@ class DeltakerlisteRepositoryTest {
                 startDato = null,
                 sluttDato = null,
                 oppmoteSted = null,
+                lopenummer = null,
                 opplaringKategorisering = null,
             )
 
@@ -186,5 +234,36 @@ class DeltakerlisteRepositoryTest {
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn
+    }
+
+    @Test
+    fun `getManyForTiltakstype - henter kun gjennomforinger for tiltakstypen med nye kolonner`() {
+        val arrangor = lagArrangor()
+        val tiltakstype = lagTiltakstype()
+        val annenTiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
+        val tilgjengeligDato = LocalDate.now().plusDays(3)
+
+        arrangorRepository.upsert(arrangor)
+        tiltakRepository.upsert(tiltakstype)
+        tiltakRepository.upsert(annenTiltakstype)
+
+        val gjennomforing = lagDeltakerliste(
+            arrangor = arrangor,
+            tiltakstype = tiltakstype,
+            lopenummer = "A-1",
+            tilgjengeligForArrangorFraOgMedDato = tilgjengeligDato,
+        )
+        val annenGjennomforingSammeTiltak = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val gjennomforingAnnetTiltak = lagDeltakerliste(arrangor = arrangor, tiltakstype = annenTiltakstype)
+
+        listOf(gjennomforing, annenGjennomforingSammeTiltak, gjennomforingAnnetTiltak)
+            .forEach { deltakerlisteRepository.upsert(it) }
+
+        val result = deltakerlisteRepository.getManyForTiltakstype(tiltakstype.id)
+
+        result.map { it.id }.toSet() shouldBe setOf(gjennomforing.id, annenGjennomforingSammeTiltak.id)
+        val hentet = result.first { it.id == gjennomforing.id }
+        hentet.lopenummer shouldBe "A-1"
+        hentet.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
     }
 }

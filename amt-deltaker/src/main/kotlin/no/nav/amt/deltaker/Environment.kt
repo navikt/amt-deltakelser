@@ -55,6 +55,7 @@ data class Environment(
         const val ENKELTPLASS_DELTAKER_TOPIC = "amt.arena-enkeltplass-deltaker-v1"
         const val DELTAKER_HENDELSE_TOPIC = "amt.deltaker-hendelse-v1"
         const val ARRANGOR_MELDING_TOPIC = "amt.arrangor-melding-v1"
+        const val AMT_GJENNOMFORING_TOPIC = "amt.gjennomforing-intern"
 
         const val AMT_PERSONSERVICE_URL_KEY = "AMT_PERSONSERVICE_URL"
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"

@@ -132,7 +132,7 @@ erDiagram
 | `tiltakskoordinator_deltakerliste_tilgang` | Tilgangsperioder for koordinatorer | 3 725 rader |
 | `forslag` | Forslag fra arrangør-ansatte | 990 rader |
 | `nav_enhet` | Nav-enheter | 446 rader |
-| `tiltakstype` | Tiltakstype-definisjon | 17 rader |
+| `tiltak` | Tiltakstype-definisjon | 17 rader |
 | `outbox_record` | Kafka outbox for event-publisering (frittstående) | < 100 rader (renses) |
 
 ## Kolonnedetaljer

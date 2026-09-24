@@ -218,6 +218,12 @@ spec:
                "location": "AIVEN",
                "keyDeserializerType": "STRING",
                "valueDeserializerType": "STRING"
+             },
+            {
+               "name": "amt.gjennomforing-intern",
+               "location": "AIVEN",
+               "keyDeserializerType": "STRING",
+               "valueDeserializerType": "STRING"
              }
           ]
         }

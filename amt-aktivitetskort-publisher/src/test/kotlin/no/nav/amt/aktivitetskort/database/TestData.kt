@@ -410,6 +410,4 @@ object TestData {
         navn = this.navn,
         overordnetArrangorId = this.overordnetArrangorId,
     )
-
-    // fun Tiltak.toDto(): DeltakerlistePayload.Tiltakstype = DeltakerlistePayload.Tiltakstype(this.tiltakskode.name)
 }

@@ -37,6 +37,8 @@ class DeltakerlisteRepository {
                 apent_for_pamelding,
                 oppmote_sted,
                 pameldingstype,
+                lopenummer,
+                tilgjengelig_fom,
                 prisinformasjon
             )
             VALUES (
@@ -53,6 +55,8 @@ class DeltakerlisteRepository {
                 :apent_for_pamelding,
                 :oppmote_sted,
                 :pameldingstype,
+                :lopenummer,
+                :tilgjengelig_fom,
                 :prisinformasjon
             )
             ON CONFLICT (id) DO UPDATE SET
@@ -68,6 +72,8 @@ class DeltakerlisteRepository {
                 apent_for_pamelding     = :apent_for_pamelding,
                 oppmote_sted            = :oppmote_sted,
                 pameldingstype          = :pameldingstype,
+                lopenummer              = :lopenummer,
+                tilgjengelig_fom        = :tilgjengelig_fom,
                 prisinformasjon         = :prisinformasjon,
                 modified_at             = CURRENT_TIMESTAMP
             """.trimIndent()
@@ -87,6 +93,8 @@ class DeltakerlisteRepository {
             "oppmote_sted" to deltakerliste.oppmoteSted,
             "prisinformasjon" to deltakerliste.prisinformasjon,
             "pameldingstype" to deltakerliste.pameldingstype.name,
+            "lopenummer" to deltakerliste.lopenummer,
+            "tilgjengelig_fom" to deltakerliste.tilgjengeligForArrangorFraOgMedDato,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
@@ -175,7 +183,35 @@ class DeltakerlisteRepository {
     }
 
     fun get(id: UUID): Result<Deltakerliste> = runCatching {
-        val sql =
+        val sql = "$BASE_SELECT WHERE dl.id = :id"
+
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
+        }
+    }
+
+    fun getManyForTiltakstype(tiltakstypeId: UUID): List<Deltakerliste> {
+        val sql = "$BASE_SELECT WHERE dl.tiltakstype_id = :tiltakstype_id"
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("tiltakstype_id" to tiltakstypeId),
+                ).map(::rowMapper).asList,
+            )
+        }
+    }
+
+    companion object {
+        private val col = prefixColumn("dl")
+
+        private val BASE_SELECT =
             """
             SELECT 
                dl.id AS "dl.id",
@@ -189,6 +225,8 @@ class DeltakerlisteRepository {
                dl.apent_for_pamelding AS "dl.apent_for_pamelding",
                dl.oppmote_sted AS "dl.oppmote_sted",
                dl.pameldingstype AS "dl.pameldingstype",
+               dl.lopenummer AS "dl.lopenummer",
+               dl.tilgjengelig_fom AS "dl.tilgjengelig_fom",
                dl.prisinformasjon as "dl.prisinformasjon",
                a.id AS "a.id",
                a.navn AS "a.navn",
@@ -203,21 +241,7 @@ class DeltakerlisteRepository {
                 deltakerliste dl
                 LEFT JOIN arrangor a ON a.id = dl.arrangor_id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
-            WHERE dl.id = :id
             """.trimIndent()
-
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
-        }
-    }
-
-    companion object {
-        private val col = prefixColumn("dl")
 
         fun rowMapper(row: Row): Deltakerliste {
             val id = row.uuid(col("id"))
@@ -244,6 +268,8 @@ class DeltakerlisteRepository {
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
                 pameldingstype = row.string(col("pameldingstype")).let { GjennomforingPameldingType.valueOf(it) },
                 prisinformasjon = row.stringOrNull(col("prisinformasjon")),
+                lopenummer = row.stringOrNull(col("lopenummer")),
+                tilgjengeligForArrangorFraOgMedDato = row.localDateOrNull(col("tilgjengelig_fom")),
                 antallPlasser = row.intOrNull(col("antall_plasser")),
                 arrangor = row.uuidOrNull("a.id")?.let { arrangorId ->
                     Arrangor(

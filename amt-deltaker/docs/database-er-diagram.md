@@ -156,7 +156,7 @@ erDiagram
 | `vurdering` | Arrangørs vurdering av deltaker | — |
 | `innsok` | Innsøking til felles oppstart | 18k rader |
 | `importert_fra_arena` | Arena-importerte deltaker-snapshots | 1.5M rader (765 MB) |
-| `tiltakstype` | Tiltakstype-definisjon | Liten |
+| `tiltak` | Tiltakstype-definisjon | Liten |
 | `arrangor` | Arrangører (underordnet/overordnet) | Liten |
 | `nav_ansatt` | Nav-ansatte | Liten |
 | `nav_enhet` | Nav-enheter | Liten |

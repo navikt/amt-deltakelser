@@ -32,6 +32,7 @@ class GjennomforingConsumer(
     private val deltakerService: DeltakerService,
     private val deltakerProducerService: DeltakerProducerService,
     private val kladdService: KladdService,
+    private val amtGjennomforingProducer: AmtGjennomforingProducer,
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
@@ -53,6 +54,7 @@ class GjennomforingConsumer(
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(key)
             if (key !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 deltakerlisteRepository.delete(key)
+                amtGjennomforingProducer.produceTombstone(key)
             } else {
                 log.error(
                     "Ignorerer tombstone for $key. " +
@@ -106,6 +108,7 @@ class GjennomforingConsumer(
 
             Database.transaction {
                 deltakerlisteRepository.upsert(gjennomforing)
+                amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
 
                 // Fiks for Arena-data hvor deltakerliste er avsluttet mens deltaker er aktiv.
                 // Da skal deltakelsen fortsette å være aktiv
@@ -119,7 +122,10 @@ class GjennomforingConsumer(
                 publiserEnkeltplassDeltaker(eksisterendeGjennomforing)
             }
         } else {
-            deltakerlisteRepository.upsert(gjennomforing)
+            Database.transaction {
+                deltakerlisteRepository.upsert(gjennomforing)
+                amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
+            }
         }
     }
 

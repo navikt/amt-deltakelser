@@ -22,6 +22,8 @@ fun GjennomforingV2KafkaPayload.Gruppe.toModel(
     oppmoteSted = oppmoteSted,
     arrangor = arrangor,
     pameldingstype = pameldingType,
+    lopenummer = lopenummer,
+    tilgjengeligForArrangorFraOgMedDato = tilgjengeligForArrangorFraOgMedDato,
     prisinformasjon = null,
 )
 
@@ -42,5 +44,7 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     oppmoteSted = null,
     arrangor = arrangor,
     pameldingstype = pameldingType,
+    lopenummer = lopenummer,
+    tilgjengeligForArrangorFraOgMedDato = null,
     prisinformasjon = null,
 )

@@ -33,6 +33,7 @@ import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
@@ -237,6 +238,13 @@ abstract class IntegrationTestBase {
         )
     }
 
+    protected open val amtGjennomforingProducer: AmtGjennomforingProducer by lazy {
+        AmtGjennomforingProducer(
+            outboxService = outboxService,
+            producer = stringStringProducer,
+        )
+    }
+
     protected open val deltakerV1Producer: DeltakerV1Producer by lazy {
         DeltakerV1Producer(
             outboxService = outboxService,
@@ -384,6 +392,7 @@ abstract class IntegrationTestBase {
             unleashToggle = unleashToggle,
             deltakerProducerService = deltakerProducerService,
             kladdService = kladdService,
+            amtGjennomforingProducer = amtGjennomforingProducer,
         )
     }
 
@@ -443,6 +452,7 @@ abstract class IntegrationTestBase {
         every {
             outboxService.insertRecord(any(), any(), any(), any())
         } returns mockOutboxRecord
+        every { stringStringProducer.tombstone(any(), any()) } returns Unit
     }
 
     @AfterEach
