@@ -3,9 +3,11 @@ package no.nav.amt.deltaker.bff
 import io.getunleash.DefaultUnleash
 import io.getunleash.util.UnleashConfig
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.serialization.jackson3.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopPreparing
@@ -34,7 +36,6 @@ import no.nav.amt.deltaker.bff.deltaker.DeltakerService
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
 import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
-import no.nav.amt.deltaker.bff.job.LeaderElection
 import no.nav.amt.deltaker.bff.job.TiltakskoordinatorStengTilgangJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -62,6 +63,9 @@ import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
+import no.nav.amt.lib.utils.leaderelection.Leader
+import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
+import no.nav.amt.lib.utils.leaderelection.LeaderProvider
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -104,7 +108,11 @@ fun Application.module() {
         }
     }
 
-    val leaderElection = LeaderElection(httpClient, environment.electorPath)
+    val leaderProvider = LeaderProvider { path ->
+        val url = if (path.startsWith("http://")) path else "http://$path"
+        httpClient.get(url).body<Leader>()
+    }
+    val leaderElection = LeaderElectionClient(leaderProvider, environment.electorPath)
 
     val azureAdTokenClient = AzureAdTokenClient(
         azureAdTokenUrl = environment.azureAdTokenUrl,

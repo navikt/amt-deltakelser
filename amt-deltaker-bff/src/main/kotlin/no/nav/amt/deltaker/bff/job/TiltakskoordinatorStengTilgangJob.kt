@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.lib.ktor.routing.isReadyKey
+import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -14,7 +15,7 @@ import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class TiltakskoordinatorStengTilgangJob(
-    private val leaderElection: LeaderElection,
+    private val leaderElection: LeaderElectionClient,
     private val attributes: Attributes,
     private val selfServiceTilgangService: SelfServiceTilgangService,
 ) {

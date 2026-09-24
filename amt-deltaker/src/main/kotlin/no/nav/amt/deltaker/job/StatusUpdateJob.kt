@@ -5,9 +5,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.lib.ktor.routing.isReadyKey
+import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -16,7 +16,7 @@ import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class StatusUpdateJob(
-    private val leaderElection: LeaderElection,
+    private val leaderElection: LeaderElectionClient,
     private val attributes: Attributes,
     private val deltakerService: DeltakerService,
 ) {
