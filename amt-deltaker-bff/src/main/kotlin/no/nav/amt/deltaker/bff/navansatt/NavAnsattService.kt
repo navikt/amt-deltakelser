@@ -19,14 +19,6 @@ class NavAnsattService(
         return oppdaterNavAnsatt(navAnsatt)
     }
 
-    suspend fun hentEllerOpprettNavAnsatt(id: UUID): NavAnsatt {
-        repository.get(id)?.let { return it }
-
-        log.info("Fant ikke nav-ansatt med id $id, henter fra amt-person-service")
-        val navAnsatt = amtPersonServiceClient.hentNavAnsatt(id)
-        return oppdaterNavAnsatt(navAnsatt)
-    }
-
     fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt = repository.upsert(navAnsatt)
 
     fun slettNavAnsatt(navAnsattId: UUID) {

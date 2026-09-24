@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.innbygger.api.response
+package no.nav.amt.deltaker.bff.innbygger.api
 
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse

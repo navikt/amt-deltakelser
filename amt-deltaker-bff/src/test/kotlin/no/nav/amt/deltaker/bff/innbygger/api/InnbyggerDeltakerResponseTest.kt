@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.TiltakskodeResponse
-import no.nav.amt.deltaker.bff.innbygger.api.response.InnbyggerDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
