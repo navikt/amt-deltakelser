@@ -4,13 +4,13 @@ import io.ktor.util.Attributes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -19,7 +19,7 @@ import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class DeltakelsesmengdeUpdateJob(
-    private val leaderElection: LeaderElection,
+    private val leaderElection: LeaderElectionClient,
     private val attributes: Attributes,
     private val deltakerEndringRepository: DeltakerEndringRepository,
     private val deltakerEndringService: DeltakerEndringService,
