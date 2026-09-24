@@ -61,7 +61,7 @@ class TiltaksKoordinatorClientTest {
         val tildelPlassLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
             { client ->
                 client.tildelPlass(
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                     deltakerIder = listOf(deltakerInTest.id),
                     endretAv = "~endretAv~",
                 )
@@ -93,7 +93,7 @@ class TiltaksKoordinatorClientTest {
         val settPaaVentelisteLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
             { client ->
                 client.settPaaVenteliste(
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                     deltakerIder = listOf(deltakerInTest.id),
                     endretAv = "~endretAv~",
                 )
@@ -191,7 +191,7 @@ class TiltaksKoordinatorClientTest {
         val delMedArrangorLambda: suspend (TiltakskoordinatorClient) -> List<DeltakerOppdateringResponse> =
             { client ->
                 client.delMedArrangor(
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                     deltakerIder = listOf(deltakerInTest.id),
                     endretAv = "~endretAv~",
                 )
@@ -228,7 +228,7 @@ class TiltaksKoordinatorClientTest {
         val giAvslagLambda: suspend (TiltakskoordinatorClient) -> DeltakerOppdateringResponse =
             { client ->
                 client.giAvslag(
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                     avslagRequest = avslagRequest,
                     endretAv = "~endretAv~",
                 )

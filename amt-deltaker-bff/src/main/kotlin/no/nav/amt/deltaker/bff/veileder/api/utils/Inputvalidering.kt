@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.bff.veileder.api.utils
 
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.model.STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING
@@ -126,24 +125,6 @@ fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {
     }
 }
 
-fun validerDeltakerKanEndres(opprinneligDeltaker: Deltaker) {
-    require(opprinneligDeltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
-        "Kan ikke endre feilregistrert deltaker"
-    }
-    if (opprinneligDeltaker.harSluttet()) {
-        require(opprinneligDeltaker.harSluttetForMindreEnnToMndSiden()) {
-            "Kan ikke endre deltaker som fikk avsluttende status for mer enn to måneder siden"
-        }
-        if (!opprinneligDeltaker.kanEndres) {
-            // Låst pga. nyere deltakelse på samme tiltak – kun tillatt for de 4 statusene
-            // som frontend eksponerer begrenset redigering for.
-            require(opprinneligDeltaker.status.type in STATUSER_SOM_TILLATER_BEGRENSET_REDIGERING) {
-                "Kan ikke endre låst deltakelse med status ${opprinneligDeltaker.status.type}"
-            }
-        }
-    }
-}
-
 fun validerDeltakerKanEndres(
     request: EndringRequestFromFrontend,
     opprinneligDeltaker: DeltakerModel,
@@ -194,21 +175,6 @@ fun validerBegrunnelse(begrunnelse: String?) {
 fun validerSluttdatoForDeltaker(
     sluttdato: LocalDate,
     startdato: LocalDate?,
-    opprinneligDeltaker: Deltaker,
-) {
-    require(opprinneligDeltaker.deltakerliste.sluttDato == null || !sluttdato.isAfter(opprinneligDeltaker.deltakerliste.sluttDato)) {
-        "Sluttdato kan ikke være senere enn deltakerlistens sluttdato"
-    }
-    require(startdato == null || !sluttdato.isBefore(startdato)) {
-        "Sluttdato må være etter startdato"
-    }
-
-    startdato?.let { validerVarighet(it, sluttdato, opprinneligDeltaker) }
-}
-
-fun validerSluttdatoForDeltaker(
-    sluttdato: LocalDate,
-    startdato: LocalDate?,
     opprinneligDeltaker: DeltakerModel,
 ) {
     require(opprinneligDeltaker.gjennomforing.sluttDato == null || !sluttdato.isAfter(opprinneligDeltaker.gjennomforing.sluttDato)) {
@@ -253,24 +219,6 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
     DeltakerStatus.Aarsak.Type.valueOf(type.name),
     beskrivelse,
 )
-
-private fun validerVarighet(
-    startdato: LocalDate,
-    sluttdato: LocalDate,
-    deltaker: Deltaker,
-) {
-    val maxVarighet = deltaker.maxVarighet ?: return
-
-    val senesteSluttdato = startdato.plusDays(maxVarighet.toDays())
-
-    if (deltaker.sluttdato != null && senesteSluttdato.isBefore(deltaker.sluttdato)) {
-        require(!sluttdato.isAfter(deltaker.sluttdato))
-    } else {
-        require(!sluttdato.isAfter(senesteSluttdato)) {
-            "Sluttdato $sluttdato er etter seneste mulige sluttdato $senesteSluttdato"
-        }
-    }
-}
 
 private fun validerVarighet(
     startdato: LocalDate,

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.bff.utils
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
@@ -20,10 +19,6 @@ object TestRepository {
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
         ArrangorRepository().upsert(deltakerliste.arrangor.arrangor)
         DeltakerlisteRepository().upsert(deltakerliste)
-    }
-
-    fun insert(deltaker: Deltaker) {
-        insert(deltaker.deltakerliste)
     }
 
     fun insert(

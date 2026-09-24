@@ -13,7 +13,7 @@ import io.mockk.every
 import io.mockk.just
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.deltaker.DeltakerTestUtils.toDeltakerStatusAarsak
-import no.nav.amt.deltaker.bff.model.Deltaker
+import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerModel
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
@@ -239,8 +239,8 @@ class VeilederApiTest : IntegrationTestBase() {
         }
 
         fun setupMocksLocal(
-            deltaker: Deltaker,
-            oppdatert: Deltaker? = null,
+            deltaker: DeltakerModel,
+            oppdatert: DeltakerModel? = null,
             gjennomforingType: GjennomforingType = GjennomforingType.Gruppe,
         ): DeltakerResponse {
             val foerResponse = lagDeltakerResponse(deltaker)
@@ -771,7 +771,7 @@ class VeilederApiTest : IntegrationTestBase() {
         begrunnelse = "Avvist fordi..",
     )
 
-    private fun setupMocks(deltaker: Deltaker) {
+    private fun setupMocks(deltaker: DeltakerModel) {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true

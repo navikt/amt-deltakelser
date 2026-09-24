@@ -115,10 +115,20 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         @Test
         fun `skal returnere liste med DeltakerHistorikk`() {
             // Arrange
-            val historikk = deltaker.historikk
+            val deltakerModel = ModelMapper.toDeltaker(lagDeltakerResponse(id = deltaker.id))
+            val historikk = no.nav.amt.deltaker.bff.utils.TestData.leggTilHistorikk(
+                deltaker = deltakerModel,
+                antallVedtak = 1,
+                antallEndringer = 1,
+                antallEndringerFraArrangor = 0,
+            )
 
-            val navAnsattMap = mapOf(navAnsatt.id to navAnsatt)
-            val navEnhetMap = mapOf(navEnhet.id to navEnhet)
+            val navAnsattMap = no.nav.amt.deltaker.bff.utils.TestData
+                .lagNavAnsatteForHistorikk(historikk)
+                .associateBy { it.id }
+            val navEnhetMap = no.nav.amt.deltaker.bff.utils.TestData
+                .lagNavEnheterForHistorikk(historikk)
+                .associateBy { it.id }
 
             val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
             val arrangornavn = deltakerResponse.gjennomforing.arrangor!!.navn
@@ -169,7 +179,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     companion object {
         private val deltaker = lagDeltakerOld()
         private val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
-        private val navAnsatt = lagNavAnsatt(id = deltaker.navBruker.navVeilederId!!)
-        private val navEnhet = lagNavEnhet(id = deltaker.navBruker.navEnhetId!!)
+        private val navAnsatt = lagNavAnsatt(id = UUID.randomUUID())
+        private val navEnhet = lagNavEnhet(id = UUID.randomUUID())
     }
 }

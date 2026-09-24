@@ -337,7 +337,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         fun `skal returnere OK nar utkast er oppdatert`() = runTest {
             // Arrange
             coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
-                tiltakskode = deltakerInTest.deltakerliste.tiltak.tiltakskode,
+                tiltakskode = deltakerInTest.gjennomforing.tiltak.tiltakskode,
                 alternativer = emptyList(),
             )
 
