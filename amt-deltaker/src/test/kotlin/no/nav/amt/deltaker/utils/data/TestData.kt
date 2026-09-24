@@ -24,6 +24,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.Vurdering
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -181,7 +182,7 @@ object TestData {
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: Deltakelsesinnhold? = Deltakelsesinnhold("ledetekst", emptyList()),
         status: DeltakerStatus = lagDeltakerStatus(statusType = DeltakerStatus.Type.HAR_SLUTTET),

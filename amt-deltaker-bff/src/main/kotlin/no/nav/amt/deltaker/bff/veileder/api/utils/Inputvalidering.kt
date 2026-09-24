@@ -13,6 +13,7 @@ import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -89,7 +90,7 @@ fun validerDeltakelsesmengde(
         validerNyDeltakelsesmengde(
             eksisterendeDeltaker.deltakelsesmengder,
             Deltakelsesmengde(
-                deltakelsesprosent = nyProsent?.toFloat() ?: 100F,
+                deltakelsesprosent = nyProsent?.toFloat() ?: FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = nyDagerPerUke?.toFloat(),
                 gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),

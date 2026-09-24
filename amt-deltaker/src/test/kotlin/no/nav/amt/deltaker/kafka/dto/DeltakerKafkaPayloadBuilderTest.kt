@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.kafka.dto
 
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -158,23 +159,61 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`(): Unit = Tiltakskode.entries
-        .filter {
-            it !in setOf(
-                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
-                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                Tiltakskode.STUDIESPESIALISERING,
-                Tiltakskode.FAG_OG_YRKESOPPLAERING,
-                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
-            )
-        }.forEach {
+    fun `buildDeltakerEksternV1Record - bevarer manglende deltakelsesprosent i deltakelsesmengde`() {
+        val eksplisittProsent = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = deltaker.startdato,
+                begrunnelse = null,
+            ),
+            endretAv = veileder.id,
+            endretAvEnhet = navEnhet.id,
+            endret = vedtak.sistEndret.plusDays(1),
+        )
+        val manglendeProsent = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = null,
+                dagerPerUke = 2F,
+                gyldigFra = deltaker.startdato?.plusDays(1),
+                begrunnelse = null,
+            ),
+            endretAv = veileder.id,
+            endretAvEnhet = navEnhet.id,
+            endret = vedtak.sistEndret.plusDays(2),
+        )
+        historikk.addAll(
+            listOf(
+                DeltakerHistorikk.Endring(eksplisittProsent),
+                DeltakerHistorikk.Endring(manglendeProsent),
+            ),
+        )
+
+        val deltakelsesmengder = deltakerKafkaPayloadBuilder
+            .buildDeltakerEksternV1Record(deltaker)
+            .deltakelsesmengder
+
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(50F, null)
+    }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - alle tiltakstyper - har deltakelsesmengder`() {
+        Tiltakskode.entries.forEach {
             val deltaker2 = deltaker.copy(
                 deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
             )
-            deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
+
+            // Act
+            val deltakelsesmengdeDtos = deltakerKafkaPayloadBuilder
+                .buildDeltakerEksternV1Record(deltaker2)
+                .deltakelsesmengder
+
+            // Assert
+            deltakelsesmengdeDtos.shouldNotBeEmpty()
         }
+    }
 
     @Test
     fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {

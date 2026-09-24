@@ -105,20 +105,20 @@ topicen vil få siste versjon av hver deltaker.
 - `date` - Dato i ISO-8601 format (YYYY-MM-DD)
 - `datetime` - Tidsstempel i ISO-8601 format (YYYY-MM-DDTHH:MM:SS eller YYYY-MM-DDTHH:MM:SS.ssssss)
 
-| Felt                    | Format         | Beskrivelse                                                                                                                                                                                                                                    |
-|-------------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **id**                  | `uuid`         | En unik id som identifiserer en enkelt deltaker / deltakelse på ett tiltak. Samme som `Key`                                                                                                                                                    |
-| **gjennomforingId**     | `uuid`         | En unik id som identifiserer en tiltaksgjennomføring fra [Team Valp](https://github.com/navikt/mulighetsrommet)                                                                                                                                |
-| **personIdent**         | `string`       | Gjeldende folkeregisterident for personen, hvis en folkeregisterident ikke finnes kan det være en av: npid eller aktør-id                                                                                                                      |
-| **navVeileder**         | `object\|null` | Nav-Ident og enhetsnummer til brukers veileder.                                                                                                                                                                                                |
-| **startDato**           | `date\|null`   | Dagen deltakeren starter/startet på tiltaket                                                                                                                                                                                                   | 
-| **sluttDato**           | `date\|null`   | Dagen deltakeren slutter/sluttet på tiltaket                                                                                                                                                                                                   |
-| **status**              | `object`       | Nåværende status på deltakeren, forteller f.eks om deltakeren deltar på tiltaket akkurat nå eller venter på oppstart osv. Se [Status](#status)                                                                                                 |
-| **registrertTidspunkt** | `datetime`     | Datoen deltakeren er registrert i Arena. Det er litt ukjent hva som definerer en registrertDato i fremtiden når vi i Komet overtar opprettelsen av deltakere. Tidsstempel i ISO-8601 format.                                                   |
-| **endretTidspunkt**     | `datetime`     | Tidsstempel for siste endring på deltakeren. Tidsstempel i ISO-8601 format.                                                                                                                                                                    |
-| **kilde**               | `string`       | Kilde for deltakeren. Kan være `ARENA` eller `KOMET`. Hvis kilden er `KOMET` ble deltakeren opprettet i Komets nye løsning. Hvis kilde er `ARENA` ble deltakeren opprettet Arena.                                                              |
-| **innhold**             | `object\|null` | Innhold for tiltaksdeltakelsen på strukturert format. Kun for deltakere som er opprettet hos Komet, eller som har fått lagt til innhold etter at Komet ble master for deltakeren.                                                              |
-| **deltakelsesmengder**  | `list`         | Periodiserte deltakelsesmengder. Finnes kun på deltakere som Komet er master for, men gamle meldinger på topic vil kunne mangle dette feltet uavhengig av hvem som er master. Listen vil kun inneholde elementer for deltakarer på AFT og VTA. |
+| Felt                    | Format         | Beskrivelse                                                                                                                                                                                  |
+|-------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **id**                  | `uuid`         | En unik id som identifiserer en enkelt deltaker / deltakelse på ett tiltak. Samme som `Key`                                                                                                  |
+| **gjennomforingId**     | `uuid`         | En unik id som identifiserer en tiltaksgjennomføring fra [Team Valp](https://github.com/navikt/mulighetsrommet)                                                                              |
+| **personIdent**         | `string`       | Gjeldende folkeregisterident for personen, hvis en folkeregisterident ikke finnes kan det være en av: npid eller aktør-id                                                                    |
+| **navVeileder**         | `object\|null` | Nav-Ident og enhetsnummer til brukers veileder.                                                                                                                                              |
+| **startDato**           | `date\|null`   | Dagen deltakeren starter/startet på tiltaket                                                                                                                                                 | 
+| **sluttDato**           | `date\|null`   | Dagen deltakeren slutter/sluttet på tiltaket                                                                                                                                                 |
+| **status**              | `object`       | Nåværende status på deltakeren, forteller f.eks om deltakeren deltar på tiltaket akkurat nå eller venter på oppstart osv. Se [Status](#status)                                               |
+| **registrertTidspunkt** | `datetime`     | Datoen deltakeren er registrert i Arena. Det er litt ukjent hva som definerer en registrertDato i fremtiden når vi i Komet overtar opprettelsen av deltakere. Tidsstempel i ISO-8601 format. |
+| **endretTidspunkt**     | `datetime`     | Tidsstempel for siste endring på deltakeren. Tidsstempel i ISO-8601 format.                                                                                                                  |
+| **kilde**               | `string`       | Kilde for deltakeren. Kan være `ARENA` eller `KOMET`. Hvis kilden er `KOMET` ble deltakeren opprettet i Komets nye løsning. Hvis kilde er `ARENA` ble deltakeren opprettet Arena.            |
+| **innhold**             | `object\|null` | Innhold for tiltaksdeltakelsen på strukturert format. Kun for deltakere som er opprettet hos Komet, eller som har fått lagt til innhold etter at Komet ble master for deltakeren.            |
+| **deltakelsesmengder**  | `list`         | Periodiserte deltakelsesmengder. Finnes kun på deltakere som Komet er master for, men gamle meldinger på topic vil kunne mangle dette feltet uavhengig av hvem som er master.                |
 
 #### NavVeileder
 
@@ -164,7 +164,7 @@ på [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=5737102
 
 | Felt                   | Format        | Beskrivelse                                                 |
 |------------------------|---------------|-------------------------------------------------------------|
-| **deltakelsesprosent** | `float`       | Prosentandelen deltakeren opptar av en tiltaksplass.        |
+| **deltakelsesprosent** | `float\|null` | Prosentandelen deltakeren opptar av en tiltaksplass.        |
 | **dagerPerUke**        | `float\|null` | Antall dager deltakeren deltar på tiltaket per uke.         |
 | **gyldigFraDato**      | `date`        | Dato f.o.m. når deltakalesesmengden trer i kraft.           |
 | **opprettetTidspunkt** | `datetime`    | Når endringen ble opprettet. Tidsstempel i ISO-8601 format. |
@@ -219,7 +219,7 @@ data class DeltakerEksternV1Dto(
     )
 
     data class DeltakelsesmengdeDto(
-        val deltakelsesprosent: Float,
+        val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
         val gyldigFraDato: LocalDate,
         val opprettetTidspunkt: LocalDateTime,

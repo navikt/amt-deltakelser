@@ -37,6 +37,7 @@ import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -270,7 +271,7 @@ object TestData {
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: List<Innhold> = deltakerliste.tiltak.innhold
             ?.innholdselementer
@@ -386,7 +387,7 @@ object TestData {
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: List<Innhold> = gjennomforing.tiltak.innhold
             ?.innholdselementer
@@ -519,7 +520,7 @@ object TestData {
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
-        deltakelsesprosent: Float? = 100F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         sistEndret: LocalDateTime = LocalDateTime.now(),
@@ -553,7 +554,7 @@ object TestData {
         soktInnDato = LocalDate.now().minusMonths(2),
         deltakelsesmengder = DeltakelsesmengderResponse(
             nesteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
                 gyldigFra = LocalDate.now().minusMonths(3),
             ),

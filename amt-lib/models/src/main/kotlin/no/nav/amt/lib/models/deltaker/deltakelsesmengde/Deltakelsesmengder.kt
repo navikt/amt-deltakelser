@@ -4,6 +4,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
+import java.util.Objects
 
 /**
  * Deltakelsesmengder er en liste av alle gyldige deltakelsesmengder, både frem og tilbake i tid, den er sortert på gyldig-fra stigende.
@@ -33,8 +34,10 @@ class Deltakelsesmengder(
             return null
         }
 
-    fun avgrensPeriodeTilStartdato(startdato: LocalDate?): Deltakelsesmengder =
-        Deltakelsesmengder(deltakelsesmengder, listOfNotNull(startdato))
+    fun avgrensPeriodeTilStartdato(startdato: LocalDate?) = Deltakelsesmengder(
+        mengder = deltakelsesmengder,
+        startdatoer = listOfNotNull(startdato),
+    )
 
     /**
      * Finner hvilke deltakelsesmengder som var gjeldende for perioden f.o.m. t.o.m.
@@ -42,7 +45,13 @@ class Deltakelsesmengder(
     fun periode(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate?,
-    ): Deltakelsesmengder = Deltakelsesmengder(periode(deltakelsesmengder, fraOgMed, tilOgMed))
+    ) = Deltakelsesmengder(
+        mengder = periode(
+            deltakelsesmengder = deltakelsesmengder,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        ),
+    )
 
     /**
      * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
@@ -50,11 +59,9 @@ class Deltakelsesmengder(
     fun validerNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde): Boolean {
         val siste = deltakelsesmengder.lastOrNull() ?: return true
 
-        return if (siste.dagerPerUke != deltakelsesmengde.dagerPerUke || siste.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent) {
-            true
-        } else {
+        return !Objects.equals(siste.dagerPerUke, deltakelsesmengde.dagerPerUke) ||
+            siste.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
             deltakelsesmengde.gyldigFra < siste.gyldigFra
-        }
     }
 
     private fun finnGyldigeDeltakelsesmengder(
@@ -84,11 +91,14 @@ class Deltakelsesmengder(
     ): MutableList<Deltakelsesmengde> {
         val forrige = deltakelsesmengder.lastOrNull()
 
-        if (forrige != null && forrige.deltakelsesprosent == periode.deltakelsesprosent && forrige.dagerPerUke == periode.dagerPerUke) {
+        if (forrige != null &&
+            forrige.deltakelsesprosent == periode.deltakelsesprosent &&
+            Objects.equals(forrige.dagerPerUke, periode.dagerPerUke)
+        ) {
             return deltakelsesmengder
         }
-        deltakelsesmengder.add(periode)
 
+        deltakelsesmengder.add(periode)
         return deltakelsesmengder
     }
 
@@ -111,7 +121,11 @@ class Deltakelsesmengder(
         deltakelsesmengder: List<Deltakelsesmengde>,
         startdato: LocalDate,
     ): List<Deltakelsesmengde> {
-        val periode = periode(deltakelsesmengder = deltakelsesmengder, startdato, null).toMutableList()
+        val periode = periode(
+            deltakelsesmengder = deltakelsesmengder,
+            fraOgMed = startdato,
+            tilOgMed = null,
+        ).toMutableList()
 
         val justert = periode.firstOrNull()?.copy(gyldigFra = startdato) ?: return periode
 
@@ -137,18 +151,16 @@ class Deltakelsesmengder(
         val initialDeltakelsesmengde = originalInitial
             ?.let { if (it.gyldigFra < fraOgMed) it.copy(gyldigFra = fraOgMed) else it }
 
-        val endringerIPerioden =
-            deltakelsesmengder
-                .filter {
-                    val mengdeErIPerioden =
-                        if (tilOgMed == null) {
-                            it.gyldigFra > fraOgMed
-                        } else {
-                            it.gyldigFra in fraOgMed..tilOgMed
-                        }
-
-                    it !== originalInitial && mengdeErIPerioden
+        val endringerIPerioden = deltakelsesmengder
+            .filter {
+                val mengdeErIPerioden = if (tilOgMed == null) {
+                    it.gyldigFra > fraOgMed
+                } else {
+                    it.gyldigFra in fraOgMed..tilOgMed
                 }
+
+                it !== originalInitial && mengdeErIPerioden
+            }
 
         return listOfNotNull(initialDeltakelsesmengde) + endringerIPerioden
     }
@@ -161,11 +173,9 @@ class Deltakelsesmengder(
             .thenByDescending { it.gyldigFra },
     )
 
-    override fun equals(other: Any?): Boolean = if (other != null && other is Deltakelsesmengder) {
+    override fun equals(other: Any?): Boolean = other != null &&
+        other is Deltakelsesmengder &&
         this.deltakelsesmengder == other.deltakelsesmengder
-    } else {
-        false
-    }
 
     override fun hashCode(): Int = this.deltakelsesmengder.hashCode()
 
@@ -196,20 +206,27 @@ class Deltakelsesmengder(
 }
 
 // Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
-fun List<DeltakerHistorikk>.toDeltakelsesmengder(): Deltakelsesmengder {
-    return sortedBy { it.sistEndret }.fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
-        val deltakelsesmengde = historikk.toDeltakelsesmengde()
+fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder = this
+    .sortedBy { it.sistEndret }
+    .fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
+        val deltakelsesmengde = if (isForDeltakerExternalTopic) {
+            historikk.toDeltakelsesmengdeEkstern()
+        } else {
+            historikk.toDeltakelsesmengde()
+        }
+
         val startdato = historikk.toStartdato()
 
-        return@fold if (deltakelsesmengde != null) {
-            Deltakelsesmengder(mengder.plus(deltakelsesmengde), listOfNotNull(startdato))
-        } else if (startdato != null) {
-            mengder.avgrensPeriodeTilStartdato(startdato)
-        } else {
-            mengder
+        when {
+            deltakelsesmengde != null -> Deltakelsesmengder(
+                mengder = mengder.plus(deltakelsesmengde),
+                startdatoer = listOfNotNull(startdato),
+            )
+
+            startdato != null -> mengder.avgrensPeriodeTilStartdato(startdato)
+            else -> mengder
         }
     }
-}
 
 private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
     is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()

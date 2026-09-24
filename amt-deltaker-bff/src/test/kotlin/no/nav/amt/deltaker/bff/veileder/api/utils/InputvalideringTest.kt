@@ -17,6 +17,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -441,7 +442,7 @@ class InputvalideringTest {
         fun `validerNyDeltakelsesmengde - endret prosent - returnerer true`() {
             val eksisterende = DeltakelsesmengderResponse(
                 sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 100F,
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = null,
                     gyldigFra = LocalDate.now().minusDays(10),
                 ),
@@ -517,14 +518,14 @@ class InputvalideringTest {
         fun `validerNyDeltakelsesmengde - dagerPerUke begge null, samme prosent og senere gyldigFra - returnerer false`() {
             val eksisterende = DeltakelsesmengderResponse(
                 sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 100F,
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = null,
                     gyldigFra = LocalDate.now().minusDays(5),
                 ),
                 nesteDeltakelsesmengde = null,
             )
             val ny = Deltakelsesmengde(
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 gyldigFra = LocalDate.now(),
                 opprettet = LocalDateTime.now(),
@@ -536,14 +537,14 @@ class InputvalideringTest {
         fun `validerNyDeltakelsesmengde - eksisterende har dagerPerUke, ny har null - returnerer true`() {
             val eksisterende = DeltakelsesmengderResponse(
                 sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 100F,
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = 5F,
                     gyldigFra = LocalDate.now().minusDays(5),
                 ),
                 nesteDeltakelsesmengde = null,
             )
             val ny = Deltakelsesmengde(
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
                 gyldigFra = LocalDate.now(),
                 opprettet = LocalDateTime.now(),

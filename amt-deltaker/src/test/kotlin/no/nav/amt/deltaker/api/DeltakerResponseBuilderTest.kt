@@ -38,6 +38,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.Vurdering
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -570,7 +571,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
                 startdato = startdato,
                 sluttdato = startdato.plusMonths(6),
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
@@ -618,7 +619,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
                 startdato = startdato,
                 sluttdato = startdato.plusMonths(3),
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
@@ -665,7 +666,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
                 startdato = null,
                 sluttdato = null,
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
             )
             val fattetDato = LocalDate.now().minusMonths(1)
@@ -684,7 +685,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 100F,
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = 5F,
                     gyldigFra = fattetDato,
                 )
@@ -744,7 +745,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
                 startdato = startdato,
                 sluttdato = startdato.plusMonths(6),
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
             )
             val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
@@ -823,7 +824,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                     deltakerVedImport = TestData.lagDeltakerVedImport(
                         startdato = arenaStartdato,
                         sluttdato = arenaStartdato.plusYears(1),
-                        deltakelsesprosent = 100F,
+                        deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                         dagerPerUke = 5F,
                     ),
                 ),
@@ -887,7 +888,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
                 startdato = arrangorStartdato,
                 sluttdato = arrangorStartdato.plusMonths(3),
-                deltakelsesprosent = 100F,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = 5F,
             )
 

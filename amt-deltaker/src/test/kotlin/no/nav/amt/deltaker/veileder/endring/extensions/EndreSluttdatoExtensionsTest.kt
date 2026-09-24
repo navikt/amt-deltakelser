@@ -9,6 +9,7 @@ import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
@@ -78,7 +79,7 @@ class EndreSluttdatoExtensionsTest {
             opprettet = startdato.atStartOfDay(),
         )
         val fremtidigMengde = Deltakelsesmengde(
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = null,
             gyldigFra = fremtidigMengeGyldigFra,
             opprettet = fremtidigMengeGyldigFra.atStartOfDay(),
@@ -131,7 +132,7 @@ class EndreSluttdatoExtensionsTest {
             opprettet = startdato.atStartOfDay(),
         )
         val fremtidigMengde = Deltakelsesmengde(
-            deltakelsesprosent = 100F,
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = null,
             gyldigFra = fremtidigMengdeGyldigFra,
             opprettet = fremtidigMengdeGyldigFra.atStartOfDay(),
