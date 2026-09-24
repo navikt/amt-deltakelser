@@ -8,12 +8,10 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForDeltaker
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -22,9 +20,6 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -70,7 +65,6 @@ class PameldingApiTest : IntegrationTestBase() {
     @Test
     fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() {
         val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-        mockAnsatteOgEnhetForDeltaker(deltaker)
         val amtDeltakerResponse = lagDeltakerResponse(deltaker)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns amtDeltakerResponse
@@ -146,13 +140,6 @@ class PameldingApiTest : IntegrationTestBase() {
         null,
         null,
     )
-
-    private fun mockAnsatteOgEnhetForDeltaker(deltaker: Deltaker): Pair<Map<UUID, NavAnsatt>, NavEnhet?> {
-        val ansatte = lagNavAnsatteForDeltaker(deltaker).associateBy { it.id }
-        val enhet = deltaker.vedtaksinformasjon?.let { lagNavEnhet(id = it.sistEndretAvEnhet) }
-
-        return Pair(ansatte, enhet)
-    }
 
     companion object {
         private fun List<Innhold>.toInnholdDto() = this.map {

@@ -5,16 +5,13 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -221,7 +218,6 @@ data class TiltakskoordinatorTilgangContext(
         deltakerliste = deltakerliste,
         navAnsatt = secondNavAnsatt,
     ),
-    var deltaker: Deltaker = lagDeltakerOld(deltakerliste = deltakerliste),
 ) {
     val navAnsattRepository = NavAnsattRepository()
     val tilgangsRepository = TiltakskoordinatorTilgangRepository()
@@ -236,7 +232,6 @@ data class TiltakskoordinatorTilgangContext(
         navAnsattRepository.upsert(navAnsatt)
         navAnsattRepository.upsert(secondNavAnsatt)
         TestRepository.insert(deltakerliste)
-        TestRepository.insert(deltaker)
     }
 
     fun medAktivTilgang() {
@@ -245,14 +240,6 @@ data class TiltakskoordinatorTilgangContext(
 
     fun medInaktivTilgang() {
         tilgangsRepository.upsert(secondTilgang.copy(gyldigTil = LocalDateTime.now()))
-    }
-
-    fun medSkjermetDeltaker() {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(erSkjermet = true))
-    }
-
-    fun medFortroligDeltaker() {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG))
     }
 
     fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now()) {

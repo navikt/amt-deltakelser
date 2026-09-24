@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.bff.utils
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.deltaker.bff.model.ArrangorModel
-import no.nav.amt.deltaker.bff.model.Deltaker
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
@@ -24,7 +23,6 @@ import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBru
 import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -245,60 +243,6 @@ object TestData {
         opprettetTidspunkt = OffsetDateTime.now(),
     )
 
-    fun lagDeltakerKladd(
-        id: UUID = UUID.randomUUID(),
-        navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
-        sistEndret: LocalDateTime = LocalDateTime.now(),
-    ) = lagDeltakerOld(
-        id = id,
-        navBruker = navBruker,
-        deltakerliste = deltakerliste,
-        startdato = null,
-        sluttdato = null,
-        dagerPerUke = null,
-        deltakelsesprosent = null,
-        bakgrunnsinformasjon = null,
-        innhold = emptyList(),
-        status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-        sistEndret = sistEndret,
-    )
-
-    fun lagDeltakerOld(
-        id: UUID = UUID.randomUUID(),
-        navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
-        startdato: LocalDate? = LocalDate.now().minusMonths(3),
-        sluttdato: LocalDate? = LocalDate.now().minusDays(1),
-        dagerPerUke: Float? = 5F,
-        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
-        bakgrunnsinformasjon: String? = "Søkes inn fordi...",
-        innhold: List<Innhold> = deltakerliste.tiltak.innhold
-            ?.innholdselementer
-            ?.map { it.toInnhold() } ?: emptyList(),
-        status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-        kanEndres: Boolean = true,
-        erManueltDeltMedArrangor: Boolean = false,
-        createdAt: LocalDateTime = LocalDateTime.now(),
-        sistEndret: LocalDateTime = LocalDateTime.now(),
-    ): Deltaker = Deltaker(
-        id = id,
-        navBruker = navBruker,
-        deltakerliste = deltakerliste,
-        startdato = startdato,
-        sluttdato = sluttdato,
-        dagerPerUke = dagerPerUke,
-        deltakelsesprosent = deltakelsesprosent,
-        bakgrunnsinformasjon = bakgrunnsinformasjon,
-        deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
-        status = status,
-        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        historikk = emptyList(),
-        kanEndres = kanEndres,
-        opprettet = createdAt,
-        sistEndret = sistEndret,
-    )
-
     fun lagNavBrukerModel(
         personident: String = randomIdent(),
         fornavn: String = "Fornavn",
@@ -364,6 +308,73 @@ object TestData {
         pameldingstype = pameldingstype,
     )
 
+    fun lagDeltakerOld(
+        id: UUID = UUID.randomUUID(),
+        navBruker: NavBruker = lagNavBruker(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        startdato: LocalDate? = LocalDate.now().minusMonths(3),
+        sluttdato: LocalDate? = LocalDate.now().minusDays(1),
+        dagerPerUke: Float? = 5F,
+        deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
+        bakgrunnsinformasjon: String? = "Søkes inn fordi...",
+        innhold: List<Innhold> = deltakerliste.tiltak.innhold
+            ?.innholdselementer
+            ?.map { it.toInnhold() } ?: emptyList(),
+        status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        kanEndres: Boolean = true,
+        erManueltDeltMedArrangor: Boolean = false,
+        createdAt: LocalDateTime = LocalDateTime.now(),
+        sistEndret: LocalDateTime = LocalDateTime.now(),
+    ): DeltakerModel = DeltakerModel(
+        id = id,
+        navBruker = lagNavBrukerModel(
+            personident = navBruker.personident,
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            erSkjermet = navBruker.erSkjermet,
+            adresse = navBruker.adresse,
+            adressebeskyttelse = navBruker.adressebeskyttelse,
+            oppfolgingsperioder = navBruker.oppfolgingsperioder,
+            innsatsgruppe = navBruker.innsatsgruppe,
+            telefon = navBruker.telefon,
+            epost = navBruker.epost,
+        ),
+        gjennomforing = lagGjennomforingModel(
+            id = deltakerliste.id,
+            tiltak = deltakerliste.tiltak,
+            navn = deltakerliste.navn,
+            status = deltakerliste.status,
+            startDato = deltakerliste.startDato,
+            sluttDato = deltakerliste.sluttDato,
+            oppstart = deltakerliste.oppstart,
+            arrangor = ArrangorModel(
+                navn = deltakerliste.arrangor.arrangor.navn,
+                organisasjonsnummer = deltakerliste.arrangor.arrangor.organisasjonsnummer,
+            ),
+            apentForPamelding = deltakerliste.apentForPamelding,
+            oppmoteSted = deltakerliste.oppmoteSted,
+            pameldingstype = deltakerliste.pameldingstype,
+        ),
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = Deltakelsesinnhold("ledetekst", innhold),
+        vedtaksinformasjon = null,
+        status = status,
+        sistEndret = sistEndret,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        erLaastForEndringer = !kanEndres,
+        endringsforslagFraArrangor = emptyList(),
+        prisinformasjon = null,
+        sisteVurdering = null,
+        deltakelsesmengder = null,
+        soktInnDato = createdAt.toLocalDate(),
+        importertFraArena = null,
+    )
+
     fun lagDeltakerModel(
         navBrukerResponse: NavBrukerResponse = lagNavBrukerResponse(),
         gjennomforingResponse: GjennomforingResponse = lagGjennomforingResponse(),
@@ -427,49 +438,6 @@ object TestData {
         sistEndret = LocalDateTime.now(),
         sistEndretAv = "~veileder2~",
         sistEndretAvEnhet = "~enhet2~",
-    )
-
-    fun lagDeltakerResponse(deltaker: Deltaker) = lagDeltakerResponse(
-        id = deltaker.id,
-        startdato = deltaker.startdato,
-        sluttdato = deltaker.sluttdato,
-        dagerPerUke = deltaker.dagerPerUke,
-        status = deltaker.status,
-        deltakelsesprosent = deltaker.deltakelsesprosent,
-        bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
-        deltakelsesinnhold = deltaker.deltakelsesinnhold,
-        sistEndret = deltaker.sistEndret,
-        erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
-        opprettet = deltaker.opprettet,
-        endringsforslagFraArrangor = deltaker.historikk
-            .filterIsInstance<DeltakerHistorikk.Forslag>()
-            .map { it.forslag },
-        navBruker = lagNavBrukerResponse(
-            personident = deltaker.navBruker.personident,
-            fornavn = deltaker.navBruker.fornavn,
-            mellomnavn = deltaker.navBruker.mellomnavn,
-            etternavn = deltaker.navBruker.etternavn,
-            adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
-            oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
-            innsatsgruppe = deltaker.navBruker.innsatsgruppe,
-            adresse = deltaker.navBruker.adresse,
-            erSkjermet = deltaker.navBruker.erSkjermet,
-            telefon = deltaker.navBruker.telefon,
-            epost = deltaker.navBruker.epost,
-        ),
-        deltakerliste = lagGjennomforingResponse(
-            id = deltaker.deltakerliste.id,
-            tiltakstype = deltaker.deltakerliste.tiltak,
-            navn = deltaker.deltakerliste.navn,
-            status = deltaker.deltakerliste.status,
-            startDato = deltaker.deltakerliste.startDato!!,
-            sluttDato = deltaker.deltakerliste.sluttDato,
-            oppstart = deltaker.deltakerliste.oppstart,
-            apentForPamelding = deltaker.deltakerliste.apentForPamelding,
-            oppmoteSted = deltaker.deltakerliste.oppmoteSted ?: "~oppmoteSted~",
-            pameldingType = deltaker.deltakerliste.pameldingstype,
-        ),
-        vedtaksinformasjon = lagVedtaksinformasjonResponse(),
     )
 
     fun lagDeltakerResponse(deltaker: DeltakerModel) = lagDeltakerResponse(
@@ -610,22 +578,6 @@ object TestData {
         navEnhet = "Nav Grunerløkka",
     )
 
-    fun lagVurdering(
-        id: UUID = UUID.randomUUID(),
-        deltakerId: UUID = UUID.randomUUID(),
-        opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
-        opprettet: LocalDateTime = LocalDateTime.now().minusMonths(1),
-        vurderingstype: Vurderingstype = Vurderingstype.OPPFYLLER_IKKE_KRAVENE,
-        begrunnelse: String? = "Begrunnelse på vurdering",
-    ) = Vurdering(
-        id = id,
-        deltakerId = deltakerId,
-        opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
-        opprettet = opprettet,
-        vurderingstype = vurderingstype,
-        begrunnelse = begrunnelse,
-    )
-
     fun lagDeltakerStatus(
         type: DeltakerStatus.Type,
         aarsak: DeltakerStatus.Aarsak,
@@ -756,11 +708,6 @@ object TestData {
         else -> Oppstartstype.LOPENDE
     }
 
-    fun lagNavAnsatteForDeltaker(deltaker: Deltaker) = listOfNotNull(
-        deltaker.vedtaksinformasjon?.sistEndretAv,
-        deltaker.vedtaksinformasjon?.opprettetAv,
-    ).distinct().map { lagNavAnsatt(id = it) }
-
     fun lagNavAnsatteForHistorikk(historikk: List<DeltakerHistorikk>) = historikk
         .flatMap { it.navAnsatte() }
         .distinct()
@@ -809,79 +756,3 @@ object TestData {
         gyldigTil = gyldigTil,
     )
 }
-
-fun Deltaker.endre(deltakerEndring: DeltakerEndring): Deltaker {
-    val deltaker = when (val endring = deltakerEndring.endring) {
-        is DeltakerEndring.Endring.EndrePrisinfo -> this
-        is DeltakerEndring.Endring.EndreOpplaringKategorisering -> this
-
-        is DeltakerEndring.Endring.AvsluttDeltakelse -> this.copy(
-            sluttdato = endring.sluttdato,
-            status = TestData.lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = endring.aarsak?.toStatusAarsak()?.type,
-                aarsakBeskrivelse = endring.aarsak?.beskrivelse,
-            ),
-        )
-
-        is DeltakerEndring.Endring.EndreAvslutning -> this.copy(
-            status = TestData.lagDeltakerStatus(
-                statusType = if (endring.harFullfort == true) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT,
-                aarsakType = endring.aarsak?.toStatusAarsak()?.type,
-                aarsakBeskrivelse = endring.aarsak?.beskrivelse,
-            ),
-        )
-
-        is DeltakerEndring.Endring.AvbrytDeltakelse -> this.copy(
-            sluttdato = endring.sluttdato,
-            status = TestData.lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.AVBRUTT,
-                aarsakType = endring.aarsak.toStatusAarsak().type,
-                aarsakBeskrivelse = endring.aarsak.beskrivelse,
-            ),
-        )
-
-        is DeltakerEndring.Endring.EndreBakgrunnsinformasjon ->
-            this.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
-
-        is DeltakerEndring.Endring.EndreDeltakelsesmengde -> this.copy(
-            dagerPerUke = endring.dagerPerUke,
-            deltakelsesprosent = endring.deltakelsesprosent,
-        )
-
-        is DeltakerEndring.Endring.EndreInnhold -> this.copy(
-            deltakelsesinnhold = Deltakelsesinnhold(
-                endring.ledetekst,
-                endring.innhold,
-            ),
-        )
-
-        is DeltakerEndring.Endring.EndreSluttarsak ->
-            this.copy(status = this.status.copy(aarsak = endring.aarsak.toStatusAarsak()))
-
-        is DeltakerEndring.Endring.EndreSluttdato -> this.copy(sluttdato = endring.sluttdato)
-        is DeltakerEndring.Endring.EndreStartdato -> this.copy(startdato = endring.startdato, sluttdato = endring.sluttdato)
-        is DeltakerEndring.Endring.ForlengDeltakelse -> this.copy(sluttdato = endring.sluttdato)
-        is DeltakerEndring.Endring.IkkeAktuell -> this.copy(
-            status = TestData.lagDeltakerStatus(
-                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsakType = endring.aarsak.toStatusAarsak().type,
-                aarsakBeskrivelse = endring.aarsak.beskrivelse,
-            ),
-        )
-
-        is DeltakerEndring.Endring.ReaktiverDeltakelse -> this.copy(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = null,
-            sluttdato = null,
-        )
-
-        is DeltakerEndring.Endring.FjernOppstartsdato -> this.copy(startdato = null, sluttdato = null)
-    }
-    return deltaker.copy(historikk = this.historikk.plus(DeltakerHistorikk.Endring(deltakerEndring)))
-}
-
-fun DeltakerEndring.Aarsak.toStatusAarsak() = DeltakerStatus.Aarsak(
-    type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
-    beskrivelse = this.beskrivelse,
-)
