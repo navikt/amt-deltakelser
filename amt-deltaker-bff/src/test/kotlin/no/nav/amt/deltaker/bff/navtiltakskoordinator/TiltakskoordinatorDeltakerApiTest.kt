@@ -15,8 +15,6 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerHistorikkDataResponse
-import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
-import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import org.junit.jupiter.api.BeforeEach
@@ -179,7 +177,5 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
     companion object {
         private val deltaker = lagDeltakerOld()
         private val deltakerResponse = lagDeltakerResponse(id = deltaker.id)
-        private val navAnsatt = lagNavAnsatt(id = UUID.randomUUID())
-        private val navEnhet = lagNavEnhet(id = UUID.randomUUID())
     }
 }
