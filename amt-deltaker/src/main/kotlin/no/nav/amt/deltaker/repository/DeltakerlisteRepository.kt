@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -203,7 +204,7 @@ class DeltakerlisteRepository {
                 queryOf(
                     sql,
                     mapOf("tiltakstype_id" to tiltakstypeId),
-                ).map(::rowMapper).asList,
+                ).map(::rowMapperUtenOpplaringKategorisering).asList,
             )
         }
     }
@@ -254,6 +255,24 @@ class DeltakerlisteRepository {
             } else {
                 null
             }
+
+            return mapDeltakerliste(row, opplaringKategorisering)
+        }
+
+        /**
+         * Lettvekts-mapper for reproduksjons-stien (amt.gjennomforing-intern): utelater
+         * opplæringskategorisering, som ellers utløser to ekstra spørringer per Enkeltplass og gir
+         * N+1 ved reproduksjon av mange gjennomføringer. [toAmtGjennomforingPayload] bruker ikke
+         * feltet, så det er trygt å hoppe over her.
+         */
+        fun rowMapperUtenOpplaringKategorisering(row: Row): Deltakerliste = mapDeltakerliste(row, opplaringKategorisering = null)
+
+        private fun mapDeltakerliste(
+            row: Row,
+            opplaringKategorisering: OpplaringKategoriseringValg?,
+        ): Deltakerliste {
+            val id = row.uuid(col("id"))
+            val gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype")))
 
             return Deltakerliste(
                 id = id,

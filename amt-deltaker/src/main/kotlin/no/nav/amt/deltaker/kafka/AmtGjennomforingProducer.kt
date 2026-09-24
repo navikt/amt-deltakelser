@@ -7,7 +7,7 @@ import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
 
 /**
- * Produserer gjennomføringsdata til det interne Nav-topicet `amt.gjennomforing-intern`.
+ * Produserer gjennomføringsdata til det interne topicet `amt.gjennomforing-intern`.
  *
  * amt-deltaker slår sammen gjennomføring (`siste-tiltaksgjennomforinger-v2`) og tiltakstype
  * (`siste-tiltakstyper-v3`) fra Mulighetsrommet og deler dem videre her, slik at

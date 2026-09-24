@@ -9,6 +9,7 @@ import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.kafka.TiltakstypePayload
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import tools.jackson.module.kotlin.readValue
@@ -42,10 +43,13 @@ class TiltakConsumer(
         val nyTiltakstype = tiltakstypePayload.toModel()
 
         val eksisterendeTiltakstype = repository.get(nyTiltakstype.tiltakskode).getOrNull()
-        repository.upsert(nyTiltakstype)
 
-        if (eksisterendeTiltakstype != null && paavirkerGjennomforingPayload(eksisterendeTiltakstype, nyTiltakstype)) {
-            reproduserGjennomforinger(nyTiltakstype.id)
+        Database.transaction {
+            repository.upsert(nyTiltakstype)
+
+            if (eksisterendeTiltakstype != null && paavirkerGjennomforingPayload(eksisterendeTiltakstype, nyTiltakstype)) {
+                reproduserGjennomforinger(nyTiltakstype.id)
+            }
         }
     }
 

@@ -142,25 +142,25 @@ erDiagram
 
 ## Tabelloversikt
 
-| Tabell | Beskrivelse | Størrelse (ca.) |
-|---|---|---|
-| `deltaker` | Hovedtabell for deltakere | 1.66M rader |
-| `deltaker_status` | Statushistorikk per deltaker (gyldig_til IS NULL = aktiv) | 2.3M rader |
-| `nav_bruker` | Persondata for brukere | 786k rader |
-| `deltakerliste` | Tiltaksgjennomføringer (grupper eller enkeltplass) | ~30k rader |
-| `vedtak` | Nav-vedtak knyttet til deltaker | 143k rader |
-| `deltaker_endring` | Endringslogg fra Nav-veiledere | 195k rader |
-| `forslag` | Forslag fra arrangør-ansatte | — |
-| `endring_fra_arrangor` | Endringer initiert av arrangør | — |
+| Tabell                           | Beskrivelse | Størrelse (ca.) |
+|----------------------------------|---|---|
+| `deltaker`                       | Hovedtabell for deltakere | 1.66M rader |
+| `deltaker_status`                | Statushistorikk per deltaker (gyldig_til IS NULL = aktiv) | 2.3M rader |
+| `nav_bruker`                     | Persondata for brukere | 786k rader |
+| `deltakerliste`                  | Tiltaksgjennomføringer (grupper eller enkeltplass) | ~30k rader |
+| `vedtak`                         | Nav-vedtak knyttet til deltaker | 143k rader |
+| `deltaker_endring`               | Endringslogg fra Nav-veiledere | 195k rader |
+| `forslag`                        | Forslag fra arrangør-ansatte | — |
+| `endring_fra_arrangor`           | Endringer initiert av arrangør | — |
 | `endring_fra_tiltakskoordinator` | Endringer fra tiltakskoordinator | — |
-| `vurdering` | Arrangørs vurdering av deltaker | — |
-| `innsok` | Innsøking til felles oppstart | 18k rader |
-| `importert_fra_arena` | Arena-importerte deltaker-snapshots | 1.5M rader (765 MB) |
-| `tiltak` | Tiltakstype-definisjon | Liten |
-| `arrangor` | Arrangører (underordnet/overordnet) | Liten |
-| `nav_ansatt` | Nav-ansatte | Liten |
-| `nav_enhet` | Nav-enheter | Liten |
-| `outbox_record` | Kafka outbox for event-publisering (frittstående) | — |
+| `vurdering`                      | Arrangørs vurdering av deltaker | — |
+| `innsok`                         | Innsøking til felles oppstart | 18k rader |
+| `importert_fra_arena`            | Arena-importerte deltaker-snapshots | 1.5M rader (765 MB) |
+| `tiltakstype`                    | Tiltakstype-definisjon | Liten |
+| `arrangor`                       | Arrangører (underordnet/overordnet) | Liten |
+| `nav_ansatt`                     | Nav-ansatte | Liten |
+| `nav_enhet`                      | Nav-enheter | Liten |
+| `outbox_record`                  | Kafka outbox for event-publisering (frittstående) | — |
 
 ## Kolonnedetaljer
 

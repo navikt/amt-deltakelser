@@ -119,21 +119,21 @@ erDiagram
 
 ## Tabelloversikt
 
-| Tabell | Beskrivelse | Størrelse (ca.) |
-|---|---|---|
-| `deltaker` | Hovedtabell for deltakere; `historikk` JSONB lagrer endringer | 1.67M rader / 2.2 GB |
-| `deltaker_status` | Gjeldende status per deltaker (maks 1, UNIQUE) | 1.66M rader / 446 MB |
-| `nav_bruker` | Persondata for brukere | 786k rader / 702 MB |
-| `deltakerliste` | Tiltaksgjennomføringer | 177k rader / 48 MB |
-| `ulest_hendelse` | Uleste hendelser for tiltakskoordinator | 14 737 rader |
-| `arrangor` | Arrangører (underordnet/overordnet) | 20 767 rader |
-| `nav_ansatt` | Nav-ansatte | 13 262 rader |
-| `vurdering` | Arrangørs vurdering av deltaker | 4 181 rader |
+| Tabell                                     | Beskrivelse | Størrelse (ca.) |
+|--------------------------------------------|---|---|
+| `deltaker`                                 | Hovedtabell for deltakere; `historikk` JSONB lagrer endringer | 1.67M rader / 2.2 GB |
+| `deltaker_status`                          | Gjeldende status per deltaker (maks 1, UNIQUE) | 1.66M rader / 446 MB |
+| `nav_bruker`                               | Persondata for brukere | 786k rader / 702 MB |
+| `deltakerliste`                            | Tiltaksgjennomføringer | 177k rader / 48 MB |
+| `ulest_hendelse`                           | Uleste hendelser for tiltakskoordinator | 14 737 rader |
+| `arrangor`                                 | Arrangører (underordnet/overordnet) | 20 767 rader |
+| `nav_ansatt`                               | Nav-ansatte | 13 262 rader |
+| `vurdering`                                | Arrangørs vurdering av deltaker | 4 181 rader |
 | `tiltakskoordinator_deltakerliste_tilgang` | Tilgangsperioder for koordinatorer | 3 725 rader |
-| `forslag` | Forslag fra arrangør-ansatte | 990 rader |
-| `nav_enhet` | Nav-enheter | 446 rader |
-| `tiltak` | Tiltakstype-definisjon | 17 rader |
-| `outbox_record` | Kafka outbox for event-publisering (frittstående) | < 100 rader (renses) |
+| `forslag`                                  | Forslag fra arrangør-ansatte | 990 rader |
+| `nav_enhet`                                | Nav-enheter | 446 rader |
+| `tiltakstype`                              | Tiltakstype-definisjon | 17 rader |
+| `outbox_record`                            | Kafka outbox for event-publisering (frittstående) | < 100 rader (renses) |
 
 ## Kolonnedetaljer
 

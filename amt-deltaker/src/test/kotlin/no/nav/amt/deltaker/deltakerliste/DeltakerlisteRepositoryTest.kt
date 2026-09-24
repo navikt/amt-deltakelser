@@ -2,7 +2,11 @@ package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
@@ -265,5 +269,30 @@ class DeltakerlisteRepositoryTest {
         val hentet = result.first { it.id == gjennomforing.id }
         hentet.lopenummer shouldBe "A-1"
         hentet.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
+    }
+
+    @Test
+    fun `getManyForTiltakstype - laster ikke opplaringskategorisering for Enkeltplass - unngar N+1`() {
+        val arrangor = lagArrangor()
+        val tiltakstype = lagTiltakstype()
+        arrangorRepository.upsert(arrangor)
+        tiltakRepository.upsert(tiltakstype)
+
+        val enkeltplass = lagDeltakerliste(
+            arrangor = arrangor,
+            tiltakstype = tiltakstype,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
+        deltakerlisteRepository.upsert(enkeltplass)
+
+        mockkObject(OpplaringKategoriseringRepoAdapter)
+        try {
+            val result = deltakerlisteRepository.getManyForTiltakstype(tiltakstype.id)
+
+            result.single { it.id == enkeltplass.id }.opplaringKategorisering shouldBe null
+            verify(exactly = 0) { OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(any()) }
+        } finally {
+            unmockkObject(OpplaringKategoriseringRepoAdapter)
+        }
     }
 }
