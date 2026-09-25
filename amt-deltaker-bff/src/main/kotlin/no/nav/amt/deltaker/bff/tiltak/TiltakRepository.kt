@@ -2,40 +2,30 @@ package no.nav.amt.deltaker.bff.tiltak
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
+import no.nav.amt.deltaker.bff.model.Tiltak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.toPGObject
 import org.slf4j.LoggerFactory
-import tools.jackson.module.kotlin.readValue
 
 class TiltakRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsert(tiltakstype: Tiltakstype) {
+    fun upsert(tiltak: Tiltak) {
         val sql =
             """
             INSERT INTO tiltakstype (
                 id, 
                 navn, 
-                tiltakskode,
-                innsatsgrupper,
-                innhold
+                tiltakskode
             )
             VALUES (
                 :id,
                 :navn,
-                :tiltakskode,
-                :innsatsgrupper,
-                :innhold
+                :tiltakskode
             )
             ON CONFLICT (id) DO UPDATE SET
                 navn     		    = :navn,
                 tiltakskode         = :tiltakskode,
-                innsatsgrupper		= :innsatsgrupper,
-                innhold 			= :innhold,
                 modified_at         = CURRENT_TIMESTAMP
             """.trimIndent()
 
@@ -44,28 +34,24 @@ class TiltakRepository {
                 queryOf(
                     sql,
                     mapOf(
-                        "id" to tiltakstype.id,
-                        "navn" to tiltakstype.navn,
-                        "tiltakskode" to tiltakstype.tiltakskode.name,
-                        "innsatsgrupper" to objectMapper.toPGObject(tiltakstype.innsatsgrupper),
-                        "innhold" to tiltakstype.innhold?.let { objectMapper.toPGObject(it) },
+                        "id" to tiltak.id,
+                        "navn" to tiltak.navn,
+                        "tiltakskode" to tiltak.tiltakskode.name,
                     ),
                 ),
             )
         }
 
-        log.info("Upsertet tiltakstype med id ${tiltakstype.id}")
+        log.info("Upsertet tiltakstype med id ${tiltak.id}")
     }
 
-    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
+    fun get(tiltakskode: Tiltakskode): Result<Tiltak> = runCatching {
         val query = queryOf(
             """
             SELECT 
                 id,
                 navn,
-                tiltakskode,
-                innsatsgrupper,
-                innhold
+                tiltakskode
             FROM tiltakstype
             WHERE tiltakskode = :tiltakskode
             """.trimIndent(),
@@ -82,16 +68,14 @@ class TiltakRepository {
         fun rowMapper(
             row: Row,
             alias: String? = null,
-        ): Tiltakstype {
+        ): Tiltak {
             val prefix = alias?.let { "$alias." } ?: ""
             val col = { label: String -> prefix + label }
 
-            return Tiltakstype(
+            return Tiltak(
                 id = row.uuid(col("id")),
                 navn = row.string(col("navn")),
                 tiltakskode = Tiltakskode.valueOf(row.string(col("tiltakskode"))),
-                innsatsgrupper = objectMapper.readValue(row.string(col("innsatsgrupper"))),
-                innhold = row.stringOrNull(col("innhold"))?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
             )
         }
     }

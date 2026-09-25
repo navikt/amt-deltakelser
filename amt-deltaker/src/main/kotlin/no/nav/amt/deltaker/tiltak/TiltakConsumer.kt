@@ -68,7 +68,7 @@ class TiltakConsumer(
     }
 
     /**
-     * Kun feltene som deles i [no.nav.amt.lib.models.kafka.AmtGjennomforingPayload.Tiltak] utløser
+     * Kun feltene som deles i [no.nav.amt.lib.models.kafka.AmtGjennomforingPayload.TiltakPayload] utløser
      * reproduksjon; endringer i f.eks. innsatsgrupper påvirker ikke payloaden.
      */
     private fun paavirkerGjennomforingPayload(
