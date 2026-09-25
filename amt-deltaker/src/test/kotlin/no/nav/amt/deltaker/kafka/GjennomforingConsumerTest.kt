@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.kafka
 
+import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -7,6 +8,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -29,6 +31,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
@@ -38,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 class GjennomforingConsumerTest {
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
@@ -47,6 +51,7 @@ class GjennomforingConsumerTest {
     private val deltakerService = mockk<DeltakerService>()
     private val deltakerProducerService = mockk<DeltakerProducerService>()
     private val kladdService = mockk<KladdService>()
+    private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>()
     private val unleashToggle = mockk<CommonUnleashToggle>()
 
     private val consumer = GjennomforingConsumer(
@@ -57,6 +62,7 @@ class GjennomforingConsumerTest {
         deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
         kladdService = kladdService,
+        amtGjennomforingProducer = amtGjennomforingProducer,
         unleashToggle = unleashToggle,
     )
 
@@ -85,6 +91,8 @@ class GjennomforingConsumerTest {
         every { deltakerProducerService.produce(any<Deltaker>()) } just runs
         every { deltakerService.avsluttDeltakere(any<List<Deltaker>>()) } just runs
         every { kladdService.slettKladd(any()) } just runs
+        every { amtGjennomforingProducer.produce(any()) } just runs
+        every { amtGjennomforingProducer.produceTombstone(any()) } just runs
     }
 
     @AfterEach
@@ -381,6 +389,95 @@ class GjennomforingConsumerTest {
             verify(exactly = 0) {
                 deltakerProducerService.produce(any<Deltaker>(), any<Boolean>())
             }
+        }
+    }
+
+    @Nested
+    inner class AmtGjennomforingProducerTest {
+        @Test
+        fun `produserer riktig payload for ny gruppegjennomforing`() = runTest {
+            // Arrange
+            val gjennomforing = lagGruppeDeltakerliste()
+            every { deltakerlisteRepository.get(gjennomforing.id) } returns Result.failure(NoSuchElementException())
+
+            val payloadSlot = slot<AmtGjennomforingPayload>()
+            every { amtGjennomforingProducer.produce(capture(payloadSlot)) } just runs
+
+            // Act
+            consumePayloadFor(gjennomforing)
+
+            // Assert
+            verify(exactly = 1) { amtGjennomforingProducer.produce(any()) }
+            with(payloadSlot.captured) {
+                id shouldBe gjennomforing.id
+                type shouldBe GjennomforingType.Gruppe
+                status shouldBe gjennomforing.status
+                navn shouldBe gjennomforing.navn
+                tiltak.tiltakskode shouldBe gjennomforing.tiltakstype.tiltakskode
+                tiltak.id shouldBe gjennomforing.tiltakstype.id
+                arrangor.organisasjonsnummer shouldBe gjennomforing.arrangor!!.organisasjonsnummer
+            }
+        }
+
+        @Test
+        fun `produserer nar eksisterende gjennomforing endres`() = runTest {
+            // Arrange
+            val eksisterende = lagGruppeDeltakerliste()
+            val endret = eksisterende.copy(navn = "Nytt navn på gjennomføring")
+            stubEksisterendeDeltakerliste(eksisterende)
+            every { deltakerRepository.getDeltakereForAvsluttetDeltakerliste(any()) } returns emptyList()
+
+            // Act
+            consumePayloadFor(endret)
+
+            // Assert
+            verify(exactly = 1) {
+                amtGjennomforingProducer.produce(
+                    match { it.id == endret.id && it.navn == "Nytt navn på gjennomføring" },
+                )
+            }
+        }
+
+        @Test
+        fun `produserer ikke nar gjennomforing er uendret`() = runTest {
+            // Arrange
+            val gjennomforing = lagGruppeDeltakerliste().copy(antallPlasser = 10)
+            stubEksisterendeDeltakerliste(gjennomforing)
+
+            // Act
+            consumePayloadFor(gjennomforing)
+
+            // Assert
+            verify(exactly = 0) { amtGjennomforingProducer.produce(any()) }
+        }
+
+        @Test
+        fun `produserer tombstone nar gjennomforing slettes`() = runTest {
+            // Arrange
+            val id = UUID.randomUUID()
+            every { deltakerRepository.getAntallDeltakereForDeltakerliste(id) } returns 0
+            every { deltakerlisteRepository.delete(id) } just runs
+
+            // Act
+            consumer.consume(key = id, value = null)
+
+            // Assert
+            verify(exactly = 1) { deltakerlisteRepository.delete(id) }
+            verify(exactly = 1) { amtGjennomforingProducer.produceTombstone(id) }
+        }
+
+        @Test
+        fun `produserer ikke tombstone nar gjennomforing fortsatt har deltakere`() = runTest {
+            // Arrange
+            val id = UUID.randomUUID()
+            every { deltakerRepository.getAntallDeltakereForDeltakerliste(id) } returns 3
+
+            // Act
+            consumer.consume(key = id, value = null)
+
+            // Assert
+            verify(exactly = 0) { deltakerlisteRepository.delete(any()) }
+            verify(exactly = 0) { amtGjennomforingProducer.produceTombstone(any()) }
         }
     }
 

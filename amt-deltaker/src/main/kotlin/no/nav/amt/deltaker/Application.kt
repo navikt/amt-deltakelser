@@ -45,6 +45,7 @@ import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.job.DeltakelsesmengdeUpdateJob
 import no.nav.amt.deltaker.job.SlettUtdatertKladdJob
 import no.nav.amt.deltaker.job.StatusUpdateJob
+import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
@@ -328,6 +329,11 @@ fun Application.module() {
         outboxService = outboxService,
     )
 
+    val amtGjennomforingProducer = AmtGjennomforingProducer(
+        outboxService = outboxService,
+        producer = kafkaProducer,
+    )
+
     val deltakerProducerService = DeltakerProducerService(
         deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
         deltakerProducer = deltakerProducer,
@@ -486,7 +492,7 @@ fun Application.module() {
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService, kladdService),
-        TiltakConsumer(tiltakRepository),
+        TiltakConsumer(tiltakRepository, deltakerlisteRepository, amtGjennomforingProducer),
         GjennomforingConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
             deltakerRepository = deltakerRepository,
@@ -495,6 +501,7 @@ fun Application.module() {
             deltakerService = deltakerService,
             deltakerProducerService = deltakerProducerService,
             kladdService = kladdService,
+            amtGjennomforingProducer = amtGjennomforingProducer,
             unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(

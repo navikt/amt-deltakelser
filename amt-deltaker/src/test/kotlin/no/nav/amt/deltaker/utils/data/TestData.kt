@@ -99,6 +99,8 @@ object TestData {
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         prisinformasjon: String? = null,
         opplaringKategorisering: OpplaringKategoriseringValg? = null,
+        lopenummer: String? = "2026-01",
+        tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,
@@ -113,6 +115,8 @@ object TestData {
         oppmoteSted = oppmoteSted,
         arrangor = arrangor,
         pameldingstype = pameldingType,
+        lopenummer = lopenummer,
+        tilgjengeligForArrangorFraOgMedDato = tilgjengeligForArrangorFraOgMedDato,
         prisinformasjon = prisinformasjon,
         opplaringKategorisering = opplaringKategorisering,
     )
@@ -136,7 +140,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
         id = deltakerliste.id,
-        lopenummer = null,
+        lopenummer = deltakerliste.lopenummer,
         status = deltakerliste.status,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
@@ -151,7 +155,7 @@ object TestData {
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Gruppe(
         id = deltakerliste.id,
-        lopenummer = "2026-01",
+        lopenummer = deltakerliste.lopenummer!!,
         navn = deltakerliste.navn,
         tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         startDato = deltakerliste.startDato!!,
@@ -160,7 +164,7 @@ object TestData {
         oppstart = deltakerliste.oppstart,
         apentForPamelding = deltakerliste.apentForPamelding,
         oppmoteSted = deltakerliste.oppmoteSted,
-        tilgjengeligForArrangorFraOgMedDato = null,
+        tilgjengeligForArrangorFraOgMedDato = deltakerliste.tilgjengeligForArrangorFraOgMedDato,
         antallPlasser = deltakerliste.antallPlasser ?: 0,
         deltidsprosent = 42.0,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),

@@ -25,6 +25,8 @@ data class Deltakerliste(
     val oppmoteSted: String?,
     val arrangor: Arrangor?,
     val pameldingstype: GjennomforingPameldingType,
+    val lopenummer: String? = null,
+    val tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
     val prisinformasjon: String?, // dette er ikke enkeltplass prisinformasjon
     val opplaringKategorisering: OpplaringKategoriseringValg? = null,
 ) {
