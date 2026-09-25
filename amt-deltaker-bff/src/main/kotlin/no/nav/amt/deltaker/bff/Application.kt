@@ -33,9 +33,9 @@ import no.nav.amt.deltaker.bff.clients.EnkeltplassClient
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.clients.arrangorsok.ArrangorsokClient
 import no.nav.amt.deltaker.bff.deltaker.DeltakerService
+import no.nav.amt.deltaker.bff.gjennomforing.AmtGjennomforingConsumer
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteService
-import no.nav.amt.deltaker.bff.gjennomforing.GjennomforingConsumer
 import no.nav.amt.deltaker.bff.job.TiltakskoordinatorStengTilgangJob
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
@@ -45,7 +45,6 @@ import no.nav.amt.deltaker.bff.navtiltakskoordinator.TiltakskoordinatorsDeltaker
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.SelfServiceTilgangService
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangRepository
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorTilgangskontrollService
-import no.nav.amt.deltaker.bff.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorConsumer
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
@@ -66,7 +65,6 @@ import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import no.nav.amt.lib.utils.leaderelection.LeaderProvider
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
@@ -253,18 +251,15 @@ fun Application.module() {
 
     val tiltakRepository = TiltakRepository()
 
-    val unleashToggle = CommonUnleashToggle(unleash)
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
-        GjennomforingConsumer(
+        NavAnsattConsumer(navAnsattService),
+        AmtGjennomforingConsumer(
             deltakerlisteRepository = deltakerlisteRepository,
-            arrangorService = arrangorService,
             tiltakRepository = tiltakRepository,
-            unleashToggle = unleashToggle,
+            arrangorService = arrangorService,
             selfServiceTilgangService = selfServiceTilgangService,
         ),
-        NavAnsattConsumer(navAnsattService),
-        TiltakConsumer(tiltakRepository),
     )
     consumers.forEach { it.start() }
 

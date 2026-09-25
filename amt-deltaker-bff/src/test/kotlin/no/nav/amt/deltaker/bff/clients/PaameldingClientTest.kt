@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.bff.clients.Testdata.lagUtkast
 import no.nav.amt.deltaker.bff.testdata.OpprettTestDeltakelseRequest
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -62,7 +61,7 @@ class PaameldingClientTest {
             deltakelsesprosent = 60,
             dagerPerUke = 3,
         )
-        val utkast = lagUtkast(deltakerInTest.id, deltakerListe, opprettTestDeltakelseRequest)
+        val utkast = Testdata.lagUtkast(deltakerInTest.id, opprettTestDeltakelseRequest)
 
         val deltakerLambda: suspend (PaameldingClient) -> DeltakerResponse =
             { client -> client.utkast(utkast) }

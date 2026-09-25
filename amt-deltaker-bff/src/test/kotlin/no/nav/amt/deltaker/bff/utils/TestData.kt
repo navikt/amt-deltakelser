@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.model.GjennomforingModel
 import no.nav.amt.deltaker.bff.model.NavBrukerModel
+import no.nav.amt.deltaker.bff.model.Tiltak
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDeltakerlisteTilgang
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
@@ -20,7 +21,6 @@ import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorNavBrukerResponse
-import no.nav.amt.lib.ktor.clients.arrangor.ArrangorResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -43,7 +43,7 @@ import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
@@ -59,22 +59,10 @@ import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.UUID
 
 object TestData {
     fun input(n: Int) = (1..n).map { ('a'..'z').random() }.joinToString("")
-
-    fun lagArrangorClientResponse(arrangorInTest: Arrangor = lagArrangor()): ArrangorResponse {
-        val overordnetArrangorInTest = arrangorInTest.overordnetArrangorId?.let { lagArrangor(id = it) }
-
-        return ArrangorResponse(
-            id = arrangorInTest.id,
-            navn = arrangorInTest.navn,
-            organisasjonsnummer = arrangorInTest.organisasjonsnummer,
-            overordnetArrangor = overordnetArrangorInTest,
-        )
-    }
 
     fun DeltakerModel.toDeltakerVedVedtak() = DeltakerVedVedtak(
         id,
@@ -101,28 +89,60 @@ object TestData {
         overordnetArrangor: Arrangor? = null,
         arrangor: Arrangor = lagArrangor(overordnetArrangorId = overordnetArrangor?.id),
         tiltakstype: Tiltakstype = lagTiltakstype(),
-        navn: String = "Test Deltakerliste ${tiltakstype.tiltakskode}",
         status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES,
-        startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
-        apentForPamelding: Boolean = true,
-        antallPlasser: Int = 42,
-        oppmoteSted: String = "~oppmoteSted~",
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     ) = Deltakerliste(
         id = id,
-        tiltak = tiltakstype,
-        navn = navn,
         status = status,
-        startDato = startDato,
         sluttDato = sluttDato,
         oppstart = oppstart,
-        arrangor = Deltakerliste.Arrangor(arrangor, overordnetArrangor?.navn),
-        apentForPamelding = apentForPamelding,
-        antallPlasser = antallPlasser,
-        oppmoteSted = oppmoteSted,
+        arrangor = arrangor,
         pameldingstype = pameldingType,
+    )
+
+    /**
+     * Bygger den slanke bff-lokale [Tiltak]-raden fra en delt [Tiltakstype]. Brukes i tester for å
+     * upserte tiltakstype-raden som `deltakerliste.tiltakstype_id` FK-en peker på.
+     */
+    fun tiltakAv(tiltakstype: Tiltakstype) = Tiltak(
+        id = tiltakstype.id,
+        navn = tiltakstype.navn,
+        tiltakskode = tiltakstype.tiltakskode,
+    )
+
+    fun lagAmtGjennomforingPayload(
+        id: UUID = UUID.randomUUID(),
+        tiltakstype: Tiltakstype = lagTiltakstype(),
+        organisasjonsnummer: String = no.nav.amt.lib.testing.utils.TestData
+            .randomOrgnr(),
+        type: GjennomforingType = GjennomforingType.Gruppe,
+        status: GjennomforingStatusType = GjennomforingStatusType.GJENNOMFORES,
+        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
+        pameldingstype: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        sluttDato: LocalDate? = LocalDate.now().plusYears(1),
+    ) = AmtGjennomforingPayload(
+        id = id,
+        type = type,
+        tiltak = AmtGjennomforingPayload.TiltakPayload(
+            id = tiltakstype.id,
+            navn = tiltakstype.navn,
+            tiltakskode = tiltakstype.tiltakskode,
+            innhold = tiltakstype.innhold,
+        ),
+        arrangor = AmtGjennomforingPayload.Arrangor(organisasjonsnummer),
+        status = status,
+        oppstart = oppstart,
+        pameldingstype = pameldingstype,
+        navn = "Test Deltakerliste ${tiltakstype.tiltakskode}",
+        lopenummer = "2026-01",
+        startDato = LocalDate.now().minusMonths(1),
+        sluttDato = sluttDato,
+        tilgjengeligForArrangorFraOgMedDato = null,
+        apentForPamelding = true,
+        antallPlasser = 42,
+        oppmoteSted = "~oppmoteSted~",
     )
 
     fun lagGjennomforingResponse(
@@ -203,46 +223,6 @@ object TestData {
         return nyttTiltak
     }
 
-    fun lagEnkeltplassDeltakerlistePayload(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
-        pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-    ) = GjennomforingV2KafkaPayload.Enkeltplass(
-        id = deltakerliste.id,
-        lopenummer = null,
-        tiltakskode = deltakerliste.tiltak.tiltakskode,
-        status = deltakerliste.status,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = pameldingType,
-        oppstart = Oppstartstype.ENKELTPLASS,
-    )
-
-    fun lagGruppeDeltakerlistePayload(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
-        pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-    ) = GjennomforingV2KafkaPayload.Gruppe(
-        id = deltakerliste.id,
-        lopenummer = "2026-01",
-        navn = deltakerliste.navn,
-        tiltakskode = deltakerliste.tiltak.tiltakskode,
-        startDato = deltakerliste.startDato!!,
-        sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status,
-        oppstart = deltakerliste.oppstart,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        tilgjengeligForArrangorFraOgMedDato = null,
-        antallPlasser = 42,
-        deltidsprosent = 42.0,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-        pameldingType = pameldingType,
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        opprettetTidspunkt = OffsetDateTime.now(),
-    )
-
     fun lagNavBrukerModel(
         personident: String = randomIdent(),
         fornavn: String = "Fornavn",
@@ -317,7 +297,8 @@ object TestData {
         dagerPerUke: Float? = 5F,
         deltakelsesprosent: Float? = FALLBACK_DELTAKELSESPROSENT,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
-        innhold: List<Innhold> = deltakerliste.tiltak.innhold
+        tiltakstype: Tiltakstype = lagTiltakstype(),
+        innhold: List<Innhold> = tiltakstype.innhold
             ?.innholdselementer
             ?.map { it.toInnhold() } ?: emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
@@ -342,18 +323,14 @@ object TestData {
         ),
         gjennomforing = lagGjennomforingModel(
             id = deltakerliste.id,
-            tiltak = deltakerliste.tiltak,
-            navn = deltakerliste.navn,
+            tiltak = tiltakstype,
             status = deltakerliste.status,
-            startDato = deltakerliste.startDato,
             sluttDato = deltakerliste.sluttDato,
             oppstart = deltakerliste.oppstart,
             arrangor = ArrangorModel(
-                navn = deltakerliste.arrangor.arrangor.navn,
-                organisasjonsnummer = deltakerliste.arrangor.arrangor.organisasjonsnummer,
+                navn = deltakerliste.arrangor.navn,
+                organisasjonsnummer = deltakerliste.arrangor.organisasjonsnummer,
             ),
-            apentForPamelding = deltakerliste.apentForPamelding,
-            oppmoteSted = deltakerliste.oppmoteSted,
             pameldingstype = deltakerliste.pameldingstype,
         ),
         startdato = startdato,

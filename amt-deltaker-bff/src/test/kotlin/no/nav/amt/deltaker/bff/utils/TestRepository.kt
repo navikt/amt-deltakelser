@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDateTime
@@ -13,12 +14,13 @@ import java.time.LocalDateTime
 object TestRepository {
     fun insert(
         deltakerliste: Deltakerliste,
+        tiltakstype: Tiltakstype = TestData.lagTiltakstype(),
         overordnetArrangor: Arrangor? = null,
     ) {
-        TiltakRepository().upsert(deltakerliste.tiltak)
+        TiltakRepository().upsert(TestData.tiltakAv(tiltakstype))
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
-        ArrangorRepository().upsert(deltakerliste.arrangor.arrangor)
-        DeltakerlisteRepository().upsert(deltakerliste)
+        ArrangorRepository().upsert(deltakerliste.arrangor)
+        DeltakerlisteRepository().upsert(deltakerliste, tiltakstype.id)
     }
 
     fun insert(
