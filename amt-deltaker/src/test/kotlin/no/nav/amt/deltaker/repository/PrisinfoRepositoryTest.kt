@@ -285,7 +285,7 @@ class PrisinfoRepositoryTest {
         }
 
         @Test
-        fun `returnerer null når godkjent av ikke er lagret`() {
+        fun `returnerer hvem som godkjente prisinfo`() {
             // Arrange
             val sistEndret = LocalDateTime.now().minusDays(1)
             val vedtak = lagVedtak(
@@ -306,7 +306,7 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Opplysning",
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -314,8 +314,8 @@ class PrisinfoRepositoryTest {
             // Assert
             result shouldHaveSize 1
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe null
-                sistEndretAvNavEnhetId shouldBe null
+                godkjentAvNavAnsattId shouldBe navAnsatt.id
+                godkjentAvNavEnhetId shouldBe navEnhet.id
             }
         }
 
@@ -344,7 +344,7 @@ class PrisinfoRepositoryTest {
             )
             PrisinfoRepository.upsertPrisinfo(godkjentPrisinfo)
             PrisinfoRepository.upsertPrisinfo(kladdPrisinfo)
-            PrisinfoRepository.settGodkjent(godkjentPrisinfo.id, godkjentAv = null, godkjentAvEnhet = null)
+            PrisinfoRepository.settGodkjent(godkjentPrisinfo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -363,7 +363,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 15000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -412,7 +412,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 30000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
@@ -486,7 +486,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 20000,
             )
             PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = null, godkjentAvEnhet = null)
+            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
         }
     }
 }

@@ -38,7 +38,7 @@ object PrisinfoRepository {
     fun hentPrisinfoStatus(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
-    ): PrisinfoDbo.PrisinfoStatus? {
+    ): PrisinfoStatus? {
         val sql =
             """
             SELECT status 
@@ -52,7 +52,7 @@ object PrisinfoRepository {
             session.run(
                 queryOf(sql, prisinformasjonId, gjennomforingId)
                     .map { row ->
-                        PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status"))
+                        PrisinfoStatus.valueOf(row.string("status"))
                     }.asSingle,
             )
         }
@@ -195,8 +195,8 @@ object PrisinfoRepository {
      */
     fun settGodkjent(
         prisinformasjonId: UUID,
-        godkjentAv: UUID?,
-        godkjentAvEnhet: UUID?,
+        godkjentAv: UUID,
+        godkjentAvEnhet: UUID,
     ) = Database.query { session ->
         session.update(
             queryOf(
@@ -204,15 +204,26 @@ object PrisinfoRepository {
                 UPDATE enkeltplass_prisinformasjon
                 SET 
                     status = ?,
-                    godkjent_av = ?,
-                    godkjent_av_enhet = ?,
                     modified_at = now()
                 WHERE id = ?
                 """.trimIndent(),
-                PrisinfoDbo.PrisinfoStatus.GODKJENT.name,
+                PrisinfoStatus.GODKJENT.name,
+                prisinformasjonId,
+            ),
+        )
+
+        session.update(
+            queryOf(
+                """
+                INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
+                VALUES (?, ?, ?)
+                ON CONFLICT (prisinformasjon_id) DO UPDATE SET
+                    godkjent_av = EXCLUDED.godkjent_av,
+                    godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
+                """.trimIndent(),
+                prisinformasjonId,
                 godkjentAv,
                 godkjentAvEnhet,
-                prisinformasjonId,
             ),
         )
     }
@@ -235,13 +246,14 @@ object PrisinfoRepository {
                 prisinfo.tilleggsopplysninger,
                 prisinfo.ingenkostnader_aarsak,
                 prisinfo.modified_at,
-                prisinfo.godkjent_av,
-                prisinfo.godkjent_av_enhet,
+                godkjenning.godkjent_av,
+                godkjenning.godkjent_av_enhet,
                 COALESCE(prisinfo.modified_at <= vedtak.fattet, FALSE) AS er_forste_godkjenning
             FROM
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
                 JOIN enkeltplass_prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.deltakerliste_id
+                JOIN enkeltplass_prisinfo_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
                 AND prisinfo.status = 'GODKJENT'
@@ -255,8 +267,8 @@ object PrisinfoRepository {
                         GodkjentPrisinfoDbo(
                             prisinfo = rowMapper(row),
                             sistEndret = row.localDateTime("modified_at"),
-                            sistEndretAvNavAnsattId = row.uuidOrNull("godkjent_av"),
-                            sistEndretAvNavEnhetId = row.uuidOrNull("godkjent_av_enhet"),
+                            godkjentAvNavAnsattId = row.uuid("godkjent_av"),
+                            godkjentAvNavEnhetId = row.uuid("godkjent_av_enhet"),
                             erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
@@ -267,7 +279,7 @@ object PrisinfoRepository {
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
         id = row.uuid("id"),
         gjennomforingId = row.uuid("deltakerliste_id"),
-        status = PrisinfoDbo.PrisinfoStatus.valueOf(row.string("status")),
+        status = PrisinfoStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),
