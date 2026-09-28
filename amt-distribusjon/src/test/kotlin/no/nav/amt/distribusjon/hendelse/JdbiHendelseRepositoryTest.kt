@@ -12,6 +12,7 @@ import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -21,10 +22,16 @@ import java.util.UUID
 
 class JdbiHendelseRepositoryTest {
     private val journalforingstatusRepository = JournalforingstatusRepository()
+    lateinit var hendelseRepository: JdbiHendelseRepository
 
     companion object {
         @RegisterExtension
         val db = JdbiDatabaseTestExtension()
+    }
+
+    @BeforeEach
+    fun setup() {
+        hendelseRepository = db.conn.attach(JdbiHendelseRepository::class.java)
     }
 
     @Test
@@ -35,10 +42,10 @@ class JdbiHendelseRepositoryTest {
         )
 
         // Act
-        db.hendelseRepository.insert(hendelse)
+        hendelseRepository.insert(hendelse)
 
         // Assert
-        val hendelser = db.hendelseRepository.getHendelser(listOf(hendelse.id))
+        val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
         hendelser.size shouldBe 1
         hendelser.first().copy(opprettet = hendelse.opprettet) shouldBe hendelse
     }
@@ -65,7 +72,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeJournalforteHendelser = db.hendelseRepository.hentIkkeJournalforteHendelser()
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
             ikkeJournalforteHendelser.size shouldBe 1
@@ -88,7 +95,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeJournalforteHendelser = db.hendelseRepository.hentIkkeJournalforteHendelser()
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
             ikkeJournalforteHendelser.size shouldBe 0
@@ -114,7 +121,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeJournalforteHendelser = db.hendelseRepository.hentIkkeJournalforteHendelser()
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
             ikkeJournalforteHendelser.size shouldBe 0
@@ -130,7 +137,7 @@ class JdbiHendelseRepositoryTest {
             TestRepository.insertHendelse(hendelse)
 
             // Act
-            val ikkeJournalforteHendelser = db.hendelseRepository.hentIkkeJournalforteHendelser()
+            val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
             ikkeJournalforteHendelser.size shouldBe 0
@@ -160,7 +167,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeDistribuerteHendelser = db.hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
             // Assert
             ikkeDistribuerteHendelser.size shouldBe 1
@@ -188,7 +195,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeDistribuerteHendelser = db.hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
             // Assert
             ikkeDistribuerteHendelser.size shouldBe 0
@@ -215,7 +222,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeDistribuerteHendelser = db.hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
             // Assert
             ikkeDistribuerteHendelser.size shouldBe 1
@@ -242,7 +249,7 @@ class JdbiHendelseRepositoryTest {
             )
 
             // Act
-            val ikkeDistribuerteHendelser = db.hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
+            val ikkeDistribuerteHendelser = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
 
             // Assert
             ikkeDistribuerteHendelser.size shouldBe 0
@@ -256,7 +263,7 @@ class JdbiHendelseRepositoryTest {
         TestRepository.insertHendelse(hendelse)
 
         // Act
-        val hendelser = db.hendelseRepository.getHendelser(listOf(hendelse.id))
+        val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
 
         // Assert
         hendelser.size shouldBe 1
@@ -314,7 +321,7 @@ class JdbiHendelseRepositoryTest {
         Database.query { session -> session.update(queryOf(sql, params)) }
 
         // Act
-        val hendelser = db.hendelseRepository.getHendelser(listOf(hendelse.id))
+        val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
 
         // Assert
         hendelser.size shouldBe 1
