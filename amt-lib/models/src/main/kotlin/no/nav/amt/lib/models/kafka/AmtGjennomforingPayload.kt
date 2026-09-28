@@ -26,7 +26,7 @@ data class AmtGjennomforingPayload(
     // Felles felt – finnes på både Gruppe og Enkeltplass, lest av alle konsumenter
     val id: UUID,
     val type: GjennomforingType,
-    val tiltak: Tiltak,
+    val tiltak: TiltakPayload,
     val arrangor: Arrangor,
     val status: GjennomforingStatusType,
     val oppstart: Oppstartstype,
@@ -54,7 +54,7 @@ data class AmtGjennomforingPayload(
      * Sammenslått tiltakstype fra `siste-tiltakstyper-v3`, embeddet slik at konsumentene slipper
      * å lese tiltakstype-topicet separat.
      */
-    data class Tiltak(
+    data class TiltakPayload(
         val id: UUID,
         val navn: String,
         val tiltakskode: Tiltakskode,

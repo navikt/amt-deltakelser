@@ -22,7 +22,7 @@ fun Deltakerliste.toAmtGjennomforingPayload(): AmtGjennomforingPayload {
     return AmtGjennomforingPayload(
         id = id,
         type = gjennomforingstype,
-        tiltak = AmtGjennomforingPayload.Tiltak(
+        tiltak = AmtGjennomforingPayload.TiltakPayload(
             id = tiltakstype.id,
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,

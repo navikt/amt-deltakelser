@@ -7,10 +7,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.model.Deltakerliste
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakskoordinatorTilgang
 import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -209,7 +211,8 @@ fun sammenlignTilganger(
 data class TiltakskoordinatorTilgangContext(
     val navAnsatt: NavAnsatt = lagNavAnsatt(),
     val secondNavAnsatt: NavAnsatt = lagNavAnsatt(navn = "Nav Navesen"),
-    var deltakerliste: Deltakerliste = lagDeltakerliste(),
+    val tiltakstype: Tiltakstype = TestData.lagTiltakstype(),
+    var deltakerliste: Deltakerliste = lagDeltakerliste(tiltakstype = tiltakstype),
     var tilgang: TiltakskoordinatorDeltakerlisteTilgang = lagTiltakskoordinatorTilgang(
         deltakerliste = deltakerliste,
         navAnsatt = navAnsatt,
@@ -231,7 +234,7 @@ data class TiltakskoordinatorTilgangContext(
     init {
         navAnsattRepository.upsert(navAnsatt)
         navAnsattRepository.upsert(secondNavAnsatt)
-        TestRepository.insert(deltakerliste)
+        TestRepository.insert(deltakerliste, tiltakstype)
     }
 
     fun medAktivTilgang() {
@@ -247,6 +250,6 @@ data class TiltakskoordinatorTilgangContext(
             status = GjennomforingStatusType.AVSLUTTET,
             sluttDato = sluttDato,
         )
-        deltakerlisteRepository.upsert(deltakerliste)
+        deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
     }
 }

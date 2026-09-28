@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
 import no.nav.amt.deltaker.bff.tiltaksarrangor.ArrangorRepository
+import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerliste
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
@@ -30,10 +31,11 @@ class DeltakerlisteRepositoryTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
-            val deltakerliste = lagDeltakerliste(arrangor = arrangor)
-            tiltakRepository.upsert(deltakerliste.tiltak)
+            val tiltakstype = TestData.lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+            tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
 
-            deltakerlisteRepository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
             deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
         }
@@ -43,14 +45,15 @@ class DeltakerlisteRepositoryTest {
             val arrangor = lagArrangor()
             arrangorRepository.upsert(arrangor)
 
-            val deltakerliste = lagDeltakerliste(arrangor = arrangor)
-            tiltakRepository.upsert(deltakerliste.tiltak)
+            val tiltakstype = TestData.lagTiltakstype()
+            val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+            tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
 
-            deltakerlisteRepository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
             val oppdatertListe = deltakerliste.copy(sluttDato = LocalDate.now())
 
-            deltakerlisteRepository.upsert(oppdatertListe)
+            deltakerlisteRepository.upsert(oppdatertListe, tiltakstype.id)
 
             deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe oppdatertListe
         }
@@ -61,9 +64,10 @@ class DeltakerlisteRepositoryTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
-        val deltakerliste = lagDeltakerliste(arrangor = arrangor)
-        tiltakRepository.upsert(deltakerliste.tiltak)
-        deltakerlisteRepository.upsert(deltakerliste)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
+        deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
         deltakerlisteRepository.delete(deltakerliste.id)
 
@@ -78,15 +82,15 @@ class DeltakerlisteRepositoryTest {
         val arrangor = lagArrangor(overordnetArrangorId = overordnetArrangor.id)
         arrangorRepository.upsert(arrangor)
 
-        val deltakerliste = lagDeltakerliste(arrangor = arrangor, overordnetArrangor = overordnetArrangor)
-        tiltakRepository.upsert(deltakerliste.tiltak)
-        deltakerlisteRepository.upsert(deltakerliste)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor, overordnetArrangor = overordnetArrangor, tiltakstype = tiltakstype)
+        tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
+        deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
         deltakerlisteMedArrangor shouldNotBe null
-        deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
-        deltakerlisteMedArrangor.arrangor.arrangor.navn shouldBe arrangor.navn
-        deltakerlisteMedArrangor.arrangor.overordnetArrangorNavn shouldBe overordnetArrangor.navn
+        deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn
+        deltakerlisteMedArrangor.arrangor.overordnetArrangorId shouldBe overordnetArrangor.id
     }
 }

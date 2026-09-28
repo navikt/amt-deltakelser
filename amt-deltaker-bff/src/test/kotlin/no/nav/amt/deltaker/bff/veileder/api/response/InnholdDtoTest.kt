@@ -20,11 +20,9 @@ class InnholdDtoTest {
     fun testFinnValgtInnhold() {
         val innholdselement = Innholdselement("Type", "type")
         val deltaker = TestData.lagDeltakerOld(
-            deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(
-                    innhold = lagDeltakerRegistreringInnhold(
-                        innholdselementer = listOf(innholdselement, annetInnholdselement),
-                    ),
+            tiltakstype = TestData.lagTiltakstype(
+                innhold = lagDeltakerRegistreringInnhold(
+                    innholdselementer = listOf(innholdselement, annetInnholdselement),
                 ),
             ),
         )
@@ -93,10 +91,8 @@ class InnholdDtoTest {
         )
 
         val deltaker = TestData.lagDeltakerOld(
-            deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(
-                    innhold = deltakerlisteInnhold,
-                ),
+            tiltakstype = TestData.lagTiltakstype(
+                innhold = deltakerlisteInnhold,
             ),
         )
 

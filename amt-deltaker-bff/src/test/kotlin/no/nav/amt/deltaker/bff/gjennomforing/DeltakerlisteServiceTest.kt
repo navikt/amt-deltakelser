@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.bff.utils.TestRepository
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -57,8 +58,9 @@ class DeltakerlisteServiceTest {
 
 data class DeltakerlisteContext(
     val tiltak: Tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+    val tiltakstype: Tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltak),
     var deltakerliste: Deltakerliste = TestData.lagDeltakerliste(
-        tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltak),
+        tiltakstype = tiltakstype,
         oppstart = if (tiltak in setOf(
                 Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
@@ -74,16 +76,15 @@ data class DeltakerlisteContext(
     val repository = DeltakerlisteRepository()
 
     init {
-        TestRepository.insert(deltakerliste)
+        TestRepository.insert(deltakerliste, tiltakstype)
     }
 
     fun medAvsluttetDeltakerliste(sluttDato: LocalDate = LocalDate.now().minusDays(1)) {
         deltakerliste = deltakerliste.copy(
             status = GjennomforingStatusType.AVSLUTTET,
-            startDato = sluttDato.minusMonths(3),
             sluttDato = sluttDato,
         )
 
-        repository.upsert(deltakerliste)
+        repository.upsert(deltakerliste, tiltakstype.id)
     }
 }
