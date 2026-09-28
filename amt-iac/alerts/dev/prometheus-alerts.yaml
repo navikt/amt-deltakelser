@@ -73,7 +73,6 @@ spec:
               sum by(group, topic) (
                 kafka_consumergroup_group_lag{
                   group=~"^amt-.*",
-                  group!="amt-person-service-consumer.v1-innsatsgruppe-replay",
                   topic!="min-side.aapen-varsel-hendelse-v1",
                   client_id!="unknown"
                 }
