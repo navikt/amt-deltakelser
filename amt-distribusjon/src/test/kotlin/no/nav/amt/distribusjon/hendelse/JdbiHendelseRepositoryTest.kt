@@ -29,8 +29,9 @@ class JdbiDatabaseTestExtension :
     BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
-    lateinit var jdbi: Jdbi
-    lateinit var conn: Handle
+    private lateinit var jdbi: Jdbi
+    private lateinit var conn: Handle
+
     lateinit var hendelseRepository: JdbiHendelseRepository
 
     override fun beforeAll(context: ExtensionContext) {
