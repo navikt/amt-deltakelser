@@ -47,9 +47,9 @@ interface JdbiHendelseRepository : SqlObject {
     fun insert(
         @Bind("id") id: UUID,
         @Bind("deltaker_id") deltakerId: UUID,
-        @Bind("deltaker") deltaker: Any,
-        @Bind("ansvarlig") ansvarlig: Any,
-        @Bind("payload") payload: Any,
+        @Bind("deltaker") deltaker: org.postgresql.util.PGobject,
+        @Bind("ansvarlig") ansvarlig: org.postgresql.util.PGobject,
+        @Bind("payload") payload: org.postgresql.util.PGobject,
         @Bind("distribusjonskanal") distribusjonskanal: String,
         @Bind("manuelloppfolging") manuellOppfolging: Boolean,
     )
