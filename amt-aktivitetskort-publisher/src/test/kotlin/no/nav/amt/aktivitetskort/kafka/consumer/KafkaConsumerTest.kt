@@ -19,7 +19,7 @@ import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.BeforeEach
@@ -58,45 +58,78 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `listen - melding om ny tiltakstype - tiltakstype upsertes`() {
+    fun `listen - melding om ny gjennomforing - tiltakstype og deltakerliste upsertes`() {
         val ctx = TestData.MockContext()
+        arrangorRepository.upsert(ctx.arrangor)
+
+        val payload = ctx.amtGjennomforingPayload
 
         kafkaConsumer.listen(
             ConsumerRecord(
-                TILTAKSTYPE_TOPIC,
+                AMT_GJENNOMFORING_INTERN_TOPIC,
                 0,
                 offset,
-                ctx.tiltakstype.id.toString(),
-                objectMapper.writeValueAsString(ctx.tiltakstype),
+                payload.id.toString(),
+                objectMapper.writeValueAsString(payload),
             ),
             ack,
         )
 
-        tiltakstypeRepository.getByTiltakskode(ctx.tiltakstype.tiltakskode.name) shouldNotBe null
+        tiltakstypeRepository.getByTiltakskode(payload.tiltak.tiltakskode.name) shouldNotBe null
+        deltakerlisteRepository.get(payload.id).shouldNotBeNull()
     }
 
     @Test
-    fun `listen - melding om ny deltakerliste - deltakerliste upsertes`() {
+    fun `listen - melding om enkeltplass-gjennomforing - deltakerliste far tiltaksnavn som navn`() {
         val ctx = TestData.MockContext()
         arrangorRepository.upsert(ctx.arrangor)
-        tiltakstypeRepository.upsert(ctx.tiltakstype)
 
-        val deltakerlistePayload = ctx.deltakerlisteGruppePayload.copy(
-            tiltakskode = Tiltakskode.OPPFOLGING,
+        val payload = ctx.amtGjennomforingPayload.copy(
+            type = GjennomforingType.Enkeltplass,
+            navn = null,
         )
 
         kafkaConsumer.listen(
             ConsumerRecord(
-                DELTAKERLISTE_V2_TOPIC,
+                AMT_GJENNOMFORING_INTERN_TOPIC,
                 0,
                 offset,
-                deltakerlistePayload.id.toString(),
-                objectMapper.writeValueAsString(deltakerlistePayload),
+                payload.id.toString(),
+                objectMapper.writeValueAsString(payload),
             ),
             ack,
         )
 
-        deltakerlisteRepository.get(deltakerlistePayload.id).shouldNotBeNull()
+        val lagret = deltakerlisteRepository.get(payload.id)
+        lagret.shouldNotBeNull()
+        lagret.navn shouldBe payload.tiltak.navn
+    }
+
+    @Test
+    fun `listen - melding om ny gjennomforing - tiltakstype lagres med riktige felter`() {
+        val ctx = TestData.MockContext()
+        arrangorRepository.upsert(ctx.arrangor)
+
+        val payload = ctx.amtGjennomforingPayload
+
+        kafkaConsumer.listen(
+            ConsumerRecord(
+                AMT_GJENNOMFORING_INTERN_TOPIC,
+                0,
+                offset,
+                payload.id.toString(),
+                objectMapper.writeValueAsString(payload),
+            ),
+            ack,
+        )
+
+        val tiltakstype = tiltakstypeRepository.getByTiltakskode(payload.tiltak.tiltakskode.name)
+        tiltakstype.shouldNotBeNull()
+        assertSoftly(tiltakstype) {
+            id shouldBe payload.tiltak.id
+            navn shouldBe payload.tiltak.navn
+            tiltakskode shouldBe payload.tiltak.tiltakskode
+        }
     }
 
     @Test

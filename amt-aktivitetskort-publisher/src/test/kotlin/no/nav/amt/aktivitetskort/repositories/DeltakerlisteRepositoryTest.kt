@@ -5,7 +5,9 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.database.TestData.lagArrangor
 import no.nav.amt.aktivitetskort.database.TestData.lagDeltakerliste
+import no.nav.amt.aktivitetskort.database.TestData.lagTiltak
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -114,6 +116,43 @@ class DeltakerlisteRepositoryTest(
 
             val updatedDeltakerliste = initialDeltakerliste.copy(
                 arrangorId = nyArrangor.id,
+            )
+
+            when (val result = deltakerlisteRepository.upsert(updatedDeltakerliste)) {
+                is RepositoryResult.Modified -> result.data shouldBe updatedDeltakerliste
+                else -> fail("Should be Modified, was $result")
+            }
+
+            deltakerlisteRepository.get(initialDeltakerliste.id) shouldBe updatedDeltakerliste
+        }
+
+        @Test
+        fun `endret tiltaksnavn - returnerer Modified Result og oppdaterer database`() {
+            val initialDeltakerliste = lagDeltakerliste()
+                .also { testDatabase.insertArrangor(lagArrangor(it.arrangorId)) }
+                .also { deltakerlisteRepository.upsert(it) }
+
+            val updatedDeltakerliste = initialDeltakerliste.copy(
+                tiltak = initialDeltakerliste.tiltak.copy(navn = "Oppdatert tiltaksnavn"),
+            )
+
+            when (val result = deltakerlisteRepository.upsert(updatedDeltakerliste)) {
+                is RepositoryResult.Modified -> result.data shouldBe updatedDeltakerliste
+                else -> fail("Should be Modified, was $result")
+            }
+
+            deltakerlisteRepository.get(initialDeltakerliste.id) shouldBe updatedDeltakerliste
+        }
+
+        @Test
+        fun `endret tiltakskode - returnerer Modified Result og oppdaterer database`() {
+            val initialDeltakerliste = lagDeltakerliste(
+                tiltak = lagTiltak(navn = "Oppfølging", tiltakskode = Tiltakskode.OPPFOLGING),
+            ).also { testDatabase.insertArrangor(lagArrangor(it.arrangorId)) }
+                .also { deltakerlisteRepository.upsert(it) }
+
+            val updatedDeltakerliste = initialDeltakerliste.copy(
+                tiltak = initialDeltakerliste.tiltak.copy(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
             )
 
             when (val result = deltakerlisteRepository.upsert(updatedDeltakerliste)) {
