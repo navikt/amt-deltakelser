@@ -15,7 +15,7 @@ class JdbiDatabaseTestExtension :
     BeforeEachCallback,
     AfterEachCallback {
     private lateinit var jdbi: Jdbi
-    lateinit var conn: Handle
+    private val handleThreadLocal = ThreadLocal<Handle>()
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
@@ -23,13 +23,19 @@ class JdbiDatabaseTestExtension :
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        conn = jdbi.open()
-        conn.begin()
+        val handle = jdbi.open()
+        handle.begin()
+        handleThreadLocal.set(handle)
     }
 
     override fun afterEach(context: ExtensionContext) {
-        conn.rollback()
+        val handle = handleThreadLocal.get()
+        if (handle != null) {
+            handle.rollback()
+            handle.close()
+            handleThreadLocal.remove()
+        }
     }
 
-    fun <T : SqlObject> use(extension: KClass<T>): T = conn.attach(extension.java)
+    fun <T : SqlObject> use(extension: KClass<T>): T = handleThreadLocal.get().attach(extension.java)
 }

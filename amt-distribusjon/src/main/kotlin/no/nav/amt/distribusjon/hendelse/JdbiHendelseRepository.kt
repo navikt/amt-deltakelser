@@ -163,7 +163,7 @@ class HendelseMedJournalforingstatusMapper : RowMapper<HendelseMedJournalforings
             hendelse = hendelse,
             journalforingstatus = Journalforingstatus(
                 hendelseId = rs.getObject("id", UUID::class.java),
-                journalpostId = rs.getString("journalpost_id").takeUnless { it.isBlank() },
+                journalpostId = rs.getString("journalpost_id")?.takeUnless { it.isBlank() },
                 bestillingsId = rs.getObject("bestillingsid", UUID::class.java),
                 kanIkkeDistribueres = rs.getBoolean("kan_ikke_distribueres"),
                 kanIkkeJournalfores = rs.getBoolean("kan_ikke_journalfores"),
