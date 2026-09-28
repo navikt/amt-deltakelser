@@ -12,7 +12,6 @@ import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -22,16 +21,14 @@ import java.util.UUID
 
 class JdbiHendelseRepositoryTest {
     private val journalforingstatusRepository = JournalforingstatusRepository()
-    lateinit var hendelseRepository: JdbiHendelseRepository
+    private val hendelseRepository: JdbiHendelseRepository by lazy {
+        db.use(JdbiHendelseRepository::class)
+    }
 
     companion object {
         @RegisterExtension
+        @JvmField
         val db = JdbiDatabaseTestExtension()
-    }
-
-    @BeforeEach
-    fun setup() {
-        hendelseRepository = db.conn.attach(JdbiHendelseRepository::class.java)
     }
 
     @Test
