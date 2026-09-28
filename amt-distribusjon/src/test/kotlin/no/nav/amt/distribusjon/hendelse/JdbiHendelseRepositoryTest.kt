@@ -8,47 +8,16 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
-import no.nav.amt.lib.testing.TestPostgresContainer
+import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.BeforeAllCallback
-import org.junit.jupiter.api.extension.BeforeEachCallback
-import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.RegisterExtension
 import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
-
-class JdbiDatabaseTestExtension :
-    BeforeAllCallback,
-    BeforeEachCallback,
-    AfterEachCallback {
-    private lateinit var jdbi: Jdbi
-    private lateinit var conn: Handle
-
-    lateinit var hendelseRepository: JdbiHendelseRepository
-
-    override fun beforeAll(context: ExtensionContext) {
-        TestPostgresContainer.bootstrap()
-        jdbi = Database.jdbi
-    }
-
-    override fun beforeEach(context: ExtensionContext) {
-        conn = jdbi.open()
-        conn.begin()
-        hendelseRepository = conn.attach(JdbiHendelseRepository::class.java)
-    }
-
-    override fun afterEach(context: ExtensionContext) {
-        conn.rollback()
-    }
-}
 
 class JdbiHendelseRepositoryTest {
     private val journalforingstatusRepository = JournalforingstatusRepository()
