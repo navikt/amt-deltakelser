@@ -1,6 +1,5 @@
 package no.nav.amt.lib.testing
 
-import no.nav.amt.distribusjon.hendelse.JdbiHendelseRepository
 import no.nav.amt.lib.utils.database.Database
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
@@ -14,9 +13,7 @@ class JdbiDatabaseTestExtension :
     BeforeEachCallback,
     AfterEachCallback {
     private lateinit var jdbi: Jdbi
-    private lateinit var conn: Handle
-
-    lateinit var hendelseRepository: JdbiHendelseRepository
+    lateinit var conn: Handle
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
@@ -26,7 +23,6 @@ class JdbiDatabaseTestExtension :
     override fun beforeEach(context: ExtensionContext) {
         conn = jdbi.open()
         conn.begin()
-        hendelseRepository = conn.attach(JdbiHendelseRepository::class.java)
     }
 
     override fun afterEach(context: ExtensionContext) {
