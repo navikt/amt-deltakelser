@@ -204,8 +204,6 @@ class EndringsvedtakJobTest {
 
         EndringsvedtakJob(
             jobManager,
-            hendelseRepository,
-            TODO(),
             journalforingService,
             initialDelay,
             period,
@@ -228,9 +226,7 @@ class EndringsvedtakJobTest {
         gracePeriod: Duration = Duration.ofMinutes(30),
     ) = EndringsvedtakJob(
         jobManager = mockk(relaxUnitFun = true),
-        hendelseRepository = mockk(),
         journalforingService = mockk(),
-        jdbi = mockk(),
         initialDelay = initialDelay,
         jobPeriod = jobPeriod,
         gracePeriod = gracePeriod,
@@ -247,8 +243,6 @@ class EndringsvedtakJobTest {
         return TestSetup(
             job = EndringsvedtakJob(
                 jobManager,
-                hendelseRepository,
-                mockk(),
                 journalforingService,
                 initialDelay = Duration.ofMinutes(5),
                 jobPeriod = Duration.ofMinutes(10),
