@@ -15,6 +15,7 @@ hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.13"
 caffeine-version = "3.3.0"
+jdbi-version = "3.54.0"
 mockk-version = "1.14.11"
 nimbus-version = "10.10"
 unleash-version = "12.3.0"
@@ -122,6 +123,8 @@ flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-versi
 flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
 kotliquery = { module = "com.github.seratch:kotliquery", version.ref = "kotliquery-version" }
+jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi-version"}
+jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi-version"}
 
 # --- Cache ---
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine-version" }

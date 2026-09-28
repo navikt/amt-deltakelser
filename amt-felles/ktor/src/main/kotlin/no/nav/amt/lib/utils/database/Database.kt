@@ -6,10 +6,13 @@ import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
 import org.flywaydb.core.Flyway
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import javax.sql.DataSource
 
 object Database {
-    lateinit var dataSource: DataSource
+    private lateinit var dataSource: DataSource
+    lateinit var jdbi: Jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
@@ -30,6 +33,7 @@ object Database {
             minimumIdle = 1
             leakDetectionThreshold = 15_000
         }
+        jdbi = Jdbi.create(dataSource).installPlugin(SqlObjectPlugin())
 
         runMigration()
     }

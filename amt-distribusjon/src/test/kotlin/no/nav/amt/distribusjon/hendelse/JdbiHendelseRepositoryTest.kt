@@ -14,7 +14,6 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -36,9 +35,7 @@ class JdbiDatabaseTestExtension :
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
-        jdbi = Jdbi
-            .create(Database.dataSource)
-            .installPlugin(SqlObjectPlugin())
+        jdbi = Database.jdbi
     }
 
     override fun beforeEach(context: ExtensionContext) {

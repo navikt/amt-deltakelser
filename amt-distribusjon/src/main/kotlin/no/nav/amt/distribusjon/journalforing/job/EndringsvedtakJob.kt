@@ -1,12 +1,11 @@
 package no.nav.amt.distribusjon.journalforing.job
 
-import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.hendelse.JdbiHendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
-import org.jdbi.v3.core.Jdbi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -14,8 +13,6 @@ import java.time.LocalDateTime
 
 class EndringsvedtakJob(
     private val jobManager: JobManager,
-    private val hendelseRepository: HendelseRepository,
-    private val jdbi: Jdbi,
     private val journalforingService: JournalforingService,
     private val initialDelay: Duration,
     private val jobPeriod: Duration,
@@ -93,7 +90,7 @@ class EndringsvedtakJob(
     }
 
     internal fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> =
-        jdbi.withHandle<List<HendelseMedJournalforingstatus>, Exception> {
+        Database.jdbi.withHandle<List<HendelseMedJournalforingstatus>, Exception> {
             val hendelseRepository = it.attach(JdbiHendelseRepository::class.java)
             val ikkeJournalforte = hendelseRepository.hentIkkeJournalforteHendelser()
             val ikkeDistribuerte = hendelseRepository.hentHendelserSomSkalDistribueresSomBrev()
