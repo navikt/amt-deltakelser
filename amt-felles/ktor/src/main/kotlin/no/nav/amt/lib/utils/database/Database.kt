@@ -5,12 +5,11 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.amt.lib.utils.database.Database.query
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 object Database {
-    private lateinit var dataSource: DataSource
+    lateinit var dataSource: DataSource
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 

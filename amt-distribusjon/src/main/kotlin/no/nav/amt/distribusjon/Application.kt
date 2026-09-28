@@ -60,6 +60,7 @@ import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import no.nav.amt.lib.utils.leaderelection.LeaderProvider
+import org.jdbi.v3.core.Jdbi
 import kotlin.time.Duration.Companion.seconds
 
 val env = Environment()
@@ -82,6 +83,7 @@ fun Application.module() {
     val environment = env
 
     Database.init(config = environment.databaseConfig)
+    val jdbi = Jdbi.create(Database.dataSource)
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -193,6 +195,7 @@ fun Application.module() {
             hendelseRepository,
             dokdistkanalClient,
             veilarboppfolgingClient,
+            jdbi,
         ),
         VarselHendelseConsumer(varselRepository, varselService),
         ArrangorMeldingConsumer(tiltakshendelseService),
