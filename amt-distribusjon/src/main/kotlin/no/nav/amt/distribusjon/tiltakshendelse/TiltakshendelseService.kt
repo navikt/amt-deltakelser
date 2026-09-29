@@ -7,7 +7,6 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -83,12 +82,14 @@ class TiltakshendelseService(
     }
 
     fun stoppForslagHendelse(forslagId: UUID) {
-        db.bruk(TiltakshendelseRepository::class) { it.getForslagHendelse(forslagId) }.onSuccess {
-            val inaktivertHendelse = it.copy(
-                aktiv = false,
-            )
-            Database.transaction {
-                lagreOgDistribuer(inaktivertHendelse)
+        db.forbindelse { forbindelse ->
+            forbindelse.bruk(TiltakshendelseRepository::class) { repo -> repo.getForslagHendelse(forslagId) }.onSuccess {
+                val inaktivertHendelse = it.copy(
+                    aktiv = false,
+                )
+                forbindelse.transaksjon {
+                    lagreOgDistribuer(inaktivertHendelse)
+                }
             }
         }
     }
@@ -115,12 +116,13 @@ class TiltakshendelseService(
     }
 
     private fun opprettEllerOppdaterPrisendringStartHendelse(hendelse: Hendelse) {
-        val aktivHendelse = db.bruk(TiltakshendelseRepository::class) {
-            it.getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = Tiltakshendelse.Type.PRISENDRING,
-            )
-        }.getOrNull()
+        val aktivHendelse = db
+            .bruk(TiltakshendelseRepository::class) {
+                it.getAktivHendelse(
+                    deltakerId = hendelse.deltaker.id,
+                    hendelseType = Tiltakshendelse.Type.PRISENDRING,
+                )
+            }.getOrNull()
 
         val tiltakshendelse = aktivHendelse
             ?.copy(hendelser = aktivHendelse.hendelser.plus(hendelse.id))
@@ -135,7 +137,7 @@ class TiltakshendelseService(
     private suspend fun opprettStartHendelse(forslag: Forslag) {
         val deltaker = amtDeltakerClient.getDeltaker(forslag.deltakerId)
 
-        Database.transaction {
+        db.transaksjon {
             lagreOgDistribuer(
                 forslag.toHendelse(
                     personIdent = deltaker.navBruker.personident,
@@ -150,18 +152,19 @@ class TiltakshendelseService(
         hendelse: Hendelse,
         hendelseType: Tiltakshendelse.Type,
     ) {
-        db.bruk(TiltakshendelseRepository::class) {
-            it.getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = hendelseType,
-            )
-        }.onSuccess { hendelseFraDb ->
-            val inaktivertHendelse = hendelseFraDb.copy(
-                aktiv = false,
-                hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
-            )
-            lagreOgDistribuer(inaktivertHendelse)
-        }
+        db
+            .bruk(TiltakshendelseRepository::class) {
+                it.getAktivHendelse(
+                    deltakerId = hendelse.deltaker.id,
+                    hendelseType = hendelseType,
+                )
+            }.onSuccess { hendelseFraDb ->
+                val inaktivertHendelse = hendelseFraDb.copy(
+                    aktiv = false,
+                    hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
+                )
+                lagreOgDistribuer(inaktivertHendelse)
+            }
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {

@@ -10,7 +10,6 @@ import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
-import no.nav.amt.lib.utils.database.Database.transaction
 import no.nav.amt.lib.utils.database.DatabaseApi
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -47,9 +46,13 @@ class VarselHendelseConsumer(
 
         val varselId = UUID.fromString(key)
 
-        db.bruk(VarselRepository::class) { it.get(varselId) }.onSuccess {
-            transaction {
-                handterVarselHendelse(it, objectMapper.readValue(value))
+        db.forbindelse { forbindelse ->
+            forbindelse.bruk(VarselRepository::class) {
+                it.get(varselId).onSuccess { varsel ->
+                    forbindelse.transaksjon {
+                        handterVarselHendelse(varsel, objectMapper.readValue(value))
+                    }
+                }
             }
         }
     }
