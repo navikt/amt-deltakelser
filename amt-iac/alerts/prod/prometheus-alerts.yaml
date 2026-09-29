@@ -112,6 +112,14 @@ spec:
                   client_id!="unknown"
                 }
               )
+              or
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group="amt-deltaker-consumer",
+                  topic=~"team-mulighetsrommet\\.totrinnskontroll-v1",
+                  client_id!="unknown"
+                }
+              )
             )
           for: 5m
           annotations:
