@@ -38,11 +38,9 @@ import no.nav.amt.distribusjon.journalforing.job.EndringsvedtakJob
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.person.AmtPersonClient
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseProducer
-import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseRepository
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import no.nav.amt.distribusjon.varsel.VarselJobService
 import no.nav.amt.distribusjon.varsel.VarselOutboxHandler
-import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.varsel.hendelse.VarselHendelseConsumer
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
@@ -159,10 +157,7 @@ fun Application.module() {
     val outboxService = OutboxService()
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
 
-    val varselRepository = VarselRepository()
-
     val varselService = VarselService(
-        varselRepository = varselRepository,
         db = databaseApi,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
@@ -192,7 +187,7 @@ fun Application.module() {
             dokdistkanalClient,
             veilarboppfolgingClient,
         ),
-        VarselHendelseConsumer(varselRepository, varselService),
+        VarselHendelseConsumer(databaseApi, varselService),
         ArrangorMeldingConsumer(tiltakshendelseService),
     )
     consumers.forEach { it.start() }
