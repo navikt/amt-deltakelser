@@ -175,8 +175,8 @@ class VarselService(
             when (it.status) {
                 Varsel.Status.VENTER_PA_UTSENDELSE -> {
                     val now = nowUTC()
-                    withVarselRepository {
-                        it.upsert(
+                    withVarselRepository { repository ->
+                        repository.upsert(
                             it.copy(
                                 aktivFra = now,
                                 aktivTil = now,
@@ -251,28 +251,35 @@ class VarselService(
 fun nowUTC(): ZonedDateTime = ZonedDateTime.now(ZoneId.of("Z"))
 
 fun Hendelse.skalVarslesEksternt() = when (payload) {
-    is HendelseType.AvbrytUtkast,
+    is HendelseType.OpprettUtkast,
     is HendelseType.EndreBakgrunnsinformasjon,
     is HendelseType.EndreDeltakelsesmengde,
     is HendelseType.EndreInnhold,
     is HendelseType.EnkeltplassEndreOpplaringKategorisering,
-    is HendelseType.EndreSluttarsak,
     is HendelseType.EndreStartdato,
-    is HendelseType.EndreUtkast,
     is HendelseType.EndreSluttdato,
     is HendelseType.ForlengDeltakelse,
     is HendelseType.IkkeAktuell,
+    is HendelseType.LeggTilOppstartsdato,
+    is HendelseType.FjernOppstartsdato,
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
     is HendelseType.EnkeltplassTilbakekallPrisendring,
     is HendelseType.EnkeltplassGodkjennPrisendring,
-    is HendelseType.OpprettUtkast,
     is HendelseType.AvsluttDeltakelse,
+    is HendelseType.EndreAvslutning,
     is HendelseType.AvbrytDeltakelse,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.SettPaaVenteliste,
     is HendelseType.TildelPlass,
     is HendelseType.Avslag,
     -> true
+
+    is HendelseType.AvbrytUtkast,
+    is HendelseType.EndreUtkast,
+    is HendelseType.InnbyggerGodkjennUtkast,
+    is HendelseType.DeltakerSistBesokt,
+    is HendelseType.EndreSluttarsak,
+    -> false
 }
