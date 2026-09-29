@@ -359,7 +359,6 @@ abstract class IntegrationTestBase {
             innsokService = innsokService,
             distribuerEndringService = distribuerEndringService,
             gjennomforingUpserter = gjennomforingUpserter,
-            amtGjennomforingProducer = amtGjennomforingProducer,
         )
     }
 

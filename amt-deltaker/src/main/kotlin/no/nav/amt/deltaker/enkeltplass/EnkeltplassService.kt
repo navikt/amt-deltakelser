@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.innbygger.NavBrukerService
-import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -59,7 +58,6 @@ class EnkeltplassService(
     private val innsokService: InnsokService,
     private val distribuerEndringService: DistribuerEndringService,
     private val gjennomforingUpserter: GjennomforingUpserter,
-    private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
