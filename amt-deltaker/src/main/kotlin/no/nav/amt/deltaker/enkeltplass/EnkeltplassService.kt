@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.enkeltplass
 
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.innbygger.NavBrukerService
+import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -58,6 +59,7 @@ class EnkeltplassService(
     private val innsokService: InnsokService,
     private val distribuerEndringService: DistribuerEndringService,
     private val gjennomforingUpserter: GjennomforingUpserter,
+    private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -161,6 +163,8 @@ class EnkeltplassService(
                 distribuerEndringService.produceHendelseForUtkast(oppdatertDeltakerMedVedtak, navAnsatt, navEnhet) {
                     HendelseType.EndreUtkast(it)
                 }
+
+                deltakerProducerService.produce(oppdatertDeltakerMedVedtak)
                 oppdatertDeltakerMedVedtak
             },
         )
@@ -251,6 +255,8 @@ class EnkeltplassService(
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
      * OBS: Denne kan ikke brukes for andre endringer på deltakelse i dette formatet
      * Fordi det må ikke publiseres flere meldinger av
+     *
+     * Brukes av: delUtkastMedInnbygger (kladd->utkast) og meldPaaDirekte (utkast->søkt inn)
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
@@ -334,11 +340,7 @@ class EnkeltplassService(
                 }
             }
 
-            // hvis gjennomføring er opprettet, publiser deltaker
-            if (gjennomforing.status != GjennomforingStatusType.KLADD) {
-                deltakerProducerService.produce(deltakerMedVedtak)
-            }
-
+            deltakerProducerService.produce(deltakerMedVedtak)
             deltakerMedVedtak
         }
     }

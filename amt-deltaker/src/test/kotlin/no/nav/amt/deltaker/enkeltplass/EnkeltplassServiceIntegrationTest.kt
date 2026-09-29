@@ -6,7 +6,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
@@ -24,12 +27,14 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
@@ -41,6 +46,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
     val sistEndretAvNavEnhet = lagNavEnhet()
@@ -438,6 +444,74 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.EndreUtkast>(deltaker.id)
+        }
+
+        @Test
+        fun `oppdater utkast - endrer opplaringkategorisering - publiserer deltaker til deltaker-v2`() = runTest {
+            // Arrange
+            val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
+            val deltaker = lagDeltaker(
+                navBruker = navBrukerInTest,
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerliste(
+                    arrangor = arrangorInTest,
+                    tiltakstype = tiltakInTest,
+                    gjennomforingstype = GjennomforingType.Enkeltplass,
+                    status = GjennomforingStatusType.KLADD,
+                    navn = tiltakInTest.navn,
+                ),
+            )
+            arrangorRepository.upsert(arrangorInTest)
+            deltakerlisteRepository.upsert(deltaker.deltakerliste)
+            deltakerRepository.upsert(deltaker)
+            DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
+
+            // Kodeverk med ett gyldig kategoriseringsvalg, slik at vi faktisk endrer opplæringskategorisering på utkastet
+            val kodeverkId = UUID.randomUUID()
+            coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
+                tiltakskode = tiltakInTest.tiltakskode,
+                alternativer = listOf(
+                    OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
+                        id = UUID.randomUUID(),
+                        visningsnavn = "Bransje",
+                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                        pakrevd = true,
+                        seleksjonstype = OpplaringKategoriseringResponse.Seleksjonstype.FLERVALG,
+                        alternativer = listOf(
+                            OpplaringKategoriseringResponse.Alternativ.Verdi(
+                                id = kodeverkId,
+                                visningsnavn = "Bygg og anlegg",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            val requestMedKategorisering = decoratedRequest.copy(
+                wrappedRequest = pameldingRequestInTest.copy(kodeverkValg = setOf(kodeverkId)),
+            )
+
+            // Act
+            enkeltplassService.oppdaterUtkast(
+                deltakerId = deltaker.id,
+                decoratedRequest = requestMedKategorisering,
+            )
+
+            // Assert - deltakeren er publisert til deltaker-v2 slik at nedstrøms-applikasjoner får endringene
+            val payloadSlot = slot<DeltakerKafkaPayload>()
+            verify {
+                outboxService.insertRecord(
+                    key = deltaker.id,
+                    value = capture(payloadSlot),
+                    topic = Environment.DELTAKER_V2_TOPIC,
+                    suppressOutsideTxWarning = any(),
+                )
+            }
+
+            assertSoftly(payloadSlot.captured) {
+                id shouldBe deltaker.id
+                status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            }
         }
     }
 

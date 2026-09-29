@@ -435,6 +435,7 @@ fun Application.module() {
         innsokService = innsokService,
         distribuerEndringService = distribuerEndringService,
         gjennomforingUpserter = gjennomforingUpserter,
+        amtGjennomforingProducer = amtGjennomforingProducer,
     )
 
     val pameldingService = PameldingService(
