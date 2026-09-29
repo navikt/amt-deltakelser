@@ -126,6 +126,7 @@ kotliquery = { module = "com.github.seratch:kotliquery", version.ref = "kotlique
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi-version"}
 jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi-version"}
 jdbi-kotlin = { module = "org.jdbi:jdbi3-kotlin", version.ref = "jdbi-version"}
+jdbi-postgres = { module = "org.jdbi:jdbi3-postgres", version.ref = "jdbi-version"}
 
 # --- Cache ---
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine-version" }
@@ -187,7 +188,11 @@ database = [
     "flyway-core",
     "flyway-postgres",
     "postgresql",
-    "kotliquery"
+    "kotliquery",
+    "jdbi-core",
+    "jdbi-sqlobject",
+    "jdbi-kotlin",
+    "jdbi-postgres"
 ]
 
 logging = [
