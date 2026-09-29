@@ -25,8 +25,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class JournalforingServiceTest : IntegrationTestBase() {
-    private val journalforingstatusRepository by lazy { dbExtension.bruk(JournalforingstatusRepository::class) }
-    private val hendelseRepository by lazy { dbExtension.bruk(HendelseRepository::class) }
+    private val journalforingstatusRepository by lazy { testDb.bruk(JournalforingstatusRepository::class) }
+    private val hendelseRepository by lazy { testDb.bruk(HendelseRepository::class) }
 
     @BeforeEach
     fun setupMocks() {

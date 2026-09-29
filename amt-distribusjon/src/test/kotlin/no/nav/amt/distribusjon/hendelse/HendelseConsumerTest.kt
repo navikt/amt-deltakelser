@@ -15,6 +15,7 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBruker
 import no.nav.amt.distribusjon.utils.data.Varselsdata
+import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.distribusjon.varsel.model.beskjedTekst
 import no.nav.amt.distribusjon.varsel.model.oppgaveTekst
@@ -30,6 +31,10 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class HendelseConsumerTest : IntegrationTestBase() {
+    private val varselRepository by lazy {
+        testDb.bruk(VarselRepository::class)
+    }
+
     @BeforeEach
     fun setupMocks() {
         coEvery { amtPersonClient.hentNavBruker(any()) } returns lagNavBruker()

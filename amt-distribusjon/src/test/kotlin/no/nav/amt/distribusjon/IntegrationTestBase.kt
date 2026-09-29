@@ -22,10 +22,8 @@ import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingCl
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.person.AmtPersonClient
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseProducer
-import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseRepository
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import no.nav.amt.distribusjon.varsel.VarselOutboxHandler
-import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
@@ -38,9 +36,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
-    protected open val tiltakshendelseRepository = TiltakshendelseRepository()
-    protected open val varselRepository = VarselRepository()
-
     protected open val amtDeltakerClient: AmtDeltakerClient = mockk()
     protected open val pdfgenClient: PdfgenClient = mockk()
     protected open val amtPersonClient: AmtPersonClient = mockk()
@@ -69,13 +64,12 @@ abstract class IntegrationTestBase {
     protected open val tiltakshendelseProducer = TiltakshendelseProducer(outboxService)
 
     protected open val tiltakshendelseService = TiltakshendelseService(
-        tiltakshendelseRepository = tiltakshendelseRepository,
+        db = db,
         amtDeltakerClient = amtDeltakerClient,
         tiltakshendelseProducer = tiltakshendelseProducer,
     )
 
     protected open val varselService = VarselService(
-        varselRepository = varselRepository,
         db = db,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
@@ -93,7 +87,7 @@ abstract class IntegrationTestBase {
         private lateinit var db: DatabaseApi
 
         @RegisterExtension
-        val dbExtension = JdbiDatabaseTestExtension()
+        val testDb = JdbiDatabaseTestExtension()
 
         @BeforeAll
         @JvmStatic
