@@ -124,6 +124,7 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres-ver
 kotliquery = { module = "com.github.seratch:kotliquery", version.ref = "kotliquery-version" }
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi-version"}
 jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi-version"}
+jdbi-kotlin = { module = "org.jdbi:jdbi3-kotlin", version.ref = "jdbi-version"}
 
 # --- Cache ---
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine-version" }
