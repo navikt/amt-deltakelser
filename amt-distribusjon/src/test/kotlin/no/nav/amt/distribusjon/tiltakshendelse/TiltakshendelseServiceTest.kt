@@ -30,6 +30,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltakshendelseServiceTest : IntegrationTestBase() {
+    private val tiltakshendelseRepository by lazy {
+        testDb.bruk(TiltakshendelseRepository::class)
+    }
+
     @Nested
     inner class HandleHendelseTests {
         @Test
