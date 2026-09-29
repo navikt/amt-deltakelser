@@ -11,14 +11,16 @@ import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.argument.Arguments
 import org.jdbi.v3.core.config.ConfigRegistry
+import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.postgresql.util.PGobject
 import java.sql.Types
 import javax.sql.DataSource
+import kotlin.reflect.KClass
 
 object Database {
     private lateinit var dataSource: DataSource
-    lateinit var jdbi: Jdbi
+    lateinit var db: DatabaseApi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
@@ -39,11 +41,13 @@ object Database {
             minimumIdle = 1
             leakDetectionThreshold = 15_000
         }
-        jdbi = Jdbi.create(dataSource)
+        val jdbi = Jdbi
+            .create(dataSource)
             .installPlugin(SqlObjectPlugin())
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
+        db = DatabaseApi(jdbi)
 
         runMigration()
     }
@@ -104,7 +108,19 @@ object Database {
 }
 
 private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
-    override fun build(value: PGobject, config: ConfigRegistry): Argument = Argument { position, statement, _ ->
+    override fun build(
+        value: PGobject,
+        config: ConfigRegistry,
+    ): Argument = Argument { position, statement, _ ->
         statement.setObject(position, value)
     }
+}
+
+class DatabaseApi(
+    private val jdbi: Jdbi,
+) {
+    fun <T : SqlObject, S> bruk(
+        sqlObjectKlasse: KClass<T>,
+        blokk: (sqlObject: T) -> S,
+    ): S = jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
 }

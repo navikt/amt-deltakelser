@@ -7,6 +7,7 @@ import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -15,7 +16,7 @@ import java.util.UUID
 
 class VarselService(
     private val varselRepository: VarselRepository,
-    private val hendelseRepository: HendelseRepository,
+    private val db: DatabaseApi,
     private val outboxHandler: VarselOutboxHandler,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -238,7 +239,7 @@ class VarselService(
     }
 
     private fun skalViseHistorikkModal(hendelseIder: List<UUID>): Boolean {
-        val hendelser = hendelseRepository.getHendelser(hendelseIder)
+        val hendelser = db.bruk(HendelseRepository::class) { it.getHendelser(hendelseIder) }
         return hendelser.firstOrNull { it.payload !is HendelseType.NavGodkjennUtkast && it.payload !is HendelseType.TildelPlass } != null
     }
 }
