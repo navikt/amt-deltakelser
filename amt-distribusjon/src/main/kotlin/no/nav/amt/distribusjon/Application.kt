@@ -32,7 +32,6 @@ import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
 import no.nav.amt.distribusjon.journalforing.JournalforingService
-import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.dokarkiv.DokarkivClient
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient
 import no.nav.amt.distribusjon.journalforing.job.EndringsvedtakJob
@@ -169,7 +168,7 @@ fun Application.module() {
     )
 
     val journalforingService = JournalforingService(
-        JournalforingstatusRepository(),
+        databaseApi,
         amtPersonClient,
         pdfgenClient,
         veilarboppfolgingClient,

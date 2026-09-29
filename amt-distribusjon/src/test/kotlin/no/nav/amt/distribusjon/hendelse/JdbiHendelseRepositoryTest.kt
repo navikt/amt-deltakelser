@@ -3,7 +3,7 @@ package no.nav.amt.distribusjon.hendelse
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
-import no.nav.amt.distribusjon.journalforing.JdbiJournalforingstatusRepository
+import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
@@ -20,8 +20,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class JdbiHendelseRepositoryTest {
-    private val journalforingstatusRepository: JdbiJournalforingstatusRepository by lazy {
-        db.use(JdbiJournalforingstatusRepository::class)
+    private val journalforingstatusRepository: JournalforingstatusRepository by lazy {
+        db.use(JournalforingstatusRepository::class)
     }
     private val hendelseRepository: HendelseRepository by lazy {
         db.use(HendelseRepository::class)
