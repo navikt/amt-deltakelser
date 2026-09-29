@@ -47,11 +47,9 @@ class VarselHendelseConsumer(
         val varselId = UUID.fromString(key)
 
         db.forbindelse { forbindelse ->
-            forbindelse.bruk(VarselRepository::class) {
-                it.get(varselId).onSuccess { varsel ->
-                    forbindelse.transaksjon {
-                        handterVarselHendelse(varsel, objectMapper.readValue(value))
-                    }
+            forbindelse.bruk(VarselRepository::class).get(varselId).onSuccess { varsel ->
+                forbindelse.transaksjon {
+                    handterVarselHendelse(varsel, objectMapper.readValue(value))
                 }
             }
         }

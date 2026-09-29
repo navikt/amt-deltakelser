@@ -83,7 +83,7 @@ class TiltakshendelseService(
 
     fun stoppForslagHendelse(forslagId: UUID) {
         db.forbindelse { forbindelse ->
-            forbindelse.bruk(TiltakshendelseRepository::class) { repo -> repo.getForslagHendelse(forslagId) }.onSuccess {
+            forbindelse.bruk(TiltakshendelseRepository::class).getForslagHendelse(forslagId).onSuccess {
                 val inaktivertHendelse = it.copy(
                     aktiv = false,
                 )
