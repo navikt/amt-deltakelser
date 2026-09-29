@@ -21,7 +21,7 @@ import javax.sql.DataSource
     classes = [
         ArrangorRepository::class, DeltakerlisteRepository::class, DeltakerRepository::class,
         FeilmeldingRepository::class, MeldingRepository::class, OppfolgingsperiodeRepository::class,
-        TiltakstypeRepository::class, UnleashTestConfiguration::class, TestDatabaseService::class,
+        UnleashTestConfiguration::class, TestDatabaseService::class,
     ],
 )
 @AutoConfigureJdbc

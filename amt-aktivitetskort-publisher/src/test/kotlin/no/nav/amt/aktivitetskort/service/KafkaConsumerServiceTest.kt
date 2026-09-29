@@ -2,7 +2,6 @@ package no.nav.amt.aktivitetskort.service
 
 import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
@@ -18,12 +17,10 @@ import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.Tiltak
-import no.nav.amt.aktivitetskort.kafka.consumer.toTiltakstype
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
-import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -45,7 +42,6 @@ class KafkaConsumerServiceTest {
     private val amtArrangorClient = mockk<AmtArrangorClient>()
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val aktivitetskortProducer = mockk<AktivitetskortProducer>(relaxed = true)
-    private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
     private val transactionTemplate = mockk<TransactionTemplate>()
 
     private val ctx: TestData.MockContext = TestData.MockContext()
@@ -55,7 +51,6 @@ class KafkaConsumerServiceTest {
     private val kafkaConsumerService = KafkaConsumerService(
         arrangorRepository = arrangorRepository,
         deltakerlisteRepository = deltakerlisteRepository,
-        tiltakstypeRepository = tiltakstypeRepository,
         deltakerRepository = deltakerRepository,
         aktivitetskortService = aktivitetskortService,
         amtArrangorClient = amtArrangorClient,
@@ -72,8 +67,6 @@ class KafkaConsumerServiceTest {
         every { transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>()) } answers {
             (firstArg() as Consumer<TransactionStatus>).accept(SimpleTransactionStatus())
         }
-        every { tiltakstypeRepository.getByTiltakskode(any()) } returns ctx.tiltakstype
-        justRun { tiltakstypeRepository.upsert(any()) }
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
     }
 
@@ -204,7 +197,6 @@ class KafkaConsumerServiceTest {
             )
 
             verify(exactly = 1) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
-            verify(exactly = 1) { tiltakstypeRepository.upsert(ctx.amtGjennomforingPayload.toTiltakstype()) }
             verify(exactly = 1) { aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id) }
             verify(exactly = 1) { aktivitetskortProducer.send(listOf(ctx.aktivitetskort)) }
         }

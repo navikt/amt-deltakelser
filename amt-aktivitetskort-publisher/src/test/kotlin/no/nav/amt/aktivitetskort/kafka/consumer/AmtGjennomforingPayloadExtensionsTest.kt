@@ -15,13 +15,12 @@ class AmtGjennomforingPayloadExtensionsTest {
     private val arrangorId = UUID.randomUUID()
 
     @Test
-    fun `toTiltakstype - mapper felter fra embeddet tiltak`() {
+    fun `toDeltakerliste - mapper tiltak fra embeddet tiltak i payload`() {
         val payload = TestData.lagAmtGjennomforingPayload()
 
-        val tiltakstype = payload.toTiltakstype()
+        val deltakerliste = payload.toDeltakerliste(arrangorId)
 
-        assertSoftly(tiltakstype) {
-            id shouldBe payload.tiltak.id
+        assertSoftly(deltakerliste.tiltak) {
             navn shouldBe payload.tiltak.navn
             tiltakskode shouldBe payload.tiltak.tiltakskode
         }

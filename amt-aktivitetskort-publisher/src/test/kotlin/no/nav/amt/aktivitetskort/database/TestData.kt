@@ -15,7 +15,6 @@ import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Tag
 import no.nav.amt.aktivitetskort.domain.Tiltak
-import no.nav.amt.aktivitetskort.domain.Tiltakstype
 import no.nav.amt.aktivitetskort.domain.displayText
 import no.nav.amt.aktivitetskort.domain.toAktivitetskortTiltakstype
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
@@ -279,16 +278,12 @@ object TestData {
     fun lagAmtGjennomforingPayload(
         arrangor: Arrangor = lagArrangor(),
         deltakerliste: Deltakerliste = lagDeltakerliste(arrangorId = arrangor.id),
-        tiltakstype: Tiltakstype = Tiltakstype(
-            id = UUID.randomUUID(),
-            navn = deltakerliste.tiltak.navn,
-            tiltakskode = deltakerliste.tiltak.tiltakskode,
-        ),
+        tiltakId: UUID = UUID.randomUUID(),
     ) = AmtGjennomforingPayload(
         id = deltakerliste.id,
         type = GjennomforingType.Gruppe,
         tiltak = AmtGjennomforingPayload.TiltakPayload(
-            id = tiltakstype.id,
+            id = tiltakId,
             navn = deltakerliste.tiltak.navn,
             tiltakskode = deltakerliste.tiltak.tiltakskode,
             innhold = null,
@@ -311,11 +306,6 @@ object TestData {
         val deltaker: DeltakerDbo = lagDeltaker(),
         val deltakerliste: Deltakerliste = lagDeltakerliste(id = deltaker.deltakerlisteId),
         val arrangor: Arrangor = lagArrangor(id = deltakerliste.arrangorId),
-        val tiltakstype: Tiltakstype = Tiltakstype(
-            id = UUID.randomUUID(),
-            navn = "Oppfølging",
-            tiltakskode = Tiltakskode.OPPFOLGING,
-        ),
         val aktivitetskortId: UUID = UUID.randomUUID(),
         val aktivitetskort: Aktivitetskort = aktivitetskort(
             id = aktivitetskortId,
@@ -334,7 +324,6 @@ object TestData {
         val amtGjennomforingPayload: AmtGjennomforingPayload = lagAmtGjennomforingPayload(
             deltakerliste = deltakerliste,
             arrangor = arrangor,
-            tiltakstype = tiltakstype,
         ),
     )
 

@@ -11,12 +11,10 @@ import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.kafka.consumer.toDeltakerliste
-import no.nav.amt.aktivitetskort.kafka.consumer.toTiltakstype
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
-import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -35,7 +33,6 @@ import java.util.UUID
 class KafkaConsumerService(
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val tiltakstypeRepository: TiltakstypeRepository,
     private val deltakerRepository: DeltakerRepository,
     private val aktivitetskortService: AktivitetskortService,
     private val amtArrangorClient: AmtArrangorClient,
@@ -124,8 +121,6 @@ class KafkaConsumerService(
         val deltakerlisteModel = payload.toDeltakerliste(arrangor.id)
 
         transactionTemplate.executeWithoutResult {
-            tiltakstypeRepository.upsert(payload.toTiltakstype())
-
             when (val result = deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
