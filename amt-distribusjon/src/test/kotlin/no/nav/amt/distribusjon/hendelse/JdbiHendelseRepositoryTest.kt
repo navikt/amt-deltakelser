@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JdbiJournalforingstatusRepository
-import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
+import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
@@ -19,14 +19,12 @@ import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
 
-import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-
 class JdbiHendelseRepositoryTest {
     private val journalforingstatusRepository: JdbiJournalforingstatusRepository by lazy {
         db.use(JdbiJournalforingstatusRepository::class)
     }
-    private val hendelseRepository: JdbiHendelseRepository by lazy {
-        db.use(JdbiHendelseRepository::class)
+    private val hendelseRepository: HendelseRepository by lazy {
+        db.use(HendelseRepository::class)
     }
 
     companion object {
@@ -76,7 +74,7 @@ class JdbiHendelseRepositoryTest {
             val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
-            ikkeJournalforteHendelser.size shouldBe 1
+            ikkeJournalforteHendelser.size shouldBe hendelserepositorytest1
             ikkeJournalforteHendelser.first().hendelse.id shouldBe hendelse.id
         }
 

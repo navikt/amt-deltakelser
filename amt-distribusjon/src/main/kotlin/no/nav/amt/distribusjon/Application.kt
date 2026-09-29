@@ -31,7 +31,6 @@ import no.nav.amt.distribusjon.arrangormelding.ArrangorMeldingConsumer
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
-import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.dokarkiv.DokarkivClient
@@ -82,6 +81,7 @@ fun Application.module() {
     val environment = env
 
     Database.init(config = environment.databaseConfig)
+    val databaseApi = Database.db
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -160,12 +160,11 @@ fun Application.module() {
     val outboxService = OutboxService()
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
 
-    val hendelseRepository = HendelseRepository()
     val varselRepository = VarselRepository()
 
     val varselService = VarselService(
         varselRepository = VarselRepository(),
-        hendelseRepository = hendelseRepository,
+        db = databaseApi,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
 
@@ -190,7 +189,7 @@ fun Application.module() {
             varselService,
             journalforingService,
             tiltakshendelseService,
-            hendelseRepository,
+            databaseApi,
             dokdistkanalClient,
             veilarboppfolgingClient,
         ),
@@ -206,6 +205,7 @@ fun Application.module() {
     val endringsvedtakJob = EndringsvedtakJob(
         jobManager,
         journalforingService,
+        databaseApi,
         initialDelay = environment.endringsvedtakJobInitialDelay,
         jobPeriod = environment.endringsvedtakJobPeriod,
         gracePeriod = environment.endringsvedtakJobGracePeriod,

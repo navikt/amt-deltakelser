@@ -14,6 +14,7 @@ import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.utils.database.Database.transaction
+import no.nav.amt.lib.utils.database.DatabaseApi
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
@@ -25,7 +26,7 @@ class HendelseConsumer(
     private val varselService: VarselService,
     private val journalforingService: JournalforingService,
     private val tiltakshendelseService: TiltakshendelseService,
-    private val hendelseRepository: HendelseRepository,
+    private val db: DatabaseApi,
     private val dokdistkanalClient: DokdistkanalClient,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
     groupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
@@ -55,7 +56,7 @@ class HendelseConsumer(
         val hendelse = hendelseDto.toModel(distribusjonskanal, erUnderManuellOppfolging)
 
         transaction {
-            hendelseRepository.insert(hendelse)
+            db.bruk(HendelseRepository::class) { it.insert(hendelse) }
             varselService.handleHendelse(hendelse)
             tiltakshendelseService.handleHendelse(hendelse)
         }
