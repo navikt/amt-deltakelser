@@ -119,6 +119,12 @@ private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.
 class DatabaseApi(
     private val jdbi: Jdbi,
 ) {
+    /**
+     * Bruk bare i spesialtilfeller der det er hensiktsmessig å bruke JDBI-apiet direkte.
+     */
+    @Suppress("ktlint:standard:backing-property-naming")
+    val _jdbi: Jdbi = jdbi
+
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,

@@ -10,6 +10,7 @@ import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
+import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.hendelse.model.toModel
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalpostRequest
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
@@ -24,6 +25,9 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class JournalforingServiceTest : IntegrationTestBase() {
+    private val journalforingstatusRepository by lazy { dbExtension.bruk(JournalforingstatusRepository::class) }
+    private val hendelseRepository by lazy { dbExtension.bruk(HendelseRepository::class) }
+
     @BeforeEach
     fun setupMocks() {
         coEvery { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) } returns "pdf".toByteArray()
