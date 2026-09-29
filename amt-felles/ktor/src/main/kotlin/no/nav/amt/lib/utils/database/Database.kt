@@ -22,6 +22,8 @@ import kotlin.reflect.KClass
 object Database {
     private lateinit var dataSource: DataSource
     lateinit var db: DatabaseApi
+    val jdbi: Jdbi
+        get() = db._jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 

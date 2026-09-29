@@ -178,7 +178,7 @@ fun Application.module() {
     )
 
     val tiltakshendelseService = TiltakshendelseService(
-        tiltakshendelseRepository = TiltakshendelseRepository(),
+        db = databaseApi,
         amtDeltakerClient = amtDeltakerClient,
         tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
     )
