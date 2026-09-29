@@ -13,6 +13,7 @@ import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.argument.Arguments
 import org.jdbi.v3.core.config.ConfigRegistry
 import org.jdbi.v3.core.kotlin.KotlinPlugin
+import org.jdbi.v3.postgres.PostgresPlugin
 import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.postgresql.util.PGobject
@@ -27,6 +28,16 @@ object Database {
         get() = db._jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
+    private val jdbiHandleThreadLocal = ThreadLocal<Handle?>()
+    internal val jdbiHandle get() = jdbiHandleThreadLocal.get()
+
+    fun bindJdbiHandleForTest(handle: Handle?) {
+        if (handle == null) {
+            jdbiHandleThreadLocal.remove()
+        } else {
+            jdbiHandleThreadLocal.set(handle)
+        }
+    }
 
     fun init(config: DatabaseConfig) {
         dataSource = HikariDataSource().apply {
@@ -47,8 +58,12 @@ object Database {
         }
         val jdbi = Jdbi
             .create(dataSource)
+            // Støtter definisjon av repositories etc som interface
             .installPlugin(SqlObjectPlugin())
+            // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
             .installPlugin(KotlinPlugin())
+            // Støtter mapping av en del vanlige Postgres-spesifikke typer
+            .installPlugin(PostgresPlugin())
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
@@ -152,11 +167,34 @@ class DatabaseApi(
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
-    ): S = jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
+    ): S {
+        val activeHandle = Database.jdbiHandle
+        return if (activeHandle != null) {
+            activeHandle.attach(sqlObjectKlasse.java).let(blokk)
+        } else {
+            jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
+        }
+    }
 
-    fun <T> transaksjon(blokk: (Transaksjon) -> T): T = forbindelse { it.transaksjon(blokk) }
+    fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
+        val activeHandle = Database.jdbiHandle
+        return if (activeHandle != null) {
+            activeHandle.inTransaction<T, Exception> { handle ->
+                blokk(Transaksjon(handle))
+            }
+        } else {
+            forbindelse { it.transaksjon(blokk) }
+        }
+    }
 
-    fun <T> forbindelse(blokk: (Forbindelse) -> T): T = jdbi.withHandle<T, Exception> { handle ->
-        blokk(Forbindelse(handle))
+    fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
+        val activeHandle = Database.jdbiHandle
+        return if (activeHandle != null) {
+            blokk(Forbindelse(activeHandle))
+        } else {
+            jdbi.withHandle<T, Exception> { handle ->
+                blokk(Forbindelse(handle))
+            }
+        }
     }
 }

@@ -25,6 +25,7 @@ class JdbiDatabaseTestExtension :
         val handle = Database.db._jdbi.open()
         handle.begin()
         handleThreadLocal.set(handle)
+        Database.bindJdbiHandleForTest(handle)
     }
 
     override fun afterEach(context: ExtensionContext) {
@@ -33,6 +34,7 @@ class JdbiDatabaseTestExtension :
             handle.rollback()
             handle.close()
             handleThreadLocal.remove()
+            Database.bindJdbiHandleForTest(null)
         }
     }
 
