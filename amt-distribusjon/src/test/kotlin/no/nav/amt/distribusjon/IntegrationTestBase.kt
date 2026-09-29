@@ -38,9 +38,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
-    protected open val tiltakshendelseRepository: TiltakshendelseRepository by lazy {
-        db.bruk(TiltakshendelseRepository::class)
-    }
+    protected open val tiltakshendelseRepository = TiltakshendelseRepository()
     protected open val varselRepository = VarselRepository()
 
     protected open val amtDeltakerClient: AmtDeltakerClient = mockk()
@@ -71,7 +69,7 @@ abstract class IntegrationTestBase {
     protected open val tiltakshendelseProducer = TiltakshendelseProducer(outboxService)
 
     protected open val tiltakshendelseService = TiltakshendelseService(
-        db = db,
+        tiltakshendelseRepository = tiltakshendelseRepository,
         amtDeltakerClient = amtDeltakerClient,
         tiltakshendelseProducer = tiltakshendelseProducer,
     )

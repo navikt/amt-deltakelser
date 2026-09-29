@@ -255,15 +255,8 @@ fun Hendelse.skalVarslesEksternt() = when (payload) {
     is HendelseType.EndreSluttarsak,
     is HendelseType.EndreStartdato,
     is HendelseType.EndreUtkast,
-    is HendelseType.EndreAvslutning,
-    is HendelseType.ForlengDeltakelse,
-    is HendelseType.InnbyggerGodkjennUtkast,
-    is HendelseType.DeltakerSistBesokt,
-    is HendelseType.LeggTilOppstartsdato,
-    is HendelseType.FjernOppstartsdato,
-    -> false
-
     is HendelseType.EndreSluttdato,
+    is HendelseType.ForlengDeltakelse,
     is HendelseType.IkkeAktuell,
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,

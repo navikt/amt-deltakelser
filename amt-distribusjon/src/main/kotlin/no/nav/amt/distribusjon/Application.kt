@@ -162,7 +162,7 @@ fun Application.module() {
     val varselRepository = VarselRepository()
 
     val varselService = VarselService(
-        varselRepository = VarselRepository(),
+        varselRepository = varselRepository,
         db = databaseApi,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
