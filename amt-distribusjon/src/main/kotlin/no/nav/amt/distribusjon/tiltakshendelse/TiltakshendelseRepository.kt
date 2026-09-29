@@ -5,15 +5,94 @@ import kotliquery.queryOf
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import org.jdbi.v3.sqlobject.SqlObject
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper
+import org.jdbi.v3.sqlobject.customizer.Bind
+import org.jdbi.v3.sqlobject.statement.SqlQuery
+import java.sql.ResultSet
 import java.util.UUID
 
-class TiltakshendelseRepository {
+@RegisterRowMapper(TiltakshendelseMapper::class)
+interface TiltakshendelseRepository : SqlObject {
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE id = :id
+        """,
+    )
+    fun getById(
+        @Bind("id") id: UUID,
+    ): Tiltakshendelse?
+
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE deltaker_id = :deltaker_id
+          AND type = :type
+          AND aktiv = true
+        ORDER BY modified_at DESC
+        LIMIT 1
+        """,
+    )
+    fun getAktivHendelse(
+        @Bind("deltaker_id") deltakerId: UUID,
+        @Bind("type") type: String,
+    ): Tiltakshendelse?
+
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE forslag_id = :forslag_id
+        """,
+    )
+    fun getForslagHendelseSql(
+        @Bind("forslag_id") forslagId: UUID,
+    ): Tiltakshendelse?
+
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE :hendelse_id = ANY(hendelser)
+        """,
+    )
+    fun getByHendelseIdSql(
+        @Bind("hendelse_id") hendelseId: UUID,
+    ): Tiltakshendelse?
+
+    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
+        getById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
+    }
+
+    fun getAktivHendelse(
+        deltakerId: UUID,
+        hendelseType: Tiltakshendelse.Type,
+    ): Result<Tiltakshendelse> = runCatching {
+        getAktivHendelse(deltakerId, hendelseType.name)
+            ?: throw NoSuchElementException(
+                "Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType",
+            )
+    }
+
+    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
+        getForslagHendelseSql(forslagId)
+            ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
+    }
+
+    fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
+        getByHendelseIdSql(hendelseId)
+            ?: throw NoSuchElementException("Fant ikke tiltakshendelse for hendelse $hendelseId")
+    }
+
     fun upsert(tiltakshendelse: Tiltakshendelse): Tiltakshendelse {
         val sql = if (tiltakshendelse.forslagId == null) {
-            // Utkast har ikke forslagId og må derfor håndteres med konflikt på primærnøkkelen (id).
             UPSERT_BY_ID_SQL
         } else {
-            // Forslag håndteres med konflikt på unik forslagId for å støtte idempotent reprosessering.
             UPSERT_BY_FORSLAG_ID_SQL
         }
 
@@ -33,65 +112,6 @@ class TiltakshendelseRepository {
             session.run(
                 queryOf(sql, params).map(::rowMapper).asSingle,
             ) ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
-        }
-    }
-
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
-        }
-    }
-
-    fun getAktivHendelse(
-        deltakerId: UUID,
-        hendelseType: Tiltakshendelse.Type,
-    ): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT *
-                    FROM tiltakshendelse
-                    WHERE 
-                        deltaker_id = :deltaker_id
-                        AND type = :type
-                        AND aktiv = true
-                    ORDER BY modified_at DESC
-                    LIMIT 1
-                    """.trimIndent(),
-                    mapOf(
-                        "deltaker_id" to deltakerId,
-                        "type" to hendelseType.name,
-                    ),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType")
-        }
-    }
-
-    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE forslag_id = :forslag_id",
-                    mapOf("forslag_id" to forslagId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
-        }
-    }
-
-    fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
-                    mapOf("hendelse_id" to hendelseId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for hendelse $hendelseId")
         }
     }
 
@@ -148,4 +168,22 @@ class TiltakshendelseRepository {
             RETURNING *
             """.trimIndent()
     }
+}
+
+class TiltakshendelseMapper : RowMapper<Tiltakshendelse> {
+    override fun map(
+        rs: ResultSet,
+        ctx: StatementContext,
+    ): Tiltakshendelse = Tiltakshendelse(
+        id = rs.getObject("id", UUID::class.java),
+        type = Tiltakshendelse.Type.valueOf(rs.getString("type")),
+        deltakerId = rs.getObject("deltaker_id", UUID::class.java),
+        forslagId = rs.getObject("forslag_id", UUID::class.java),
+        hendelser = (rs.getArray("hendelser").array as Array<*>).map { it as UUID },
+        personident = rs.getString("personident"),
+        aktiv = rs.getBoolean("aktiv"),
+        tekst = rs.getString("tekst"),
+        tiltakskode = Tiltakskode.valueOf(rs.getString("tiltakskode")),
+        opprettet = rs.getTimestamp("created_at").toLocalDateTime(),
+    )
 }
