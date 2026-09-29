@@ -8,7 +8,6 @@ import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
-import no.nav.amt.aktivitetskort.domain.Deltakerliste
 import no.nav.amt.aktivitetskort.domain.EndretAv
 import no.nav.amt.aktivitetskort.domain.Handling
 import no.nav.amt.aktivitetskort.domain.IKKE_AVTALT_MED_NAV_STATUSER
@@ -74,16 +73,16 @@ class AktivitetskortService(
         return melding.aktivitetskort
     }
 
-    fun oppdaterAktivitetskort(deltakerliste: Deltakerliste) = meldingRepository
-        .getByDeltakerlisteId(deltakerliste.id)
+    fun oppdaterAktivitetskort(gjennomforingId: UUID) = meldingRepository
+        .getByDeltakerlisteId(gjennomforingId)
         .mapNotNull { oppdaterAktivitetskort(it.deltakerId, it.id)?.aktivitetskort }
-        .also { log.info("Opprettet nye aktivitetskort for deltakerliste: ${deltakerliste.id}") }
+        .also { log.info("Opprettet nye aktivitetskort for deltakerliste: $gjennomforingId") }
 
-    /*
-    En oppdatering på en arrangør skal medføre at:
-        - Alle aktivitetskort som er koblet til arrangøren blir oppdatert
-        - Alle aktivitetskort som er koblet til en underordnet arrangør av den oppdaterte arrangøren blir oppdatert
-     */
+    /**
+     * En oppdatering på en arrangør skal medføre at:
+     * - Alle aktivitetskort som er koblet til arrangøren blir oppdatert
+     * - Alle aktivitetskort som er koblet til en underordnet arrangør av den oppdaterte arrangøren blir oppdatert
+     **/
     fun oppdaterAktivitetskort(arrangor: Arrangor): List<Aktivitetskort> {
         val underordnedeArrangorer = arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
         val alleOppdaterteArrangorer = listOf(arrangor) + underordnedeArrangorer

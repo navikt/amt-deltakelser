@@ -10,20 +10,18 @@ import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
-import no.nav.amt.aktivitetskort.kafka.consumer.toModel
+import no.nav.amt.aktivitetskort.kafka.consumer.toDeltakerliste
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
-import no.nav.amt.aktivitetskort.repositories.TiltakstypeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
-import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
@@ -35,19 +33,17 @@ import java.util.UUID
 class KafkaConsumerService(
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val tiltakstypeRepository: TiltakstypeRepository,
     private val deltakerRepository: DeltakerRepository,
     private val aktivitetskortService: AktivitetskortService,
     private val amtArrangorClient: AmtArrangorClient,
     private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
-    private val unleashToggle: CommonUnleashToggle,
     private val objectMapper: ObjectMapper,
     private val amtDeltakerClient: AmtDeltakerClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun deltakerHendelse(
+    fun handleDeltaker(
         id: UUID,
         deltakerPayload: DeltakerKafkaPayload?,
         offset: Long,
@@ -97,7 +93,7 @@ class KafkaConsumerService(
         }
     }
 
-    fun deltakerlisteHendelse(
+    fun handleGjennomforing(
         id: UUID,
         value: String?,
     ) {
@@ -117,43 +113,35 @@ class KafkaConsumerService(
             return
         }
 
-        val deltakerlistePayload: GjennomforingV2KafkaPayload = objectMapper.readValue(value)
+        val payload: AmtGjennomforingPayload = objectMapper.readValue(value)
 
-        if (!unleashToggle.skalLeseGjennomforing(deltakerlistePayload.tiltakskode.name)) {
-            return
-        }
+        val arrangor = arrangorRepository.get(payload.arrangor.organisasjonsnummer)
+            ?: hentOgLagreArrangorFraAmtArrangor(payload.arrangor.organisasjonsnummer)
 
-        val arrangor = arrangorRepository.get(deltakerlistePayload.arrangor.organisasjonsnummer)
-            ?: hentOgLagreArrangorFraAmtArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
-
-        val tiltakstype = tiltakstypeRepository.getByTiltakskode(deltakerlistePayload.tiltakskode.name)
-            ?: throw NoSuchElementException("Fant ikke tiltakstype med tiltakskode ${deltakerlistePayload.tiltakskode}")
-
-        val deltakerlisteModel = deltakerlistePayload.toModel(
-            { gruppe -> gruppe.toModel(arrangor.id, tiltakstype.navn) },
-            { enkeltplass -> enkeltplass.toModel(arrangor.id, tiltakstype.navn) },
-        )
+        val deltakerlisteModel = payload.toDeltakerliste(arrangor.id)
 
         transactionTemplate.executeWithoutResult {
             when (val result = deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
-                    log.info("Ny hendelse for deltakerliste ${deltakerlistePayload.id}: Oppdatering")
-                    aktivitetskortProducer.send(aktivitetskortService.oppdaterAktivitetskort(result.data))
+                    log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
+                    aktivitetskortProducer.send(aktivitetskortService.oppdaterAktivitetskort(result.data.id))
                 }
 
                 is RepositoryResult.Created -> {
-                    log.info("Ny hendelse for deltakerliste ${deltakerlistePayload.id}: Opprettelse")
+                    log.info("Ny hendelse for deltakerliste ${payload.id}: Opprettelse")
                 }
 
                 is RepositoryResult.NoChange -> {
-                    log.info("Ny hendelse for deltakerliste ${deltakerlistePayload.id}: Ingen endring")
+                    log.info("Ny hendelse for deltakerliste ${payload.id}: Ingen endring")
                 }
             }
-            log.info("Konsumerte melding med deltakerliste ${deltakerlistePayload.id}")
+            log.info("Konsumerte melding med deltakerliste ${payload.id}")
         }
     }
 
-    fun arrangorHendelse(
+    // Hvis vi skal sløyfe denne consumeren så må amt-deltaker også dele arrangør navnet
+    // eller sende oppdatering på gjennomforing-intern når arrangør navn endres
+    fun handleArrangor(
         id: UUID,
         arrangor: ArrangorDto?,
     ) {

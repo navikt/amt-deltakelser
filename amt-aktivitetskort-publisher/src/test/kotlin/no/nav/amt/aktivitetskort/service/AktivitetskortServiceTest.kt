@@ -312,7 +312,7 @@ class AktivitetskortServiceTest {
         every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
         every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
 
-        val aktivitetskort = aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste)
+        val aktivitetskort = aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id)
 
         verify(exactly = 1) { meldingRepository.upsert(any()) }
 

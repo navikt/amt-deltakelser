@@ -15,7 +15,6 @@ import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Tag
 import no.nav.amt.aktivitetskort.domain.Tiltak
-import no.nav.amt.aktivitetskort.domain.Tiltakstype
 import no.nav.amt.aktivitetskort.domain.displayText
 import no.nav.amt.aktivitetskort.domain.toAktivitetskortTiltakstype
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
@@ -34,15 +33,14 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.DeltakerStatusPayload
-import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.kafka.Navn
 import no.nav.amt.lib.models.kafka.Personalia
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.amt.lib.models.person.Oppfolgingsperiode as NavOppfolgingsperiode
 
@@ -170,15 +168,15 @@ object TestData {
             ),
             gjennomforing = GjennomforingResponse(
                 id = deltakerliste.id,
-                type = deltakerliste.gjennomforingstype ?: GjennomforingType.Gruppe,
+                type = GjennomforingType.Gruppe,
                 tiltakstype = tiltakstypeResponse,
                 visningsnavn = VisningsnavnResponse(gjennomforingTittel),
                 navn = deltakerliste.navn,
-                status = deltakerliste.status ?: GjennomforingStatusType.GJENNOMFORES,
+                status = GjennomforingStatusType.GJENNOMFORES,
                 startDato = deltaker.oppstartsdato,
                 sluttDato = deltaker.sluttdato,
                 antallPlasser = null,
-                oppstart = deltakerliste.oppstart ?: Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 apentForPamelding = true,
                 oppmoteSted = null,
                 arrangor = no.nav.amt.internapi.deltaker.response.ArrangorResponse(
@@ -186,7 +184,7 @@ object TestData {
                     navn = arrangor.navn,
                     organisasjonsnummer = arrangor.organisasjonsnummer,
                 ),
-                pameldingstype = deltakerliste.pameldingstype,
+                pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
             ),
             startdato = deltaker.oppstartsdato,
             sluttdato = deltaker.sluttdato,
@@ -275,59 +273,39 @@ object TestData {
         tiltak = tiltak,
         navn = navn,
         arrangorId = arrangorId,
-        gjennomforingstype = GjennomforingType.Gruppe,
+    )
+
+    fun lagAmtGjennomforingPayload(
+        arrangor: Arrangor = lagArrangor(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(arrangorId = arrangor.id),
+        tiltakId: UUID = UUID.randomUUID(),
+    ) = AmtGjennomforingPayload(
+        id = deltakerliste.id,
+        type = GjennomforingType.Gruppe,
+        tiltak = AmtGjennomforingPayload.TiltakPayload(
+            id = tiltakId,
+            navn = deltakerliste.tiltak.navn,
+            tiltakskode = deltakerliste.tiltak.tiltakskode,
+            innhold = null,
+        ),
+        arrangor = AmtGjennomforingPayload.Arrangor(arrangor.organisasjonsnummer),
         status = GjennomforingStatusType.GJENNOMFORES,
         oppstart = Oppstartstype.LOPENDE,
         pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
-    )
-
-    fun lagEnkeltplassDeltakerlistePayload(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangorId = arrangor.id),
-    ) = GjennomforingV2KafkaPayload.Enkeltplass(
-        id = deltakerliste.id,
-        tiltakskode = deltakerliste.tiltak.tiltakskode,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-        lopenummer = null,
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-        oppstart = Oppstartstype.ENKELTPLASS,
-        status = GjennomforingStatusType.GJENNOMFORES,
-    )
-
-    fun lagGruppeDeltakerlistePayload(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangorId = arrangor.id),
-    ) = GjennomforingV2KafkaPayload.Gruppe(
-        id = deltakerliste.id,
         navn = deltakerliste.navn,
-        tiltakskode = deltakerliste.tiltak.tiltakskode,
         lopenummer = "2026-001",
         startDato = LocalDate.now(),
         sluttDato = LocalDate.now().plusDays(1),
-        status = GjennomforingStatusType.GJENNOMFORES,
-        oppstart = Oppstartstype.LOPENDE,
-        apentForPamelding = true,
-        oppmoteSted = null,
         tilgjengeligForArrangorFraOgMedDato = null,
+        apentForPamelding = true,
         antallPlasser = 42,
-        deltidsprosent = 42.0,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+        oppmoteSted = null,
     )
 
     data class MockContext(
         val deltaker: DeltakerDbo = lagDeltaker(),
         val deltakerliste: Deltakerliste = lagDeltakerliste(id = deltaker.deltakerlisteId),
         val arrangor: Arrangor = lagArrangor(id = deltakerliste.arrangorId),
-        val tiltakstype: Tiltakstype = Tiltakstype(
-            id = UUID.randomUUID(),
-            navn = "Oppfølging",
-            tiltakskode = Tiltakskode.OPPFOLGING,
-        ),
         val aktivitetskortId: UUID = UUID.randomUUID(),
         val aktivitetskort: Aktivitetskort = aktivitetskort(
             id = aktivitetskortId,
@@ -343,11 +321,7 @@ object TestData {
             aktivitetskort = aktivitetskort,
             oppfolgingsperiode = oppfolgingsperiodeId,
         ),
-        val deltakerlisteGruppePayload: GjennomforingV2KafkaPayload.Gruppe = lagGruppeDeltakerlistePayload(
-            deltakerliste = deltakerliste,
-            arrangor = arrangor,
-        ),
-        val deltakerlisteEnkeltplassPayload: GjennomforingV2KafkaPayload.Enkeltplass = lagEnkeltplassDeltakerlistePayload(
+        val amtGjennomforingPayload: AmtGjennomforingPayload = lagAmtGjennomforingPayload(
             deltakerliste = deltakerliste,
             arrangor = arrangor,
         ),
