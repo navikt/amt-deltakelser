@@ -1061,13 +1061,15 @@ class TotrinnskontrollConsumerTest {
               "id": "${UUID.randomUUID()}",
               "entityId": "$gjennomforingId",
               "type": "ENKELTPLASS_OKONOMI",
+              "status": "GODKJENT",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "status": "GODKJENT",
-              "aarsaker": [],
-              "forklaring": null
+              "besluttetBegrunnelse": null,
+              "besluttetAarsaker": []
             }
             """.trimIndent()
 
@@ -1077,17 +1079,15 @@ class TotrinnskontrollConsumerTest {
               "id": "${UUID.randomUUID()}",
               "entityId": "$gjennomforingId",
               "type": "ENKELTPLASS_OKONOMI",
+              "status": "RETURNERT",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "status": "RETURNERT",
-              "aarsaker": ["MANGLER_DOKUMENTASJON"],
-              "forklaring": "Ikke godkjent",
-              "totrinnskontroll": {
-                "id": "${UUID.randomUUID()}",
-                "behandletAv": "VEILEDER"
-              }
+              "besluttetBegrunnelse": "Ikke godkjent",
+              "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
             }
             """.trimIndent()
 
@@ -1097,13 +1097,15 @@ class TotrinnskontrollConsumerTest {
               "id": "${UUID.randomUUID()}",
               "entityId": "$gjennomforingId",
               "type": "ENKELTPLASS_PRISENDRING",
+              "status": "RETURNERT",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "status": "RETURNERT",
-              "aarsaker": ["MANGLER_DOKUMENTASJON"],
-              "forklaring": "Ikke godkjent"
+              "besluttetBegrunnelse": "Ikke godkjent",
+              "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
             }
             """.trimIndent()
 
@@ -1123,13 +1125,15 @@ class TotrinnskontrollConsumerTest {
               "id": "$totrinnskontrollId",
               "entityId": "$gjennomforingId",
               "type": "ENKELTPLASS_PRISENDRING",
+              "status": "GODKJENT",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
               "behandletTidspunkt": "2026-06-01T10:00:00Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": $besluttetAv,
               "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "status": "GODKJENT",
-              "aarsaker": [],
-              "forklaring": null
+              "besluttetBegrunnelse": null,
+              "besluttetAarsaker": []
             }
             """.trimIndent()
     }

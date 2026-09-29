@@ -37,9 +37,6 @@ import java.util.UUID
  *
  * Ikke-godkjente hendelser (f.eks. RETURNERT) oppdaterer kun prisinfoStatus og prosesseres ikke videre.
  *
- * I dev-miljø brukes et `skipFilter` for å hoppe over kjente ugyldige meldinger
- * på lave offsets uten å trigge retry.
- *
  * @param deltakerRepository repository for oppslag av enkeltplassdeltakere
  * @param deltakerService tjeneste for oppdatering og publisering av deltaker
  * @param vedtakService tjeneste for å fatte vedtak ved godkjent økonomi
@@ -65,12 +62,6 @@ class TotrinnskontrollConsumer(
 
     private val consumer = buildManagedKafkaConsumer(
         topic = Environment.TOTRINNSKONTROLL_TOPIC,
-        skipFilter = { record ->
-            // I dev inneholder offset 0-4 dårlig testdata fra produsenten som vi aldri vil prosessere.
-            // Disse skippes uten å trigge retry. Filteret er bevisst begrenset til dev for å unngå
-            // at vi ved et uhell hopper over gyldige meldinger i prod.
-            Environment.isDev() && record.offset() < SKIP_RECORDS_BEFORE_OFFSET_IN_DEV
-        },
         consumeFunc = ::consume,
     )
 
@@ -334,7 +325,6 @@ class TotrinnskontrollConsumer(
     override suspend fun close() = consumer.close()
 
     companion object {
-        private const val SKIP_RECORDS_BEFORE_OFFSET_IN_DEV = 5L
         private const val TYPE_KEY = "type"
 
         /**
