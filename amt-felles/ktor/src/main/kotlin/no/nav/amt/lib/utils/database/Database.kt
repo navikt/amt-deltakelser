@@ -11,6 +11,7 @@ import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.argument.Arguments
 import org.jdbi.v3.core.config.ConfigRegistry
+import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.postgresql.util.PGobject
@@ -44,6 +45,7 @@ object Database {
         val jdbi = Jdbi
             .create(dataSource)
             .installPlugin(SqlObjectPlugin())
+            .installPlugin(KotlinPlugin())
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
