@@ -205,7 +205,6 @@ fun Application.module() {
 
     val endringsvedtakJob = EndringsvedtakJob(
         jobManager,
-        hendelseRepository,
         journalforingService,
         initialDelay = environment.endringsvedtakJobInitialDelay,
         jobPeriod = environment.endringsvedtakJobPeriod,

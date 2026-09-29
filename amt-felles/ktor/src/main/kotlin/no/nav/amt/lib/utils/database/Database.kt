@@ -5,12 +5,20 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.amt.lib.utils.database.Database.query
 import org.flywaydb.core.Flyway
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.argument.AbstractArgumentFactory
+import org.jdbi.v3.core.argument.Argument
+import org.jdbi.v3.core.argument.Arguments
+import org.jdbi.v3.core.config.ConfigRegistry
+import org.jdbi.v3.sqlobject.SqlObjectPlugin
+import org.postgresql.util.PGobject
+import java.sql.Types
 import javax.sql.DataSource
 
 object Database {
     private lateinit var dataSource: DataSource
+    lateinit var jdbi: Jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
@@ -31,6 +39,11 @@ object Database {
             minimumIdle = 1
             leakDetectionThreshold = 15_000
         }
+        jdbi = Jdbi.create(dataSource)
+            .installPlugin(SqlObjectPlugin())
+            .configure(Arguments::class.java) { arguments ->
+                arguments.register(PgObjectArgumentFactory())
+            }
 
         runMigration()
     }
@@ -88,4 +101,10 @@ object Database {
         .migrate()
         .migrations
         .size
+}
+
+private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
+    override fun build(value: PGobject, config: ConfigRegistry): Argument = Argument { position, statement, _ ->
+        statement.setObject(position, value)
+    }
 }
