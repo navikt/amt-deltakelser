@@ -27,11 +27,12 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.database.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class JournalforingService(
-    private val journalforingstatusRepository: JournalforingstatusRepository,
+    private val db: DatabaseApi,
     private val amtPersonClient: AmtPersonClient,
     private val pdfgenClient: PdfgenClient,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
@@ -42,7 +43,7 @@ class JournalforingService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun handleHendelse(hendelse: Hendelse) {
-        val journalforingstatus = journalforingstatusRepository.get(hendelse.id)
+        val journalforingstatus = db.bruk(JournalforingstatusRepository::class) { it.get(hendelse.id) }
         if (hendelseErBehandlet(journalforingstatus, hendelse.distribusjonskanal, hendelse.manuellOppfolging)) {
             log.info("Hendelse med id ${hendelse.id} for deltaker ${hendelse.deltaker.id} er allerede behandlet")
             return
@@ -339,15 +340,17 @@ class JournalforingService(
         hendelse: Hendelse,
         journalforingstatus: Journalforingstatus?,
     ) {
-        journalforingstatusRepository.upsert(
-            Journalforingstatus(
-                hendelseId = hendelse.id,
-                journalpostId = journalforingstatus?.journalpostId,
-                bestillingsId = journalforingstatus?.bestillingsId,
-                kanIkkeDistribueres = journalforingstatus?.kanIkkeDistribueres,
-                kanIkkeJournalfores = journalforingstatus?.kanIkkeJournalfores,
-            ),
-        )
+        db.bruk(JournalforingstatusRepository::class) {
+            it.upsert(
+                Journalforingstatus(
+                    hendelseId = hendelse.id,
+                    journalpostId = journalforingstatus?.journalpostId,
+                    bestillingsId = journalforingstatus?.bestillingsId,
+                    kanIkkeDistribueres = journalforingstatus?.kanIkkeDistribueres,
+                    kanIkkeJournalfores = journalforingstatus?.kanIkkeJournalfores,
+                ),
+            )
+        }
         log.info("Endringsvedtak for hendelse ${hendelse.id} er lagret og plukkes opp av asynkron jobb")
     }
 
@@ -364,17 +367,19 @@ class JournalforingService(
         val navBruker = amtPersonClient.hentNavBruker(sisteHendelse.hendelse.deltaker.personident)
 
         if (navBruker.harFalskIdentitet) {
-            hendelseMedJournalforingstatuser.forEach {
-                val status = it.journalforingstatus
-                journalforingstatusRepository.upsert(
-                    Journalforingstatus(
-                        hendelseId = it.hendelse.id,
-                        journalpostId = status.journalpostId,
-                        bestillingsId = status.bestillingsId,
-                        kanIkkeDistribueres = true,
-                        kanIkkeJournalfores = true,
-                    ),
-                )
+            db.bruk(JournalforingstatusRepository::class) { repository ->
+                hendelseMedJournalforingstatuser.forEach {
+                    val status = it.journalforingstatus
+                    repository.upsert(
+                        Journalforingstatus(
+                            hendelseId = it.hendelse.id,
+                            journalpostId = status.journalpostId,
+                            bestillingsId = status.bestillingsId,
+                            kanIkkeDistribueres = true,
+                            kanIkkeJournalfores = true,
+                        ),
+                    )
+                }
             }
             log.warn("Kan ikke journalføre brev for ${sisteHendelse.hendelse.deltaker.id} fordi den har falsk identitet")
             return
@@ -484,16 +489,18 @@ class JournalforingService(
         if (!kanDistribueres) {
             log.warn("Kan ikke distribuere journalpost $journalpostId. Har adresse: $harAdresse")
         }
-        hendelser.forEach {
-            journalforingstatusRepository.upsert(
-                Journalforingstatus(
-                    hendelseId = it.id,
-                    journalpostId = journalpostId,
-                    bestillingsId = bestillingsId,
-                    kanIkkeDistribueres = !kanDistribueres,
-                    kanIkkeJournalfores = false,
-                ),
-            )
+        db.bruk(JournalforingstatusRepository::class) { repository ->
+            hendelser.forEach {
+                repository.upsert(
+                    Journalforingstatus(
+                        hendelseId = it.id,
+                        journalpostId = journalpostId,
+                        bestillingsId = bestillingsId,
+                        kanIkkeDistribueres = !kanDistribueres,
+                        kanIkkeJournalfores = false,
+                    ),
+                )
+            }
         }
     }
 
@@ -539,7 +546,7 @@ class JournalforingService(
             kanIkkeDistribueres = null,
             kanIkkeJournalfores = kanIkkeJournalfores,
         )
-        journalforingstatusRepository.upsert(nyJournalforingstatus)
+        db.bruk(JournalforingstatusRepository::class) { it.upsert(nyJournalforingstatus) }
     }
 }
 
