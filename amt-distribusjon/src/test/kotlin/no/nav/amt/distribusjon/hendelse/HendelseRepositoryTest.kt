@@ -19,12 +19,12 @@ import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
 
-class JdbiHendelseRepositoryTest {
+class HendelseRepositoryTest {
     private val journalforingstatusRepository: JournalforingstatusRepository by lazy {
-        db.use(JournalforingstatusRepository::class)
+        db.bruk(JournalforingstatusRepository::class)
     }
     private val hendelseRepository: HendelseRepository by lazy {
-        db.use(HendelseRepository::class)
+        db.bruk(HendelseRepository::class)
     }
 
     companion object {
@@ -74,7 +74,7 @@ class JdbiHendelseRepositoryTest {
             val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
 
             // Assert
-            ikkeJournalforteHendelser.size shouldBe hendelserepositorytest1
+            ikkeJournalforteHendelser.size shouldBe 1
             ikkeJournalforteHendelser.first().hendelse.id shouldBe hendelse.id
         }
 

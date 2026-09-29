@@ -2,7 +2,6 @@ package no.nav.amt.lib.testing
 
 import no.nav.amt.lib.utils.database.Database
 import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -14,16 +13,16 @@ class JdbiDatabaseTestExtension :
     BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
-    private lateinit var jdbi: Jdbi
+//    private lateinit var db: DatabaseApi
     private val handleThreadLocal = ThreadLocal<Handle>()
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
-        jdbi = Database.jdbi
+        //       db = Database.db
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        val handle = jdbi.open()
+        val handle = Database.db._jdbi.open()
         handle.begin()
         handleThreadLocal.set(handle)
     }
@@ -37,5 +36,5 @@ class JdbiDatabaseTestExtension :
         }
     }
 
-    fun <T : SqlObject> use(extension: KClass<T>): T = handleThreadLocal.get().attach(extension.java)
+    fun <T : SqlObject> bruk(extension: KClass<T>): T = handleThreadLocal.get().attach(extension.java)
 }

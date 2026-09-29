@@ -6,8 +6,8 @@ import com.tngtech.archunit.lang.ArchCondition
 import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods
-import io.kotest.matchers.shouldBe
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -30,7 +30,7 @@ class JdbiDemonstrationTest {
         val db = JdbiDatabaseTestExtension()
     }
 
-    private val dao: DemoTransactionDao by lazy { db.use(DemoTransactionDao::class) }
+    private val dao: DemoTransactionDao by lazy { db.bruk(DemoTransactionDao::class) }
 
     @BeforeEach
     fun setup() {

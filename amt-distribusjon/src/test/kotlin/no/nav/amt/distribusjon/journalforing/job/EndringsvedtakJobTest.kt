@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
@@ -195,7 +196,6 @@ class EndringsvedtakJobTest {
     @Test
     fun `startJob - starter jobb med forventet initialDelay og period`() {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
-        val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
 
         val initialDelay = Duration.ofMinutes(5)
@@ -204,6 +204,7 @@ class EndringsvedtakJobTest {
         EndringsvedtakJob(
             jobManager,
             journalforingService,
+            db = mockk(),
             initialDelay,
             period,
             Duration.ofHours(1),
@@ -226,6 +227,7 @@ class EndringsvedtakJobTest {
     ) = EndringsvedtakJob(
         jobManager = mockk(relaxUnitFun = true),
         journalforingService = mockk(),
+        db = mockk(),
         initialDelay = initialDelay,
         jobPeriod = jobPeriod,
         gracePeriod = gracePeriod,
@@ -243,6 +245,7 @@ class EndringsvedtakJobTest {
             job = EndringsvedtakJob(
                 jobManager,
                 journalforingService,
+                db = mockk(),
                 initialDelay = Duration.ofMinutes(5),
                 jobPeriod = Duration.ofMinutes(10),
                 gracePeriod = Duration.ofMinutes(30),

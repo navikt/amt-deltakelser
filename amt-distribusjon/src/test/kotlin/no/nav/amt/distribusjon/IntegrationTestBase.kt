@@ -30,13 +30,14 @@ import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxService
-import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
+import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.DatabaseApi
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
-    protected open val hendelseRepository = HendelseRepository()
-    protected open val journalforingstatusRepository = JournalforingstatusRepository()
     protected open val tiltakshendelseRepository = TiltakshendelseRepository()
     protected open val varselRepository = VarselRepository()
 
@@ -51,7 +52,7 @@ abstract class IntegrationTestBase {
     protected open val outboxService: OutboxService = mockk()
 
     protected open val journalforingService = JournalforingService(
-        journalforingstatusRepository = journalforingstatusRepository,
+        db = db,
         amtPersonClient = amtPersonClient,
         pdfgenClient = pdfgenClient,
         veilarboppfolgingClient = veilarboppfolgingClient,
@@ -75,7 +76,7 @@ abstract class IntegrationTestBase {
 
     protected open val varselService = VarselService(
         varselRepository = varselRepository,
-        hendelseRepository = hendelseRepository,
+        db = db,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
 
@@ -83,14 +84,22 @@ abstract class IntegrationTestBase {
         varselService = varselService,
         journalforingService = journalforingService,
         tiltakshendelseService = tiltakshendelseService,
-        hendelseRepository = hendelseRepository,
+        db = db,
         dokdistkanalClient = dokdistkanalClient,
         veilarboppfolgingClient = veilarboppfolgingClient,
     )
 
     companion object {
+        private lateinit var db: DatabaseApi
+
         @RegisterExtension
-        private val dbExtension = DatabaseTestExtension()
+        val dbExtension = JdbiDatabaseTestExtension()
+
+        @BeforeAll
+        @JvmStatic
+        fun setupAll() {
+            db = Database.db
+        }
     }
 
     @BeforeEach
