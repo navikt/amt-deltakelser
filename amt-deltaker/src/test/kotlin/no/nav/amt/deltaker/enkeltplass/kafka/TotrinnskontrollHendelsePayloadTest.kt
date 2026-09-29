@@ -14,16 +14,18 @@ class TotrinnskontrollHendelsePayloadTest {
               "id": "1bdbe918-45f3-429a-9d56-9c5055595779",
               "entityId": "5d6f9ae8-2d8d-4d22-9409-549ef96d6ea9",
               "type": "ENKELTPLASS_OKONOMI",
+              "status": "TIL_BEHANDLING",
               "behandletAv": {
                 "type": "NAV_ANSATT",
                 "navIdent": "Z990079"
               },
               "behandletTidspunkt": "2026-05-12T12:11:55.466070Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": null,
               "besluttetTidspunkt": null,
-              "status": "TIL_BEHANDLING",
-              "aarsaker": [],
-              "forklaring": null
+              "besluttetBegrunnelse": null,
+              "besluttetAarsaker": []
             }
             """.trimIndent()
 
@@ -41,13 +43,15 @@ class TotrinnskontrollHendelsePayloadTest {
               "id": "1bdbe918-45f3-429a-9d56-9c5055595779",
               "entityId": "5d6f9ae8-2d8d-4d22-9409-549ef96d6ea9",
               "type": "ENKELTPLASS_OKONOMI",
+              "status": "GODKJENT",
               "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z990079" },
               "behandletTidspunkt": "2026-05-12T12:11:55.466070Z",
+              "behandletBegrunnelse": null,
+              "behandletAarsaker": [],
               "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "L164122" },
               "besluttetTidspunkt": "2026-05-12T12:12:20.268043Z",
-              "status": "GODKJENT",
-              "aarsaker": [],
-              "forklaring": null
+              "besluttetBegrunnelse": null,
+              "besluttetAarsaker": []
             }
             """.trimIndent()
 

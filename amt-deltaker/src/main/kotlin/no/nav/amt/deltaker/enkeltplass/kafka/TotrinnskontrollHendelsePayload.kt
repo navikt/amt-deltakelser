@@ -9,13 +9,15 @@ data class TotrinnskontrollHendelsePayload(
     val id: UUID, // id for totrinnskontroll vi sendte i gjennomforing-requesten
     val entityId: UUID,
     val type: TotrinnskontrollType,
-    val behandletAv: TotrinnskontrollAgent,
-    val besluttetAv: TotrinnskontrollAgent?,
-    val behandletTidspunkt: Instant,
-    val besluttetTidspunkt: Instant?,
     val status: Status,
-    val aarsaker: List<String>,
-    val forklaring: String?,
+    val behandletAv: TotrinnskontrollAgent,
+    val behandletTidspunkt: Instant,
+    val behandletBegrunnelse: String?,
+    val behandletAarsaker: List<String>,
+    val besluttetAv: TotrinnskontrollAgent?,
+    val besluttetTidspunkt: Instant?,
+    val besluttetBegrunnelse: String?,
+    val besluttetAarsaker: List<String>,
 ) {
     enum class Status {
         TIL_BEHANDLING, // Kommer med en gang /ack på meldingen
