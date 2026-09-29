@@ -6,7 +6,6 @@ import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.time.ZoneId
@@ -20,8 +19,7 @@ class VarselService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private fun <T> withVarselRepository(block: (VarselRepository) -> T): T =
-        db.bruk(VarselRepository::class, block)
+    private fun <T> withVarselRepository(block: (VarselRepository) -> T): T = db.bruk(VarselRepository::class, block)
 
     fun handleHendelse(hendelse: Hendelse) {
         if (skalIkkeVarsles(hendelse)) return
@@ -228,7 +226,7 @@ class VarselService(
             "Det finnes flere enn et ventende varsel for en eller flere deltakere"
         }
 
-        Database.transaction {
+        db.transaksjon {
             varsler.forEach { sendVarsel(it) }
         }
     }
@@ -237,7 +235,7 @@ class VarselService(
         val varsler = withVarselRepository { it.getVarslerSomSkalRevarsles() }
         val revarsler = varsler.map { slaSammenMedVentendeVarsel(Varsel.revarsel(it)) }
 
-        Database.transaction {
+        db.transaksjon {
             revarsler.forEach { handleNyttVarsel(it, true) }
         }
     }

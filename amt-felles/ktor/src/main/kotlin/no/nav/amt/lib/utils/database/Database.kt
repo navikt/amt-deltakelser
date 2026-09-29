@@ -6,6 +6,7 @@ import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
 import org.flywaydb.core.Flyway
+import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
@@ -120,6 +121,28 @@ private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.
     }
 }
 
+class Transaksjon internal constructor(
+    private val handle: Handle,
+) {
+    fun <T : SqlObject, S> bruk(
+        sqlObjectKlasse: KClass<T>,
+        blokk: (sqlObject: T) -> S,
+    ): S = handle.attach(sqlObjectKlasse.java).let(blokk)
+}
+
+class Forbindelse internal constructor(
+    private val handle: Handle,
+) {
+    fun <T : SqlObject, S> bruk(
+        sqlObjectKlasse: KClass<T>,
+        blokk: (sqlObject: T) -> S,
+    ): S = handle.attach(sqlObjectKlasse.java).let(blokk)
+
+    fun <T> transaksjon(blokk: (Transaksjon) -> T): T = handle.inTransaction<T, Exception> { handle ->
+        blokk(Transaksjon(handle))
+    }
+}
+
 class DatabaseApi(
     private val jdbi: Jdbi,
 ) {
@@ -133,4 +156,10 @@ class DatabaseApi(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
     ): S = jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
+
+    fun <T> transaksjon(blokk: (Transaksjon) -> T): T = forbindelse { it.transaksjon(blokk) }
+
+    fun <T> forbindelse(blokk: (Forbindelse) -> T): T = jdbi.withHandle<T, Exception> { handle ->
+        blokk(Forbindelse(handle))
+    }
 }

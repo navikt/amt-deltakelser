@@ -36,6 +36,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
+    protected val db: JdbiDatabaseTestExtension
+        get() = testDb
+
+    protected val database: DatabaseApi
+        get() = companionDatabase
+
     protected open val amtDeltakerClient: AmtDeltakerClient = mockk()
     protected open val pdfgenClient: PdfgenClient = mockk()
     protected open val amtPersonClient: AmtPersonClient = mockk()
@@ -47,7 +53,7 @@ abstract class IntegrationTestBase {
     protected open val outboxService: OutboxService = mockk()
 
     protected open val journalforingService = JournalforingService(
-        db = db,
+        db = database,
         amtPersonClient = amtPersonClient,
         pdfgenClient = pdfgenClient,
         veilarboppfolgingClient = veilarboppfolgingClient,
@@ -64,13 +70,13 @@ abstract class IntegrationTestBase {
     protected open val tiltakshendelseProducer = TiltakshendelseProducer(outboxService)
 
     protected open val tiltakshendelseService = TiltakshendelseService(
-        db = db,
+        db = database,
         amtDeltakerClient = amtDeltakerClient,
         tiltakshendelseProducer = tiltakshendelseProducer,
     )
 
     protected open val varselService = VarselService(
-        db = db,
+        db = database,
         outboxHandler = VarselOutboxHandler(outboxService),
     )
 
@@ -78,13 +84,13 @@ abstract class IntegrationTestBase {
         varselService = varselService,
         journalforingService = journalforingService,
         tiltakshendelseService = tiltakshendelseService,
-        db = db,
+        db = database,
         dokdistkanalClient = dokdistkanalClient,
         veilarboppfolgingClient = veilarboppfolgingClient,
     )
 
     companion object {
-        private lateinit var db: DatabaseApi
+        private lateinit var companionDatabase: DatabaseApi
 
         @RegisterExtension
         val testDb = JdbiDatabaseTestExtension()
@@ -92,7 +98,7 @@ abstract class IntegrationTestBase {
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            db = Database.db
+            companionDatabase = Database.db
         }
     }
 

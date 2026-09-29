@@ -13,7 +13,6 @@ import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
-import no.nav.amt.lib.utils.database.Database.transaction
 import no.nav.amt.lib.utils.database.DatabaseApi
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -55,8 +54,7 @@ class HendelseConsumer(
         val erUnderManuellOppfolging = veilarboppfolgingClient.erUnderManuellOppfolging(hendelseDto.deltaker.personident)
         val hendelse = hendelseDto.toModel(distribusjonskanal, erUnderManuellOppfolging)
 
-        transaction {
-            db.bruk(HendelseRepository::class) { it.insert(hendelse) }
+        db.transaksjon {
             varselService.handleHendelse(hendelse)
             tiltakshendelseService.handleHendelse(hendelse)
         }
