@@ -133,10 +133,7 @@ class Transaksjon internal constructor(
 class Forbindelse internal constructor(
     private val handle: Handle,
 ) {
-    fun <T : SqlObject, S> bruk(
-        sqlObjectKlasse: KClass<T>,
-        blokk: (sqlObject: T) -> S,
-    ): S = handle.attach(sqlObjectKlasse.java).let(blokk)
+    fun <T : SqlObject> bruk(sqlObjectKlasse: KClass<T>): T = handle.attach(sqlObjectKlasse.java)
 
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T = handle.inTransaction<T, Exception> { handle ->
         blokk(Transaksjon(handle))
