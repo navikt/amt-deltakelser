@@ -28,8 +28,5 @@ spec:
       application: amt-arrangor
       access: read
     - team: amt
-      application: amt-deltaker-bff
-      access: read
-    - team: amt
       application: amt-deltaker
       access: readwrite
