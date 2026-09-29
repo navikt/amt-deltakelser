@@ -22,7 +22,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdReque
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
-import no.nav.amt.internapi.enkeltplass.EnkeltplassTilbakekallPrisinfoRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 
@@ -193,26 +192,6 @@ fun Routing.registerEnkeltplassApi(
 
                     call.respond(HttpStatusCode.OK)
                 }
-            }
-
-            // TODO: fjern når frontend har tatt i bruk endepunkt /tilbakekall-prisendring i VeilederApi
-            //   https://trello.com/c/PSRjid6S/412
-            post("/tilbakekall-prisendring/{deltakerId}") {
-                val deltakerId = call.getDeltakerId()
-
-                tilgangskontrollService.verifiserSkrivetilgang(
-                    navAnsattAzureId = call.getNavAnsattAzureId(),
-                    norskIdent = amtDeltakerClient.getPersonidentForDeltaker(deltakerId),
-                )
-
-                enkeltplassClient.tilbakekallPrisendring(
-                    deltakerId = deltakerId,
-                    request = EnkeltplassTilbakekallPrisinfoRequest(
-                        endretAv = call.getNavIdent(),
-                    ),
-                )
-
-                call.respond(HttpStatusCode.OK)
             }
         }
     }

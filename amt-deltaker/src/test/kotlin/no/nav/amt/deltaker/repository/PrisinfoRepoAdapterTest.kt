@@ -43,6 +43,23 @@ class PrisinfoRepoAdapterTest {
         private val gjennomforingInTest = lagDeltakerliste()
     }
 
+    private val godkjennerEnhet = lagNavEnhet()
+    private val godkjennerAnsatt = lagNavAnsatt(navEnhetId = godkjennerEnhet.id)
+
+    private fun godkjennMedTestGodkjenner(
+        gjennomforingId: UUID,
+        prisinformasjonId: UUID,
+    ): Boolean {
+        NavEnhetRepository().upsert(godkjennerEnhet)
+        TestRepository.insert(godkjennerAnsatt)
+        return PrisinfoRepoAdapter.godkjennOkonomi(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
+            godkjentAv = godkjennerAnsatt.id,
+            godkjentAvEnhet = godkjennerEnhet.id,
+        )
+    }
+
     @Nested
     inner class HentPrisinfoTests {
         @Test
@@ -152,7 +169,7 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = pendingPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -205,7 +222,7 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = godkjentPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -231,7 +248,7 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = godkjentPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -261,7 +278,7 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = godkjentPrisinfo,
             )
 
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -331,7 +348,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = prisinfo,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -360,7 +377,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = gjeldendePrisinfo,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -395,7 +412,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = gjeldendePrisinfo,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = gjeldendePrisinfoId,
             )
@@ -447,7 +464,7 @@ class PrisinfoRepoAdapterTest {
             beforeGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
 
             // Act
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -478,7 +495,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = gjeldendePrisinfo,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = gjeldendePrisinfoId,
             )
@@ -503,7 +520,7 @@ class PrisinfoRepoAdapterTest {
                 ).shouldNotBeNull()
 
             // Act
-            val result = PrisinfoRepoAdapter.godkjennOkonomi(
+            val result = godkjennMedTestGodkjenner(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = stalePrisinfoId,
             )
@@ -638,8 +655,18 @@ class PrisinfoRepoAdapterTest {
             val tilskudd = Tilskudd(
                 tilleggsopplysninger = "Tilskuddinformasjon",
                 tilskudd = listOf(
-                    TilskuddInfo(type = Tilskuddstype.SKOLEPENGER, pris = 8000),
-                    TilskuddInfo(type = Tilskuddstype.EKSAMENSGEBYR, pris = 1500),
+                    TilskuddInfo(
+                        type = Tilskuddstype.SKOLEPENGER,
+                        pris = 8000,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.EKSAMENSGEBYR,
+                        pris = 1500,
+                    ),
+                    TilskuddInfo(
+                        type = Tilskuddstype.STUDIEREISE,
+                        pris = 3000,
+                    ),
                 ),
             )
 
@@ -713,7 +740,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = gjeldende,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinformasjonId,
             )
@@ -780,7 +807,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = gjeldende,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(
+            godkjennMedTestGodkjenner(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = gjeldendId,
             )
@@ -919,6 +946,8 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinformasjonId,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
             )
             settGodkjenningstidspunkt(prisinformasjonId, vedtakFattet.minusMinutes(1))
 
@@ -941,7 +970,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = forsteTilskudd,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId)
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(forsteId, vedtakFattet.minusMinutes(1))
 
             // Arrange - senere tilskuddsendring med andre komponenter
@@ -956,7 +985,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = andreTilskudd,
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, andreId)
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, andreId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(andreId, vedtakFattet.plusMinutes(1))
 
             // Act
@@ -975,7 +1004,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 10000),
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId)
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, forsteId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(forsteId, vedtakFattet.minusMinutes(1))
 
             // Arrange - prisendringen ble godkjent etter at vedtaket var fattet
@@ -983,7 +1012,7 @@ class PrisinfoRepoAdapterTest {
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId)
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(endringId, vedtakFattet.plusMinutes(1))
 
             // Act
@@ -1030,22 +1059,22 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer null nar godkjenner ikke er lagret`() {
-            // Arrange - godkjenning uten lagret attribusjon
+        fun `returnerer godkjenner nar godkjenning er lagret`() {
+            // Arrange
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
             )
-            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId)
+            PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(endringId, vedtakFattet.minusMinutes(1))
 
             // Act
             val result = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltaker.id)
 
-            // Assert - attribusjon blir stående som null
+            // Assert
             assertSoftly(result.first()) {
-                sistEndretAvNavAnsattId shouldBe null
-                sistEndretAvNavEnhetId shouldBe null
+                sistEndretAvNavAnsattId shouldBe navAnsatt.id
+                sistEndretAvNavEnhetId shouldBe navEnhet.id
             }
         }
 
