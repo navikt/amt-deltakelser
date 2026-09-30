@@ -18,7 +18,9 @@ import kotlin.reflect.KClass
  * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
  */
 class JdbiDatabaseTestExtension(
-    private val testSupport: () -> DatabaseTestSupport = { instance.testSupport },
+    private val testSupport: () -> DatabaseTestSupport = {
+        instance.testSupport ?: error("instance ble opprettet uten withTestSupport = true")
+    },
 ) : BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
@@ -52,7 +54,7 @@ class JdbiDatabaseTestExtension(
          */
         val instance: NewDatabase by lazy {
             TestPostgresContainer.bootstrap()
-            NewDatabase(TestPostgresContainer.databaseConfig())
+            NewDatabase(TestPostgresContainer.databaseConfig(), withTestSupport = true)
         }
     }
 }
