@@ -20,7 +20,7 @@ class InternalApiTest(
     @MockkBean private val aktivitetskortProducer: AktivitetskortProducer,
 ) : IntegrationTestBase() {
     @Test
-    fun `slettAktivitetskort - kall fra intern ip - kaller producer med riktige parametre`() {
+    fun `slettAktivitetskort - kall fra intern ip - kasserer aktivitetskort med riktige parametre`() {
         val aktivitetskortId = UUID.randomUUID()
         val body = """{"aktivitetskortId": "$aktivitetskortId", "personIdent": "12345678901", "navIdent": "Z123456"}"""
 

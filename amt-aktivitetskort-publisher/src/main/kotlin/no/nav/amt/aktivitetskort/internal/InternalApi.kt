@@ -6,6 +6,7 @@ import no.nav.amt.aktivitetskort.service.AktivitetskortService
 import no.nav.amt.lib.models.deltaker.Kilde
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,6 +22,7 @@ import java.util.UUID
 class InternalApi(
     private val aktivitetskortService: AktivitetskortService,
     private val aktivitetskortProducer: AktivitetskortProducer,
+    private val transactionTemplate: TransactionTemplate,
     private val deltakerRepository: DeltakerRepository,
 ) {
     // Regenererer aktivitetskort på samme deltaker
@@ -28,11 +30,9 @@ class InternalApi(
     fun publiserAktivitetskortForDeltaker(
         @PathVariable("deltakerId") deltakerId: UUID,
     ) {
-        val aktivitetskort =
-            aktivitetskortService.lagAktivitetskort(deltakerId)
-                ?: throw RuntimeException("Kunne ikke opprette aktivitetskort for $deltakerId")
-        aktivitetskortProducer.send(aktivitetskort)
-        log.info("Publiserte aktivitetskort for deltaker med id $deltakerId")
+        aktivitetskortService.lagAktivitetskort(deltakerId)
+            ?: throw RuntimeException("Kunne ikke opprette aktivitetskort for $deltakerId")
+        log.info("La aktivitetskort i Kafka-outbox for deltaker med id $deltakerId")
     }
 
     @GetMapping("/opprett-nye-kort")
@@ -70,10 +70,12 @@ class InternalApi(
                     " er ${sisteMelding.id}. Oppretter ny melding med id $nyAktivitetskortId Kilde=${deltaker.kilde}",
             )
 
-            val melding = aktivitetskortService.opprettMelding(deltaker = deltaker, nyAktivitetskortId)
-            aktivitetskortProducer.send(melding.aktivitetskort)
+            val melding = aktivitetskortService.opprettMelding(
+                deltaker = deltaker,
+                meldingId = nyAktivitetskortId,
+            )
 
-            log.info("Publiserte nytt aktivitetskort ${melding.id} for deltaker med id $deltakerId")
+            log.info("La nytt aktivitetskort ${melding.id} i Kafka-outbox for deltaker med id $deltakerId")
         }
     }
 
@@ -84,9 +86,14 @@ class InternalApi(
         val aktivitetskort = aktivitetskortService
             .getSisteMeldingForDeltaker(deltakerId)
             ?.aktivitetskort
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke melding")
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Fant ikke melding",
+            )
 
-        aktivitetskortProducer.send(aktivitetskort)
+        transactionTemplate.executeWithoutResult {
+            aktivitetskortProducer.send(aktivitetskort)
+        }
         logResendMessage(deltakerId)
     }
 
@@ -99,7 +106,10 @@ class InternalApi(
                 .getSisteMeldingForDeltaker(deltakerId)
                 ?.aktivitetskort
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke melding")
-            aktivitetskortProducer.send(aktivitetskort)
+
+            transactionTemplate.executeWithoutResult {
+                aktivitetskortProducer.send(aktivitetskort)
+            }
             logResendMessage(deltakerId)
         }
     }
@@ -108,11 +118,13 @@ class InternalApi(
     fun slettAktivitetskort(
         @RequestBody body: SlettAktivitetskortBody,
     ) {
-        aktivitetskortProducer.slettAktivitetskort(
-            aktivitetskortId = body.aktivitetskortId,
-            personIdent = body.personIdent,
-            navIdent = body.navIdent,
-        )
+        transactionTemplate.executeWithoutResult {
+            aktivitetskortProducer.slettAktivitetskort(
+                aktivitetskortId = body.aktivitetskortId,
+                personIdent = body.personIdent,
+                navIdent = body.navIdent,
+            )
+        }
     }
 
     data class DeltakereBody(
@@ -128,6 +140,6 @@ class InternalApi(
     companion object {
         private val log = LoggerFactory.getLogger(InternalApi::class.java)
 
-        private fun logResendMessage(deltakerId: UUID) = log.info("Resendte siste aktivitetskort for deltaker med id $deltakerId")
+        private fun logResendMessage(deltakerId: UUID) = log.info("La siste aktivitetskort i Kafka-outbox for deltaker med id $deltakerId")
     }
 }

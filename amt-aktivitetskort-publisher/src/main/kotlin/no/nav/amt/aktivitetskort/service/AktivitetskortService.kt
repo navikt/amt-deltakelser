@@ -4,10 +4,12 @@ import no.nav.amt.aktivitetskort.client.AktivitetArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
+import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
+import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.EndretAv
 import no.nav.amt.aktivitetskort.domain.Handling
 import no.nav.amt.aktivitetskort.domain.IKKE_AVTALT_MED_NAV_STATUSER
@@ -17,11 +19,14 @@ import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Oppgave
 import no.nav.amt.aktivitetskort.domain.OppgaveWrapper
+import no.nav.amt.aktivitetskort.domain.displayText
 import no.nav.amt.aktivitetskort.domain.toAktivitetskortTiltakstype
 import no.nav.amt.aktivitetskort.exceptions.FeilOppfolgingsperiodeException
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import no.nav.amt.aktivitetskort.exceptions.IngenOppfolgingsperiodeException
+import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
+import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
@@ -47,6 +52,8 @@ class AktivitetskortService(
     private val unleashToggle: CommonUnleashToggle,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
     private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
+    private val deltakerRepository: DeltakerRepository,
+    private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
     private val amtDeltakerClient: AmtDeltakerClient,
     @Value($$"${veilederurl.basepath}") private val veilederUrlBasePath: String,
@@ -58,40 +65,67 @@ class AktivitetskortService(
         .getByDeltakerId(deltakerId)
         .maxByOrNull { it.createdAt }
 
-    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker = deltaker)?.aktivitetskort
+    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker)?.aktivitetskort
 
     fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? = amtDeltakerClient
         .getDeltaker(deltakerId)
-        .let { tryOpprettMelding(deltaker = Deltaker.fromDeltakerResponse(it))?.aktivitetskort }
+        .let { deltakerResponse ->
+            tryOpprettMelding(Deltaker.fromDeltakerResponse(deltakerResponse))?.aktivitetskort
+        }
 
-    fun oppdaterAktivitetskortForSlettetdeltaker(
+    fun oppdaterAktivitetskortForSlettetDeltaker(
         deltaker: DeltakerDbo,
-        meldingId: UUID,
-    ): Aktivitetskort {
-        val melding = opprettMelding(deltaker, meldingId = meldingId)
-
-        return melding.aktivitetskort
+        melding: Melding,
+    ) {
+        val avbruttStatus = DeltakerStatusModel(
+            type = DeltakerStatus.Type.AVBRUTT,
+            aarsak = null,
+        )
+        val aktivitetskort = melding.aktivitetskort.copy(
+            personident = deltaker.personident,
+            aktivitetStatus = AktivitetStatus.AVBRUTT,
+            endretTidspunkt = LocalDateTime.now(),
+            oppgave = null,
+            detaljer = melding.aktivitetskort.detaljer.map {
+                if (it.label == "Status for deltakelse") it.copy(verdi = displayText(avbruttStatus)) else it
+            },
+            etiketter = listOfNotNull(deltakerStatusTilEtikett(avbruttStatus)),
+        )
+        val oppdatertMelding = melding.copy(aktivitetskort = aktivitetskort)
+        transactionTemplate.executeWithoutResult {
+            meldingRepository.upsert(oppdatertMelding)
+            aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
+            deltakerRepository.delete(oppdatertMelding.deltakerId)
+        }
     }
 
-    fun oppdaterAktivitetskort(gjennomforingId: UUID) = meldingRepository
-        .getByDeltakerlisteId(gjennomforingId)
-        .mapNotNull { oppdaterAktivitetskort(it.deltakerId, it.id)?.aktivitetskort }
-        .also { log.info("Opprettet nye aktivitetskort for deltakerliste: $gjennomforingId") }
+    fun slettDeltaker(deltakerId: UUID) {
+        deltakerRepository.delete(deltakerId)
+    }
+
+    fun oppdaterAktivitetskort(gjennomforingId: UUID) {
+        meldingRepository
+            .getByDeltakerlisteId(gjennomforingId)
+            .forEach { oppdaterAktivitetskort(it.deltakerId, it.id) }
+
+        log.info("Opprettet nye aktivitetskort for deltakerliste: $gjennomforingId")
+    }
 
     /**
      * En oppdatering på en arrangør skal medføre at:
      * - Alle aktivitetskort som er koblet til arrangøren blir oppdatert
      * - Alle aktivitetskort som er koblet til en underordnet arrangør av den oppdaterte arrangøren blir oppdatert
      **/
-    fun oppdaterAktivitetskort(arrangor: Arrangor): List<Aktivitetskort> {
+    fun oppdaterAktivitetskort(arrangor: Arrangor) {
         val underordnedeArrangorer = arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
         val alleOppdaterteArrangorer = listOf(arrangor) + underordnedeArrangorer
-        return alleOppdaterteArrangorer.flatMap { a ->
+        alleOppdaterteArrangorer.forEach { a ->
             meldingRepository
                 .getByArrangorId(a.id)
                 .filter { it.aktivitetskort.erAktivDeltaker() }
-                .mapNotNull { oppdaterAktivitetskort(it.deltakerId, it.id)?.aktivitetskort }
-                .also { log.info("Opprettet nye aktivitetskort for arrangør: ${a.id}") }
+                .forEach { oppdaterAktivitetskort(it.deltakerId, it.id) }
+
+            log.info("Opprettet nye aktivitetskort for arrangør: ${a.id}")
         }
     }
 
@@ -136,19 +170,27 @@ class AktivitetskortService(
             ?.also { log.info("deltaker $deltakerId skal ha aktivitetId: $it") }
             ?: throw IllegalStateException("Arenadeltaker $deltakerId fikk ikke id fra AKAS")
 
-    fun oppdaterAktivitetskort(
+    private fun oppdaterAktivitetskort(
         deltakerId: UUID,
         meldingId: UUID,
-    ): Melding? = amtDeltakerClient
-        .getDeltaker(deltakerId)
-        .let { deltaker -> tryOpprettMelding(Deltaker.fromDeltakerResponse(deltaker), meldingId) }
+    ) {
+        val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
+
+        tryOpprettMelding(
+            deltaker = Deltaker.fromDeltakerResponse(deltakerResponse),
+            meldingId = meldingId,
+        )
+    }
 
     private fun tryOpprettMelding(
         deltaker: Deltaker,
         meldingId: UUID? = null,
     ): Melding? {
         try {
-            return opprettMelding(deltaker, meldingId)
+            return opprettMelding(
+                deltaker = deltaker,
+                meldingId = meldingId,
+            )
         } catch (e: IngenOppfolgingsperiodeException) {
             log.warn("Kan ikke opprette aktivitetskort for deltaker ${deltaker.id} uten oppfølgingsperiode", e)
         } catch (e: HistoriskArenaDeltakerException) {
@@ -176,6 +218,7 @@ class AktivitetskortService(
             deltaker.status.gyldigFra?.isBefore(oppfolgingsperiode.startDato) == true
         ) {
             oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
+
             throw FeilOppfolgingsperiodeException(
                 "Lager ikke aktivitetskort for ukjent arenadeltaker i oppfølgingsperiode: ${oppfolgingsperiode.id}" +
                     "deltaker ${deltaker.id} er avsluttet ${deltaker.status.gyldigFra} " +
@@ -205,6 +248,7 @@ class AktivitetskortService(
         transactionTemplate.executeWithoutResult {
             oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
             meldingRepository.upsert(melding)
+            aktivitetskortProducer.send(melding.aktivitetskort)
         }
 
         log.info("Opprettet nytt aktivitetskort: ${melding.aktivitetskort.id} for deltaker: ${deltaker.id}")

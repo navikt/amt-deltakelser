@@ -4,42 +4,43 @@ import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.kafka.consumer.AKTIVITETSKORT_TOPIC
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortKasseringPayload
 import no.nav.amt.aktivitetskort.kafka.producer.dto.AktivitetskortPayload
-import no.nav.amt.aktivitetskort.service.MetricsService
+import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
+import no.nav.common.kafka.producer.util.ProducerUtils
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
+/**
+ * Legger aktivitetskort-meldinger i Kafka-outboxen (kafka_producer_record).
+ *
+ * MANDATORY: Alle metoder må kalles i en aktiv transaksjon, slik at outbox-raden lagres
+ * atomisk sammen med dataene den beskriver. Kaster IllegalTransactionStateException ellers.
+ */
 @Component
+@Transactional(propagation = Propagation.MANDATORY)
 class AktivitetskortProducer(
-    private val template: KafkaTemplate<String, String>,
-    private val metricsService: MetricsService,
+    private val producerRecordStorage: KafkaProducerRecordStorage,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun send(aktivitetskort: Aktivitetskort) = send(listOf(aktivitetskort))
+    fun send(aktivitetskort: Aktivitetskort) {
+        val messageId = UUID.randomUUID()
+        val payload = AktivitetskortPayload(
+            messageId = messageId,
+            aktivitetskortType = aktivitetskort.tiltakstype,
+            aktivitetskort = aktivitetskort.toAktivitetskortDto(),
+        )
 
-    fun send(aktivitetskort: List<Aktivitetskort>) {
-        aktivitetskort.forEach { currentAktivitetskort ->
-            val messageId = UUID.randomUUID()
-            val payload = AktivitetskortPayload(
-                messageId = messageId,
-                aktivitetskortType = currentAktivitetskort.tiltakstype,
-                aktivitetskort = currentAktivitetskort.toAktivitetskortDto(),
-            )
-
-            template
-                .send(
-                    AKTIVITETSKORT_TOPIC,
-                    currentAktivitetskort.id.toString(),
-                    objectMapper.writeValueAsString(payload),
-                ).get()
-
-            log.info("Sendte aktivitetskort til aktivitetsplanen: ${currentAktivitetskort.id} messageId: $messageId")
-            metricsService.incSendtAktivitetskort()
-        }
+        produce(
+            key = aktivitetskort.id.toString(),
+            value = objectMapper.writeValueAsString(payload),
+        )
+        log.info("La aktivitetskort i Kafka-outbox: ${aktivitetskort.id} messageId: $messageId")
     }
 
     fun slettAktivitetskort(
@@ -55,13 +56,23 @@ class AktivitetskortProducer(
             begrunnelse = "Kassering av duplikat aktivitetskort",
         )
 
-        template
-            .send(
-                AKTIVITETSKORT_TOPIC,
-                aktivitetskortId.toString(),
-                objectMapper.writeValueAsString(payload),
-            ).get()
+        produce(
+            key = aktivitetskortId.toString(),
+            value = objectMapper.writeValueAsString(payload),
+        )
 
-        log.info("Slettet aktivitetskort: $aktivitetskortId")
+        log.info("La kassering av aktivitetskort i Kafka-outbox: $aktivitetskortId")
+    }
+
+    private fun produce(
+        key: String,
+        value: String,
+    ) {
+        val record = ProducerRecord(
+            AKTIVITETSKORT_TOPIC,
+            key,
+            value,
+        )
+        producerRecordStorage.store(ProducerUtils.serializeStringRecord(record))
     }
 }
