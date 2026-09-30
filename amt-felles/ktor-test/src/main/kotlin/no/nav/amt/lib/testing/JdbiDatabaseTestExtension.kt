@@ -20,19 +20,13 @@ class JdbiDatabaseTestExtension :
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        val handle = Database.db._jdbi.open()
-        handle.begin()
-        handleThreadLocal.set(handle)
-        Database.db.bindHandleForTest(handle)
+        handleThreadLocal.set(Database.db.beginTestTransaction())
     }
 
     override fun afterEach(context: ExtensionContext) {
-        val handle = handleThreadLocal.get()
-        if (handle != null) {
-            handle.rollback()
-            handle.close()
+        handleThreadLocal.get()?.let { handle ->
+            Database.db.rollbackAndCloseTestTransaction(handle)
             handleThreadLocal.remove()
-            Database.db.bindHandleForTest(null)
         }
     }
 
