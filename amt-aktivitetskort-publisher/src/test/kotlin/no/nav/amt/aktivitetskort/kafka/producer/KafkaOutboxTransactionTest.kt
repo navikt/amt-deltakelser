@@ -11,9 +11,12 @@ import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.kafka.KafkaOutboxLifecycle
 import no.nav.amt.aktivitetskort.kafka.config.KafkaOutboxProcessorConfiguration
 import no.nav.amt.aktivitetskort.kafka.consumer.AKTIVITETSKORT_TOPIC
+import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
+import no.nav.amt.aktivitetskort.service.AktivitetskortService
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.producer.KafkaProducerClient
 import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository
@@ -92,21 +95,41 @@ class KafkaOutboxTransactionTest(
                 deltakerlisteId = deltakerliste.id,
                 arrangorId = arrangor.id,
             )
+            meldingRepository.upsert(melding)
+            val feilendeDeltakerRepository = mockk<DeltakerRepository> {
+                every { delete(deltaker.id) } answers {
+                    deltakerRepository.delete(deltaker.id)
+                    throw IllegalStateException("Sletting feilet")
+                }
+            }
+            val aktivitetskortService = AktivitetskortService(
+                meldingRepository = meldingRepository,
+                arrangorRepository = mockk<ArrangorRepository>(),
+                aktivitetArenaAclClient = aktivitetArenaAclClient,
+                amtArenaAclClient = amtArenaAclClient,
+                unleashToggle = mockk<CommonUnleashToggle>(),
+                veilarboppfolgingClient = veilarboppfolgingClient,
+                oppfolgingsperiodeRepository = oppfolgingsperiodeRepository,
+                deltakerRepository = feilendeDeltakerRepository,
+                aktivitetskortProducer = aktivitetskortProducer,
+                transactionTemplate = transactionTemplate,
+                amtDeltakerClient = amtDeltakerClient,
+                veilederUrlBasePath = TestData.VEILEDER_URL_BASEPATH,
+                deltakerUrlBasePath = TestData.DELTAKER_URL_BASEPATH,
+            )
 
             // Act
-            transactionTemplate.executeWithoutResult {
-                meldingRepository.upsert(melding)
-                aktivitetskortProducer.send(melding.aktivitetskort)
-                deltakerRepository.delete(melding.deltakerId)
-                it.setRollbackOnly()
-            }
+            shouldThrow<IllegalStateException> {
+                aktivitetskortService.oppdaterAktivitetskortForSlettetDeltaker(deltaker, melding)
+            }.message shouldBe "Sletting feilet"
 
             // Assert
             deltakerRepository.get(deltaker.id) shouldBe deltaker
+            meldingRepository.getByDeltakerId(deltaker.id).single().aktivitetskort shouldBe melding.aktivitetskort
             jdbcTemplate.queryForObject<Int>(
                 "SELECT count(*) FROM melding WHERE id = ?",
                 melding.id,
-            ) shouldBe 0
+            ) shouldBe 1
             jdbcTemplate.queryForObject<Int>(
                 "SELECT count(*) FROM kafka_producer_record",
             ) shouldBe 0
