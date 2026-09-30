@@ -8,7 +8,6 @@ import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
-import no.nav.amt.lib.testing.TestNewDatabase
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -28,7 +27,7 @@ class HendelseRepositoryTest {
     companion object {
         @RegisterExtension
         @JvmField
-        val db = JdbiDatabaseTestExtension(testSupport = { TestNewDatabase.instance.testSupport })
+        val db = JdbiDatabaseTestExtension()
     }
 
     @Test
