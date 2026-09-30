@@ -24,6 +24,7 @@ import kotlin.reflect.KClass
 object Database {
     private lateinit var dataSource: DataSource
     lateinit var db: DatabaseApi
+    lateinit var testSupport: DatabaseTestSupport
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
@@ -55,7 +56,8 @@ object Database {
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
-        db = DatabaseApi(jdbi)
+        testSupport = DatabaseTestSupport(jdbi)
+        db = DatabaseApi(jdbi, testSupport)
 
         runMigration()
     }
@@ -145,47 +147,13 @@ class Forbindelse internal constructor(
 
 class DatabaseApi(
     private val jdbi: Jdbi,
+    private val testSupport: DatabaseTestSupport,
 ) {
-    /**
-     * Aktivt JDBI-[Handle] for gjeldende tråd, satt av testutvidelser slik at
-     * applikasjonskode og testoppsett deler samme transaksjon.
-     *
-     * Skal ikke brukes fra produksjonskode.
-     */
-    private val activeHandleThreadLocal = ThreadLocal<Handle?>()
-
-    /**
-     * Åpner et nytt JDBI-[Handle], starter en transaksjon på det, og binder det som aktivt
-     * handle for gjeldende tråd. Brukes av testutvidelser som vil dele transaksjon med
-     * applikasjonskode.
-     *
-     * Kall [rollbackAndCloseTestTransaction] med det returnerte handle-et i `afterEach`
-     * for å rulle tilbake og fjerne bindingen igjen.
-     *
-     * Skal ikke brukes fra produksjonskode.
-     */
-    fun beginTestTransaction(): Handle {
-        val handle = jdbi.open()
-        handle.begin()
-        activeHandleThreadLocal.set(handle)
-        return handle
-    }
-
-    /**
-     * Ruller tilbake og lukker et [Handle] åpnet med [beginTestTransaction], og fjerner
-     * bindingen til gjeldende tråd.
-     */
-    fun rollbackAndCloseTestTransaction(handle: Handle) {
-        handle.rollback()
-        handle.close()
-        activeHandleThreadLocal.remove()
-    }
-
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
     ): S {
-        val activeHandle = activeHandleThreadLocal.get()
+        val activeHandle = testSupport.currentHandle()
         return if (activeHandle != null) {
             activeHandle.attach(sqlObjectKlasse.java).let(blokk)
         } else {
@@ -194,7 +162,7 @@ class DatabaseApi(
     }
 
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = activeHandleThreadLocal.get()
+        val activeHandle = testSupport.currentHandle()
         return if (activeHandle != null) {
             activeHandle.inTransaction<T, Exception> { handle ->
                 blokk(Transaksjon(handle))
@@ -205,7 +173,7 @@ class DatabaseApi(
     }
 
     fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = activeHandleThreadLocal.get()
+        val activeHandle = testSupport.currentHandle()
         return if (activeHandle != null) {
             blokk(Forbindelse(activeHandle))
         } else {
