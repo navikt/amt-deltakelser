@@ -5,21 +5,7 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import org.flywaydb.core.Flyway
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.argument.AbstractArgumentFactory
-import org.jdbi.v3.core.argument.Argument
-import org.jdbi.v3.core.argument.Arguments
-import org.jdbi.v3.core.config.ConfigRegistry
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.postgres.PostgresPlugin
-import org.jdbi.v3.sqlobject.SqlObject
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.postgresql.util.PGobject
-import java.sql.Types
 import javax.sql.DataSource
-import kotlin.reflect.KClass
 
 object Database {
     private lateinit var dataSource: DataSource
@@ -29,37 +15,12 @@ object Database {
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
     fun init(config: DatabaseConfig) {
-        dataSource = HikariDataSource().apply {
-            if (config.jdbcURL.isNotEmpty()) {
-                jdbcUrl = config.jdbcURL
-            } else {
-                dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
-                addDataSourceProperty("serverName", config.dbHost)
-                addDataSourceProperty("portNumber", config.dbPort)
-                addDataSourceProperty("databaseName", config.dbDatabase)
-                addDataSourceProperty("user", config.dbUsername)
-                addDataSourceProperty("password", config.dbPassword)
-            }
-
-            maximumPoolSize = 10
-            minimumIdle = 1
-            leakDetectionThreshold = 15_000
-        }
-        val jdbi = Jdbi
-            .create(dataSource)
-            // Støtter definisjon av repositories etc som interface
-            .installPlugin(SqlObjectPlugin())
-            // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
-            .installPlugin(KotlinPlugin())
-            // Støtter mapping av en del vanlige Postgres-spesifikke typer
-            .installPlugin(PostgresPlugin())
-            .configure(Arguments::class.java) { arguments ->
-                arguments.register(PgObjectArgumentFactory())
-            }
+        dataSource = DatabaseInit.createDataSource(config)
+        val jdbi = DatabaseInit.createJdbi(dataSource)
         testSupport = DatabaseTestSupport(jdbi)
         db = DatabaseApi(jdbi, testSupport)
 
-        runMigration()
+        DatabaseInit.runMigration(dataSource)
     }
 
     fun <A> query(block: (Session) -> A): A {
@@ -103,83 +64,5 @@ object Database {
 
     fun close() {
         (dataSource as HikariDataSource).close()
-    }
-
-    private fun runMigration(initSql: String? = null): Int = Flyway
-        .configure()
-        .connectRetries(5)
-        .dataSource(dataSource)
-        .initSql(initSql)
-        .validateMigrationNaming(true)
-        .load()
-        .migrate()
-        .migrations
-        .size
-}
-
-private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
-    override fun build(
-        value: PGobject,
-        config: ConfigRegistry,
-    ): Argument = Argument { position, statement, _ ->
-        statement.setObject(position, value)
-    }
-}
-
-class Transaksjon internal constructor(
-    private val handle: Handle,
-) {
-    fun <T : SqlObject, S> bruk(
-        sqlObjectKlasse: KClass<T>,
-        blokk: (sqlObject: T) -> S,
-    ): S = handle.attach(sqlObjectKlasse.java).let(blokk)
-}
-
-class Forbindelse internal constructor(
-    private val handle: Handle,
-) {
-    fun <T : SqlObject> bruk(sqlObjectKlasse: KClass<T>): T = handle.attach(sqlObjectKlasse.java)
-
-    fun <T> transaksjon(blokk: (Transaksjon) -> T): T = handle.inTransaction<T, Exception> { handle ->
-        blokk(Transaksjon(handle))
-    }
-}
-
-class DatabaseApi(
-    private val jdbi: Jdbi,
-    private val testSupport: DatabaseTestSupport,
-) {
-    fun <T : SqlObject, S> bruk(
-        sqlObjectKlasse: KClass<T>,
-        blokk: (sqlObject: T) -> S,
-    ): S {
-        val activeHandle = testSupport.currentHandle()
-        return if (activeHandle != null) {
-            activeHandle.attach(sqlObjectKlasse.java).let(blokk)
-        } else {
-            jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
-        }
-    }
-
-    fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = testSupport.currentHandle()
-        return if (activeHandle != null) {
-            activeHandle.inTransaction<T, Exception> { handle ->
-                blokk(Transaksjon(handle))
-            }
-        } else {
-            forbindelse { it.transaksjon(blokk) }
-        }
-    }
-
-    fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = testSupport.currentHandle()
-        return if (activeHandle != null) {
-            blokk(Forbindelse(activeHandle))
-        } else {
-            jdbi.withHandle<T, Exception> { handle ->
-                blokk(Forbindelse(handle))
-            }
-        }
     }
 }
