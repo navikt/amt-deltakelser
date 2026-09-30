@@ -29,7 +29,7 @@ import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
-import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.testing.TestNewDatabase
 import no.nav.amt.lib.utils.database.DatabaseApi
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -93,12 +93,12 @@ abstract class IntegrationTestBase {
         private lateinit var companionDatabase: DatabaseApi
 
         @RegisterExtension
-        val testDb = JdbiDatabaseTestExtension()
+        val testDb = JdbiDatabaseTestExtension(testSupport = { TestNewDatabase.instance.testSupport })
 
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            companionDatabase = Database.db
+            companionDatabase = TestNewDatabase.instance.db
         }
     }
 

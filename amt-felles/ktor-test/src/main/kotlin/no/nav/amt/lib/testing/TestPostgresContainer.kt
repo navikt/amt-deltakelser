@@ -52,16 +52,25 @@ object TestPostgresContainer {
             .apply { addEnv("TZ", "Europe/Oslo") }
     }
 
-    private fun initDatabase() {
+    /**
+     * [DatabaseConfig] som peker til testcontaineren [bootstrap] har startet.
+     *
+     * Kan brukes til å koble opp en egen [no.nav.amt.lib.utils.database.NewDatabase]-instans
+     * mot samme testcontainer som det globale [Database]-singletonet, uten å opprette en ny container.
+     * Må kalles etter [bootstrap].
+     */
+    fun databaseConfig(): DatabaseConfig {
         val c = container
-        Database.init(
-            DatabaseConfig(
-                dbUsername = c.username,
-                dbPassword = c.password,
-                dbDatabase = c.databaseName,
-                dbHost = c.host,
-                dbPort = c.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString(),
-            ),
+        return DatabaseConfig(
+            dbUsername = c.username,
+            dbPassword = c.password,
+            dbDatabase = c.databaseName,
+            dbHost = c.host,
+            dbPort = c.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString(),
         )
+    }
+
+    private fun initDatabase() {
+        Database.init(databaseConfig())
     }
 }

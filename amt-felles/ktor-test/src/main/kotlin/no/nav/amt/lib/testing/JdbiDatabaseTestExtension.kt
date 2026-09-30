@@ -1,6 +1,7 @@
 package no.nav.amt.lib.testing
 
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.DatabaseTestSupport
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -9,8 +10,16 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import kotlin.reflect.KClass
 
-class JdbiDatabaseTestExtension :
-    BeforeAllCallback,
+/**
+ * @param testSupport Leverandør av [DatabaseTestSupport] som transaksjonen per test skal åpnes mot.
+ * Standard er det globale [Database]-singletonet. Kan overstyres til f.eks. en egen
+ * [no.nav.amt.lib.utils.database.NewDatabase]-instans sitt `testSupport`.
+ * Må være en lambda (ikke evaluert ved konstruksjon), siden [DatabaseTestSupport] typisk
+ * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
+ */
+class JdbiDatabaseTestExtension(
+    private val testSupport: () -> DatabaseTestSupport = { Database.testSupport },
+) : BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
     private val handleThreadLocal = ThreadLocal<Handle>()
@@ -20,12 +29,12 @@ class JdbiDatabaseTestExtension :
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        handleThreadLocal.set(Database.testSupport.beginTestTransaction())
+        handleThreadLocal.set(testSupport().beginTestTransaction())
     }
 
     override fun afterEach(context: ExtensionContext) {
         handleThreadLocal.get()?.let { handle ->
-            Database.testSupport.rollbackAndCloseTestTransaction(handle)
+            testSupport().rollbackAndCloseTestTransaction(handle)
             handleThreadLocal.remove()
         }
     }

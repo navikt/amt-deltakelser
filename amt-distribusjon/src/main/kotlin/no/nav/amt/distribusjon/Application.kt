@@ -52,6 +52,7 @@ import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.NewDatabase
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
@@ -77,8 +78,11 @@ fun Application.module() {
 
     val environment = env
 
+    // Database.init er nødvendig for amt-lib sin OutboxRepository, som fortsatt bruker det globale
+    // Kotliquery-baserte Database-singletonet. Egne repositories i amt-distribusjon bruker NewDatabase.
     Database.init(config = environment.databaseConfig)
-    val databaseApi = Database.db
+    val newDatabase = NewDatabase(config = environment.databaseConfig)
+    val databaseApi = newDatabase.db
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -233,6 +237,7 @@ fun Application.module() {
 
     monitor.subscribe(ApplicationStopped) {
         log.info("Shutting down database")
+        newDatabase.close()
         Database.close()
 
         log.info("Shutting down producers")
