@@ -161,6 +161,8 @@ class EnkeltplassService(
                 distribuerEndringService.produceHendelseForUtkast(oppdatertDeltakerMedVedtak, navAnsatt, navEnhet) {
                     HendelseType.EndreUtkast(it)
                 }
+
+                deltakerProducerService.produce(oppdatertDeltakerMedVedtak)
                 oppdatertDeltakerMedVedtak
             },
         )
@@ -251,6 +253,8 @@ class EnkeltplassService(
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
      * OBS: Denne kan ikke brukes for andre endringer på deltakelse i dette formatet
      * Fordi det må ikke publiseres flere meldinger av
+     *
+     * Brukes av: delUtkastMedInnbygger (kladd->utkast) og meldPaaDirekte (utkast->søkt inn)
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
@@ -334,11 +338,7 @@ class EnkeltplassService(
                 }
             }
 
-            // hvis gjennomføring er opprettet, publiser deltaker
-            if (gjennomforing.status != GjennomforingStatusType.KLADD) {
-                deltakerProducerService.produce(deltakerMedVedtak)
-            }
-
+            deltakerProducerService.produce(deltakerMedVedtak)
             deltakerMedVedtak
         }
     }
