@@ -85,7 +85,7 @@ spec:
               sum by(group, topic) (
                 kafka_consumergroup_group_lag{
                   group="amt-deltaker-bff-consumer",
-                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1|team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2",
+                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1|team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2|team-mulighetsrommet\\.siste-tiltakstyper-v3",
                   client_id!="unknown"
                 }
               )
