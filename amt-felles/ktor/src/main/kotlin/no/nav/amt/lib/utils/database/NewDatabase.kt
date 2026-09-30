@@ -14,18 +14,24 @@ import kotlin.reflect.KClass
  * I motsetning til [Database], som er et globalt singleton-objekt med legacy Kotliquery-støtte,
  * er [NewDatabase] en vanlig klasse. Det gjør det mulig å opprette flere uavhengige
  * databaseinstanser i samme JVM (f.eks. i tester), uten delt globalt state.
+ *
+ * @param withTestSupport Instansierer [testSupport] når `true`. Skal kun settes til `true` i tester —
+ * [DatabaseTestSupport] åpner JDBI-transaksjoner bundet til gjeldende tråd, og er ikke ment for
+ * produksjonskode. Standard er `false`, slik at produksjonsoppsett aldri får denne muligheten
+ * tilgjengelig; tester injiserer den eksplisitt der den trengs.
  */
 class NewDatabase(
     config: DatabaseConfig,
+    withTestSupport: Boolean = false,
 ) {
     private val dataSource: DataSource = DatabaseInit.createDataSource(config)
 
-    val testSupport: DatabaseTestSupport
+    val testSupport: DatabaseTestSupport?
     val db: DatabaseApi
 
     init {
         val jdbi = DatabaseInit.createJdbi(dataSource)
-        testSupport = DatabaseTestSupport(jdbi)
+        testSupport = if (withTestSupport) DatabaseTestSupport(jdbi) else null
         db = DatabaseApi(jdbi, testSupport)
 
         DatabaseInit.runMigration(dataSource)
@@ -57,13 +63,13 @@ class Forbindelse internal constructor(
 
 class DatabaseApi(
     private val jdbi: Jdbi,
-    private val testSupport: DatabaseTestSupport,
+    private val testSupport: DatabaseTestSupport?,
 ) {
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
     ): S {
-        val activeHandle = testSupport.currentHandle()
+        val activeHandle = testSupport?.currentHandle()
         return if (activeHandle != null) {
             activeHandle.attach(sqlObjectKlasse.java).let(blokk)
         } else {
@@ -72,7 +78,7 @@ class DatabaseApi(
     }
 
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = testSupport.currentHandle()
+        val activeHandle = testSupport?.currentHandle()
         return if (activeHandle != null) {
             activeHandle.inTransaction<T, Exception> { handle ->
                 blokk(Transaksjon(handle))
@@ -83,7 +89,7 @@ class DatabaseApi(
     }
 
     fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = testSupport.currentHandle()
+        val activeHandle = testSupport?.currentHandle()
         return if (activeHandle != null) {
             blokk(Forbindelse(activeHandle))
         } else {
