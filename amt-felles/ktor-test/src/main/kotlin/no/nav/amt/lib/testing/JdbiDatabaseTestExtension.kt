@@ -20,12 +20,12 @@ class JdbiDatabaseTestExtension :
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        handleThreadLocal.set(Database.db.beginTestTransaction())
+        handleThreadLocal.set(Database.testSupport.beginTestTransaction())
     }
 
     override fun afterEach(context: ExtensionContext) {
         handleThreadLocal.get()?.let { handle ->
-            Database.db.rollbackAndCloseTestTransaction(handle)
+            Database.testSupport.rollbackAndCloseTestTransaction(handle)
             handleThreadLocal.remove()
         }
     }
