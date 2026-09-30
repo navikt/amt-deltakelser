@@ -147,12 +147,6 @@ class DatabaseApi(
     private val jdbi: Jdbi,
 ) {
     /**
-     * Bruk bare i spesialtilfeller der det er hensiktsmessig å bruke JDBI-apiet direkte.
-     */
-    @Suppress("ktlint:standard:backing-property-naming")
-    val _jdbi: Jdbi = jdbi
-
-    /**
      * Aktivt JDBI-[Handle] for gjeldende tråd, satt av testutvidelser slik at
      * applikasjonskode og testoppsett deler samme transaksjon.
      *
@@ -160,12 +154,31 @@ class DatabaseApi(
      */
     private val activeHandleThreadLocal = ThreadLocal<Handle?>()
 
-    fun bindHandleForTest(handle: Handle?) {
-        if (handle == null) {
-            activeHandleThreadLocal.remove()
-        } else {
-            activeHandleThreadLocal.set(handle)
-        }
+    /**
+     * Åpner et nytt JDBI-[Handle], starter en transaksjon på det, og binder det som aktivt
+     * handle for gjeldende tråd. Brukes av testutvidelser som vil dele transaksjon med
+     * applikasjonskode.
+     *
+     * Kall [rollbackAndCloseTestTransaction] med det returnerte handle-et i `afterEach`
+     * for å rulle tilbake og fjerne bindingen igjen.
+     *
+     * Skal ikke brukes fra produksjonskode.
+     */
+    fun beginTestTransaction(): Handle {
+        val handle = jdbi.open()
+        handle.begin()
+        activeHandleThreadLocal.set(handle)
+        return handle
+    }
+
+    /**
+     * Ruller tilbake og lukker et [Handle] åpnet med [beginTestTransaction], og fjerner
+     * bindingen til gjeldende tråd.
+     */
+    fun rollbackAndCloseTestTransaction(handle: Handle) {
+        handle.rollback()
+        handle.close()
+        activeHandleThreadLocal.remove()
     }
 
     fun <T : SqlObject, S> bruk(
