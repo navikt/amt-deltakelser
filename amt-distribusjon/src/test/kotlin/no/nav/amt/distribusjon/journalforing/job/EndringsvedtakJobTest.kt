@@ -17,6 +17,7 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.utils.database.DatabaseApi
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -237,15 +238,21 @@ class EndringsvedtakJobTest {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
         val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
+        val db = mockk<DatabaseApi>()
 
         every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+        every {
+            db.bruk(HendelseRepository::class, any<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>())
+        } answers {
+            secondArg<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>()(hendelseRepository)
+        }
 
         return TestSetup(
             job = EndringsvedtakJob(
                 jobManager,
                 journalforingService,
-                db = mockk(),
+                db = db,
                 initialDelay = Duration.ofMinutes(5),
                 jobPeriod = Duration.ofMinutes(10),
                 gracePeriod = Duration.ofMinutes(30),

@@ -22,7 +22,6 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -42,7 +41,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
 
             // Act
-            Database.transaction {
+            database.transaksjon {
                 tiltakshendelseService.handleHendelse(hendelse)
             }
 
@@ -131,7 +130,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             )
 
             // Act
-            Database.transaction {
+            database.transaksjon {
                 tiltakshendelseService.handleHendelse(opprettPrisendring1)
                 tiltakshendelseService.handleHendelse(opprettPrisendring2)
             }
@@ -166,7 +165,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             )
 
             // Act
-            Database.transaction {
+            database.transaksjon {
                 tiltakshendelseService.handleHendelse(prisendring)
             }
 
@@ -359,7 +358,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         val godkjennHendelse = Hendelsesdata.hendelse(hendelseType, deltaker = opprettHendelse.deltaker)
 
         // Act
-        Database.transaction {
+        database.transaksjon {
             tiltakshendelseService.handleHendelse(godkjennHendelse)
         }
 
@@ -387,7 +386,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 ),
             ),
         )
-        Database.transaction {
+        database.transaksjon {
             tiltakshendelseService.handleHendelse(opprettHendelse)
         }
 
@@ -397,7 +396,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         )
 
         // Act
-        Database.transaction {
+        database.transaksjon {
             tiltakshendelseService.handleHendelse(stoppHendelse)
         }
 
