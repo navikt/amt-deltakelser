@@ -1,6 +1,5 @@
 package no.nav.amt.lib.testing
 
-import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.database.DatabaseTestSupport
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.SqlObject
@@ -12,13 +11,13 @@ import kotlin.reflect.KClass
 
 /**
  * @param testSupport Leverandør av [DatabaseTestSupport] som transaksjonen per test skal åpnes mot.
- * Standard er det globale [Database]-singletonet. Kan overstyres til f.eks. en egen
- * [no.nav.amt.lib.utils.database.NewDatabase]-instans sitt `testSupport`.
+ * Standard er den delte [TestNewDatabase]-instansens `testSupport`. Kan overstyres for f.eks.
+ * egne [no.nav.amt.lib.utils.database.NewDatabase]-instanser.
  * Må være en lambda (ikke evaluert ved konstruksjon), siden [DatabaseTestSupport] typisk
  * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
  */
 class JdbiDatabaseTestExtension(
-    private val testSupport: () -> DatabaseTestSupport = { Database.testSupport },
+    private val testSupport: () -> DatabaseTestSupport = { TestNewDatabase.instance.testSupport },
 ) : BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
