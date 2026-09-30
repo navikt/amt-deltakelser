@@ -249,35 +249,35 @@ class VarselService(
 fun nowUTC(): ZonedDateTime = ZonedDateTime.now(ZoneId.of("Z"))
 
 fun Hendelse.skalVarslesEksternt() = when (payload) {
-    is HendelseType.OpprettUtkast,
+    is HendelseType.AvbrytUtkast,
     is HendelseType.EndreBakgrunnsinformasjon,
     is HendelseType.EndreDeltakelsesmengde,
     is HendelseType.EndreInnhold,
     is HendelseType.EnkeltplassEndreOpplaringKategorisering,
+    is HendelseType.EndreSluttarsak,
     is HendelseType.EndreStartdato,
-    is HendelseType.EndreSluttdato,
+    is HendelseType.EndreUtkast,
+    is HendelseType.EndreAvslutning,
     is HendelseType.ForlengDeltakelse,
-    is HendelseType.IkkeAktuell,
+    is HendelseType.InnbyggerGodkjennUtkast,
+    is HendelseType.DeltakerSistBesokt,
     is HendelseType.LeggTilOppstartsdato,
     is HendelseType.FjernOppstartsdato,
+    -> false
+
+    is HendelseType.EndreSluttdato,
+    is HendelseType.IkkeAktuell,
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
     is HendelseType.EnkeltplassEndrePrisinfo,
     is HendelseType.EnkeltplassTilbakekallPrisendring,
     is HendelseType.EnkeltplassGodkjennPrisendring,
+    is HendelseType.OpprettUtkast,
     is HendelseType.AvsluttDeltakelse,
-    is HendelseType.EndreAvslutning,
     is HendelseType.AvbrytDeltakelse,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.SettPaaVenteliste,
     is HendelseType.TildelPlass,
     is HendelseType.Avslag,
     -> true
-
-    is HendelseType.AvbrytUtkast,
-    is HendelseType.EndreUtkast,
-    is HendelseType.InnbyggerGodkjennUtkast,
-    is HendelseType.DeltakerSistBesokt,
-    is HendelseType.EndreSluttarsak,
-    -> false
 }
