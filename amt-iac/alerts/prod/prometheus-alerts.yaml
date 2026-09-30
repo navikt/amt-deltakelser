@@ -14,26 +14,27 @@ spec:
         # max brukes separat fordi alle podene leser antallet fra samme database.
         - alert: AmtKafkaOutboxBacklog
           expr: |
-            label_replace(
-              max by (app, namespace) (
-                amt_person_kafka_outbox_ventende{
-                  app="amt-person-service",
-                  namespace="amt"
-                }
-              ),
-              "outbox", "amt-person-service", "", ""
-            )
-            or
-            label_replace(
-              max by (app, namespace) (
-                amt_aktivitetskortpublisher_kafka_outbox_ventende{
-                  app="amt-aktivitetskort-publisher",
-                  namespace="amt"
-                }
-              ),
-              "outbox", "amt-aktivitetskort-publisher", "", ""
-            )
-            >= 20
+            (
+              label_replace(
+                max by (app, namespace) (
+                  amt_person_kafka_outbox_ventende{
+                    app="amt-person-service",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-person-service", "", ""
+              )
+              or
+              label_replace(
+                max by (app, namespace) (
+                  amt_aktivitetskortpublisher_kafka_outbox_ventende{
+                    app="amt-aktivitetskort-publisher",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-aktivitetskort-publisher", "", ""
+              )
+            ) >= 20
           for: 5m
           annotations:
             title: 'Kafka-outboxen `{{ $labels.outbox }}` bygger seg opp'
