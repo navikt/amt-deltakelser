@@ -21,21 +21,26 @@ import java.sql.Types
 import javax.sql.DataSource
 import kotlin.reflect.KClass
 
-object Database {
+interface DatabaseHandleProvider {
+    fun currentHandle(): Handle?
+}
+
+object Database : DatabaseHandleProvider {
     private lateinit var dataSource: DataSource
     lateinit var db: DatabaseApi
     val jdbi: Jdbi
         get() = db._jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
-    private val jdbiHandleThreadLocal = ThreadLocal<Handle?>()
-    internal val jdbiHandle get() = jdbiHandleThreadLocal.get()
+    private val handleProviderThreadLocal = ThreadLocal<DatabaseHandleProvider?>()
 
-    fun bindJdbiHandleForTest(handle: Handle?) {
-        if (handle == null) {
-            jdbiHandleThreadLocal.remove()
+    override fun currentHandle(): Handle? = handleProviderThreadLocal.get()?.currentHandle()
+
+    fun setHandleProvider(provider: DatabaseHandleProvider?) {
+        if (provider == null) {
+            handleProviderThreadLocal.remove()
         } else {
-            jdbiHandleThreadLocal.set(handle)
+            handleProviderThreadLocal.set(provider)
         }
     }
 
@@ -67,7 +72,7 @@ object Database {
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
-        db = DatabaseApi(jdbi)
+        db = DatabaseApi(jdbi, this)
 
         runMigration()
     }
@@ -157,6 +162,7 @@ class Forbindelse internal constructor(
 
 class DatabaseApi(
     private val jdbi: Jdbi,
+    private val handleProvider: DatabaseHandleProvider,
 ) {
     /**
      * Bruk bare i spesialtilfeller der det er hensiktsmessig å bruke JDBI-apiet direkte.
@@ -168,7 +174,7 @@ class DatabaseApi(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
     ): S {
-        val activeHandle = Database.jdbiHandle
+        val activeHandle = handleProvider.currentHandle()
         return if (activeHandle != null) {
             activeHandle.attach(sqlObjectKlasse.java).let(blokk)
         } else {
@@ -177,7 +183,7 @@ class DatabaseApi(
     }
 
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = Database.jdbiHandle
+        val activeHandle = handleProvider.currentHandle()
         return if (activeHandle != null) {
             activeHandle.inTransaction<T, Exception> { handle ->
                 blokk(Transaksjon(handle))
@@ -188,7 +194,7 @@ class DatabaseApi(
     }
 
     fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = Database.jdbiHandle
+        val activeHandle = handleProvider.currentHandle()
         return if (activeHandle != null) {
             blokk(Forbindelse(activeHandle))
         } else {
