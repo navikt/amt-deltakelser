@@ -7,18 +7,17 @@ import kotliquery.sessionOf
 import kotliquery.using
 import javax.sql.DataSource
 
+/**
+ * Legacy, Kotliquery-basert databasetilgang. Støtter kun rå SQL via [query]/[transaction].
+ * Nytt kode bør bruke [NewDatabase], som eksponerer det JDBI-baserte grensesnittet [DatabaseApi].
+ */
 object Database {
     private lateinit var dataSource: DataSource
-    lateinit var db: DatabaseApi
-    lateinit var testSupport: DatabaseTestSupport
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
     fun init(config: DatabaseConfig) {
         dataSource = DatabaseInit.createDataSource(config)
-        val jdbi = DatabaseInit.createJdbi(dataSource)
-        testSupport = DatabaseTestSupport(jdbi)
-        db = DatabaseApi(jdbi, testSupport)
 
         DatabaseInit.runMigration(dataSource)
     }
