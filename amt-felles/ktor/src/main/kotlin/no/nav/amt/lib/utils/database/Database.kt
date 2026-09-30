@@ -21,28 +21,11 @@ import java.sql.Types
 import javax.sql.DataSource
 import kotlin.reflect.KClass
 
-interface DatabaseHandleProvider {
-    fun currentHandle(): Handle?
-}
-
-object Database : DatabaseHandleProvider {
+object Database {
     private lateinit var dataSource: DataSource
     lateinit var db: DatabaseApi
-    val jdbi: Jdbi
-        get() = db._jdbi
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
-    private val handleProviderThreadLocal = ThreadLocal<DatabaseHandleProvider?>()
-
-    override fun currentHandle(): Handle? = handleProviderThreadLocal.get()?.currentHandle()
-
-    fun setHandleProvider(provider: DatabaseHandleProvider?) {
-        if (provider == null) {
-            handleProviderThreadLocal.remove()
-        } else {
-            handleProviderThreadLocal.set(provider)
-        }
-    }
 
     fun init(config: DatabaseConfig) {
         dataSource = HikariDataSource().apply {
@@ -72,7 +55,7 @@ object Database : DatabaseHandleProvider {
             .configure(Arguments::class.java) { arguments ->
                 arguments.register(PgObjectArgumentFactory())
             }
-        db = DatabaseApi(jdbi, this)
+        db = DatabaseApi(jdbi)
 
         runMigration()
     }
@@ -162,7 +145,6 @@ class Forbindelse internal constructor(
 
 class DatabaseApi(
     private val jdbi: Jdbi,
-    private val handleProvider: DatabaseHandleProvider,
 ) {
     /**
      * Bruk bare i spesialtilfeller der det er hensiktsmessig å bruke JDBI-apiet direkte.
@@ -170,11 +152,27 @@ class DatabaseApi(
     @Suppress("ktlint:standard:backing-property-naming")
     val _jdbi: Jdbi = jdbi
 
+    /**
+     * Aktivt JDBI-[Handle] for gjeldende tråd, satt av testutvidelser slik at
+     * applikasjonskode og testoppsett deler samme transaksjon.
+     *
+     * Skal ikke brukes fra produksjonskode.
+     */
+    private val activeHandleThreadLocal = ThreadLocal<Handle?>()
+
+    fun bindHandleForTest(handle: Handle?) {
+        if (handle == null) {
+            activeHandleThreadLocal.remove()
+        } else {
+            activeHandleThreadLocal.set(handle)
+        }
+    }
+
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
     ): S {
-        val activeHandle = handleProvider.currentHandle()
+        val activeHandle = activeHandleThreadLocal.get()
         return if (activeHandle != null) {
             activeHandle.attach(sqlObjectKlasse.java).let(blokk)
         } else {
@@ -183,7 +181,7 @@ class DatabaseApi(
     }
 
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = handleProvider.currentHandle()
+        val activeHandle = activeHandleThreadLocal.get()
         return if (activeHandle != null) {
             activeHandle.inTransaction<T, Exception> { handle ->
                 blokk(Transaksjon(handle))
@@ -194,7 +192,7 @@ class DatabaseApi(
     }
 
     fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = handleProvider.currentHandle()
+        val activeHandle = activeHandleThreadLocal.get()
         return if (activeHandle != null) {
             blokk(Forbindelse(activeHandle))
         } else {

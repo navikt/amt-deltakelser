@@ -1,7 +1,6 @@
 package no.nav.amt.lib.testing
 
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.database.DatabaseHandleProvider
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -24,9 +23,7 @@ class JdbiDatabaseTestExtension :
         val handle = Database.db._jdbi.open()
         handle.begin()
         handleThreadLocal.set(handle)
-        Database.setHandleProvider(object : DatabaseHandleProvider {
-            override fun currentHandle(): Handle? = handleThreadLocal.get()
-        })
+        Database.db.bindHandleForTest(handle)
     }
 
     override fun afterEach(context: ExtensionContext) {
@@ -35,7 +32,7 @@ class JdbiDatabaseTestExtension :
             handle.rollback()
             handle.close()
             handleThreadLocal.remove()
-            Database.setHandleProvider(null)
+            Database.db.bindHandleForTest(null)
         }
     }
 
