@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.database.TestData
+import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.kafka.KafkaOutboxLifecycle
 import no.nav.amt.aktivitetskort.kafka.config.KafkaOutboxProcessorConfiguration
@@ -27,6 +28,7 @@ import org.apache.kafka.clients.producer.RecordMetadata
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.queryForObject
 import org.springframework.transaction.IllegalTransactionStateException
@@ -41,6 +43,7 @@ class KafkaOutboxTransactionTest(
     private val deltakerRepository: DeltakerRepository,
     private val meldingRepository: MeldingRepository,
     private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
+    private val aktivitetskortService: AktivitetskortService,
     private val transactionTemplate: TransactionTemplate,
     private val jdbcTemplate: JdbcTemplate,
     private val producerRepository: PostgresJdbcTemplateProducerRepository,
@@ -50,21 +53,31 @@ class KafkaOutboxTransactionTest(
         @Test
         fun `melding og outbox-record rulles tilbake sammen`() {
             // Arrange
-            val melding = lagMelding()
+            val arrangor = TestData.lagArrangor()
+            val deltakerliste = TestData.lagDeltakerliste(arrangorId = arrangor.id)
+            testDatabase.insertDeltakerliste(deltakerliste)
+            val deltakerDbo = TestData.lagDeltaker(deltakerlisteId = deltakerliste.id)
+            val deltaker = Deltaker.fromDeltakerResponse(TestData.lagDeltakerResponse(deltakerDbo, deltakerliste, arrangor))
+            val meldingId = UUID.randomUUID()
             val oppfolgingsperiode = TestData.oppfolgingsperiode()
+            every { veilarboppfolgingClient.hentOppfolgingperiode(deltaker.personident) } returns oppfolgingsperiode
+            jdbcTemplate.execute(
+                "ALTER TABLE kafka_producer_record ADD CONSTRAINT test_outbox_insert_failure CHECK (false)",
+            )
 
             // Act
-            transactionTemplate.executeWithoutResult {
-                oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
-                meldingRepository.upsert(melding)
-                aktivitetskortProducer.send(melding.aktivitetskort)
-                it.setRollbackOnly()
+            try {
+                shouldThrow<DataIntegrityViolationException> {
+                    aktivitetskortService.opprettMelding(deltaker, meldingId)
+                }
+            } finally {
+                jdbcTemplate.execute("ALTER TABLE kafka_producer_record DROP CONSTRAINT test_outbox_insert_failure")
             }
 
             // Assert
             jdbcTemplate.queryForObject<Int>(
                 "SELECT count(*) FROM melding WHERE id = ?",
-                melding.id,
+                meldingId,
             ) shouldBe 0
             jdbcTemplate.queryForObject<Int>(
                 "SELECT count(*) FROM oppfolgingsperiode WHERE id = ?",
