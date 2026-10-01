@@ -123,10 +123,7 @@ class GjennomforingUpserterTest {
         fun `lagrer ny prisinfo og produserer EnkeltplassEndrePrisinformasjon`() {
             // Arrange
             val deltaker = createUtkastDeltaker()
-            val nyPrisinfo = Anskaffelse(
-                pris = 50000,
-                begrunnelse = "~begrunnelse~",
-            )
+            val nyPrisinfo = Anskaffelse(pris = 50000)
 
             val slot = slot<GjennomforingRequestPayload>()
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
@@ -135,6 +132,7 @@ class GjennomforingUpserterTest {
             sut.lagreOgProduserPrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinfo = nyPrisinfo,
+                begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = "Z123456",
             )
 
@@ -169,6 +167,7 @@ class GjennomforingUpserterTest {
                 sut.lagreOgProduserPrisinfoEndring(
                     gjennomforingId = deltaker.deltakerliste.id,
                     prisinfo = nyPrisinfo,
+                    begrunnelse = null,
                     endretAvNavIdent = "Z123456",
                 )
             }
@@ -187,6 +186,7 @@ class GjennomforingUpserterTest {
             sut.lagreOgProduserPrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinfo = nyPrisinfo,
+                begrunnelse = null,
                 endretAvNavIdent = endretAv,
             )
 

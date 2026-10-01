@@ -60,11 +60,13 @@ class GjennomforingUpserter(
      *
      * @param gjennomforingId gjennomføring-ID som prisinformasjonen skal knyttes til.
      * @param prisinfo Ny prisinformasjon som skal sendes til behandling.
+     * @param begrunnelse Begrunnelsen for prisendringen.
      * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
      */
     fun lagreOgProduserPrisinfoEndring(
         gjennomforingId: UUID,
         prisinfo: PrisinformasjonDto,
+        begrunnelse: String?,
         endretAvNavIdent: String,
     ): UUID {
         val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
@@ -77,7 +79,7 @@ class GjennomforingUpserter(
             totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                 id = totrinnskontrollId,
                 behandletAv = endretAvNavIdent,
-                begrunnelse = prisinfo.begrunnelse,
+                begrunnelse = begrunnelse,
             ),
             payload = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
                 PrisinfoRepoAdapter.hentPrisinfo(
