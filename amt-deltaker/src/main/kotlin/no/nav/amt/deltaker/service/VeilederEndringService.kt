@@ -102,6 +102,7 @@ class VeilederEndringService(
                         val prisinformasjonId = gjennomforingUpserter.lagreOgProduserPrisinfoEndring(
                             gjennomforingId = deltaker.deltakerliste.id,
                             prisinfo = endringRequest.prisinfo,
+                            begrunnelse = endringRequest.begrunnelse,
                             endretAvNavIdent = endringRequest.endretAv,
                         )
 
