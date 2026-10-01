@@ -34,6 +34,16 @@ spec:
                 ),
                 "outbox", "amt-aktivitetskort-publisher", "", ""
               )
+              or
+              label_replace(
+                max by (app, namespace) (
+                  amt_arrangor_kafka_outbox_ventende{
+                    app="amt-arrangor",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-arrangor", "", ""
+              )
             ) >= 20
           for: 5m
           annotations:
