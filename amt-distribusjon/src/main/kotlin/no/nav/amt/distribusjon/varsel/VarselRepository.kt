@@ -1,9 +1,9 @@
 package no.nav.amt.distribusjon.varsel
 
 import no.nav.amt.distribusjon.varsel.model.Varsel
+import no.nav.amt.lib.utils.database.jdbi.Repository
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
-import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 @RegisterRowMapper(VarselMapper::class)
-interface VarselRepository : SqlObject {
+interface VarselRepository : Repository {
     @SqlUpdate(
         """
         INSERT INTO varsel (

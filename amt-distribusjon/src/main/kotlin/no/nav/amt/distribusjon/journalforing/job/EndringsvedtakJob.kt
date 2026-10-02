@@ -90,7 +90,7 @@ class EndringsvedtakJob(
         }
     }
 
-    internal fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> = db.bruk(HendelseRepository::class) {
+    internal fun getIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> = db.repo(HendelseRepository::class) {
         val ikkeJournalforte = it.hentIkkeJournalforteHendelser()
         val ikkeDistribuerte = it.hentHendelserSomSkalDistribueresSomBrev()
         ikkeJournalforte + ikkeDistribuerte

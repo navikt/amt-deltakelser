@@ -24,7 +24,7 @@ class TiltakshendelseService(
     }
 
     fun handleHendelse(hendelse: Hendelse) {
-        if (db.bruk(TiltakshendelseRepository::class) { it.getByHendelseId(hendelse.id) }.isSuccess) {
+        if (db.repo(TiltakshendelseRepository::class) { it.getByHendelseId(hendelse.id) }.isSuccess) {
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
@@ -65,7 +65,7 @@ class TiltakshendelseService(
     suspend fun handleForslag(forslag: Forslag) {
         when (forslag.status) {
             is Forslag.Status.VenterPaSvar -> {
-                if (db.bruk(TiltakshendelseRepository::class) { it.getForslagHendelse(forslag.id) }.isSuccess) {
+                if (db.repo(TiltakshendelseRepository::class) { it.getForslagHendelse(forslag.id) }.isSuccess) {
                     log.info("Tiltakshendelse for forslag ${forslag.id} finnes allerede. Ignorerer duplikat VenterPaSvar.")
                     return
                 }
@@ -95,13 +95,13 @@ class TiltakshendelseService(
     }
 
     fun reproduser(id: UUID) {
-        val tiltakshendelse = db.bruk(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
+        val tiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
     }
 
     fun reproduserOgSettAktivFalse(id: UUID) {
-        val tiltakshendelse = db.bruk(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
+        val tiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
@@ -117,7 +117,7 @@ class TiltakshendelseService(
 
     private fun opprettEllerOppdaterPrisendringStartHendelse(hendelse: Hendelse) {
         val aktivHendelse = db
-            .bruk(TiltakshendelseRepository::class) {
+            .repo(TiltakshendelseRepository::class) {
                 it.getAktivHendelse(
                     deltakerId = hendelse.deltaker.id,
                     hendelseType = Tiltakshendelse.Type.PRISENDRING,
@@ -153,7 +153,7 @@ class TiltakshendelseService(
         hendelseType: Tiltakshendelse.Type,
     ) {
         db
-            .bruk(TiltakshendelseRepository::class) {
+            .repo(TiltakshendelseRepository::class) {
                 it.getAktivHendelse(
                     deltakerId = hendelse.deltaker.id,
                     hendelseType = hendelseType,
@@ -168,7 +168,7 @@ class TiltakshendelseService(
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
-        val lagretTiltakshendelse = db.bruk(TiltakshendelseRepository::class) { it.upsert(tiltakshendelse) }
+        val lagretTiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.upsert(tiltakshendelse) }
         tiltakshendelseProducer.produce(lagretTiltakshendelse)
         log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id}")
     }

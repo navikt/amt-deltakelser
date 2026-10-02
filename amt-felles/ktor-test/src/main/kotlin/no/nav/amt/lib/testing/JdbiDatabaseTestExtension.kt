@@ -3,6 +3,7 @@ package no.nav.amt.lib.testing
 import no.nav.amt.lib.utils.database.DatabaseInit
 import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import no.nav.amt.lib.utils.database.jdbi.JdbiHandleProvider
+import no.nav.amt.lib.utils.database.jdbi.Repository
 import no.nav.amt.lib.utils.database.jdbi.createJdbi
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
@@ -77,7 +78,7 @@ class JdbiDatabaseTestExtension :
 }
 
 abstract class RepositoryTest {
-    inline fun <reified T : SqlObject> repo(): Lazy<T> = lazy { db.bruk(T::class) }
+    inline fun <reified T : Repository> repo(): Lazy<T> = lazy { db.bruk(T::class) }
 
     companion object {
         @RegisterExtension
