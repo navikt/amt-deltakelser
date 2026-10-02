@@ -12,6 +12,7 @@ import no.nav.amt.aktivitetskort.database.TestData.toDto
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
+import no.nav.amt.aktivitetskort.domain.Tag
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
@@ -19,7 +20,6 @@ import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
-import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -211,20 +211,11 @@ class KafkaConsumerTest(
     fun `listen - tombstone for deltaker som har aktivt aktivitetskort - deltaker slettes og aktivitetskort avbrytes`() {
         val ctx = TestData.MockContext(oppfolgingsperiodeId = UUID.randomUUID())
         ctx.oppfolgingsperiodeId.shouldNotBeNull()
-        val avbruttDeltaker = ctx.deltaker.copy(
-            status = DeltakerStatusModel(DeltakerStatus.Type.AVBRUTT, null),
-        )
-
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
         deltakerRepository.upsert(ctx.deltaker, offset)
         testDatabase.insertAktivOppfolgingsperiode(id = ctx.oppfolgingsperiodeId)
         meldingRepository.upsert(ctx.melding)
-
-        mockAmtArenaAclClient(ctx.deltaker.id, 1234)
-        mockAktivitetArenaAclClient(1234, ctx.aktivitetskort.id)
-        mockVeilarboppfolgingClient()
-        mockAmtDeltakerClient(ctx, avbruttDeltaker)
 
         kafkaConsumer.listen(
             ConsumerRecord(DELTAKER_TOPIC, 0, offset, ctx.deltaker.id.toString(), null),
@@ -236,6 +227,9 @@ class KafkaConsumerTest(
             .first()
             .aktivitetskort
         aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
+        aktivitetskort.oppgave shouldBe null
+        aktivitetskort.detaljer.first { it.label == "Status for deltakelse" }.verdi shouldBe "Avbrutt"
+        aktivitetskort.etiketter.single().kode shouldBe Tag.Kode.AVBRUTT
 
         deltakerRepository.get(ctx.deltaker.id) shouldBe null
     }

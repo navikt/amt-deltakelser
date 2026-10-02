@@ -4,20 +4,17 @@ import no.nav.amt.aktivitetskort.client.AmtArrangorClient
 import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
-import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.kafka.consumer.toDeltakerliste
-import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.utils.RepositoryResult
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
@@ -36,7 +33,6 @@ class KafkaConsumerService(
     private val deltakerRepository: DeltakerRepository,
     private val aktivitetskortService: AktivitetskortService,
     private val amtArrangorClient: AmtArrangorClient,
-    private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
     private val objectMapper: ObjectMapper,
     private val amtDeltakerClient: AmtDeltakerClient,
@@ -72,7 +68,6 @@ class KafkaConsumerService(
                         log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
                         return@executeWithoutResult
                     }
-                    aktivitetskortProducer.send(aktivitetskort)
                 }
 
                 is RepositoryResult.Created -> {
@@ -82,7 +77,6 @@ class KafkaConsumerService(
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
                         return@executeWithoutResult
                     }
-                    aktivitetskortProducer.send(aktivitetskort)
                 }
 
                 is RepositoryResult.NoChange -> {
@@ -124,7 +118,7 @@ class KafkaConsumerService(
             when (val result = deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
-                    aktivitetskortProducer.send(aktivitetskortService.oppdaterAktivitetskort(result.data.id))
+                    aktivitetskortService.oppdaterAktivitetskort(result.data.id)
                 }
 
                 is RepositoryResult.Created -> {
@@ -154,8 +148,7 @@ class KafkaConsumerService(
             when (val result = arrangorRepository.upsert(arrangor.toModel())) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for arrangor ${arrangor.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.oppdaterAktivitetskort(result.data)
-                    aktivitetskortProducer.send(aktivitetskort)
+                    aktivitetskortService.oppdaterAktivitetskort(result.data)
                 }
 
                 is RepositoryResult.Created -> {
@@ -206,31 +199,25 @@ class KafkaConsumerService(
 
     private fun handterSlettetDeltaker(deltakerId: UUID) {
         val deltaker = deltakerRepository.get(deltakerId) ?: return
+        val melding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
 
-        aktivitetskortService
-            .getSisteMeldingForDeltaker(deltaker.id)
-            ?.also { avbrytAktivitetskort(it.aktivitetskort, deltaker) }
-
-        log.info("Mottok tombstone for deltaker: $deltakerId og slettet deltaker")
-        deltakerRepository.delete(deltakerId)
-    }
-
-    private fun avbrytAktivitetskort(
-        aktivitetskort: Aktivitetskort,
-        deltaker: DeltakerDbo,
-    ) {
-        if (skalAvbryteAktivtetskort(aktivitetskort.aktivitetStatus)) {
-            val avbruttDeltaker = deltaker.copy(status = DeltakerStatusModel(DeltakerStatus.Type.AVBRUTT, null))
-
-            aktivitetskortProducer.send(aktivitetskortService.oppdaterAktivitetskortForSlettetdeltaker(avbruttDeltaker, aktivitetskort.id))
+        if (melding != null && skalAvbryteAktivitetskort(melding.aktivitetskort.aktivitetStatus)) {
+            aktivitetskortService.oppdaterAktivitetskortForSlettetDeltaker(
+                deltaker = deltaker,
+                melding = melding,
+            )
             log.info(
                 "Mottok tombstone for deltaker: ${deltaker.id} som hadde status: ${deltaker.status.type}. " +
-                    "Avbrøt deltakelse og aktivitetskort: ${aktivitetskort.id}.",
+                    "Avbrøt deltakelse og aktivitetskort: ${melding.id}.",
             )
+        } else {
+            aktivitetskortService.slettDeltaker(deltakerId)
         }
+
+        log.info("Mottok tombstone for deltaker: $deltakerId og slettet deltaker")
     }
 
-    private fun skalAvbryteAktivtetskort(status: AktivitetStatus?): Boolean = when (status) {
+    private fun skalAvbryteAktivitetskort(status: AktivitetStatus?): Boolean = when (status) {
         AktivitetStatus.FORSLAG,
         AktivitetStatus.PLANLAGT,
         AktivitetStatus.GJENNOMFORES,

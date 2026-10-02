@@ -1,20 +1,22 @@
 package no.nav.amt.aktivitetskort.kafka.config
 
+import io.micrometer.core.instrument.MeterRegistry
+import no.nav.common.kafka.producer.KafkaProducerClient
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
+import java.util.Properties
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
@@ -25,6 +27,7 @@ class KafkaConfig(
     @Value($$"${KAFKA_CREDSTORE_PASSWORD}") private val kafkaCredstorePassword: String,
     @Value($$"${KAFKA_KEYSTORE_PATH}") private val kafkaKeystorePath: String,
     @Value($$"${kafka.auto-offset-reset}") private val kafkaAutoOffsetReset: String,
+    private val meterRegistry: MeterRegistry,
 ) {
     @Bean
     fun kafkaListenerContainerFactory(kafkaErrorHandler: KafkaErrorHandler): ConcurrentKafkaListenerContainerFactory<String, String> {
@@ -47,12 +50,36 @@ class KafkaConfig(
     }
 
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<String, String> = KafkaTemplate(DefaultKafkaProducerFactory(commonConfig()))
+    fun kafkaOutboxProducer(): KafkaProducerClient<ByteArray, ByteArray> {
+        val properties = Properties().apply {
+            commonConfig().forEach { (key, value) ->
+                put(
+                    key,
+                    value,
+                )
+            }
+            put(
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                ByteArraySerializer::class.java,
+            )
+            put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                ByteArraySerializer::class.java,
+            )
+            put(
+                ProducerConfig.CLIENT_ID_CONFIG,
+                "amt-aktivitetskort-publisher-outbox",
+            )
+        }
+        return KafkaProducerClientBuilder
+            .builder<ByteArray, ByteArray>()
+            .withProperties(properties)
+            .withMetrics(meterRegistry)
+            .build()
+    }
 
     private fun commonConfig() = mapOf(
         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers,
-        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
     ).plus(securityConfig())
 
     private fun securityConfig() = mapOf(

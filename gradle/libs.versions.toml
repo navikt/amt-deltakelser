@@ -65,6 +65,7 @@ tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-ko
 shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock-spring-version" }
 shedlock-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock-spring-version" }
 springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk-version" }
+nav-common-kafka = { module = "no.nav.common:kafka", version.ref = "nav-common-version" }
 
 # amt-lib spesifikt
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients-version" }
