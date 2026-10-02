@@ -37,6 +37,21 @@ interface TiltakshendelseRepository : Repository {
             .singleOrNull() ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
     }
 
+    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
+        findById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
+    }
+
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE id = :id
+        """,
+    )
+    fun findById(
+        @Bind("id") id: UUID,
+    ): Tiltakshendelse?
+
     @SqlQuery(
         """
         SELECT *
@@ -48,21 +63,6 @@ interface TiltakshendelseRepository : Repository {
         LIMIT 1
         """,
     )
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
-        getById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
-    }
-
-    @SqlQuery(
-        """
-        SELECT *
-        FROM tiltakshendelse
-        WHERE id = :id
-        """,
-    )
-    fun getById(
-        @Bind("id") id: UUID,
-    ): Tiltakshendelse?
-
     fun findAktivHendelse(
         @Bind("deltaker_id") deltakerId: UUID,
         @Bind("type") type: String,
