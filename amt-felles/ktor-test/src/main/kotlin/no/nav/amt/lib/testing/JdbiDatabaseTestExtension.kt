@@ -2,8 +2,6 @@ package no.nav.amt.lib.testing
 
 import no.nav.amt.lib.utils.database.DatabaseInit
 import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
-import no.nav.amt.lib.utils.database.jdbi.DatabaseTestSupport
-import no.nav.amt.lib.utils.database.jdbi.JdbiDatabase
 import no.nav.amt.lib.utils.database.jdbi.JdbiHandleProvider
 import no.nav.amt.lib.utils.database.jdbi.createJdbi
 import org.jdbi.v3.core.Handle
@@ -14,31 +12,42 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 
-/**
- * @param testSupport Leverandør av [DatabaseTestSupport] som transaksjonen per test skal åpnes mot.
- * Standard er den delte [instance]s `testSupport`. Kan overstyres for f.eks.
- * egne [JdbiDatabase]-instanser.
- * Må være en lambda (ikke evaluert ved konstruksjon), siden [DatabaseTestSupport] typisk
- * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
- */
 class JdbiDatabaseTestExtension :
     BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
-    lateinit var jdbi: Jdbi
+    /**
+     * Eksponert for at kode under test skal kunne bruke samme inngang til databasen som testkoden.
+     */
     lateinit var dbApi: DatabaseApi
-    private val handleThreadLocal = ThreadLocal<Handle?>()
+
+    private lateinit var jdbi: Jdbi
+    private val handleThreadLocal = ThreadLocal.withInitial { null as Handle? }
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
         jdbi = createJdbi(DatabaseInit.createDataSource(TestPostgresContainer.databaseConfig()))
+
         val jdbiHandleProvider = object : JdbiHandleProvider {
+            /**
+             * Definerer hva som skjer når applikasjonskode (kode under test) ber om en databaseforbindelse.
+             * Vi ønsker som hovedregel å bruke samme forbindelse som testkoden, slik at vi kan pakke hver
+             * test inn i en enkelt transaksjon (se nedenfor).
+             *
+             * ThreadLocal gir støtte for å kjøre flere tester parallelt og i praksis isolert fra hverandre
+             * ved at de kjører i hver sin transaksjon.
+             */
             override fun <T> withHandle(block: (Handle) -> T): T {
-                val activeHandle = handleThreadLocal.get()
+                val activeHandle = activeHandle()
                 return if (activeHandle == null) {
-                    TODO("maybe this hsouldnot happens")
+                    // Dette skal normalt ikke skje, men kan tenkes oppstå ved testing av kode som bruker flere tråder.
+                    log.warn(
+                        "Ingen databaseforbindelse er satt opp på tråden. Spørringene vil *ikke* bli omfattet av test-transaksjonen og eventuelle endringer vil ikke bli rullet tilbake.",
+                    )
                     jdbi.withHandle<T, RuntimeException>(block)
                 } else {
                     block(activeHandle)
@@ -47,6 +56,8 @@ class JdbiDatabaseTestExtension :
         }
         dbApi = DatabaseApi(jdbiHandleProvider)
     }
+
+    fun activeHandle(): Handle? = handleThreadLocal.get()
 
     override fun beforeEach(context: ExtensionContext) {
         val handle = jdbi.open()
