@@ -1,7 +1,7 @@
 package no.nav.amt.lib.testing
 
-import no.nav.amt.lib.utils.database.DatabaseTestSupport
-import no.nav.amt.lib.utils.database.NewDatabase
+import no.nav.amt.lib.utils.database.jdbi.DatabaseTestSupport
+import no.nav.amt.lib.utils.database.jdbi.JdbiDatabase
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
 /**
  * @param testSupport Leverandør av [DatabaseTestSupport] som transaksjonen per test skal åpnes mot.
  * Standard er den delte [instance]s `testSupport`. Kan overstyres for f.eks.
- * egne [NewDatabase]-instanser.
+ * egne [JdbiDatabase]-instanser.
  * Må være en lambda (ikke evaluert ved konstruksjon), siden [DatabaseTestSupport] typisk
  * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
  */
@@ -46,16 +46,16 @@ class JdbiDatabaseTestExtension(
 
     companion object {
         /**
-         * Delt [NewDatabase]-instans for tester som bruker det JDBI-baserte grensesnittet
-         * ([no.nav.amt.lib.utils.database.DatabaseApi]) i stedet for det globale, Kotliquery-baserte
+         * Delt [JdbiDatabase]-instans for tester som bruker det JDBI-baserte grensesnittet
+         * ([no.nav.amt.lib.utils.database.jdbi.DatabaseApi]) i stedet for det globale, Kotliquery-baserte
          * [no.nav.amt.lib.utils.database.Database]-singletonet.
          *
          * Kobler seg til samme Postgres-testcontainer som [TestPostgresContainer], og opprettes
          * kun én gang per JVM slik at testklasser i samme modul deler samme datakilde.
          */
-        val instance: NewDatabase by lazy {
+        val instance: JdbiDatabase by lazy {
             TestPostgresContainer.bootstrap()
-            NewDatabase(TestPostgresContainer.databaseConfig(), withTestSupport = true)
+            JdbiDatabase(TestPostgresContainer.databaseConfig(), withTestSupport = true)
         }
     }
 }

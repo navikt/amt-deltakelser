@@ -29,7 +29,7 @@ import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
-import no.nav.amt.lib.utils.database.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach

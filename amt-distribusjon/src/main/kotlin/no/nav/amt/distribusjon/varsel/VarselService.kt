@@ -8,7 +8,7 @@ import no.nav.amt.distribusjon.varsel.model.Varsel.Status
 import no.nav.amt.distribusjon.varsel.model.Varsel.Type
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.utils.database.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.time.ZoneId
 import java.time.ZoneOffset

@@ -55,7 +55,7 @@ object TestPostgresContainer {
     /**
      * [DatabaseConfig] som peker til testcontaineren [bootstrap] har startet.
      *
-     * Kan brukes til å koble opp en egen [no.nav.amt.lib.utils.database.NewDatabase]-instans
+     * Kan brukes til å koble opp en egen [no.nav.amt.lib.utils.database.jdbi.JdbiDatabase]-instans
      * mot samme testcontainer som det globale [Database]-singletonet, uten å opprette en ny container.
      * Må kalles etter [bootstrap].
      */

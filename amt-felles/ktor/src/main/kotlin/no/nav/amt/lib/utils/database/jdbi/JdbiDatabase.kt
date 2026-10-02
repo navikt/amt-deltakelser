@@ -1,26 +1,31 @@
-package no.nav.amt.lib.utils.database
+package no.nav.amt.lib.utils.database.jdbi
 
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.amt.lib.utils.database.DatabaseConfig
+import no.nav.amt.lib.utils.database.DatabaseInit
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.argument.AbstractArgumentFactory
+import org.jdbi.v3.core.argument.Argument
+import org.jdbi.v3.core.argument.Arguments
+import org.jdbi.v3.core.config.ConfigRegistry
+import org.jdbi.v3.core.kotlin.KotlinPlugin
+import org.jdbi.v3.postgres.PostgresPlugin
 import org.jdbi.v3.sqlobject.SqlObject
+import org.jdbi.v3.sqlobject.SqlObjectPlugin
+import org.postgresql.util.PGobject
+import java.sql.Types
 import javax.sql.DataSource
 import kotlin.reflect.KClass
 
 /**
- * Ikke-statisk variant av [Database] som kun støtter det nye JDBI-baserte grensesnittet
- * ([DatabaseApi.bruk] / [DatabaseApi.transaksjon] / [DatabaseApi.forbindelse]).
+ * Databasewrapper basert på Jdbi-biblioteket.
  *
- * I motsetning til [Database], som er et globalt singleton-objekt med legacy Kotliquery-støtte,
- * er [NewDatabase] en vanlig klasse. Det gjør det mulig å opprette flere uavhengige
- * databaseinstanser i samme JVM (f.eks. i tester), uten delt globalt state.
- *
- * @param withTestSupport Instansierer [testSupport] når `true`. Skal kun settes til `true` i tester —
- * [DatabaseTestSupport] åpner JDBI-transaksjoner bundet til gjeldende tråd, og er ikke ment for
- * produksjonskode. Standard er `false`, slik at produksjonsoppsett aldri får denne muligheten
- * tilgjengelig; tester injiserer den eksplisitt der den trengs.
+ * Gir støtte for:
+ *  - et forenklet [DatabaseApi] som gjør at vi ikke trenger å forholde oss til hele Jdbi-APIet i det daglige (gjør det lett å gjøre rett)
+ *  - felles databaseforbindelse mellom applikasjonskode og testkode (gjør at tester kan kjøre i transaksjoner og raskt rulle tilbake data)
  */
-class NewDatabase(
+class JdbiDatabase(
     config: DatabaseConfig,
     withTestSupport: Boolean = false,
 ) {
@@ -30,15 +35,36 @@ class NewDatabase(
     val db: DatabaseApi
 
     init {
-        val jdbi = DatabaseInit.createJdbi(dataSource)
+        val jdbi = createJdbi(dataSource)
         testSupport = if (withTestSupport) DatabaseTestSupport(jdbi) else null
         db = DatabaseApi(jdbi, testSupport)
 
         DatabaseInit.runMigration(dataSource)
     }
 
+    fun createJdbi(dataSource: DataSource): Jdbi = Jdbi
+        .create(dataSource)
+        // Støtter definisjon av repositories etc som interface
+        .installPlugin(SqlObjectPlugin())
+        // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
+        .installPlugin(KotlinPlugin())
+        // Støtter mapping av en del vanlige Postgres-spesifikke typer
+        .installPlugin(PostgresPlugin())
+        .configure(Arguments::class.java) { arguments ->
+            arguments.register(PgObjectArgumentFactory())
+        }
+
     fun close() {
         (dataSource as HikariDataSource).close()
+    }
+}
+
+private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
+    override fun build(
+        value: PGobject,
+        config: ConfigRegistry,
+    ): Argument = Argument { position, statement, _ ->
+        statement.setObject(position, value)
     }
 }
 

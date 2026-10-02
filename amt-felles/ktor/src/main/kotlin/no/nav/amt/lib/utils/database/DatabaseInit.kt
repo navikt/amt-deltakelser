@@ -2,16 +2,6 @@ package no.nav.amt.lib.utils.database
 
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.argument.AbstractArgumentFactory
-import org.jdbi.v3.core.argument.Argument
-import org.jdbi.v3.core.argument.Arguments
-import org.jdbi.v3.core.config.ConfigRegistry
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.postgres.PostgresPlugin
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.postgresql.util.PGobject
-import java.sql.Types
 import javax.sql.DataSource
 
 /**
@@ -35,18 +25,6 @@ internal object DatabaseInit {
         leakDetectionThreshold = 15_000
     }
 
-    fun createJdbi(dataSource: DataSource): Jdbi = Jdbi
-        .create(dataSource)
-        // Støtter definisjon av repositories etc som interface
-        .installPlugin(SqlObjectPlugin())
-        // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
-        .installPlugin(KotlinPlugin())
-        // Støtter mapping av en del vanlige Postgres-spesifikke typer
-        .installPlugin(PostgresPlugin())
-        .configure(Arguments::class.java) { arguments ->
-            arguments.register(PgObjectArgumentFactory())
-        }
-
     fun runMigration(
         dataSource: DataSource,
         initSql: String? = null,
@@ -61,13 +39,3 @@ internal object DatabaseInit {
         .migrations
         .size
 }
-
-private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
-    override fun build(
-        value: PGobject,
-        config: ConfigRegistry,
-    ): Argument = Argument { position, statement, _ ->
-        statement.setObject(position, value)
-    }
-}
-
