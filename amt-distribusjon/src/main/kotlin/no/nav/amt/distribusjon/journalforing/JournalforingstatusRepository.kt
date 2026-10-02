@@ -20,13 +20,13 @@ interface JournalforingstatusRepository : SqlObject {
         VALUES (
             :hendelse_id,
             :journalpost_id,
-            CAST(:bestillingsid AS uuid),
+            :bestillingsid,
             :kan_ikke_distribueres,
             :kan_ikke_journalfores
         )
         ON CONFLICT (hendelse_id) DO UPDATE SET
             journalpost_id = :journalpost_id,
-            bestillingsid = CAST(:bestillingsid AS uuid),
+            bestillingsid = :bestillingsid,
             kan_ikke_distribueres = :kan_ikke_distribueres,
             kan_ikke_journalfores = :kan_ikke_journalfores,
             modified_at = CURRENT_TIMESTAMP
@@ -35,7 +35,7 @@ interface JournalforingstatusRepository : SqlObject {
     fun upsert(
         @Bind("hendelse_id") hendelseId: UUID,
         @Bind("journalpost_id") journalpostId: String?,
-        @Bind("bestillingsid") bestillingsId: String?,
+        @Bind("bestillingsid") bestillingsId: UUID?,
         @Bind("kan_ikke_distribueres") kanIkkeDistribueres: Boolean,
         @Bind("kan_ikke_journalfores") kanIkkeJournalfores: Boolean,
     )
@@ -44,7 +44,7 @@ interface JournalforingstatusRepository : SqlObject {
         upsert(
             hendelseId = journalforingstatus.hendelseId,
             journalpostId = journalforingstatus.journalpostId,
-            bestillingsId = journalforingstatus.bestillingsId?.toString(),
+            bestillingsId = journalforingstatus.bestillingsId,
             kanIkkeDistribueres = journalforingstatus.kanIkkeDistribueres ?: false,
             kanIkkeJournalfores = journalforingstatus.kanIkkeJournalfores ?: false,
         )
