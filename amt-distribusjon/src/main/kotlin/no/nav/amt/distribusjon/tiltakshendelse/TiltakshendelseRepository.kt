@@ -41,17 +41,6 @@ interface TiltakshendelseRepository : Repository {
         """
         SELECT *
         FROM tiltakshendelse
-        WHERE id = :id
-        """,
-    )
-    fun getById(
-        @Bind("id") id: UUID,
-    ): Tiltakshendelse?
-
-    @SqlQuery(
-        """
-        SELECT *
-        FROM tiltakshendelse
         WHERE deltaker_id = :deltaker_id
           AND type = :type
           AND aktiv = true
@@ -62,6 +51,17 @@ interface TiltakshendelseRepository : Repository {
     fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
         getById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
     }
+
+    @SqlQuery(
+        """
+        SELECT *
+        FROM tiltakshendelse
+        WHERE id = :id
+        """,
+    )
+    fun getById(
+        @Bind("id") id: UUID,
+    ): Tiltakshendelse?
 
     fun findAktivHendelse(
         @Bind("deltaker_id") deltakerId: UUID,
