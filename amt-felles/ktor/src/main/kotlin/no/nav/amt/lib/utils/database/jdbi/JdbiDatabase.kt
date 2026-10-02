@@ -42,18 +42,18 @@ private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.
  * Jdbi har et kraftig, men ganske omfattende og stundom omstendelig API. Denne klassen tilbyr enkle innganger til databasen som dekker
  * de vanligste brukstilfellene:
  *
- *  * For enkle spørringer som ikke bruker mer enn ett repository: [bruk]
+ *  * For enkle spørringer som ikke bruker mer enn ett repository: [repo]
  *  * For flere spørringer som skal pakkes inn i en transaksjon: [transaksjon]
  *  * For mer kompliserte situasjoner, f.eks. der flere repositories skal sys sammen med varierende bruk av transaksjoner: [forbindelse]
  */
 class DatabaseApi(
     private val jdbiHandleProvider: JdbiHandleProvider,
 ) {
-    fun <T : SqlObject, S> bruk(
-        sqlObjectKlasse: KClass<T>,
-        blokk: (sqlObject: T) -> S,
+    fun <T : Repository, S> repo(
+        repositoryKlasse: KClass<T>,
+        blokk: (T) -> S,
     ): S = jdbiHandleProvider.withHandle {
-        val sqlObject = it.attach(sqlObjectKlasse.java)
+        val sqlObject = it.attach(repositoryKlasse.java)
         blokk(sqlObject)
     }
 
@@ -82,3 +82,8 @@ class DatabaseApi(
         }
     }
 }
+
+/**
+ * Markør-interface for å gjøre koden mer selvforklarende og bedre typesikring/statiske analysemuligheter.
+ */
+interface Repository : SqlObject

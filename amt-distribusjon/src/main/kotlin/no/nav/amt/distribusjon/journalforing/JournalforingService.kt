@@ -43,7 +43,7 @@ class JournalforingService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun handleHendelse(hendelse: Hendelse) {
-        val journalforingstatus = db.bruk(JournalforingstatusRepository::class) { it.get(hendelse.id) }
+        val journalforingstatus = db.repo(JournalforingstatusRepository::class) { it.get(hendelse.id) }
         if (hendelseErBehandlet(journalforingstatus, hendelse.distribusjonskanal, hendelse.manuellOppfolging)) {
             log.info("Hendelse med id ${hendelse.id} for deltaker ${hendelse.deltaker.id} er allerede behandlet")
             return
@@ -340,7 +340,7 @@ class JournalforingService(
         hendelse: Hendelse,
         journalforingstatus: Journalforingstatus?,
     ) {
-        db.bruk(JournalforingstatusRepository::class) {
+        db.repo(JournalforingstatusRepository::class) {
             it.upsert(
                 Journalforingstatus(
                     hendelseId = hendelse.id,
@@ -367,7 +367,7 @@ class JournalforingService(
         val navBruker = amtPersonClient.hentNavBruker(sisteHendelse.hendelse.deltaker.personident)
 
         if (navBruker.harFalskIdentitet) {
-            db.bruk(JournalforingstatusRepository::class) { repository ->
+            db.repo(JournalforingstatusRepository::class) { repository ->
                 hendelseMedJournalforingstatuser.forEach {
                     val status = it.journalforingstatus
                     repository.upsert(
@@ -489,7 +489,7 @@ class JournalforingService(
         if (!kanDistribueres) {
             log.warn("Kan ikke distribuere journalpost $journalpostId. Har adresse: $harAdresse")
         }
-        db.bruk(JournalforingstatusRepository::class) { repository ->
+        db.repo(JournalforingstatusRepository::class) { repository ->
             hendelser.forEach {
                 repository.upsert(
                     Journalforingstatus(
@@ -546,7 +546,7 @@ class JournalforingService(
             kanIkkeDistribueres = null,
             kanIkkeJournalfores = kanIkkeJournalfores,
         )
-        db.bruk(JournalforingstatusRepository::class) { it.upsert(nyJournalforingstatus) }
+        db.repo(JournalforingstatusRepository::class) { it.upsert(nyJournalforingstatus) }
     }
 }
 

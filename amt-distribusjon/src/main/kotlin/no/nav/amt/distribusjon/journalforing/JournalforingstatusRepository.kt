@@ -1,13 +1,13 @@
 package no.nav.amt.distribusjon.journalforing
 
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
-import org.jdbi.v3.sqlobject.SqlObject
+import no.nav.amt.lib.utils.database.jdbi.Repository
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import java.util.UUID
 
-interface JournalforingstatusRepository : SqlObject {
+interface JournalforingstatusRepository : Repository {
     @SqlUpdate(
         """
         INSERT INTO journalforingstatus (

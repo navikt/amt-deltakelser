@@ -243,7 +243,7 @@ class EndringsvedtakJobTest {
         every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
         every {
-            db.bruk(HendelseRepository::class, any<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>())
+            db.repo(HendelseRepository::class, any<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>())
         } answers {
             secondArg<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>()(hendelseRepository)
         }

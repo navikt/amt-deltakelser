@@ -4,11 +4,11 @@ import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
+import no.nav.amt.lib.utils.database.jdbi.Repository
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
-import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.customizer.BindList
@@ -20,7 +20,7 @@ import java.util.UUID
 
 @RegisterRowMapper(HendelseMapper::class)
 @RegisterRowMapper(HendelseMedJournalforingstatusMapper::class)
-interface HendelseRepository : SqlObject {
+interface HendelseRepository : Repository {
     @SqlUpdate(
         """
         INSERT INTO hendelse (

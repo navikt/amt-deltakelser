@@ -2,9 +2,9 @@ package no.nav.amt.distribusjon.tiltakshendelse
 
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.database.jdbi.Repository
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
-import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
@@ -12,7 +12,7 @@ import java.sql.ResultSet
 import java.util.UUID
 
 @RegisterRowMapper(TiltakshendelseMapper::class)
-interface TiltakshendelseRepository : SqlObject {
+interface TiltakshendelseRepository : Repository {
     @SqlQuery(
         """
         SELECT *
