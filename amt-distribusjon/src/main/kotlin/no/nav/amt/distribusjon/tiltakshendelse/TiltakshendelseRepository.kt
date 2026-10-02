@@ -1,10 +1,7 @@
 package no.nav.amt.distribusjon.tiltakshendelse
 
-import kotliquery.Row
-import kotliquery.queryOf
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.utils.database.Database
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.SqlObject
@@ -96,39 +93,22 @@ interface TiltakshendelseRepository : SqlObject {
             UPSERT_BY_FORSLAG_ID_SQL
         }
 
-        val params = mapOf(
-            "id" to tiltakshendelse.id,
-            "type" to tiltakshendelse.type.name,
-            "deltaker_id" to tiltakshendelse.deltakerId,
-            "forslag_id" to tiltakshendelse.forslagId,
-            "hendelser" to tiltakshendelse.hendelser.toTypedArray(),
-            "personident" to tiltakshendelse.personident,
-            "aktiv" to tiltakshendelse.aktiv,
-            "tekst" to tiltakshendelse.tekst,
-            "tiltakskode" to tiltakshendelse.tiltakskode.name,
-        )
-
-        return Database.query { session ->
-            session.run(
-                queryOf(sql, params).map(::rowMapper).asSingle,
-            ) ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
-        }
+        return handle
+            .createQuery(sql)
+            .bind("id", tiltakshendelse.id)
+            .bind("type", tiltakshendelse.type.name)
+            .bind("deltaker_id", tiltakshendelse.deltakerId)
+            .bind("forslag_id", tiltakshendelse.forslagId)
+            .bind("hendelser", tiltakshendelse.hendelser.toTypedArray())
+            .bind("personident", tiltakshendelse.personident)
+            .bind("aktiv", tiltakshendelse.aktiv)
+            .bind("tekst", tiltakshendelse.tekst)
+            .bind("tiltakskode", tiltakshendelse.tiltakskode.name)
+            .map(TiltakshendelseMapper())
+            .singleOrNull() ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
     }
 
     companion object {
-        private fun rowMapper(row: Row) = Tiltakshendelse(
-            id = row.uuid("id"),
-            type = Tiltakshendelse.Type.valueOf(row.string("type")),
-            deltakerId = row.uuid("deltaker_id"),
-            forslagId = row.uuidOrNull("forslag_id"),
-            hendelser = row.array<UUID>("hendelser").toList(),
-            personident = row.string("personident"),
-            aktiv = row.boolean("aktiv"),
-            tekst = row.string("tekst"),
-            tiltakskode = Tiltakskode.valueOf(row.string("tiltakskode")),
-            opprettet = row.localDateTime("created_at"),
-        )
-
         private const val ID_COLUMN = "id"
         private const val FORSLAG_ID_COLUMN = "forslag_id"
 
