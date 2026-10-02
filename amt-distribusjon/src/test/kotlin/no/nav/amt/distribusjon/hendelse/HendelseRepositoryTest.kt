@@ -18,6 +18,7 @@ import java.util.UUID
 class HendelseRepositoryTest : RepositoryTest() {
     private val journalforingstatusRepository by repo<JournalforingstatusRepository>()
     private val hendelseRepository by repo<HendelseRepository>()
+    private val testRepository by repo<TestRepository>()
 
     @Test
     fun `insert - inserter hendelse i database`() {
@@ -44,7 +45,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -68,7 +69,7 @@ class HendelseRepositoryTest : RepositoryTest() {
         fun `hentIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
                     hendelseId = hendelse.id,
@@ -93,7 +94,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -119,7 +120,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             // Act
             val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
@@ -139,7 +140,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -167,7 +168,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -194,7 +195,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -221,7 +222,7 @@ class HendelseRepositoryTest : RepositoryTest() {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(db, hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -245,7 +246,7 @@ class HendelseRepositoryTest : RepositoryTest() {
     fun `getHendelser - skal returnere hendelser`() {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-        TestRepository.insertHendelse(db, hendelse)
+        testRepository.insertHendelse(hendelse)
 
         // Act
         val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
@@ -268,7 +269,7 @@ class HendelseRepositoryTest : RepositoryTest() {
             put("navn", "Overordnet Arrangør")
         }
 
-        TestRepository.insertHendelse(db, hendelse, deltakerOverride = deltakerNode)
+        testRepository.insertHendelse(hendelse, deltakerOverride = deltakerNode)
 
         // Act
         val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
