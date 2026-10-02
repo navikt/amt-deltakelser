@@ -89,6 +89,11 @@ interface TiltakshendelseRepository : Repository {
         @Bind("forslag_id") forslagId: UUID,
     ): Tiltakshendelse?
 
+    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
+        findForslagHendelse(forslagId)
+            ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
+    }
+
     @SqlQuery(
         """
         SELECT *
@@ -99,11 +104,6 @@ interface TiltakshendelseRepository : Repository {
     fun findByHendelseId(
         @Bind("hendelse_id") hendelseId: UUID,
     ): Tiltakshendelse?
-
-    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
-        findForslagHendelse(forslagId)
-            ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
-    }
 
     fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
         findByHendelseId(hendelseId)
