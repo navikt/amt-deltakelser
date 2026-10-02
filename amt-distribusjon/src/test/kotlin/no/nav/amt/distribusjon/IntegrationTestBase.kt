@@ -31,13 +31,12 @@ import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
 import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.jdbi.v3.sqlobject.SqlObject
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
     protected val database: DatabaseApi
-        get() = companionDatabase
+        get() = testDb.dbApi
 
     inline fun <reified T : SqlObject> repo(): Lazy<T> = lazy { testDb.bruk(T::class) }
 
@@ -89,16 +88,8 @@ abstract class IntegrationTestBase {
     )
 
     companion object {
-        private lateinit var companionDatabase: DatabaseApi
-
         @RegisterExtension
         val testDb = JdbiDatabaseTestExtension()
-
-        @BeforeAll
-        @JvmStatic
-        fun setupAll() {
-            companionDatabase = JdbiDatabaseTestExtension.instance.db
-        }
     }
 
     @BeforeEach
