@@ -1,12 +1,12 @@
 package no.nav.amt.lib.utils.database.jdbi
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
-import org.jdbi.v3.core.Handle
+import no.nav.amt.lib.testing.TestPostgresContainer
+import no.nav.amt.lib.utils.database.DatabaseInit
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.CompletableFuture
 
 private interface TestJdbiRepository : Repository {
@@ -14,62 +14,63 @@ private interface TestJdbiRepository : Repository {
     fun one(): Int
 
     @SqlQuery("SELECT :value")
-    fun value(
-        @Bind("value") value: Int,
-    ): Int
+    fun value(@Bind("value") value: Int): Int
 }
 
-class DatabaseApiTest {
+class ProductionDatabaseApiTest {
     companion object {
-        @RegisterExtension
-        @JvmField
-        val db = JdbiDatabaseTestExtension()
+        @BeforeAll
+        @JvmStatic
+        fun setup() {
+            TestPostgresContainer.bootstrap()
+        }
     }
 
+    private val databaseApi = DatabaseApi(
+        ApplicationJdbiHandleProvider(
+            createJdbi(DatabaseInit.createDataSource(TestPostgresContainer.databaseConfig())),
+        ),
+    )
+
     @Test
-    fun `forbindelse og transaksjon gjenbrukes på samme tråd`() {
-        val originalHandle = db.activeHandle()!!
+    fun `ApplicationJdbiHandleProvider does not keep a transaction alive across independent calls`() {
+        databaseApi.forbindelse { it.erTransaksjon() } shouldBe false
+        databaseApi.forbindelse { it.erTransaksjon() } shouldBe false
 
-        db.dbApi.forbindelse { connection ->
-            connection.erTransaksjon() shouldBe true
-            val repository = connection.bruk(TestJdbiRepository::class)
-            repository.one() shouldBe 1
-            db.activeHandle() shouldBe originalHandle
-        }
-
-        db.dbApi.transaksjon { tx ->
-            db.activeHandle() shouldBe originalHandle
-            val result = tx.bruk(TestJdbiRepository::class) { repository ->
-                repository.value(42)
+        databaseApi.transaksjon { tx ->
+            tx.bruk(TestJdbiRepository::class) { repository ->
+                repository.one() shouldBe 1
             }
-            result shouldBe 42
 
-            db.dbApi.forbindelse { connection ->
+            databaseApi.forbindelse { connection ->
                 connection.erTransaksjon() shouldBe true
-                db.activeHandle() shouldBe originalHandle
             }
         }
+
+        databaseApi.forbindelse { it.erTransaksjon() } shouldBe false
     }
 
     @Test
-    fun `different threads do not reuse the active handle or transaction state`() {
-        val originalHandle = db.activeHandle()!!
-
-        val handleOnThread = CompletableFuture<Handle?>()
-        val transactionStateOnThread = CompletableFuture<Boolean>()
+    fun `ApplicationJdbiHandleProvider does not share state between threads`() {
+        val otherThreadState = CompletableFuture<Boolean>()
+        val otherThreadConnState = CompletableFuture<Boolean>()
 
         val thread = Thread {
-            handleOnThread.complete(db.activeHandle())
-            transactionStateOnThread.complete(
-                db.dbApi.forbindelse { it.erTransaksjon() },
-            )
+            otherThreadState.complete(databaseApi.forbindelse { it.erTransaksjon() })
+            otherThreadConnState.complete(databaseApi.transaksjon { tx ->
+                tx.bruk(TestJdbiRepository::class) { repository ->
+                    repository.value(42) shouldBe 42
+                }
+                databaseApi.forbindelse { it.erTransaksjon() }
+            })
         }
 
         thread.start()
         thread.join()
 
-        handleOnThread.get() shouldBe null
-        transactionStateOnThread.get() shouldBe false
-        db.activeHandle() shouldBe originalHandle
+        otherThreadState.get() shouldBe false
+        otherThreadConnState.get() shouldBe true
+
+        databaseApi.forbindelse { it.erTransaksjon() } shouldBe false
     }
 }
