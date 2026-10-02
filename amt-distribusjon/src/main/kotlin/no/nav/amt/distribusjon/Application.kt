@@ -78,10 +78,8 @@ fun Application.module() {
 
     val environment = env
 
-    // Database.init er nødvendig for amt-lib sin OutboxRepository, som fortsatt bruker det globale
-    // Kotliquery-baserte Database-singletonet. Egne repositories i amt-distribusjon bruker NewDatabase.
-    Database.init(config = environment.databaseConfig)
-    val jdbiDatabase = JdbiDatabase(config = environment.databaseConfig)
+    val dataSource = Database.init(config = environment.databaseConfig)
+    val jdbiDatabase = JdbiDatabase(dataSource)
     val databaseApi = jdbiDatabase.db
 
     val httpClient = HttpClient(CIO) {
@@ -237,8 +235,7 @@ fun Application.module() {
 
     monitor.subscribe(ApplicationStopped) {
         log.info("Shutting down database")
-        jdbiDatabase.close()
-        Database.close()
+        dataSource.close()
 
         log.info("Shutting down producers")
         runCatching {

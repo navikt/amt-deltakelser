@@ -5,17 +5,20 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import javax.sql.DataSource
 
 object Database {
-    private lateinit var dataSource: DataSource
+    private lateinit var dataSource: HikariDataSource
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
-    fun init(config: DatabaseConfig) {
+    /**
+     * @return Returnerer en initialisert dataSource for å underlette samkjøring med [no.nav.amt.lib.utils.database.jdbi.JdbiDatabase]
+     */
+    fun init(config: DatabaseConfig): HikariDataSource {
         dataSource = DatabaseInit.createDataSource(config)
 
         DatabaseInit.runMigration(dataSource)
+        return dataSource
     }
 
     fun <A> query(block: (Session) -> A): A {
@@ -58,6 +61,6 @@ object Database {
     }
 
     fun close() {
-        (dataSource as HikariDataSource).close()
+        dataSource.close()
     }
 }
