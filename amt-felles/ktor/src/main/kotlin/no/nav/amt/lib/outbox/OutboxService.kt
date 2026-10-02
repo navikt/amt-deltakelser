@@ -88,6 +88,9 @@ interface OutboxInserter {
     ): OutboxRecord
 }
 
+/**
+ * Applikasjoner som har tatt i bruk Jdbi som database-API må bruke denne for at outbox-logikken skal kunne kjøre i transaksjon.
+ */
 class OutboxJdbiInsertService(
     private val db: DatabaseApi,
     private val meter: OutboxMeter = PrometheusOutboxMeter(),
