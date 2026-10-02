@@ -31,9 +31,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class HendelseConsumerTest : IntegrationTestBase() {
-    private val varselRepository by lazy {
-        testDb.bruk(VarselRepository::class)
-    }
+    private val varselRepository by repo<VarselRepository>()
 
     @BeforeEach
     fun setupMocks() {
