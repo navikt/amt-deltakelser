@@ -72,7 +72,7 @@ class VarselService(
     }
 
     private fun skalIkkeVarsles(hendelse: Hendelse): Boolean =
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.getByHendelseId(hendelse.id) }.isSuccess.let { isDuplicate ->
+        db.repo(VarselRepository::class) { it.getByHendelseId(hendelse.id) }.isSuccess.let { isDuplicate ->
             if (isDuplicate) {
                 log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
                 true
@@ -82,7 +82,7 @@ class VarselService(
         }
 
     private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel =
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.getVentendeVarsel(nyttVarsel.deltakerId) }.fold(
+        db.repo(VarselRepository::class) { it.getVentendeVarsel(nyttVarsel.deltakerId) }.fold(
             onSuccess = { it.merge(nyttVarsel) },
             onFailure = { nyttVarsel },
         )
@@ -92,13 +92,13 @@ class VarselService(
         sendUmiddelbart: Boolean = false,
     ) {
         if (varsel.kanRevarsles || varsel.erRevarsel) {
-            db.repo(VarselRepository::class) { it: VarselRepository -> it.stoppRevarsler(varsel.deltakerId) }
+            db.repo(VarselRepository::class) { it.stoppRevarsler(varsel.deltakerId) }
         }
 
         if (sendUmiddelbart) {
             sendVarsel(varsel)
         } else {
-            db.repo(VarselRepository::class) { it: VarselRepository -> it.upsert(varsel) }
+            db.repo(VarselRepository::class) { it.upsert(varsel) }
             log.info("Legger varsel ${varsel.id} klar til utsending ${varsel.aktivFra}")
         }
     }
@@ -107,7 +107,7 @@ class VarselService(
         inaktiverTidligereBeskjed(varsel.deltakerId)
 
         val oppdatertVarsel = varsel.copy(aktivFra = nowUTC(), status = Status.AKTIV)
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.upsert(oppdatertVarsel) }
+        db.repo(VarselRepository::class) { it.upsert(oppdatertVarsel) }
 
         when (varsel.type) {
             Type.BESKJED -> outboxHandler.opprettBeskjed(
@@ -128,7 +128,7 @@ class VarselService(
         if (varsel.erAktiv) {
             val revarsles = if (nyStatus == Status.UTFORT) null else varsel.revarsles
 
-            db.repo(VarselRepository::class) { it: VarselRepository ->
+            db.repo(VarselRepository::class) {
                 it.upsert(
                     varsel.copy(
                         aktivTil = nowUTC(),
@@ -143,7 +143,7 @@ class VarselService(
     }
 
     private fun inaktiverTidligereBeskjed(deltakerId: UUID) {
-        val varsel = db.repo(VarselRepository::class) { it: VarselRepository -> it.getAktivt(deltakerId) }.getOrNull()
+        val varsel = db.repo(VarselRepository::class) { it.getAktivt(deltakerId) }.getOrNull()
         require(varsel?.type != Type.OPPGAVE) {
             "deltaker-id $deltakerId: Kan ikke inaktivere oppgave ${varsel?.id} som om den var en beskjed"
         }
@@ -154,13 +154,13 @@ class VarselService(
     }
 
     private fun inaktiverOppgave(deltaker: HendelseDeltaker) {
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.getSisteVarsel(deltaker.id, Type.OPPGAVE) }.onSuccess { varsel ->
+        db.repo(VarselRepository::class) { it.getSisteVarsel(deltaker.id, Type.OPPGAVE) }.onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Status.INAKTIVERT)
         }
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.getSisteVarsel(deltaker.id, Type.OPPGAVE) }.onSuccess { varsel ->
+        db.repo(VarselRepository::class) { it.getSisteVarsel(deltaker.id, Type.OPPGAVE) }.onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Status.UTFORT)
         }
     }
@@ -169,7 +169,7 @@ class VarselService(
         deltaker: HendelseDeltaker,
         sistBesokt: ZonedDateTime,
     ) {
-        val beskjeder = db.repo(VarselRepository::class) { it: VarselRepository -> it.getAktiveEllerVentendeBeskjeder(deltaker.id) }
+        val beskjeder = db.repo(VarselRepository::class) { it.getAktiveEllerVentendeBeskjeder(deltaker.id) }
         if (beskjeder.isEmpty()) {
             return
         }
@@ -198,7 +198,7 @@ class VarselService(
             }
         }
 
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.stoppRevarsler(deltaker.id) }
+        db.repo(VarselRepository::class) { it.stoppRevarsler(deltaker.id) }
     }
 
     fun utlopBeskjed(varsel: Varsel) {
@@ -210,7 +210,7 @@ class VarselService(
             "Beskjed sin aktivTil må være passert for å kunne utløpe, Varsel: ${varsel.id}"
         }
 
-        db.repo(VarselRepository::class) { it: VarselRepository -> it.upsert(varsel.copy(status = Status.UTLOPT)) }
+        db.repo(VarselRepository::class) { it.upsert(varsel.copy(status = Status.UTLOPT)) }
 
         log.info("Varsel ${varsel.id} sin aktiv periode er utløpt")
     }
@@ -229,7 +229,7 @@ class VarselService(
     }
 
     fun sendVentendeVarsler() {
-        val varsler = db.repo(VarselRepository::class) { it: VarselRepository -> it.getVarslerSomSkalSendes() }
+        val varsler = db.repo(VarselRepository::class) { it.getVarslerSomSkalSendes() }
         require(varsler.size == varsler.distinctBy { it.deltakerId }.size) {
             "Det finnes flere enn et ventende varsel for en eller flere deltakere"
         }
@@ -240,7 +240,7 @@ class VarselService(
     }
 
     fun sendRevarsler() {
-        val varsler = db.repo(VarselRepository::class) { it: VarselRepository -> it.getVarslerSomSkalRevarsles() }
+        val varsler = db.repo(VarselRepository::class) { it.getVarslerSomSkalRevarsles() }
         val revarsler = varsler.map { slaSammenMedVentendeVarsel(Varsel.revarsel(it)) }
 
         db.transaksjon {
