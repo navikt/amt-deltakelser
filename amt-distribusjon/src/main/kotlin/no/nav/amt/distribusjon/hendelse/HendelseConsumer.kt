@@ -55,6 +55,7 @@ class HendelseConsumer(
         val hendelse = hendelseDto.toModel(distribusjonskanal, erUnderManuellOppfolging)
 
         db.transaksjon {
+            it.bruk(HendelseRepository::class) { repo -> repo.insert(hendelse) }
             varselService.handleHendelse(hendelse)
             tiltakshendelseService.handleHendelse(hendelse)
         }

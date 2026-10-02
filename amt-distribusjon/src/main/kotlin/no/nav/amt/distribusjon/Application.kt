@@ -52,7 +52,7 @@ import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.database.Database
-import no.nav.amt.lib.utils.database.jdbi.JdbiDatabase
+import no.nav.amt.lib.utils.database.jdbi.createJdbiDatabaseApi
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
@@ -79,8 +79,7 @@ fun Application.module() {
     val environment = env
 
     val dataSource = Database.init(config = environment.databaseConfig)
-    val jdbiDatabase = JdbiDatabase(dataSource)
-    val databaseApi = jdbiDatabase.db
+    val databaseApi = createJdbiDatabaseApi(dataSource)
 
     val httpClient = HttpClient(CIO) {
         engine {

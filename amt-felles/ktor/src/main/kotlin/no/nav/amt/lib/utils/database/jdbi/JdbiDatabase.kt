@@ -15,17 +15,7 @@ import java.sql.Types
 import javax.sql.DataSource
 import kotlin.reflect.KClass
 
-/**
- * Databasewrapper basert på Jdbi-biblioteket.
- *
- * Gir støtte for:
- *  - et forenklet [DatabaseApi] som gjør at vi ikke trenger å forholde oss til hele Jdbi-APIet i det daglige (gjør det lett å gjøre rett)
- */
-class JdbiDatabase(
-    dataSource: DataSource,
-) {
-    val db: DatabaseApi = DatabaseApi(ApplicationJdbiHandleProvider(createJdbi(dataSource)))
-}
+fun createJdbiDatabaseApi(dataSource: DataSource) = DatabaseApi(ApplicationJdbiHandleProvider(createJdbi(dataSource)))
 
 fun createJdbi(dataSource: DataSource): Jdbi = Jdbi
     .create(dataSource)
