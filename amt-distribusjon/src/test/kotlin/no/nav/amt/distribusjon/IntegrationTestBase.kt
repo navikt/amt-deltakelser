@@ -30,6 +30,7 @@ import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
 import no.nav.amt.lib.utils.database.DatabaseApi
+import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -37,6 +38,8 @@ import org.junit.jupiter.api.extension.RegisterExtension
 abstract class IntegrationTestBase {
     protected val database: DatabaseApi
         get() = companionDatabase
+
+    inline fun <reified T : SqlObject> repo(): Lazy<T> = lazy { testDb.bruk(T::class) }
 
     protected open val amtDeltakerClient: AmtDeltakerClient = mockk()
     protected open val pdfgenClient: PdfgenClient = mockk()

@@ -12,9 +12,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltakshendelseRepositoryTest : IntegrationTestBase() {
-    private val tiltakshendelseRepository by lazy {
-        testDb.bruk(TiltakshendelseRepository::class)
-    }
+    private val tiltakshendelseRepository by repo<TiltakshendelseRepository>()
 
     @Nested
     inner class UpsertTests {

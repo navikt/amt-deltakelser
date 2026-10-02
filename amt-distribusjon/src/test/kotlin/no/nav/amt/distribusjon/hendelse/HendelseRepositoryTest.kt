@@ -7,28 +7,17 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
-import no.nav.amt.lib.testing.JdbiDatabaseTestExtension
+import no.nav.amt.lib.testing.RepositoryTest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
 
-class HendelseRepositoryTest {
-    private val journalforingstatusRepository: JournalforingstatusRepository by lazy {
-        db.bruk(JournalforingstatusRepository::class)
-    }
-    private val hendelseRepository: HendelseRepository by lazy {
-        db.bruk(HendelseRepository::class)
-    }
-
-    companion object {
-        @RegisterExtension
-        @JvmField
-        val db = JdbiDatabaseTestExtension()
-    }
+class HendelseRepositoryTest : RepositoryTest() {
+    private val journalforingstatusRepository by repo<JournalforingstatusRepository>()
+    private val hendelseRepository by repo<HendelseRepository>()
 
     @Test
     fun `insert - inserter hendelse i database`() {

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.reflect.KClass
 
 /**
@@ -56,5 +57,15 @@ class JdbiDatabaseTestExtension(
             TestPostgresContainer.bootstrap()
             NewDatabase(TestPostgresContainer.databaseConfig(), withTestSupport = true)
         }
+    }
+}
+
+abstract class RepositoryTest {
+    inline fun <reified T : SqlObject> repo(): Lazy<T> = lazy { db.bruk(T::class) }
+
+    companion object {
+        @RegisterExtension
+        @JvmField
+        val db = JdbiDatabaseTestExtension()
     }
 }

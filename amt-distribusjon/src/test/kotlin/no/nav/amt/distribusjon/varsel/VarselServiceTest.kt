@@ -24,12 +24,8 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class VarselServiceTest : IntegrationTestBase() {
-    private val hendelseRepository: HendelseRepository by lazy {
-        testDb.bruk(HendelseRepository::class)
-    }
-    private val varselRepository: VarselRepository by lazy {
-        testDb.bruk(VarselRepository::class)
-    }
+    private val hendelseRepository by repo<HendelseRepository>()
+    private val varselRepository by repo<VarselRepository>()
 
     private fun setupMocks(hendelse: Hendelse) {
         coEvery {
