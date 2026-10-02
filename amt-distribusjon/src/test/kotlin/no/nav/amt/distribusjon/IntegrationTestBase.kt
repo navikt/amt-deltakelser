@@ -35,9 +35,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 
 abstract class IntegrationTestBase {
-    protected val db: JdbiDatabaseTestExtension
-        get() = testDb
-
     protected val database: DatabaseApi
         get() = companionDatabase
 
