@@ -13,6 +13,30 @@ import java.util.UUID
 
 @RegisterRowMapper(TiltakshendelseMapper::class)
 interface TiltakshendelseRepository : Repository {
+    fun upsert(tiltakshendelse: Tiltakshendelse): Tiltakshendelse {
+        val sql = if (tiltakshendelse.forslagId == null) {
+            // Utkast har ikke forslagId og må derfor håndteres med konflikt på primærnøkkelen (id).
+            UPSERT_BY_ID_SQL
+        } else {
+            // Forslag håndteres med konflikt på unik forslagId for å støtte idempotent reprosessering.
+            UPSERT_BY_FORSLAG_ID_SQL
+        }
+
+        return handle
+            .createQuery(sql)
+            .bind("id", tiltakshendelse.id)
+            .bind("type", tiltakshendelse.type.name)
+            .bind("deltaker_id", tiltakshendelse.deltakerId)
+            .bind("forslag_id", tiltakshendelse.forslagId)
+            .bind("hendelser", tiltakshendelse.hendelser.toTypedArray())
+            .bind("personident", tiltakshendelse.personident)
+            .bind("aktiv", tiltakshendelse.aktiv)
+            .bind("tekst", tiltakshendelse.tekst)
+            .bind("tiltakskode", tiltakshendelse.tiltakskode.name)
+            .map(TiltakshendelseMapper())
+            .singleOrNull() ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
+    }
+
     @SqlQuery(
         """
         SELECT *
@@ -84,28 +108,6 @@ interface TiltakshendelseRepository : Repository {
     fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
         getByHendelseIdSql(hendelseId)
             ?: throw NoSuchElementException("Fant ikke tiltakshendelse for hendelse $hendelseId")
-    }
-
-    fun upsert(tiltakshendelse: Tiltakshendelse): Tiltakshendelse {
-        val sql = if (tiltakshendelse.forslagId == null) {
-            UPSERT_BY_ID_SQL
-        } else {
-            UPSERT_BY_FORSLAG_ID_SQL
-        }
-
-        return handle
-            .createQuery(sql)
-            .bind("id", tiltakshendelse.id)
-            .bind("type", tiltakshendelse.type.name)
-            .bind("deltaker_id", tiltakshendelse.deltakerId)
-            .bind("forslag_id", tiltakshendelse.forslagId)
-            .bind("hendelser", tiltakshendelse.hendelser.toTypedArray())
-            .bind("personident", tiltakshendelse.personident)
-            .bind("aktiv", tiltakshendelse.aktiv)
-            .bind("tekst", tiltakshendelse.tekst)
-            .bind("tiltakskode", tiltakshendelse.tiltakskode.name)
-            .map(TiltakshendelseMapper())
-            .singleOrNull() ?: error("Klarte ikke å upserte tiltakshendelse ${tiltakshendelse.id}")
     }
 
     companion object {
