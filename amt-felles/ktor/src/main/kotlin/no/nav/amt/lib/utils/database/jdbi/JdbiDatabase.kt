@@ -23,41 +23,38 @@ import kotlin.reflect.KClass
  *
  * Gir støtte for:
  *  - et forenklet [DatabaseApi] som gjør at vi ikke trenger å forholde oss til hele Jdbi-APIet i det daglige (gjør det lett å gjøre rett)
- *  - felles databaseforbindelse mellom applikasjonskode og testkode (gjør at tester kan kjøre i transaksjoner og raskt rulle tilbake data)
  */
 class JdbiDatabase(
     config: DatabaseConfig,
-    withTestSupport: Boolean = false,
-) {
+) : DatabaseApiProvider {
     private val dataSource: DataSource = DatabaseInit.createDataSource(config)
 
-    val testSupport: DatabaseTestSupport?
-    val db: DatabaseApi
+    override val db: DatabaseApi = DatabaseApi(ApplicationJdbiHandleProvider(createJdbi(dataSource)))
 
     init {
-        val jdbi = createJdbi(dataSource)
-        testSupport = if (withTestSupport) DatabaseTestSupport(jdbi) else null
-        db = DatabaseApi(jdbi, testSupport)
-
         DatabaseInit.runMigration(dataSource)
     }
-
-    fun createJdbi(dataSource: DataSource): Jdbi = Jdbi
-        .create(dataSource)
-        // Støtter definisjon av repositories etc som interface
-        .installPlugin(SqlObjectPlugin())
-        // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
-        .installPlugin(KotlinPlugin())
-        // Støtter mapping av en del vanlige Postgres-spesifikke typer
-        .installPlugin(PostgresPlugin())
-        .configure(Arguments::class.java) { arguments ->
-            arguments.register(PgObjectArgumentFactory())
-        }
 
     fun close() {
         (dataSource as HikariDataSource).close()
     }
 }
+
+interface DatabaseApiProvider {
+    val db: DatabaseApi
+}
+
+fun createJdbi(dataSource: DataSource): Jdbi = Jdbi
+    .create(dataSource)
+    // Støtter definisjon av repositories etc som interface
+    .installPlugin(SqlObjectPlugin())
+    // Støtter automatisk mapping av database-resultater til Kotlin-dataklasser
+    .installPlugin(KotlinPlugin())
+    // Støtter mapping av en del vanlige Postgres-spesifikke typer
+    .installPlugin(PostgresPlugin())
+    .configure(Arguments::class.java) { arguments ->
+        arguments.register(PgObjectArgumentFactory())
+    }
 
 private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.OTHER) {
     override fun build(
@@ -88,41 +85,20 @@ class Forbindelse internal constructor(
 }
 
 class DatabaseApi(
-    private val jdbi: Jdbi,
-    private val testSupport: DatabaseTestSupport?,
+    private val jdbiHandleProvider: JdbiHandleProvider,
 ) {
     fun <T : SqlObject, S> bruk(
         sqlObjectKlasse: KClass<T>,
         blokk: (sqlObject: T) -> S,
-    ): S {
-        val activeHandle = testSupport?.currentHandle()
-        return if (activeHandle != null) {
-            activeHandle.attach(sqlObjectKlasse.java).let(blokk)
-        } else {
-            jdbi.withExtension<S, T, Exception>(sqlObjectKlasse.java) { blokk(it) }
-        }
+    ): S = jdbiHandleProvider.withHandle {
+        val sqlObject = it.attach(sqlObjectKlasse.java)
+        blokk(sqlObject)
     }
 
-    fun <T> transaksjon(blokk: (Transaksjon) -> T): T {
-        val activeHandle = testSupport?.currentHandle()
-        return if (activeHandle != null) {
-            activeHandle.inTransaction<T, Exception> { handle ->
-                blokk(Transaksjon(handle))
-            }
-        } else {
-            forbindelse { it.transaksjon(blokk) }
-        }
-    }
+    fun <T> transaksjon(blokk: (Transaksjon) -> T): T = forbindelse { it.transaksjon(blokk) }
 
-    fun <T> forbindelse(blokk: (Forbindelse) -> T): T {
-        val activeHandle = testSupport?.currentHandle()
-        return if (activeHandle != null) {
-            blokk(Forbindelse(activeHandle))
-        } else {
-            jdbi.withHandle<T, Exception> { handle ->
-                blokk(Forbindelse(handle))
-            }
-        }
+    fun <T> forbindelse(blokk: (Forbindelse) -> T): T = jdbiHandleProvider.withHandle {
+        blokk(Forbindelse(it))
     }
 }
 

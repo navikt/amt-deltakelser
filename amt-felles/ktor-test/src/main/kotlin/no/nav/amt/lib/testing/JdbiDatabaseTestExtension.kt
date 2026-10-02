@@ -1,8 +1,13 @@
 package no.nav.amt.lib.testing
 
+import no.nav.amt.lib.utils.database.DatabaseInit
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import no.nav.amt.lib.utils.database.jdbi.DatabaseTestSupport
 import no.nav.amt.lib.utils.database.jdbi.JdbiDatabase
+import no.nav.amt.lib.utils.database.jdbi.JdbiHandleProvider
+import no.nav.amt.lib.utils.database.jdbi.createJdbi
 import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.sqlobject.SqlObject
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -18,46 +23,46 @@ import kotlin.reflect.KClass
  * Må være en lambda (ikke evaluert ved konstruksjon), siden [DatabaseTestSupport] typisk
  * ikke er klar før `TestPostgresContainer.bootstrap()` i [beforeAll] har kjørt.
  */
-class JdbiDatabaseTestExtension(
-    private val testSupport: () -> DatabaseTestSupport = {
-        instance.testSupport ?: error("instance ble opprettet uten withTestSupport = true")
-    },
-) : BeforeAllCallback,
+class JdbiDatabaseTestExtension :
+    BeforeAllCallback,
     BeforeEachCallback,
     AfterEachCallback {
-    private val handleThreadLocal = ThreadLocal<Handle>()
+    lateinit var jdbi: Jdbi
+    lateinit var dbApi: DatabaseApi
+    private val handleThreadLocal = ThreadLocal<Handle?>()
 
     override fun beforeAll(context: ExtensionContext) {
         TestPostgresContainer.bootstrap()
+        jdbi = createJdbi(DatabaseInit.createDataSource(TestPostgresContainer.databaseConfig()))
+        val jdbiHandleProvider = object : JdbiHandleProvider {
+            override fun <T> withHandle(block: (Handle) -> T): T {
+                val activeHandle = handleThreadLocal.get()
+                return if (activeHandle == null) {
+                    TODO("maybe this hsouldnot happens")
+                    jdbi.withHandle<T, RuntimeException>(block)
+                } else {
+                    block(activeHandle)
+                }
+            }
+        }
+        dbApi = DatabaseApi(jdbiHandleProvider)
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        handleThreadLocal.set(testSupport().beginTestTransaction())
+        val handle = jdbi.open()
+        handle.begin()
+        handleThreadLocal.set(handle)
     }
 
     override fun afterEach(context: ExtensionContext) {
         handleThreadLocal.get()?.let { handle ->
-            testSupport().rollbackAndCloseTestTransaction(handle)
+            handle.rollback()
+            handle.close()
             handleThreadLocal.remove()
         }
     }
 
-    fun <T : SqlObject> bruk(extension: KClass<T>): T = handleThreadLocal.get().attach(extension.java)
-
-    companion object {
-        /**
-         * Delt [JdbiDatabase]-instans for tester som bruker det JDBI-baserte grensesnittet
-         * ([no.nav.amt.lib.utils.database.jdbi.DatabaseApi]) i stedet for det globale, Kotliquery-baserte
-         * [no.nav.amt.lib.utils.database.Database]-singletonet.
-         *
-         * Kobler seg til samme Postgres-testcontainer som [TestPostgresContainer], og opprettes
-         * kun én gang per JVM slik at testklasser i samme modul deler samme datakilde.
-         */
-        val instance: JdbiDatabase by lazy {
-            TestPostgresContainer.bootstrap()
-            JdbiDatabase(TestPostgresContainer.databaseConfig(), withTestSupport = true)
-        }
-    }
+    fun <T : SqlObject> bruk(extension: KClass<T>): T = handleThreadLocal.get()!!.attach(extension.java)
 }
 
 abstract class RepositoryTest {

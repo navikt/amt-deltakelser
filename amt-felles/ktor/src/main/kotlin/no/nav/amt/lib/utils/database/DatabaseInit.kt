@@ -4,10 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
-/**
- * Felles oppsett av datakilde, JDBI og migrering, delt mellom [Database] og den ikke-statiske databasetilgangen.
- */
-internal object DatabaseInit {
+object DatabaseInit {
     fun createDataSource(config: DatabaseConfig): DataSource = HikariDataSource().apply {
         if (config.jdbcURL.isNotEmpty()) {
             jdbcUrl = config.jdbcURL
