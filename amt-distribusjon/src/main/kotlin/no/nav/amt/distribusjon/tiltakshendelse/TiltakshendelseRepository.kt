@@ -59,10 +59,24 @@ interface TiltakshendelseRepository : Repository {
         LIMIT 1
         """,
     )
-    fun getAktivHendelse(
+    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
+        getById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
+    }
+
+    fun findAktivHendelse(
         @Bind("deltaker_id") deltakerId: UUID,
         @Bind("type") type: String,
     ): Tiltakshendelse?
+
+    fun getAktivHendelse(
+        deltakerId: UUID,
+        hendelseType: Tiltakshendelse.Type,
+    ): Result<Tiltakshendelse> = runCatching {
+        findAktivHendelse(deltakerId, hendelseType.name)
+            ?: throw NoSuchElementException(
+                "Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType",
+            )
+    }
 
     @SqlQuery(
         """
@@ -71,7 +85,7 @@ interface TiltakshendelseRepository : Repository {
         WHERE forslag_id = :forslag_id
         """,
     )
-    fun getForslagHendelseSql(
+    fun findForslagHendelse(
         @Bind("forslag_id") forslagId: UUID,
     ): Tiltakshendelse?
 
@@ -82,31 +96,17 @@ interface TiltakshendelseRepository : Repository {
         WHERE :hendelse_id = ANY(hendelser)
         """,
     )
-    fun getByHendelseIdSql(
+    fun findByHendelseId(
         @Bind("hendelse_id") hendelseId: UUID,
     ): Tiltakshendelse?
 
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
-        getById(id) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
-    }
-
-    fun getAktivHendelse(
-        deltakerId: UUID,
-        hendelseType: Tiltakshendelse.Type,
-    ): Result<Tiltakshendelse> = runCatching {
-        getAktivHendelse(deltakerId, hendelseType.name)
-            ?: throw NoSuchElementException(
-                "Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType",
-            )
-    }
-
     fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
-        getForslagHendelseSql(forslagId)
+        findForslagHendelse(forslagId)
             ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
     }
 
     fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
-        getByHendelseIdSql(hendelseId)
+        findByHendelseId(hendelseId)
             ?: throw NoSuchElementException("Fant ikke tiltakshendelse for hendelse $hendelseId")
     }
 
