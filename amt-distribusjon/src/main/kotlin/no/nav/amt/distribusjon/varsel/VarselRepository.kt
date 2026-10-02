@@ -98,7 +98,7 @@ interface VarselRepository : Repository {
         LIMIT 1
         """,
     )
-    fun getSisteVarselSql(
+    fun findSisteVarsel(
         @Bind("deltaker_id") deltakerId: UUID,
         @Bind("type") type: String,
     ): Varsel?
@@ -107,7 +107,7 @@ interface VarselRepository : Repository {
         deltakerId: UUID,
         type: Varsel.Type,
     ): Result<Varsel> = runCatching {
-        getSisteVarselSql(deltakerId, type.name)
+        findSisteVarsel(deltakerId, type.name)
             ?: throw NoSuchElementException("Fant ingen varsel av type $type for deltaker $deltakerId")
     }
 
@@ -130,45 +130,45 @@ interface VarselRepository : Repository {
     @SqlQuery(
         "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'AKTIV'",
     )
-    fun getAktivtSql(
+    fun finnAktivt(
         @Bind("deltaker_id") deltakerId: UUID,
     ): Varsel?
 
     fun getAktivt(deltakerId: UUID): Result<Varsel> = runCatching {
-        getAktivtSql(deltakerId)
+        finnAktivt(deltakerId)
             ?: throw NoSuchElementException("Fant ikke varsel for deltakerId: $deltakerId")
     }
 
     @SqlQuery("SELECT * FROM varsel WHERE id = :id")
-    fun getSql(
+    fun findById(
         @Bind("id") id: UUID,
     ): Varsel?
 
     fun get(id: UUID): Result<Varsel> = runCatching {
-        getSql(id) ?: throw NoSuchElementException("Fant ikke varsel $id")
+        findById(id) ?: throw NoSuchElementException("Fant ikke varsel $id")
     }
 
     @SqlQuery(
         "SELECT * FROM varsel WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
     )
-    fun getByHendelseIdSql(
+    fun findByHendelseId(
         @Bind("hendelse_id") hendelseId: UUID,
     ): Varsel?
 
     fun getByHendelseId(hendelseId: UUID): Result<Varsel> = runCatching {
-        getByHendelseIdSql(hendelseId)
+        findByHendelseId(hendelseId)
             ?: throw NoSuchElementException("Fant ikke varsel for hendelse $hendelseId")
     }
 
     @SqlQuery(
         "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'VENTER_PA_UTSENDELSE'",
     )
-    fun getVentendeVarselSql(
+    fun findVentendeVarsel(
         @Bind("deltaker_id") deltakerId: UUID,
     ): Varsel?
 
     fun getVentendeVarsel(deltakerId: UUID): Result<Varsel> = runCatching {
-        getVentendeVarselSql(deltakerId)
+        findVentendeVarsel(deltakerId)
             ?: throw NoSuchElementException("Fant ikke ventende varsel for deltaker $deltakerId")
     }
 
