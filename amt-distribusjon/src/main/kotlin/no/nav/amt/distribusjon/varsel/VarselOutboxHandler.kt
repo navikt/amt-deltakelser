@@ -2,10 +2,10 @@ package no.nav.amt.distribusjon.varsel
 
 import no.nav.amt.distribusjon.Environment
 import no.nav.amt.distribusjon.varsel.model.Varsel
-import no.nav.amt.lib.outbox.OutboxService
+import no.nav.amt.lib.outbox.OutboxInserter
 
 class VarselOutboxHandler(
-    private val outboxService: OutboxService,
+    private val outboxService: OutboxInserter,
 ) {
     fun inaktiver(varsel: Varsel) {
         outboxService.insertRecord(

@@ -156,11 +156,12 @@ fun Application.module() {
     )
 
     val outboxService = OutboxService()
+    val outboxJdbiInsertService = outboxService.jdbiInserter(databaseApi)
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
 
     val varselService = VarselService(
         db = databaseApi,
-        outboxHandler = VarselOutboxHandler(outboxService),
+        outboxHandler = VarselOutboxHandler(outboxJdbiInsertService),
     )
 
     val journalforingService = JournalforingService(
@@ -176,7 +177,7 @@ fun Application.module() {
     val tiltakshendelseService = TiltakshendelseService(
         db = databaseApi,
         amtDeltakerClient = amtDeltakerClient,
-        tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
+        tiltakshendelseProducer = TiltakshendelseProducer(outboxJdbiInsertService),
     )
 
     val consumers = listOf(

@@ -75,6 +75,8 @@ class OutboxService(
         outboxRepository.markAsFailed(record.id, errorMessage)
         meter.incrementProcessedRecords(record.topic, OutboxRecordStatus.FAILED)
     }
+
+    fun jdbiInserter(db: DatabaseApi): OutboxInserter = OutboxJdbiInsertService(db, meter)
 }
 
 interface OutboxInserter {
