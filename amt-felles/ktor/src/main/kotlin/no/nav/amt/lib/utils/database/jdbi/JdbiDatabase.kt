@@ -80,6 +80,8 @@ class DatabaseApi(
         fun <T> transaksjon(blokk: (Transaksjon) -> T): T = handle.inTransaction<T, Exception> { handle ->
             blokk(Transaksjon(handle))
         }
+
+        fun erTransaksjon() = handle.isInTransaction
     }
 }
 
