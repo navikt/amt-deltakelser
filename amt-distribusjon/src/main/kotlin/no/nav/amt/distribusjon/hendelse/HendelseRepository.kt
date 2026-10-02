@@ -89,6 +89,12 @@ interface HendelseRepository : SqlObject {
     )
     fun hentIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus>
 
+    /**
+     * Hendelser som er journalført, men som ikke er distribuert (bestillingsid mangler).
+     *
+     * Vi ekskluderer "digitale" distribusjonskanaler (DITT_NAV/SDP), og ekskluderer samtidig
+     * rader som allerede blir plukket opp av [hentIkkeJournalforteHendelser].
+     */
     @SqlQuery(
         """
         SELECT
