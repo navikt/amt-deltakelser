@@ -7,7 +7,7 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.utils.database.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

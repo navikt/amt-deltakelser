@@ -4,7 +4,7 @@ import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.utils.database.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import no.nav.amt.lib.utils.job.JobManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -27,7 +27,7 @@ import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.utils.database.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
