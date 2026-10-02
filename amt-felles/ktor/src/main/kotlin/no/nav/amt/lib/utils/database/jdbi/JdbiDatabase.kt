@@ -49,6 +49,10 @@ private class PgObjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.
 class DatabaseApi(
     private val jdbiHandleProvider: JdbiHandleProvider,
 ) {
+    /**
+     * Bruk for enkle operasjoner der du ikke trenger å spesifisere transaksjoner.
+     * Hvis denne kalles fra en tråd som allerede har åpnet en transaksjon, vil Jdbi gjenbruke transaksjonen.
+     */
     fun <T : Repository, S> repo(
         repositoryKlasse: KClass<T>,
         blokk: (T) -> S,
@@ -57,8 +61,14 @@ class DatabaseApi(
         blokk(sqlObject)
     }
 
+    /**
+     * Lager en ny transaksjon, eller gjenbruker eksisterende hvis det er åpnet en transaksjon fra samme tråd.
+     */
     fun <T> transaksjon(blokk: (Transaksjon) -> T): T = forbindelse { it.transaksjon(blokk) }
 
+    /**
+     * Lager en ny forbindelse til databasen, eller gjenbruker eksisterende hvis det finnes en åpen forbindelse på samme tråd.
+     */
     fun <T> forbindelse(blokk: (Forbindelse) -> T): T = jdbiHandleProvider.withHandle {
         blokk(Forbindelse(it))
     }
