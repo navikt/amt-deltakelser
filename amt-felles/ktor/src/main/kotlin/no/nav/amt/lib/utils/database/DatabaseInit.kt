@@ -5,7 +5,7 @@ import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 object DatabaseInit {
-    fun createDataSource(config: DatabaseConfig): DataSource = HikariDataSource().apply {
+    fun createDataSource(config: DatabaseConfig): HikariDataSource = HikariDataSource().apply {
         if (config.jdbcURL.isNotEmpty()) {
             jdbcUrl = config.jdbcURL
         } else {
