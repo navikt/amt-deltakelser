@@ -3,16 +3,18 @@ package no.nav.amt.aktivitetskort.client
 import no.nav.amt.aktivitetskort.client.request.PersonRequest
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
-import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientException
 
 @Service
 class VeilarboppfolgingClient(
     private val api: VeilarboppfolgingApi,
 ) {
-    fun hentOppfolgingperiode(fnr: String): Oppfolgingsperiode? = try {
+    fun hentOppfolgingperiode(fnr: String): Oppfolgingsperiode? = executeUpstreamCall(
+        serviceName = VEILARBOPPFOLGING_CLIENT_ID,
+        operation = "hente oppfølgingsperiode",
+    ) {
         val response = api.hentGjeldendePeriode(PersonRequest(fnr))
 
         if (response.statusCode == HttpStatus.NO_CONTENT) {
@@ -26,10 +28,5 @@ class VeilarboppfolgingClient(
                 )
             }
         }
-    } catch (e: RestClientException) {
-        throw e.toExternalServiceException(
-            serviceName = VEILARBOPPFOLGING_CLIENT_ID,
-            action = "hente oppfølgingsperiode",
-        )
     }
 }

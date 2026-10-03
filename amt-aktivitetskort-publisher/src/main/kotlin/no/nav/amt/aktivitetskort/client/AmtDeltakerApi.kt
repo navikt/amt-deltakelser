@@ -1,6 +1,7 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
+import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
@@ -11,5 +12,5 @@ interface AmtDeltakerApi {
     @GetExchange("/{deltakerId}")
     fun getDeltaker(
         @PathVariable deltakerId: UUID,
-    ): DeltakerResponse
+    ): ResponseEntity<DeltakerResponse>
 }

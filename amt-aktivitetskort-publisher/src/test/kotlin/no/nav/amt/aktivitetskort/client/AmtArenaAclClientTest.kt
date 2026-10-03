@@ -3,8 +3,8 @@ package no.nav.amt.aktivitetskort.client
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
@@ -75,7 +75,7 @@ class AmtArenaAclClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getArenaIdForAmtId(amtId)
         }
     }
@@ -88,7 +88,7 @@ class AmtArenaAclClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getArenaIdForAmtId(amtId)
         }
     }
@@ -101,7 +101,7 @@ class AmtArenaAclClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getArenaIdForAmtId(amtId)
         }
     }
@@ -114,11 +114,11 @@ class AmtArenaAclClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.getArenaIdForAmtId(amtId)
         }
 
-        thrown.message shouldBe "amt-arena-acl: kunne ikke hente arenaId for amtId $amtId. Status=500"
+        thrown.message shouldBe "Kall mot amt-arena-acl feilet under hente arenaId for amtId (HTTP 500)"
     }
 
     @Test
@@ -129,10 +129,10 @@ class AmtArenaAclClientTest(
             .andExpect(method(HttpMethod.GET))
             .andRespond(withException(IOException("boom")))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.getArenaIdForAmtId(amtId)
         }
 
-        thrown.message shouldBe "amt-arena-acl: kunne ikke hente arenaId for amtId $amtId"
+        thrown.message shouldBe "Kall mot amt-arena-acl feilet under hente arenaId for amtId"
     }
 }

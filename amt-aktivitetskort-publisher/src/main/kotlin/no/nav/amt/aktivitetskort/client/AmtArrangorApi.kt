@@ -1,6 +1,7 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
+import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
@@ -11,10 +12,10 @@ interface AmtArrangorApi {
     @GetExchange("/organisasjonsnummer/{orgnummer}")
     fun hentArrangorByOrgnummer(
         @PathVariable orgnummer: String,
-    ): ArrangorMedOverordnetArrangorResponse
+    ): ResponseEntity<ArrangorMedOverordnetArrangorResponse>
 
     @GetExchange("/{arrangorId}")
     fun hentArrangorById(
         @PathVariable arrangorId: UUID,
-    ): ArrangorMedOverordnetArrangorResponse
+    ): ResponseEntity<ArrangorMedOverordnetArrangorResponse>
 }
