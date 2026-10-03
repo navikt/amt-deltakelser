@@ -12,6 +12,7 @@ dependencies {
     api("org.springframework.security:spring-security-core")
     api("org.springframework.security:spring-security-web")
     api("jakarta.servlet:jakarta.servlet-api")
+    implementation("org.slf4j:slf4j-api")
 
     testImplementation("org.springframework:spring-test")
     testImplementation(libs.kotlin.test.junit5)

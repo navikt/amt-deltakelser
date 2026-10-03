@@ -2,8 +2,8 @@ package no.nav.amt.aktivitetskort.client
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,7 +69,7 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentArrangor("foo")
             }
         }
@@ -81,7 +81,7 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentArrangor("foo")
             }
         }
@@ -93,7 +93,7 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentArrangor("foo")
             }
         }
@@ -107,11 +107,11 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withException(IOException("boom")))
 
-            val thrown = shouldThrow<ExternalServiceRetryableException> {
+            val thrown = shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentArrangor(orgnummer)
             }
 
-            thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med orgnummer $orgnummer"
+            thrown.message shouldBe "Kall mot amt-arrangor feilet under hente arrangør med orgnummer"
         }
     }
 
@@ -171,7 +171,7 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentArrangor(arrangorId)
             }
         }
@@ -185,7 +185,7 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentArrangor(arrangorId)
             }
         }
@@ -199,11 +199,11 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            val thrown = shouldThrow<ExternalServiceRetryableException> {
+            val thrown = shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentArrangor(arrangorId)
             }
 
-            thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med id $arrangorId. Status=500"
+            thrown.message shouldBe "Kall mot amt-arrangor feilet under hente arrangør med id (HTTP 500)"
         }
 
         @Test
@@ -215,11 +215,11 @@ class AmtArrangorClientTest(
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withException(IOException("boom")))
 
-            val thrown = shouldThrow<ExternalServiceRetryableException> {
+            val thrown = shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentArrangor(arrangorId)
             }
 
-            thrown.message shouldBe "amt-arrangor: kunne ikke hente arrangør med id $arrangorId"
+            thrown.message shouldBe "Kall mot amt-arrangor feilet under hente arrangør med id"
         }
     }
 }
