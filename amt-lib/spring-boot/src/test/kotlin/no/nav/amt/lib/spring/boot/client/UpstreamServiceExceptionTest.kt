@@ -48,6 +48,23 @@ class UpstreamServiceExceptionTest {
     }
 
     @Test
+    fun `408- og 429-responser blir retrybare`() {
+        listOf(HttpStatus.REQUEST_TIMEOUT, HttpStatus.TOO_MANY_REQUESTS).forEach { status ->
+            val cause = HttpClientErrorException(status)
+
+            val exception = shouldThrow<RetryableUpstreamServiceException> {
+                executeUpstreamCall(
+                    serviceName = "Kodeverk",
+                    operation = "hent postnummer",
+                ) { throw cause }
+            }
+
+            exception.statusCode shouldBe status.value()
+            exception.cause shouldBe cause
+        }
+    }
+
+    @Test
     fun `501-respons blir ikke retrybar`() {
         val cause = HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED)
 
