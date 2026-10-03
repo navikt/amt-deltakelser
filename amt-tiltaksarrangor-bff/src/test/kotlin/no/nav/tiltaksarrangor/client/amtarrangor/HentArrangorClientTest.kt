@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
@@ -165,9 +165,9 @@ class HentArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "amt-arrangor-aad: kunne ikke hente arrangør med orgnummer $orgnummer. Status=500"
+            }.message shouldBe "Kall mot amt-arrangor-aad feilet under hente arrangør (HTTP 500)"
         }
 
         @Test
@@ -181,9 +181,9 @@ class HentArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withException(IOException("boom")))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "amt-arrangor-aad: kunne ikke hente arrangør med orgnummer $orgnummer"
+            }.message shouldBe "Kall mot amt-arrangor-aad feilet under hente arrangør"
         }
     }
 }

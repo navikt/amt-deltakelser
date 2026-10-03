@@ -1,5 +1,7 @@
 package no.nav.tiltaksarrangor.client
 
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException
@@ -7,8 +9,6 @@ import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.requiredBody
 import tools.jackson.databind.PropertyNamingStrategies
 import tools.jackson.databind.annotation.JsonNaming
@@ -26,32 +26,32 @@ class TexasTokenExchangeClient(
         target: String,
         skipCache: Boolean = false,
     ): TexasTokenExchangeResult = try {
-        restClient
-            .post()
-            .uri(tokenExchangeEndpoint)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(
-                TokenExchangeRequest(
-                    identityProvider = TOKENX_IDENTITY_PROVIDER,
-                    target = target,
-                    userToken = userToken,
-                    skipCache = skipCache,
-                ),
-            ).retrieve()
-            .requiredBody()
-    } catch (e: RestClientResponseException) {
+        executeUpstreamCall(
+            serviceName = "Texas token exchange",
+            operation = "exchange token",
+        ) {
+            restClient
+                .post()
+                .uri(tokenExchangeEndpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(
+                    TokenExchangeRequest(
+                        identityProvider = TOKENX_IDENTITY_PROVIDER,
+                        target = target,
+                        userToken = userToken,
+                        skipCache = skipCache,
+                    ),
+                ).retrieve()
+                .requiredBody()
+        }
+    } catch (e: UpstreamServiceException) {
+        val description = when {
+            e.statusCode != null -> "Texas token exchange feilet. Status=${e.statusCode}"
+            e.cause is ResourceAccessException -> "Texas token exchange feilet før HTTP-respons ble mottatt"
+            else -> "Texas token exchange returnerte ugyldig respons"
+        }
         throw invalidTokenResponseException(
-            description = "Texas token exchange feilet. Status=${e.statusCode.value()}",
-            cause = e,
-        )
-    } catch (e: ResourceAccessException) {
-        throw invalidTokenResponseException(
-            description = "Texas token exchange feilet før HTTP-respons ble mottatt",
-            cause = e,
-        )
-    } catch (e: RestClientException) {
-        throw invalidTokenResponseException(
-            description = "Texas token exchange returnerte ugyldig respons",
+            description = description,
             cause = e,
         )
     }

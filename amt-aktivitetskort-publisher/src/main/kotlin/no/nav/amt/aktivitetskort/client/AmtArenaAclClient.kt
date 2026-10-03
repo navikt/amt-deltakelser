@@ -1,10 +1,9 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
-import no.nav.amt.lib.spring.boot.client.toExternalServiceException
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientException
 import java.util.UUID
 
 @Service
@@ -14,27 +13,24 @@ class AmtArenaAclClient(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun getArenaIdForAmtId(amtId: UUID): Long? {
-        return try {
-            val response = api.getTranslation(amtId)
-            val body = response.body ?: return null
+        val response = executeUpstreamCall(
+            serviceName = AMT_ARENA_ACL_CLIENT_ID,
+            operation = "hente arenaId for amtId",
+        ) { api.getTranslation(amtId) }
 
-            body.arenaId?.let {
-                return it.toLong()
-            }
+        val body = response.body ?: return null
 
-            body.arenaHistId?.let {
-                val msg = "amtId $amtId tilhører histdeltaker med id $it"
-                log.error(msg)
-                throw HistoriskArenaDeltakerException(message = msg)
-            }
-
-            log.warn("Fant ikke arenaId eller arenaHistId for deltaker med id $amtId")
-            null
-        } catch (e: RestClientException) {
-            throw e.toExternalServiceException(
-                serviceName = AMT_ARENA_ACL_CLIENT_ID,
-                action = "hente arenaId for amtId $amtId",
-            )
+        body.arenaId?.let {
+            return it.toLong()
         }
+
+        body.arenaHistId?.let {
+            val msg = "amtId $amtId tilhører histdeltaker med id $it"
+            log.error(msg)
+            throw HistoriskArenaDeltakerException(message = msg)
+        }
+
+        log.warn("Fant ikke arenaId eller arenaHistId for deltaker med id $amtId")
+        return null
     }
 }
