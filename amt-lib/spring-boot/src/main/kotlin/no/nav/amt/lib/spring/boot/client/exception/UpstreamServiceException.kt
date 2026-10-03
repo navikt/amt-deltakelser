@@ -3,7 +3,7 @@ package no.nav.amt.lib.spring.boot.client.exception
 import org.springframework.web.client.RestClientException
 
 /**
- * Feil ved kall mot en ekstern tjeneste som ikke er klassifisert som midlertidig.
+ * Felles exception-type for feil ved kall mot en ekstern tjeneste, både midlertidige og ikke-midlertidige.
  *
  * Feilmeldingen inneholder tjeneste, operasjon og eventuell HTTP-status, men
  * ikke den rå feilmeldingen fra tjenesten.
