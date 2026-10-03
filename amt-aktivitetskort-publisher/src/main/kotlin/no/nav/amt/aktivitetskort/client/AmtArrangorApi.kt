@@ -4,10 +4,8 @@ import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorRe
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
-import org.springframework.web.service.annotation.HttpExchange
 import java.util.UUID
 
-@HttpExchange("/api/service/arrangor")
 @ClientRegistrationId(AMT_ARRANGOR_CLIENT_ID)
 interface AmtArrangorApi {
     @GetExchange("/organisasjonsnummer/{orgnummer}")
