@@ -48,6 +48,22 @@ class UpstreamServiceExceptionTest {
     }
 
     @Test
+    fun `avvisningslogging endrer ikke exception-mappingen`() {
+        val cause = HttpClientErrorException(HttpStatus.FORBIDDEN)
+
+        val exception = shouldThrow<UpstreamServiceException> {
+            executeUpstreamCall(
+                serviceName = "Kodeverk",
+                operation = "hent postnummer",
+                logAuthorizationFailures = true,
+            ) { throw cause }
+        }
+
+        exception.statusCode shouldBe 403
+        exception.cause shouldBe cause
+    }
+
+    @Test
     fun `408- og 429-responser blir retrybare`() {
         listOf(HttpStatus.REQUEST_TIMEOUT, HttpStatus.TOO_MANY_REQUESTS).forEach { status ->
             val cause = HttpClientErrorException(status)

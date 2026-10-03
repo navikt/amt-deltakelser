@@ -29,6 +29,7 @@ class TexasTokenExchangeClient(
         executeUpstreamCall(
             serviceName = "Texas token exchange",
             operation = "exchange token",
+            logAuthorizationFailures = false,
         ) {
             restClient
                 .post()

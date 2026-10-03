@@ -10,7 +10,12 @@ fun <T> executeUpstreamCallWithUnauthorizedMapping(
     unauthorizedMessage: String,
     call: () -> T,
 ): T = try {
-    executeUpstreamCall(serviceName, operation, call)
+    executeUpstreamCall(
+        serviceName = serviceName,
+        operation = operation,
+        logAuthorizationFailures = false,
+        call = call,
+    )
 } catch (e: UpstreamServiceException) {
     if (e.statusCode == 401 || e.statusCode == 403) {
         throw UnauthorizedException(unauthorizedMessage)
