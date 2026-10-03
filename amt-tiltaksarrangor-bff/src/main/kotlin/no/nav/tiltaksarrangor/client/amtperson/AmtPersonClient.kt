@@ -27,9 +27,7 @@ class AmtPersonClient(
                 ?: throw NoSuchElementException("Klarte ikke hente kontaktinformasjon for person med ident")
         }
 
-    fun hentOppdatertKontaktinfo(
-        personidenter: Set<String>,
-    ): Map<String, Kontaktinformasjon> = executeUpstreamCallWithRequiredBody(
+    fun hentOppdatertKontaktinfo(personidenter: Set<String>): Map<String, Kontaktinformasjon> = executeUpstreamCallWithRequiredBody(
         serviceName = AMT_PERSON_SERVICE_CLIENT_ID,
         operation = "hente kontaktinformasjon",
     ) { api.hentKontaktinformasjon(personidenter) }
