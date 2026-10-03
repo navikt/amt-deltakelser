@@ -13,6 +13,7 @@ import org.springframework.web.client.RestClientException
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
+@Suppress("DEPRECATION")
 class ExternalServiceExceptionMapperTest {
     @Test
     fun `mapper nettverksfeil til retrybar exception`() {

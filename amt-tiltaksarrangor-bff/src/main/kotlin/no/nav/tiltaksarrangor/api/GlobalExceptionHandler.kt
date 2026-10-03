@@ -2,8 +2,8 @@ package no.nav.tiltaksarrangor.api
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.servlet.http.HttpServletRequest
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import no.nav.tiltaksarrangor.model.exceptions.SkjultDeltakerException
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import no.nav.tiltaksarrangor.model.exceptions.ValidationException
@@ -32,8 +32,8 @@ class GlobalExceptionHandler(
         is AuthenticationException -> buildResponse(HttpStatus.UNAUTHORIZED, ex)
         is AccessDeniedException -> buildResponse(HttpStatus.FORBIDDEN, ex)
         is UnauthorizedException -> buildResponse(HttpStatus.FORBIDDEN, ex)
-        is ExternalServiceNonRetryableException -> buildResponse(HttpStatus.BAD_GATEWAY, ex)
-        is ExternalServiceRetryableException -> buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex)
+        is RetryableUpstreamServiceException -> buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex)
+        is UpstreamServiceException -> buildResponse(HttpStatus.BAD_GATEWAY, ex)
         is NoSuchElementException -> buildResponse(HttpStatus.NOT_FOUND, ex)
         is IllegalStateException -> buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex)
         else -> {

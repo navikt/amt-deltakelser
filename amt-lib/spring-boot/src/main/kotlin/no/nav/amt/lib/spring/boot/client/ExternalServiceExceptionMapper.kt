@@ -6,6 +6,8 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 
+@Deprecated("Use executeUpstreamCall around the upstream request instead.")
+@Suppress("DEPRECATION")
 fun RestClientException.toExternalServiceException(
     serviceName: String,
     action: String,
@@ -34,6 +36,7 @@ fun RestClientException.toExternalServiceException(
     )
 }
 
+@Suppress("DEPRECATION")
 private fun RestClientResponseException.toExternalServiceResponseException(
     serviceName: String,
     action: String,

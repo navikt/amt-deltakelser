@@ -6,8 +6,8 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.utils.toSystemZoneLocalDateTime
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -88,11 +88,11 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=500"
+        thrown.message shouldBe "Kall mot veilarboppfolging feilet under hente oppfølgingsperiode (HTTP 500)"
     }
 
     @Test
@@ -102,11 +102,11 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+        val thrown = shouldThrow<UpstreamServiceException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=404"
+        thrown.message shouldBe "Kall mot veilarboppfolging feilet under hente oppfølgingsperiode (HTTP 404)"
     }
 
     @Test
@@ -116,11 +116,11 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+        val thrown = shouldThrow<UpstreamServiceException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=401"
+        thrown.message shouldBe "Kall mot veilarboppfolging feilet under hente oppfølgingsperiode (HTTP 401)"
     }
 
     @Test
@@ -130,11 +130,11 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-        val thrown = shouldThrow<ExternalServiceNonRetryableException> {
+        val thrown = shouldThrow<UpstreamServiceException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode. Status=403"
+        thrown.message shouldBe "Kall mot veilarboppfolging feilet under hente oppfølgingsperiode (HTTP 403)"
     }
 
     @Test
@@ -144,10 +144,10 @@ class VeilarboppfolgingClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withException(IOException("boom")))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.hentOppfolgingperiode("12345678910")
         }
 
-        thrown.message shouldBe "veilarboppfolging: kunne ikke hente oppfølgingsperiode"
+        thrown.message shouldBe "Kall mot veilarboppfolging feilet under hente oppfølgingsperiode"
     }
 }

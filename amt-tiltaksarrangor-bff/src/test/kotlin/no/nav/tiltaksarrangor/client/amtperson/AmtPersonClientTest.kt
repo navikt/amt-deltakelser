@@ -4,8 +4,8 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
@@ -105,9 +105,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=404"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 404)"
         }
 
         @Test
@@ -121,9 +121,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=500"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 500)"
         }
 
         @Test
@@ -254,9 +254,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=404"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 404)"
         }
 
         @Test
@@ -270,9 +270,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=500"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 500)"
         }
 
         @Test
@@ -391,7 +391,7 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentOppdatertKontaktinfo(personident)
             }
         }

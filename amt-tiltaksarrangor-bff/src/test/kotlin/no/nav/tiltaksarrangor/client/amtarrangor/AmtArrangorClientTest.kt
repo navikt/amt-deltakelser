@@ -4,7 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_TOKENX_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.OppdaterVeiledereForDeltakerRequest
@@ -118,9 +118,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.getAnsatt()
-            }.message shouldBe "amt-arrangor-tokenx: kunne ikke hente ansatt. Status=500"
+            }.message shouldBe "Kall mot amt-arrangor-tokenx feilet under hente ansatt (HTTP 500)"
         }
     }
 
@@ -175,9 +175,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.leggTilDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "amt-arrangor-tokenx: kunne ikke legge til deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
+            }.message shouldBe "Kall mot amt-arrangor-tokenx feilet under legge til deltakerliste i amt-arrangor (HTTP 500)"
         }
     }
 
@@ -232,9 +232,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.fjernDeltakerlisteForKoordinator(ansattId, deltakerlisteId, arrangorId)
-            }.message shouldBe "amt-arrangor-tokenx: kunne ikke fjerne deltakerliste $deltakerlisteId i amt-arrangor. Status=500"
+            }.message shouldBe "Kall mot amt-arrangor-tokenx feilet under fjerne deltakerliste i amt-arrangor (HTTP 500)"
         }
     }
 
@@ -303,9 +303,9 @@ class AmtArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.oppdaterVeilederForDeltaker(deltakerId, request)
-            }.message shouldBe "amt-arrangor-tokenx: kunne ikke oppdatere veiledere for deltaker $deltakerId i amt-arrangor. Status=500"
+            }.message shouldBe "Kall mot amt-arrangor-tokenx feilet under oppdatere veiledere for deltaker i amt-arrangor (HTTP 500)"
         }
     }
 }
