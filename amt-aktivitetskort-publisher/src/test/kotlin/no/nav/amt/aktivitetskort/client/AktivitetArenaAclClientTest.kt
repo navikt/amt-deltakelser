@@ -40,6 +40,20 @@ class AktivitetArenaAclClientTest(
     }
 
     @Test
+    fun `getAktivitetIdForArenaId - manglende body ved 204 gir upstream-feil med statuskode`() {
+        server
+            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
+        val exception = shouldThrow<UpstreamServiceException> {
+            sut.getAktivitetIdForArenaId(1L)
+        }
+
+        exception.statusCode shouldBe 204
+    }
+
+    @Test
     fun `getAktivitetIdForArenaId - kaster exception ved 404`() {
         server
             .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))

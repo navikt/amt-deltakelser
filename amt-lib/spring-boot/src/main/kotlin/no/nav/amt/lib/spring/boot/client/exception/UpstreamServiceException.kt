@@ -10,8 +10,8 @@ import org.springframework.web.client.RestClientException
  *
  * @property serviceName navnet på den eksterne tjenesten
  * @property operation operasjonen som feilet
- * @property statusCode HTTP-statuskode, eller `null` hvis ingen HTTP-respons kom fram
- * @param cause den opprinnelige feilen fra Spring HTTP-klienten
+ * @property statusCode HTTP-statuskode, eller `null` hvis statuskoden ikke er tilgjengelig
+ * @param cause feilen fra Spring HTTP-klienten eller årsaken til at upstream-kallet feilet
  */
 open class UpstreamServiceException(
     val serviceName: String,

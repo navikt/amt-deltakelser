@@ -1,9 +1,9 @@
 package no.nav.tiltaksarrangor.client.amtarrangor
 
 import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
-import no.nav.tiltaksarrangor.client.executeUpstreamCallWithUnauthorizedMapping
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -14,10 +14,9 @@ class HentArrangorClient(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun getArrangor(orgnummer: String): ArrangorMedOverordnetArrangor? = try {
-        executeUpstreamCallWithUnauthorizedMapping(
+        executeUpstreamCall(
             serviceName = AMT_ARRANGOR_AAD_CLIENT_ID,
             operation = "hente arrangør",
-            unauthorizedMessage = "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangor.",
         ) { api.getArrangor(orgnummer) }
     } catch (e: UpstreamServiceException) {
         if (e.statusCode == 404) {

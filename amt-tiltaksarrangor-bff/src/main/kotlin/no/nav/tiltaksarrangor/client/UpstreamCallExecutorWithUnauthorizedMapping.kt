@@ -8,12 +8,13 @@ fun <T> executeUpstreamCallWithUnauthorizedMapping(
     serviceName: String,
     operation: String,
     unauthorizedMessage: String,
+    logAuthorizationFailures: Boolean = false,
     call: () -> T,
 ): T = try {
     executeUpstreamCall(
         serviceName = serviceName,
         operation = operation,
-        logAuthorizationFailures = false,
+        logAuthorizationFailures = logAuthorizationFailures,
         call = call,
     )
 } catch (e: UpstreamServiceException) {

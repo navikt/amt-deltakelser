@@ -78,9 +78,8 @@ class DeltakerlisteConsumerService(
         arrangorRepository.getArrangor(organisasjonsnummer)?.let { arrangor -> return arrangor.id }
 
         log.info("Fant ikke arrangør med orgnummer $organisasjonsnummer i databasen, henter fra amt-arrangor")
-        val arrangor =
-            hentArrangorClient.getArrangor(organisasjonsnummer)
-                ?: throw RuntimeException("Kunne ikke hente arrangør med orgnummer $organisasjonsnummer")
+        val arrangor = hentArrangorClient.getArrangor(organisasjonsnummer)
+            ?: throw RuntimeException("Kunne ikke hente arrangør med orgnummer $organisasjonsnummer")
 
         arrangorRepository.insertOrUpdateArrangor(arrangor.toArrangorDbo())
         return arrangor.id

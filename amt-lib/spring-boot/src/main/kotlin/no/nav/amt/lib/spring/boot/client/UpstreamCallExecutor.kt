@@ -3,6 +3,7 @@ package no.nav.amt.lib.spring.boot.client
 import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
 import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -74,6 +75,42 @@ fun <T> executeUpstreamCall(
         operation = operation,
         statusCode = statusCode,
         cause = e,
+    )
+}
+
+/**
+ * Utfører et upstream-kall som må returnere en response body.
+ *
+ * Bruk denne for HTTP-klienter der et tomt svar ikke er gyldig. Kallet må returnere en
+ * [ResponseEntity] slik at statuskoden bevares også når body mangler. Kall som tillater
+ * tom body, skal bruke [executeUpstreamCall].
+ *
+ * @param serviceName navnet på den eksterne tjenesten
+ * @param operation operasjonen som utføres
+ * @param logAuthorizationFailures om 401- og 403-svar skal logges, standard `true`
+ * @param call HTTP-kallet som skal utføres
+ * @return response body
+ * @throws RetryableUpstreamServiceException ved midlertidige HTTP- eller nettverksfeil
+ * @throws UpstreamServiceException ved andre feil fra Spring HTTP-klienten eller manglende body
+ */
+fun <T : Any> executeUpstreamCallWithRequiredBody(
+    serviceName: String,
+    operation: String,
+    logAuthorizationFailures: Boolean = true,
+    call: () -> ResponseEntity<T>,
+): T {
+    val response = executeUpstreamCall(
+        serviceName = serviceName,
+        operation = operation,
+        logAuthorizationFailures = logAuthorizationFailures,
+        call = call,
+    )
+
+    return response.body ?: throw UpstreamServiceException(
+        serviceName = serviceName,
+        operation = operation,
+        statusCode = response.statusCode.value(),
+        cause = RestClientException("Required upstream response body was empty"),
     )
 }
 

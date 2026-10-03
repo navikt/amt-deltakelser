@@ -6,9 +6,9 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import no.nav.tiltaksarrangor.client.AMT_ARRANGOR_AAD_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
-import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
@@ -123,7 +123,7 @@ class HentArrangorClientTest(
         }
 
         @Test
-        fun `getArrangor - kaster UnauthorizedException ved 403`() {
+        fun `getArrangor - kaster upstream exception ved 403`() {
             val orgnummer = "123456789"
 
             server
@@ -133,13 +133,13 @@ class HentArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangor."
+            }.statusCode shouldBe 403
         }
 
         @Test
-        fun `getArrangor - kaster UnauthorizedException ved 401`() {
+        fun `getArrangor - kaster upstream exception ved 401`() {
             val orgnummer = "123456789"
 
             server
@@ -149,9 +149,9 @@ class HentArrangorClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.getArrangor(orgnummer)
-            }.message shouldBe "Uautorisert tilgang ved henting av arrangør med orgnummer $orgnummer fra amt-arrangor."
+            }.statusCode shouldBe 401
         }
 
         @Test

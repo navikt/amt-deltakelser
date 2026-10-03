@@ -1,7 +1,7 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.request.HentAktivitetIdRequest
-import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCallWithRequiredBody
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -14,7 +14,7 @@ import java.util.UUID
 class AktivitetArenaAclClient(
     private val api: AktivitetArenaAclApi,
 ) {
-    fun getAktivitetIdForArenaId(arenaId: Long): UUID = executeUpstreamCall(
+    fun getAktivitetIdForArenaId(arenaId: Long): UUID = executeUpstreamCallWithRequiredBody(
         serviceName = AKTIVITET_ARENA_ACL_CLIENT_ID,
         operation = "hente aktivitetId for Arena-ID",
     ) { api.getAktivitetIdForArenaId(HentAktivitetIdRequest(arenaId)) }

@@ -63,6 +63,21 @@ class AmtArrangorClientTest(
         }
 
         @Test
+        fun `hentArrangor - manglende body ved 204 gir upstream-feil med statuskode`() {
+            val orgnummer = "123456789"
+            server
+                .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/$orgnummer"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
+            val exception = shouldThrow<UpstreamServiceException> {
+                sut.hentArrangor(orgnummer)
+            }
+
+            exception.statusCode shouldBe 204
+        }
+
+        @Test
         fun `hentArrangor - kaster ikke-retrybar exception ved 404`() {
             server
                 .expect(requestTo("http://amt-arrangor/api/service/arrangor/organisasjonsnummer/foo"))
@@ -160,6 +175,21 @@ class AmtArrangorClientTest(
 
             result.id shouldBe arrangorId
             result.navn shouldBe "Test Arrangor"
+        }
+
+        @Test
+        fun `hentArrangor - manglende body ved 204 gir upstream-feil med statuskode`() {
+            val arrangorId = UUID.randomUUID()
+            server
+                .expect(requestTo("http://amt-arrangor/api/service/arrangor/$arrangorId"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
+            val exception = shouldThrow<UpstreamServiceException> {
+                sut.hentArrangor(arrangorId)
+            }
+
+            exception.statusCode shouldBe 204
         }
 
         @Test

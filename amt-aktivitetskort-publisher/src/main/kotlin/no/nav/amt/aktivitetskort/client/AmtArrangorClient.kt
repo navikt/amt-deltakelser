@@ -1,7 +1,7 @@
 package no.nav.amt.aktivitetskort.client
 
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
-import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
+import no.nav.amt.lib.spring.boot.client.executeUpstreamCallWithRequiredBody
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -9,12 +9,12 @@ import java.util.UUID
 class AmtArrangorClient(
     private val api: AmtArrangorApi,
 ) {
-    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorResponse = executeUpstreamCall(
+    fun hentArrangor(orgnummer: String): ArrangorMedOverordnetArrangorResponse = executeUpstreamCallWithRequiredBody(
         serviceName = AMT_ARRANGOR_CLIENT_ID,
         operation = "hente arrangør med orgnummer",
     ) { api.hentArrangorByOrgnummer(orgnummer) }
 
-    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorResponse = executeUpstreamCall(
+    fun hentArrangor(arrangorId: UUID): ArrangorMedOverordnetArrangorResponse = executeUpstreamCallWithRequiredBody(
         serviceName = AMT_ARRANGOR_CLIENT_ID,
         operation = "hente arrangør med id",
     ) { api.hentArrangorById(arrangorId) }

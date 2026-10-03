@@ -6,6 +6,7 @@ import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceExcep
 import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
@@ -108,5 +109,21 @@ class UpstreamServiceExceptionTest {
 
         exception.cause shouldBe cause
         exception.statusCode shouldBe null
+    }
+
+    @Test
+    fun `manglende obligatorisk response body blir upstream-feil`() {
+        val exception = shouldThrow<UpstreamServiceException> {
+            executeUpstreamCallWithRequiredBody<String>(
+                serviceName = "Kodeverk",
+                operation = "hent postnummer",
+            ) { ResponseEntity.noContent().build() }
+        }
+
+        exception.serviceName shouldBe "Kodeverk"
+        exception.operation shouldBe "hent postnummer"
+        exception.statusCode shouldBe 204
+        exception.message shouldBe "Kall mot Kodeverk feilet under hent postnummer (HTTP 204)"
+        exception.cause?.message shouldBe "Required upstream response body was empty"
     }
 }
