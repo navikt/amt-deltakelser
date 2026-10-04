@@ -14,16 +14,17 @@ class UnleashConfig {
     @Bean
     @Profile("default")
     fun unleashClient(
-        @Value($$"${app.env.unleashUrl}") unleashUrl: String,
-        @Value($$"${app.env.unleashApiToken}") unleashApiToken: String,
+        @Value($$"${UNLEASH_SERVER_API_URL}") unleashUrl: String,
+        @Value($$"${UNLEASH_SERVER_API_TOKEN}") unleashApiToken: String,
     ): Unleash {
         val config = UnleashConfig
             .builder()
             .appName(AKTIVITETSKORT_APP_NAME)
             .instanceId(AKTIVITETSKORT_APP_NAME)
-            .unleashAPI(unleashUrl)
+            .unleashAPI("$unleashUrl/api")
             .apiKey(unleashApiToken)
             .build()
+
         return DefaultUnleash(config)
     }
 

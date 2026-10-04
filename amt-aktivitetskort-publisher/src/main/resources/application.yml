@@ -12,7 +12,7 @@ spring:
   datasource:
     url: ${DB_JDBC_URL}
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 10
 
   http:
     clients:
@@ -110,17 +110,5 @@ management:
       export:
         enabled: true
 
-
 kafka:
   auto-offset-reset: earliest
-
-app:
-  env:
-    unleashUrl: ${UNLEASH_SERVER_API_URL}/api
-    unleashApiToken: ${UNLEASH_SERVER_API_TOKEN}
-
-veilederurl:
-  basepath: ${VEILEDERURL_BASEPATH}
-
-deltakerurl:
-  basepath: ${DELTAKERURL_BASEPATH}
