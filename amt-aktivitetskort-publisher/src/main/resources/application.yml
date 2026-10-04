@@ -12,7 +12,7 @@ spring:
   datasource:
     url: ${DB_JDBC_URL}
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 10
 
   http:
     clients:
@@ -23,13 +23,13 @@ spring:
       amt-arena-acl:
         base-url: ${AMT_ARENA_ACL_URL}
       amt-arrangor:
-        base-url: ${AMT_ARRANGOR_URL}
+        base-url: ${AMT_ARRANGOR_URL}/api/service/arrangor
       aktivitet-arena-acl:
         base-url: ${AKTIVITET_ARENA_ACL_URL}
       veilarboppfolging:
-        base-url: ${VEILARBOPPFOLGING_URL}
+        base-url: ${VEILARBOPPFOLGING_URL}/veilarboppfolging
       amt-deltaker:
-        base-url: ${AMT_DELTAKER_URL}
+        base-url: ${AMT_DELTAKER_URL}/deltaker
 
   security:
     oauth2:
@@ -110,17 +110,5 @@ management:
       export:
         enabled: true
 
-
 kafka:
   auto-offset-reset: earliest
-
-app:
-  env:
-    unleashUrl: ${UNLEASH_SERVER_API_URL}/api
-    unleashApiToken: ${UNLEASH_SERVER_API_TOKEN}
-
-veilederurl:
-  basepath: ${VEILEDERURL_BASEPATH}
-
-deltakerurl:
-  basepath: ${DELTAKERURL_BASEPATH}

@@ -11,6 +11,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
@@ -224,6 +225,16 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             ) shouldBe nyPrisinfo
             deltakerEndringRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
+            verify {
+                outboxService.insertRecord(
+                    key = deltaker.deltakerliste.id,
+                    value = match<GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon> {
+                        it.totrinnskontroll.begrunnelse == request.begrunnelse
+                    },
+                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+                    suppressOutsideTxWarning = false,
+                )
+            }
         }
 
         @Test

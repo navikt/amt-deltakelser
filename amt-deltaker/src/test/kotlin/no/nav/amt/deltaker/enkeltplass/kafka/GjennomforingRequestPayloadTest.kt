@@ -55,6 +55,7 @@ class GjennomforingRequestPayloadTest {
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = UUID.randomUUID(),
                     behandletAv = "Z123456",
+                    begrunnelse = "Begrunnelse for prisendring",
                 ),
             )
 
@@ -62,6 +63,7 @@ class GjennomforingRequestPayloadTest {
 
             json shouldContain "\"type\":\"EnkeltplassEndrePrisinformasjon\""
             json shouldContain "\"aarsak\":\"OPPLAERINGEN_ER_KOSTNADSFRI\""
+            json shouldContain "\"begrunnelse\":\"Begrunnelse for prisendring\""
         }
 
         @Test

@@ -56,8 +56,8 @@ class AktivitetskortService(
     private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
     private val amtDeltakerClient: AmtDeltakerClient,
-    @Value($$"${veilederurl.basepath}") private val veilederUrlBasePath: String,
-    @Value($$"${deltakerurl.basepath}") private val deltakerUrlBasePath: String,
+    @Value($$"${VEILEDERURL_BASEPATH}") private val veilederUrlBasePath: String,
+    @Value($$"${DELTAKERURL_BASEPATH}") private val deltakerUrlBasePath: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

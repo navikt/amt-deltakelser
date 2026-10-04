@@ -9,6 +9,54 @@ spec:
   groups:
     - name: amt-application-alerts
       rules:
+
+        # Sjekk om en av Kafka-outboxene bygger seg opp.
+        # max brukes separat fordi alle podene leser antallet fra samme database.
+        - alert: AmtKafkaOutboxBacklog
+          expr: |
+            (
+              label_replace(
+                max by (app, namespace) (
+                  amt_person_kafka_outbox_ventende{
+                    app="amt-person-service",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-person-service", "", ""
+              )
+              or
+              label_replace(
+                max by (app, namespace) (
+                  amt_aktivitetskortpublisher_kafka_outbox_ventende{
+                    app="amt-aktivitetskort-publisher",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-aktivitetskort-publisher", "", ""
+              )
+              or
+              label_replace(
+                max by (app, namespace) (
+                  amt_arrangor_kafka_outbox_ventende{
+                    app="amt-arrangor",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-arrangor", "", ""
+              )
+            ) >= 20
+          for: 5m
+          annotations:
+            title: 'Kafka-outboxen `{{ $labels.outbox }}` bygger seg opp'
+            summary: 'Outboxen `{{ $labels.outbox }}` i `{{ $labels.app }}` har hatt minst 20 ventende meldinger i 5 minutter.'
+            action: 'Sjekk outbox-processoren, Kafka-tilkoblingen og den tilhørende outbox-tabellen.'
+            resolved: 'Outboxen `{{ $labels.outbox }}` i `{{ $labels.app }}` er tilbake under alarmterskelen.'
+          labels:
+            namespace: amt
+            severity: warning
+            alert_type: custom
+
+
         # Sjekk mengden errors i loggen (per pod, slik at én støyende pod ikke gjemmes bak gjennomsnittet)
         - alert: LogsErrorRate
           expr: (1000 * sum by (app, namespace, pod) (rate(log_messages_errors{level="Error", namespace="amt"}[3m])) / sum by (app, namespace, pod) (rate(log_messages_total{namespace="amt"}[3m]))) > 1
@@ -44,14 +92,14 @@ spec:
           expr: sum by (app, namespace) (increase(log_messages_errors{level="Error", namespace="amt", message=~".*SendVentendeVarslerJob.*"}[20m])) > 3
           for: 3m
           annotations:
-              title: 'Applikasjonen `{{ $labels.app }}` har feil i SendVentendeVarslerJob'
-              summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 3 feil i SendVentendeVarslerJob de siste 20 minuttene.'
-              action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
-              resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
+            title: 'Applikasjonen `{{ $labels.app }}` har feil i SendVentendeVarslerJob'
+            summary: 'Applikasjonen `{{ $labels.app }}` har hatt mer enn 3 feil i SendVentendeVarslerJob de siste 20 minuttene.'
+            action: 'Sjekk loggene i <https://grafana.nav.cloud.nais.io|Grafana>, NAIS Console eller med `kubectl logs -l app={{ $labels.app }}`'
+            resolved: 'Applikasjonen `{{ $labels.app }}` logger som normalt for SendVentendeVarslerJob'
           labels:
-              namespace: amt
-              severity: warning
-              alert_type: custom
+            namespace: amt
+            severity: warning
+            alert_type: custom
 
         # Sjekk HTTP 5xx statuser i ingresser
         - alert: HTTP5xxStatus
@@ -88,6 +136,7 @@ spec:
               sum by(group, topic) (
                 kafka_consumergroup_group_lag{
                   group=~"^amt-.*",
+                  group!="amt-deltaker-bff-consumertiltakstyper",
                   topic!="min-side.aapen-varsel-hendelse-v1",
                   client_id!="unknown"
                 }
@@ -100,7 +149,7 @@ spec:
               sum by(group, topic) (
                 kafka_consumergroup_group_lag{
                   group="amt-deltaker-bff-consumer",
-                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1|amt\\.nav-enhet-v1|amt\\.nav-bruker-personalia-v1|team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2",
+                  topic=~"amt\\.deltaker-v2|amt\\.arrangor-melding-v1|amt\\.nav-enhet-v1|amt\\.nav-bruker-personalia-v1|team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2|team-mulighetsrommet\\.siste-tiltakstyper-v3",
                   client_id!="unknown"
                 }
               )
@@ -109,6 +158,14 @@ spec:
                 kafka_consumergroup_group_lag{
                   group="amt-aktivitetskort-publisher-consumer-2",
                   topic=~"team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2|team-mulighetsrommet\\.siste-tiltakstyper-v3",
+                  client_id!="unknown"
+                }
+              )
+              or
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group="amt-deltaker-consumer",
+                  topic=~"team-mulighetsrommet\\.totrinnskontroll-v1",
                   client_id!="unknown"
                 }
               )

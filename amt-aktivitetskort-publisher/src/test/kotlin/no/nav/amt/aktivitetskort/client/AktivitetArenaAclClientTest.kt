@@ -2,8 +2,8 @@ package no.nav.amt.aktivitetskort.client
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
@@ -40,13 +40,27 @@ class AktivitetArenaAclClientTest(
     }
 
     @Test
+    fun `getAktivitetIdForArenaId - manglende body ved 204 gir upstream-feil med statuskode`() {
+        server
+            .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
+        val exception = shouldThrow<UpstreamServiceException> {
+            sut.getAktivitetIdForArenaId(1L)
+        }
+
+        exception.statusCode shouldBe 204
+    }
+
+    @Test
     fun `getAktivitetIdForArenaId - kaster exception ved 404`() {
         server
             .expect(requestTo("http://aktivitet-arena-acl/api/translation/arenaid"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getAktivitetIdForArenaId(1L)
         }
     }
@@ -58,7 +72,7 @@ class AktivitetArenaAclClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getAktivitetIdForArenaId(1L)
         }
     }
@@ -70,7 +84,7 @@ class AktivitetArenaAclClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-        shouldThrow<ExternalServiceNonRetryableException> {
+        shouldThrow<UpstreamServiceException> {
             sut.getAktivitetIdForArenaId(1L)
         }
     }
@@ -82,11 +96,11 @@ class AktivitetArenaAclClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.getAktivitetIdForArenaId(1L)
         }
 
-        thrown.message shouldBe "aktivitet-arena-acl: kunne ikke hente aktivitetId for Arena-ID 1. Status=500"
+        thrown.message shouldBe "Kall mot aktivitet-arena-acl feilet under hente aktivitetId for Arena-ID (HTTP 500)"
     }
 
     @Test
@@ -96,10 +110,10 @@ class AktivitetArenaAclClientTest(
             .andExpect(method(HttpMethod.POST))
             .andRespond(withException(IOException("boom")))
 
-        val thrown = shouldThrow<ExternalServiceRetryableException> {
+        val thrown = shouldThrow<RetryableUpstreamServiceException> {
             sut.getAktivitetIdForArenaId(1L)
         }
 
-        thrown.message shouldBe "aktivitet-arena-acl: kunne ikke hente aktivitetId for Arena-ID 1"
+        thrown.message shouldBe "Kall mot aktivitet-arena-acl feilet under hente aktivitetId for Arena-ID"
     }
 }

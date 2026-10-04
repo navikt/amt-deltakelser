@@ -12,8 +12,5 @@ management:
 kafka:
   enabled: false
 
-veilederurl:
-  basepath: https://intern.veileder
-
-deltakerurl:
-  basepath: https://ekstern.deltaker
+VEILEDERURL_BASEPATH: https://intern.veileder
+DELTAKERURL_BASEPATH: https://ekstern.deltaker

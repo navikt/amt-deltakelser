@@ -4,11 +4,10 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
-import no.nav.amt.lib.spring.boot.client.ExternalServiceNonRetryableException
-import no.nav.amt.lib.spring.boot.client.ExternalServiceRetryableException
+import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
+import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.client.RestClientTestBase
-import no.nav.tiltaksarrangor.model.exceptions.UnauthorizedException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
@@ -63,7 +62,7 @@ class AmtPersonClientTest(
         }
 
         @Test
-        fun `hentEnhet - kaster UnauthorizedException ved 403`() {
+        fun `hentEnhet - kaster upstream exception ved 403`() {
             val id = UUID.randomUUID()
 
             server
@@ -73,13 +72,13 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Ikke tilgang til å hente Nav-enhet fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 403)"
         }
 
         @Test
-        fun `hentEnhet - kaster UnauthorizedException ved 401`() {
+        fun `hentEnhet - kaster upstream exception ved 401`() {
             val id = UUID.randomUUID()
 
             server
@@ -89,9 +88,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Ikke tilgang til å hente Nav-enhet fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 401)"
         }
 
         @Test
@@ -105,9 +104,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=404"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 404)"
         }
 
         @Test
@@ -121,13 +120,13 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-enhet. Status=500"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 500)"
         }
 
         @Test
-        fun `hentEnhet - kaster RuntimeException ved no content`() {
+        fun `hentEnhet - feiler ved tom response`() {
             val id = UUID.randomUUID()
 
             server
@@ -137,9 +136,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentEnhet(id)
-            }.message shouldBe "Kunne ikke hente Nav-enhet fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-enhet (HTTP 204)"
         }
     }
 
@@ -212,7 +211,7 @@ class AmtPersonClientTest(
         }
 
         @Test
-        fun `hentNavAnsatt - kaster UnauthorizedException ved 403`() {
+        fun `hentNavAnsatt - kaster upstream exception ved 403`() {
             val id = UUID.randomUUID()
 
             server
@@ -222,13 +221,13 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Ikke tilgang til å hente Nav-ansatt fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 403)"
         }
 
         @Test
-        fun `hentNavAnsatt - kaster UnauthorizedException ved 401`() {
+        fun `hentNavAnsatt - kaster upstream exception ved 401`() {
             val id = UUID.randomUUID()
 
             server
@@ -238,9 +237,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED))
 
-            shouldThrow<UnauthorizedException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Ikke tilgang til å hente Nav-ansatt fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 401)"
         }
 
         @Test
@@ -254,9 +253,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
-            shouldThrow<ExternalServiceNonRetryableException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=404"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 404)"
         }
 
         @Test
@@ -270,13 +269,13 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "amt-person-service: kunne ikke hente Nav-ansatt. Status=500"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 500)"
         }
 
         @Test
-        fun `hentNavAnsatt - kaster RuntimeException ved no content`() {
+        fun `hentNavAnsatt - kaster upstream exception ved tom response`() {
             val id = UUID.randomUUID()
 
             server
@@ -286,9 +285,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentNavAnsatt(id)
-            }.message shouldBe "Kunne ikke hente Nav-ansatt fra amt-person-service"
+            }.message shouldBe "Kall mot amt-person-service feilet under hente Nav-ansatt (HTTP 204)"
         }
     }
 
@@ -391,13 +390,13 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-            shouldThrow<ExternalServiceRetryableException> {
+            shouldThrow<RetryableUpstreamServiceException> {
                 sut.hentOppdatertKontaktinfo(personident)
             }
         }
 
         @Test
-        fun `hentOppdatertKontaktinfo - returnerer failure ved no content`() {
+        fun `hentOppdatertKontaktinfo - feiler ved tom response`() {
             val personident = "12345678901"
 
             server
@@ -408,9 +407,9 @@ class AmtPersonClientTest(
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
-            shouldThrow<RuntimeException> {
+            shouldThrow<UpstreamServiceException> {
                 sut.hentOppdatertKontaktinfo(personident)
-            }.message shouldBe "Kunne ikke hente kontaktinformasjon fra amt-person-service."
+            }.message shouldBe "Kall mot amt-person-service feilet under hente kontaktinformasjon (HTTP 204)"
         }
     }
 }
