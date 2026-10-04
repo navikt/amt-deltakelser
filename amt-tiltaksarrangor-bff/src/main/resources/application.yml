@@ -60,7 +60,7 @@ spring:
   datasource:
     url: ${DB_JDBC_URL}
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 10
 
   flyway:
     postgresql:
