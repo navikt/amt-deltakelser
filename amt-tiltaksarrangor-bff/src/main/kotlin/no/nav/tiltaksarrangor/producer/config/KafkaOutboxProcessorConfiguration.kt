@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.melding
+package no.nav.tiltaksarrangor.producer.config
 
 import net.javacrumbs.shedlock.core.LockProvider
 import no.nav.common.job.leader_election.LeaderElectionClient
@@ -8,6 +8,7 @@ import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordProcessor
 import no.nav.common.kafka.producer.feilhandtering.publisher.BatchedKafkaProducerRecordPublisher
 import no.nav.common.kafka.producer.feilhandtering.util.KafkaProducerRecordProcessorBuilder
 import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository
+import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean

@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.melding
+package no.nav.tiltaksarrangor.producer.config
 
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository

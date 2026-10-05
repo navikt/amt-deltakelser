@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.melding
+package no.nav.tiltaksarrangor.producer.config
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.common.kafka.producer.KafkaProducerClient
