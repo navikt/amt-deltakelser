@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.veileder.endring.extensions.endreDeltakersOppstart
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -80,12 +79,10 @@ class EndringFraArrangorService(
 
         endretDeltaker.onFailure {
             // Registrer meldingen selv om deltakeren er uendret, så den ikke behandles på nytt.
-            Database.transaction {
-                endringFraArrangorBehandletRepository.markerSomBehandlet(
-                    endringFraArrangor.id,
-                    endringFraArrangor.deltakerId,
-                )
-            }
+            endringFraArrangorBehandletRepository.markerSomBehandlet(
+                endringFraArrangor.id,
+                endringFraArrangor.deltakerId,
+            )
             log.info(
                 "Endring fra arrangør ${endringFraArrangor.id} for deltaker ${eksisterendeDeltaker.id} " +
                     "var allerede gjeldende og er registrert som behandlet",
