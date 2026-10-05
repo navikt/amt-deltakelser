@@ -10,6 +10,7 @@ import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.database.TestData.toDto
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
+import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Tag
@@ -228,7 +229,7 @@ class KafkaConsumerTest(
             .aktivitetskort
         aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
         aktivitetskort.oppgave shouldBe null
-        aktivitetskort.detaljer.first { it.label == "Status for deltakelse" }.verdi shouldBe "Avbrutt"
+        aktivitetskort.detaljer.first { it.label == Aktivitetskort.STATUS_FOR_DELTAKELSE }.verdi shouldBe "Avbrutt"
         aktivitetskort.etiketter.single().kode shouldBe Tag.Kode.AVBRUTT
 
         deltakerRepository.get(ctx.deltaker.id) shouldBe null

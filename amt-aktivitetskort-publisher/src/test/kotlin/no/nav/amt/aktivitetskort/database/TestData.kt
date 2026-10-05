@@ -42,7 +42,6 @@ import no.nav.amt.lib.models.kafka.Personalia
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.amt.lib.models.person.Oppfolgingsperiode as NavOppfolgingsperiode
 
 object TestData {
     const val VEILEDER_URL_BASEPATH = "https://intern.veileder"
@@ -120,7 +119,7 @@ object TestData {
             ),
         ),
         detaljer = listOfNotNull(
-            Detalj("Status for deltakelse", displayText(deltaker.status)),
+            Detalj(Aktivitetskort.STATUS_FOR_DELTAKELSE, displayText(deltaker.status)),
             Detalj("Arrangør", arrangor.navn),
         ),
         etiketter = listOfNotNull(deltakerStatusTilEtikett(deltaker.status)),
@@ -160,7 +159,7 @@ object TestData {
                 erSkjermet = false,
                 adresse = null,
                 adressebeskyttelse = null,
-                oppfolgingsperioder = emptyList<NavOppfolgingsperiode>(),
+                oppfolgingsperioder = emptyList(),
                 innsatsgruppe = null,
                 navVeileder = null,
                 navEnhet = null,
