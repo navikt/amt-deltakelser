@@ -73,6 +73,13 @@ class AktivitetskortService(
             tryOpprettMelding(Deltaker.fromDeltakerResponse(deltakerResponse))?.aktivitetskort
         }
 
+    /**
+     * Avbryter aktivitetskortet for en slettet deltaker, publiserer endringen og sletter den lokale deltakeren.
+     *
+     * Bruker den lagrede meldingen i stedet for å hente deltakeren fra amt-deltaker på nytt. Ved behandling
+     * av en tombstone kan deltakeren allerede være slettet der, slik at et nytt oppslag feiler og kortet
+     * ikke blir avbrutt. Oppdatering, publisering via outbox og lokal sletting skjer i samme transaksjon.
+     */
     fun oppdaterAktivitetskortForSlettetDeltaker(
         deltaker: DeltakerDbo,
         melding: Melding,
