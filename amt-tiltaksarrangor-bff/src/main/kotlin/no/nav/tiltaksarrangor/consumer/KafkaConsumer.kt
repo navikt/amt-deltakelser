@@ -1,9 +1,6 @@
 package no.nav.tiltaksarrangor.consumer
 
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
-import no.nav.tiltaksarrangor.consumer.model.TiltakstypePayload
 import no.nav.tiltaksarrangor.melding.MELDING_TOPIC
-import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -16,15 +13,13 @@ import java.util.UUID
 class KafkaConsumer(
     private val kafkaConsumerService: KafkaConsumerService,
     private val deltakerlisteConsumerService: DeltakerlisteConsumerService,
-    private val tiltakstypeRepository: TiltakstypeRepository,
     private val objectMapper: ObjectMapper,
 ) {
     @KafkaListener(
         topics = [
             ARRANGOR_TOPIC,
             ARRANGOR_ANSATT_TOPIC,
-            DELTAKERLISTE_V2_TOPIC,
-            TILTAKSTYPE_TOPIC,
+            GJENNOMFORING_INTERN_TOPIC,
             DELTAKER_TOPIC,
             ENDRINGSMELDING_TOPIC,
             NAV_ANSATT_TOPIC,
@@ -49,23 +44,10 @@ class KafkaConsumer(
                 consumerRecord.value()?.let { objectMapper.readValue(it) },
             )
 
-            DELTAKERLISTE_V2_TOPIC -> deltakerlisteConsumerService.lagreDeltakerliste(
+            GJENNOMFORING_INTERN_TOPIC -> deltakerlisteConsumerService.handleGjennomforing(
                 deltakerlisteId = UUID.fromString(consumerRecord.key()),
                 value = consumerRecord.value(),
             )
-
-            TILTAKSTYPE_TOPIC ->
-                consumerRecord
-                    .value()
-                    .takeIf { json ->
-                        skalKometLagreTiltakstype(
-                            tiltakAsJson = json,
-                            objectMapper = objectMapper,
-                        )
-                    }?.let { json ->
-                        val tiltakstype = objectMapper.readValue<TiltakstypePayload>(json)
-                        tiltakstypeRepository.upsert(tiltakstype.toModel())
-                    }
 
             DELTAKER_TOPIC -> kafkaConsumerService.lagreDeltaker(
                 UUID.fromString(consumerRecord.key()),
@@ -100,8 +82,7 @@ class KafkaConsumer(
     companion object {
         const val ARRANGOR_TOPIC = "amt.arrangor-v1"
         const val ARRANGOR_ANSATT_TOPIC = "amt.arrangor-ansatt-v1"
-        const val DELTAKERLISTE_V2_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
-        const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
+        const val GJENNOMFORING_INTERN_TOPIC = "amt.gjennomforing-intern"
         const val DELTAKER_TOPIC = "amt.deltaker-v2"
         const val ENDRINGSMELDING_TOPIC = "amt.endringsmelding-v1"
         const val NAV_ANSATT_TOPIC = "amt.nav-ansatt-personalia-v1"
