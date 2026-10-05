@@ -62,12 +62,15 @@ class ForslagRepository {
     }
 
     /**
-     * Setter inn et forslag eller oppdaterer raden med samme ID.
+     * Setter inn forslaget. Ved ID-konflikt oppdateres raden bare hvis forslaget ikke har status
+     * [Forslag.Status.VenterPaSvar].
      *
-     * Ved ID-konflikt ignoreres et innkommende [Forslag.Status.VenterPaSvar] hvis raden allerede har en annen status.
-     * Andre oppdateringer behandles som før.
+     * BFF-en genererer en ny UUID når et forslag opprettes. Et innkommende ventende forslag med en
+     * ID som allerede finnes, behandles derfor som en duplikatlevering, ikke som en korrigering.
+     * Forslag med andre statuser oppdaterer raden med samme ID.
      *
-     * @return `true` hvis en rad ble satt inn eller oppdatert, ellers `false` hvis oppdateringen ble ignorert.
+     * @return `true` hvis en rad ble satt inn eller oppdatert, ellers `false` hvis en ID-konflikt
+     * gjorde at forslaget ble ignorert.
      */
     fun upsert(forslag: Forslag): Boolean {
         val sql =
@@ -99,8 +102,7 @@ class ForslagRepository {
                 status              = EXCLUDED.status,
                 modified_at         = CURRENT_TIMESTAMP
             WHERE
-               forslag.status ->> 'type' = 'VenterPaSvar'
-               OR EXCLUDED.status ->> 'type' <> 'VenterPaSvar'      
+               EXCLUDED.status ->> 'type' <> 'VenterPaSvar'      
             """.trimIndent()
 
         val params = mapOf(

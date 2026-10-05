@@ -80,6 +80,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorBehandletRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -227,6 +228,7 @@ fun Application.module() {
     val vedtakRepository = VedtakRepository()
     val forslagRepository = ForslagRepository()
     val endringFraArrangorRepository = EndringFraArrangorRepository()
+    val endringFraArrangorBehandletRepository = EndringFraArrangorBehandletRepository()
     val importertFraArenaRepository = ImportertFraArenaRepository()
     val vurderingRepository = VurderingRepository()
 
@@ -402,6 +404,7 @@ fun Application.module() {
     val endringFraArrangorService = EndringFraArrangorService(
         deltakerService = deltakerService,
         endringFraArrangorRepository = endringFraArrangorRepository,
+        endringFraArrangorBehandletRepository = endringFraArrangorBehandletRepository,
         distribuerEndringService = distribuerEndringService,
         deltakerHistorikkService = deltakerHistorikkService,
     )
