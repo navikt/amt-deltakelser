@@ -57,6 +57,6 @@ class OutboxRecordMapper : RowMapper<OutboxRecord> {
         status = OutboxRecordStatus.valueOf(rs.getString("status")),
         retryCount = rs.getInt("retry_count"),
         retriedAt = rs.getTimestamp("retried_at")?.toLocalDateTime(),
-        errorMessage = rs.getString("error_message").takeUnless { it.isBlank() },
+        errorMessage = rs.getString("error_message")?.takeUnless { it.isBlank() },
     )
 }
