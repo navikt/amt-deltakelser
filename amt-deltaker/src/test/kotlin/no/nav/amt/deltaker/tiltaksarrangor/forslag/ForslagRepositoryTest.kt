@@ -57,6 +57,116 @@ class ForslagRepositoryTest {
             resultat.size shouldBe 1
             resultat.single().begrunnelse shouldBe "Ny begrunnelse"
         }
+
+        @Test
+        fun `upsert - foreldet VenterPaSvar etter annen status - beholder lagret forslag uendret`() {
+            val avgjorteStatuser = listOf(
+                Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+                Forslag.Status.Avvist(
+                    avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    avvist = LocalDateTime.now(),
+                    begrunnelseFraNav = "Avslått",
+                ),
+                Forslag.Status.Erstattet(
+                    erstattetMedForslagId = UUID.randomUUID(),
+                    erstattet = LocalDateTime.now(),
+                ),
+                Forslag.Status.Tilbakekalt(
+                    tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                    tilbakekalt = LocalDateTime.now(),
+                ),
+            )
+
+            avgjorteStatuser.forEach { status ->
+                val deltaker = TestData.lagDeltaker()
+                TestRepository.insert(deltaker)
+                val lagretForslag = TestData.lagForslag(deltakerId = deltaker.id, status = status)
+                forslagRepository.upsert(lagretForslag)
+                val lagretForslagFraDb = forslagRepository.get(lagretForslag.id).getOrThrow()
+
+                val foreldetForslag = lagretForslag.copy(
+                    begrunnelse = "Foreldet melding",
+                    status = Forslag.Status.VenterPaSvar,
+                )
+
+                forslagRepository.upsert(foreldetForslag)
+
+                forslagRepository.get(lagretForslag.id).getOrThrow() shouldBe lagretForslagFraDb
+            }
+        }
+
+        @Test
+        fun `upsert - VenterPaSvar endres til avgjort status - oppdaterer`() {
+            val deltaker = TestData.lagDeltaker()
+            TestRepository.insert(deltaker)
+            val ventendeForslag = TestData.lagForslag(deltakerId = deltaker.id)
+            forslagRepository.upsert(ventendeForslag)
+            val ventendeForslagFraDb = forslagRepository.get(ventendeForslag.id).getOrThrow()
+
+            val godkjentForslag = ventendeForslag.copy(
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+            )
+
+            forslagRepository.upsert(godkjentForslag)
+
+            forslagRepository.get(ventendeForslag.id).getOrThrow() shouldBe
+                ventendeForslagFraDb.copy(status = godkjentForslag.status)
+        }
+
+        @Test
+        fun `upsert - avgjort forslag mottar annen ikke-ventende status - oppdaterer`() {
+            val ikkeVentendeStatuser = listOf(
+                Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+                Forslag.Status.Avvist(
+                    avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    avvist = LocalDateTime.now(),
+                    begrunnelseFraNav = "Avslått",
+                ),
+                Forslag.Status.Erstattet(
+                    erstattetMedForslagId = UUID.randomUUID(),
+                    erstattet = LocalDateTime.now(),
+                ),
+                Forslag.Status.Tilbakekalt(
+                    tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                    tilbakekalt = LocalDateTime.now(),
+                ),
+            )
+
+            ikkeVentendeStatuser.forEach { nyStatus ->
+                val deltaker = TestData.lagDeltaker()
+                TestRepository.insert(deltaker)
+                val opprinneligForslag = TestData.lagForslag(
+                    deltakerId = deltaker.id,
+                    status = Forslag.Status.Godkjent(
+                        godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                        godkjent = LocalDateTime.now(),
+                    ),
+                )
+                forslagRepository.upsert(opprinneligForslag)
+                val lagretForslagFraDb = forslagRepository.get(opprinneligForslag.id).getOrThrow()
+                val oppdatertForslag = opprinneligForslag.copy(
+                    begrunnelse = "Ny begrunnelse",
+                    status = nyStatus,
+                )
+
+                forslagRepository.upsert(oppdatertForslag)
+
+                forslagRepository.get(opprinneligForslag.id).getOrThrow() shouldBe
+                    lagretForslagFraDb.copy(
+                        begrunnelse = oppdatertForslag.begrunnelse,
+                        status = oppdatertForslag.status,
+                    )
+            }
+        }
     }
 
     @Nested

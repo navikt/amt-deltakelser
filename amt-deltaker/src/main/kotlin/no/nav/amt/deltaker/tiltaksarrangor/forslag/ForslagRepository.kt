@@ -61,7 +61,15 @@ class ForslagRepository {
         }
     }
 
-    fun upsert(forslag: Forslag) {
+    /**
+     * Setter inn et forslag eller oppdaterer raden med samme ID.
+     *
+     * Ved ID-konflikt ignoreres et innkommende [Forslag.Status.VenterPaSvar] hvis raden allerede har en annen status.
+     * Andre oppdateringer behandles som før.
+     *
+     * @return `true` hvis en rad ble satt inn eller oppdatert, ellers `false` hvis oppdateringen ble ignorert.
+     */
+    fun upsert(forslag: Forslag): Boolean {
         val sql =
             """
             INSERT INTO forslag (
@@ -71,7 +79,8 @@ class ForslagRepository {
                 opprettet, 
                 begrunnelse, 
                 endring,  
-                status)
+                status
+            )
             VALUES (
                 :id,
                 :deltaker_id,
@@ -82,13 +91,16 @@ class ForslagRepository {
                 :status
             )
             ON CONFLICT (id) DO UPDATE SET
-                deltaker_id     	= :deltaker_id,
-                arrangoransatt_id	= :arrangoransatt_id,
-                opprettet 			= :opprettet,
-                begrunnelse			= :begrunnelse,
-                endring				= :endring,
-                status              = :status,
+                deltaker_id     	= EXCLUDED.deltaker_id,
+                arrangoransatt_id	= EXCLUDED.arrangoransatt_id,
+                opprettet 			= EXCLUDED.opprettet,
+                begrunnelse			= EXCLUDED.begrunnelse,
+                endring				= EXCLUDED.endring,
+                status              = EXCLUDED.status,
                 modified_at         = CURRENT_TIMESTAMP
+            WHERE
+               forslag.status ->> 'type' = 'VenterPaSvar'
+               OR EXCLUDED.status ->> 'type' <> 'VenterPaSvar'      
             """.trimIndent()
 
         val params = mapOf(
@@ -101,7 +113,7 @@ class ForslagRepository {
             "status" to objectMapper.toPGObject(forslag.status),
         )
 
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        return Database.query { session -> session.update(queryOf(sql, params)) } > 0
     }
 
     fun delete(id: UUID) = Database.query { session ->
