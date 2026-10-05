@@ -211,7 +211,7 @@ class KafkaConsumerService(
                     "Avbrøt deltakelse og aktivitetskort: ${melding.id}.",
             )
         } else {
-            aktivitetskortService.slettDeltaker(deltakerId)
+            deltakerRepository.delete(deltakerId)
         }
 
         log.info("Mottok tombstone for deltaker: $deltakerId og slettet deltaker")

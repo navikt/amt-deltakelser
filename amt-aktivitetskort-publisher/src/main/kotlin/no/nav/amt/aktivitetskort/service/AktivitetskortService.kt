@@ -81,6 +81,7 @@ class AktivitetskortService(
             type = DeltakerStatus.Type.AVBRUTT,
             aarsak = null,
         )
+
         val aktivitetskort = melding.aktivitetskort.copy(
             personident = deltaker.personident,
             aktivitetStatus = AktivitetStatus.AVBRUTT,
@@ -91,16 +92,14 @@ class AktivitetskortService(
             },
             etiketter = listOfNotNull(deltakerStatusTilEtikett(avbruttStatus)),
         )
+
         val oppdatertMelding = melding.copy(aktivitetskort = aktivitetskort)
+
         transactionTemplate.executeWithoutResult {
             meldingRepository.upsert(oppdatertMelding)
             aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
             deltakerRepository.delete(oppdatertMelding.deltakerId)
         }
-    }
-
-    fun slettDeltaker(deltakerId: UUID) {
-        deltakerRepository.delete(deltakerId)
     }
 
     fun oppdaterAktivitetskort(gjennomforingId: UUID) {
