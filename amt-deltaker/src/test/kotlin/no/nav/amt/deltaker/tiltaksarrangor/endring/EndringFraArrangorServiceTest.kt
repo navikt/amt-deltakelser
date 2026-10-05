@@ -72,6 +72,46 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
+    fun `upsertEndretDeltaker - samme startdato med ny sluttdato - oppdaterer deltaker`() = runTest {
+        val startdato = LocalDate.now().plusDays(2)
+        val gammelSluttdato = LocalDate.now().plusMonths(3)
+        val nySluttdato = LocalDate.now().plusMonths(6)
+        val deltaker = lagDeltaker(
+            startdato = startdato,
+            sluttdato = gammelSluttdato,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        vedtakRepository.upsert(vedtak)
+
+        val endringFraArrangor = lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
+                sluttdato = nySluttdato,
+            ),
+        )
+
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe nySluttdato
+        }
+        endringFraArrangorRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
+        outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
+    }
+
+    @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(
             startdato = null,

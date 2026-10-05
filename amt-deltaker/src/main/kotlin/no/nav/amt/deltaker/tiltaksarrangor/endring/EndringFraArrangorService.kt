@@ -109,14 +109,18 @@ class EndringFraArrangorService(
         }
 
         return when (endring) {
-            is EndringFraArrangor.LeggTilOppstartsdato ->
-                endreDeltaker(deltaker.startdato != endring.startdato) {
+            is EndringFraArrangor.LeggTilOppstartsdato -> {
+                val faktiskSluttdato = endring.sluttdato ?: deltaker.sluttdato
+                endreDeltaker(
+                    deltaker.startdato != endring.startdato || deltaker.sluttdato != faktiskSluttdato,
+                ) {
                     deltaker.endreDeltakersOppstart(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
                         deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
+            }
         }
     }
 }
