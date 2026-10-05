@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.tiltaksarrangor.endring
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
@@ -23,6 +25,11 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
     @Test
@@ -109,6 +116,128 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
         }
         endringFraArrangorRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
         outboxService.assertProducedHendelse<HendelseType.LeggTilOppstartsdato>(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - samtidige duplikater - oppdaterer deltaker og publiserer én gang`() {
+        val deltaker = lagDeltaker(
+            startdato = null,
+            sluttdato = null,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        vedtakRepository.upsert(
+            lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = endretAv,
+                opprettetAvEnhet = endretAvEnhet,
+                fattet = LocalDateTime.now(),
+            ),
+        )
+
+        val startdato = LocalDate.now().plusDays(2)
+        val sluttdato = LocalDate.now().plusMonths(3)
+        val endringFraArrangor = lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
+                sluttdato = sluttdato,
+            ),
+        )
+        val beggeHarBestattForhandskontroll = CountDownLatch(2)
+        val beggeForsokerAaRegistrere = CountDownLatch(2)
+        val koordinertRepository = mockk<EndringFraArrangorBehandletRepository>()
+        every { koordinertRepository.exists(endringFraArrangor.id) } answers {
+            val alleredeBehandlet = endringFraArrangorBehandletRepository.exists(endringFraArrangor.id)
+            check(!alleredeBehandlet)
+            beggeHarBestattForhandskontroll.countDown()
+            check(beggeHarBestattForhandskontroll.await(10, TimeUnit.SECONDS)) {
+                "Begge leveransene må passere forhåndskontrollen før noen av dem fortsetter"
+            }
+            alleredeBehandlet
+        }
+        every { koordinertRepository.markerSomBehandlet(any(), any()) } answers {
+            beggeForsokerAaRegistrere.countDown()
+            check(beggeForsokerAaRegistrere.await(10, TimeUnit.SECONDS)) {
+                "Begge leveransene må nå registreringen før de konkurrerer om samme ID"
+            }
+            endringFraArrangorBehandletRepository.markerSomBehandlet(firstArg(), secondArg())
+        }
+
+        val serviceMedKoordinering = EndringFraArrangorService(
+            deltakerService = deltakerService,
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            endringFraArrangorBehandletRepository = koordinertRepository,
+            distribuerEndringService = distribuerEndringService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
+        val executor = Executors.newFixedThreadPool(2)
+        try {
+            val calls = List(2) {
+                executor.submit(
+                    Callable {
+                        serviceMedKoordinering.upsertEndretDeltaker(endringFraArrangor)
+                    },
+                )
+            }
+            calls.forEach { it.get(30, TimeUnit.SECONDS) }
+        } finally {
+            executor.shutdownNow()
+        }
+
+        assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe sluttdato
+        }
+        endringFraArrangorRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
+        endringFraArrangorBehandletRepository.exists(endringFraArrangor.id) shouldBe true
+
+        verify(exactly = 2) { koordinertRepository.exists(endringFraArrangor.id) }
+        verify(exactly = 2) {
+            koordinertRepository.markerSomBehandlet(endringFraArrangor.id, deltaker.id)
+        }
+        verify(exactly = 1) {
+            outboxService.insertRecord(
+                key = deltaker.id,
+                value = match { it is Hendelse && it.payload is HendelseType.LeggTilOppstartsdato },
+                topic = Environment.DELTAKER_HENDELSE_TOPIC,
+                suppressOutsideTxWarning = any(),
+            )
+        }
+        verify(exactly = 1) {
+            outboxService.insertRecord(
+                key = deltaker.id,
+                value = any(),
+                topic = Environment.DELTAKER_V1_TOPIC,
+                suppressOutsideTxWarning = any(),
+            )
+        }
+        verify(exactly = 1) {
+            outboxService.insertRecord(
+                key = deltaker.id,
+                value = any(),
+                topic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
+                suppressOutsideTxWarning = any(),
+            )
+        }
+        verify(exactly = 1) {
+            outboxService.insertRecord(
+                key = deltaker.id,
+                value = any(),
+                topic = Environment.DELTAKER_V2_TOPIC,
+                suppressOutsideTxWarning = any(),
+            )
+        }
+        verify(exactly = 4) {
+            outboxService.insertRecord(
+                key = any<UUID>(),
+                value = any(),
+                topic = any(),
+                suppressOutsideTxWarning = any(),
+            )
+        }
     }
 
     @Test
