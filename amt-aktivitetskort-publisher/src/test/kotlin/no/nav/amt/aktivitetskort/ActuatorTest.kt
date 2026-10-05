@@ -11,13 +11,11 @@ import org.springframework.boot.resttestclient.getForEntity
 import org.springframework.boot.test.web.server.LocalManagementPort
 import org.springframework.http.HttpStatus
 import org.springframework.web.util.UriComponentsBuilder
-import tools.jackson.databind.ObjectMapper
 
 @AutoConfigureTestRestTemplate
 class ActuatorTest(
     @LocalManagementPort private val managementPort: Int,
     private val restTemplate: TestRestTemplate,
-    private val objectMapper: ObjectMapper,
 ) : IntegrationTestBase() {
     @ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
     @ValueSource(strings = ["liveness", "readiness"])

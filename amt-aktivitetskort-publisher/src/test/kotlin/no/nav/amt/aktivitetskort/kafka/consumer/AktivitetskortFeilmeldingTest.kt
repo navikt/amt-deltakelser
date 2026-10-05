@@ -2,13 +2,18 @@ package no.nav.amt.aktivitetskort.kafka.consumer
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.kafka.consumer.dto.AktivitetskortFeilmelding
-import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.json.JsonTest
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.Year
 import java.time.ZonedDateTime
 
-class AktivitetskortFeilmeldingTest {
+@JsonTest
+class AktivitetskortFeilmeldingTest(
+    @Autowired private val objectMapper: ObjectMapper,
+) {
     @Test
     fun `skal deserialisere JSON til AktivitetskortFeilmelding`() {
         val json =
