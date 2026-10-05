@@ -169,6 +169,14 @@ spec:
                   client_id!="unknown"
                 }
               )
+              or
+              sum by(group, topic) (
+                kafka_consumergroup_group_lag{
+                  group="amt-tiltaksarrangor-bff-consumer",
+                  topic=~"team-mulighetsrommet\\.siste-tiltaksgjennomforinger-v2|team-mulighetsrommet\\.siste-tiltakstyper-v3",
+                  client_id!="unknown"
+                }
+              )
             )
           for: 5m
           annotations:
