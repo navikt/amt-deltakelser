@@ -15,6 +15,7 @@ import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.database.TestData
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
+import no.nav.amt.aktivitetskort.domain.Aktivitetskort
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
@@ -124,7 +125,7 @@ class AktivitetskortServiceTest {
                 startDato = LocalDate.now().minusDays(10),
                 sluttDato = LocalDate.now().minusDays(1),
                 avtaltMedNav = false,
-                detaljer = listOf(Detalj("Status for deltakelse", "Utkast til påmelding")),
+                detaljer = listOf(Detalj(Aktivitetskort.STATUS_FOR_DELTAKELSE, "Utkast til påmelding")),
             )
             val melding = TestData.melding(
                 deltakerId = deltaker.id,

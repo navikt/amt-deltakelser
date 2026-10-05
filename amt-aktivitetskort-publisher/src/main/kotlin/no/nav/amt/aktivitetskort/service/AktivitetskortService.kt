@@ -95,7 +95,7 @@ class AktivitetskortService(
             endretTidspunkt = LocalDateTime.now(),
             oppgave = null,
             detaljer = melding.aktivitetskort.detaljer.map {
-                if (it.label == "Status for deltakelse") it.copy(verdi = displayText(avbruttStatus)) else it
+                if (it.label == Aktivitetskort.STATUS_FOR_DELTAKELSE) it.copy(verdi = displayText(avbruttStatus)) else it
             },
             etiketter = listOfNotNull(deltakerStatusTilEtikett(avbruttStatus)),
         )

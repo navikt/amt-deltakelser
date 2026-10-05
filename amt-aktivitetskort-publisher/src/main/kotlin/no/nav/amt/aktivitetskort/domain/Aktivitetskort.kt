@@ -80,10 +80,13 @@ data class Aktivitetskort(
     )
 
     companion object {
+        /** Label for deltakerens status i tiltaket, ikke aktivitetskortets egen status. */
+        const val STATUS_FOR_DELTAKELSE = "Status for deltakelse"
+
         fun lagDetaljer(deltaker: Deltaker): List<Detalj> {
             val detaljer = mutableListOf<Detalj>()
             val arrangorNavn = deltaker.gjennomforing.arrangor.navn
-            detaljer.add(Detalj("Status for deltakelse", displayText(deltaker.status)))
+            detaljer.add(Detalj(STATUS_FOR_DELTAKELSE, displayText(deltaker.status)))
 
             if (deltaker.gjennomforing.tiltakstype.tiltakskode in tiltakMedDeltakelsesmengder) {
                 deltakelseMengdeDetalj(deltaker)?.let { detaljer.add(it) }

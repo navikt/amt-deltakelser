@@ -69,8 +69,10 @@ class AktivitetskortTest {
 
                 Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
                 -> aktivitetskortTittel shouldBe "Tilrettelagt arbeid hos ${arrangor.navn}"
+
                 Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
                 -> aktivitetskortTittel shouldBe "Tilrettelagt arbeid med oppfølging hos ${arrangor.navn}"
+
                 Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                 Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
                 Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
@@ -95,7 +97,7 @@ class AktivitetskortTest {
 
         val detaljer = Aktivitetskort.lagDetaljer(deltaker)
 
-        detaljer[0] shouldBe Detalj("Status for deltakelse", displayText(deltaker.status))
+        detaljer[0] shouldBe Detalj(Aktivitetskort.STATUS_FOR_DELTAKELSE, displayText(deltaker.status))
         detaljer[1] shouldBe Detalj("Deltakelsesmengde", "100%")
         detaljer[2] shouldBe Detalj("Arrangør", arrangor.navn)
     }
