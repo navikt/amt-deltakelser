@@ -3,6 +3,7 @@ package no.nav.amt.aktivitetskort.kafka.config
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.common.kafka.producer.KafkaProducerClient
 import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
+import no.nav.common.kafka.util.KafkaPropertiesPreset
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -16,7 +17,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
-import java.util.Properties
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
@@ -51,25 +51,9 @@ class KafkaConfig(
 
     @Bean
     fun kafkaOutboxProducer(): KafkaProducerClient<ByteArray, ByteArray> {
-        val properties = Properties().apply {
-            commonConfig().forEach { (key, value) ->
-                put(
-                    key,
-                    value,
-                )
-            }
-            put(
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                ByteArraySerializer::class.java,
-            )
-            put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                ByteArraySerializer::class.java,
-            )
-            put(
-                ProducerConfig.CLIENT_ID_CONFIG,
-                "amt-aktivitetskort-publisher-outbox",
-            )
+        val properties = KafkaPropertiesPreset.aivenDefaultProducerProperties(PRODUCER_ID).apply {
+            put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+            put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
         }
         return KafkaProducerClientBuilder
             .builder<ByteArray, ByteArray>()
@@ -96,6 +80,7 @@ class KafkaConfig(
 
     companion object {
         private const val CONSUMER_GROUP_ID = "amt-aktivitetskort-publisher-consumer-2"
+        private const val PRODUCER_ID = "amt-aktivitetskort-publisher-outbox"
         private const val JAVA_KEYSTORE = "JKS"
         private const val PKCS12 = "PKCS12"
     }
