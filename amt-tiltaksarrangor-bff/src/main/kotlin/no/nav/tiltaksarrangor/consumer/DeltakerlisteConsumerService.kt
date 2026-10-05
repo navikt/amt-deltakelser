@@ -1,13 +1,12 @@
 package no.nav.tiltaksarrangor.consumer
 
-import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
-import no.nav.tiltaksarrangor.consumer.ConsumerUtils.getGjennomforingstypeFromJson
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.skalLagres
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.toDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
-import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
@@ -18,13 +17,12 @@ import java.util.UUID
 class DeltakerlisteConsumerService(
     private val arrangorRepository: ArrangorRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
-    private val tiltakstypeRepository: TiltakstypeRepository,
     private val hentArrangorClient: HentArrangorClient,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreDeltakerliste(
+    fun handleGjennomforing(
         deltakerlisteId: UUID,
         value: String?,
     ) {
@@ -34,33 +32,17 @@ class DeltakerlisteConsumerService(
             return
         }
 
-        val gjennomforingstypeFromJson = getGjennomforingstypeFromJson(
-            messageJson = value,
-            objectMapper = objectMapper,
-        )
+        val payload: AmtGjennomforingPayload = objectMapper.readValue(value)
 
-        if (gjennomforingstypeFromJson != GjennomforingV2KafkaPayload.GRUPPE_V2_TYPE) {
-            log.info("Gjennomføringstype $gjennomforingstypeFromJson er ikke støttet.")
+        if (payload.type != GjennomforingType.Gruppe) {
+            log.info("Gjennomføringstype ${payload.type} er ikke støttet.")
             return
         }
 
-        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = objectMapper.readValue(value)
-
-        // enkelte gjennomforinger skal ikke bli lest grunnet feil
-        if (GjennomforingV2KafkaPayload.gjennomforingBlacklist.contains(deltakerlistePayload.id)) {
-            return
-        }
-
-        if (deltakerlistePayload.skalLagres()) {
-            deltakerlistePayload.assertPameldingstypeIsValid()
-
+        if (payload.skalLagres()) {
             deltakerlisteRepository.insertOrUpdateDeltakerliste(
-                deltakerlistePayload.toDeltakerlisteDbo(
-                    arrangorId = hentArrangorId(deltakerlistePayload.arrangor.organisasjonsnummer),
-                    navnTiltakstype = tiltakstypeRepository
-                        .getByTiltakskode(deltakerlistePayload.tiltakskode.name)
-                        ?.navn
-                        ?: throw IllegalStateException("Tiltakstype med tiltakskode ${deltakerlistePayload.tiltakskode} finnes ikke i db"),
+                payload.toDeltakerlisteDbo(
+                    arrangorId = hentArrangorId(payload.arrangor.organisasjonsnummer),
                 ),
             )
             log.info("Lagret deltakerliste med id $deltakerlisteId")
