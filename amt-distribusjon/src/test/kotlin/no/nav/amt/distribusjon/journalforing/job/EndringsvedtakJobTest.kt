@@ -17,7 +17,7 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
-import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
+import no.nav.amt.lib.utils.database.jdbi.MockDatabase
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -236,16 +236,12 @@ class EndringsvedtakJobTest {
 
     private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
-        val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
-        val db = mockk<DatabaseApi>()
-
-        every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
-        every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
-        every {
-            db.repo(HendelseRepository::class, any<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>())
-        } answers {
-            secondArg<(HendelseRepository) -> List<HendelseMedJournalforingstatus>>()(hendelseRepository)
+        val db = MockDatabase.create {
+            repo<HendelseRepository> {
+                every { hentIkkeJournalforteHendelser() } returns hendelser
+                every { hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+            }
         }
 
         return TestSetup(
