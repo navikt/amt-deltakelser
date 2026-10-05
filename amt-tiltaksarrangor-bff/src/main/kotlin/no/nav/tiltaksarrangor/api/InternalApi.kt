@@ -1,7 +1,6 @@
 package no.nav.tiltaksarrangor.api
 
 import no.nav.tiltaksarrangor.api.request.ForslagRequest
-import no.nav.tiltaksarrangor.melding.MeldingProducer
 import no.nav.tiltaksarrangor.melding.forslag.ForslagService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/internal/api")
 class InternalApi(
     private val forslagService: ForslagService,
-    private val meldingProducer: MeldingProducer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -29,7 +27,7 @@ class InternalApi(
                 log.info("Republiserer ikke Forslag med id: $forslagId, status ${forslag.status}")
                 return@forEach
             } else if (!body.dryRun) {
-                meldingProducer.produce(forslag)
+                forslagService.republiserForslag(forslag)
                 log.info("Re-publiserte forslag $forslagId")
             }
         }

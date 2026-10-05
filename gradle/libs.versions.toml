@@ -108,6 +108,7 @@ logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", v
 nav-common-log = { module = "no.nav.common:log", version.ref = "nav-common-version" }
 nav-common-rest = { module = "no.nav.common:rest", version.ref = "nav-common-version" }
 nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-common-version" }
+nav-common-kafka = { module = "no.nav.common:kafka", version.ref = "nav-common-version" }
 
 # --- POAO ---
 poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang-version" }
