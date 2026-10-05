@@ -8,7 +8,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
@@ -17,14 +16,12 @@ import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
-import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.tiltakstypePayloadInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.toDeltakerlisteDbo
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.ARRANGOR_ANSATT_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.ARRANGOR_TOPIC
-import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.DELTAKERLISTE_V2_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.DELTAKER_TOPIC
 import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.ENDRINGSMELDING_TOPIC
-import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.TILTAKSTYPE_TOPIC
+import no.nav.tiltaksarrangor.consumer.KafkaConsumer.Companion.GJENNOMFORING_INTERN_TOPIC
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattPersonaliaDto
 import no.nav.tiltaksarrangor.consumer.model.AnsattRolle
@@ -46,7 +43,6 @@ import no.nav.tiltaksarrangor.repositories.DeltakerRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.repositories.EndringsmeldingRepository
 import no.nav.tiltaksarrangor.repositories.TiltaksarrangorAnsattRepository
-import no.nav.tiltaksarrangor.repositories.TiltakstypeRepository
 import no.nav.tiltaksarrangor.testutils.getDeltaker
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -64,7 +60,6 @@ class KafkaConsumerTest(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val endringsmeldingRepository: EndringsmeldingRepository,
-    private val tiltakstypeRepository: TiltakstypeRepository,
     private val kafkaConsumer: KafkaConsumer,
 ) : IntegrationTestBase() {
     private val ack = Acknowledgment { }
@@ -109,30 +104,15 @@ class KafkaConsumerTest(
         value: String?,
     ) = ConsumerRecord<String, String>(topic, 0, 0L, key, value)
 
-    @Test
-    fun `skal lagre tiltakstype i database`() {
-        kafkaConsumer.listen(
-            consumerRecord(
-                TILTAKSTYPE_TOPIC,
-                tiltakstypePayloadInTest.id.toString(),
-                objectMapper.writeValueAsString(tiltakstypePayloadInTest),
-            ),
-            ack,
-        )
-
-        tiltakstypeRepository.getByTiltakskode(tiltakstypePayloadInTest.tiltakskode) shouldNotBe null
-    }
-
     @Nested
     inner class ListenDeltakerliste {
         @Test
         fun `skal lagre deltakerliste i database`() {
-            tiltakstypeRepository.upsert(tiltakstypePayloadInTest.toModel())
             arrangorRepository.insertOrUpdateArrangor(arrangorInTest.toArrangorDbo())
 
             kafkaConsumer.listen(
                 consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
+                    GJENNOMFORING_INTERN_TOPIC,
                     deltakerlisteIdInTest.toString(),
                     objectMapper.writeValueAsString(gjennomforingPayloadInTest),
                 ),
@@ -145,16 +125,13 @@ class KafkaConsumerTest(
         @Test
         fun `skal slette deltakerliste i database`() {
             deltakerlisteRepository.insertOrUpdateDeltakerliste(
-                gjennomforingPayloadInTest.toDeltakerlisteDbo(
-                    arrangorId = arrangorInTest.id,
-                    navnTiltakstype = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING.name,
-                ),
+                gjennomforingPayloadInTest.toDeltakerlisteDbo(arrangorId = arrangorInTest.id),
             )
             deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldNotBe null
 
             kafkaConsumer.listen(
                 consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
+                    GJENNOMFORING_INTERN_TOPIC,
                     deltakerlisteIdInTest.toString(),
                     null,
                 ),
@@ -167,10 +144,7 @@ class KafkaConsumerTest(
         @Test
         fun `skal slette deltakerliste og deltaker i database`() {
             deltakerlisteRepository.insertOrUpdateDeltakerliste(
-                gjennomforingPayloadInTest.toDeltakerlisteDbo(
-                    arrangorId = arrangorInTest.id,
-                    navnTiltakstype = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING.name,
-                ),
+                gjennomforingPayloadInTest.toDeltakerlisteDbo(arrangorId = arrangorInTest.id),
             )
             deltakerlisteRepository.getDeltakerliste(deltakerlisteIdInTest) shouldNotBe null
 
@@ -182,7 +156,7 @@ class KafkaConsumerTest(
 
             kafkaConsumer.listen(
                 consumerRecord(
-                    DELTAKERLISTE_V2_TOPIC,
+                    GJENNOMFORING_INTERN_TOPIC,
                     deltakerlisteIdInTest.toString(),
                     objectMapper.writeValueAsString(avsluttetDeltakerlisteDto),
                 ),
