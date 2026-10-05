@@ -40,7 +40,7 @@ class AktivitetskortProducer(
             key = aktivitetskort.id.toString(),
             value = objectMapper.writeValueAsString(payload),
         )
-        log.info("La aktivitetskort i Kafka-outbox: ${aktivitetskort.id} messageId: $messageId")
+        log.info("Sendte aktivitetskort til aktivitetsplanen: ${aktivitetskort.id} messageId: $messageId")
     }
 
     fun slettAktivitetskort(
