@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.kafka
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -42,6 +43,9 @@ class DeltakerProducerService(
     }
 
     private fun produceDeltakerV1Topic(deltaker: Deltaker) {
+        if (deltaker.deltakerliste.tiltakstype.tiltakskode === Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER) {
+            return
+        }
         val deltakerV1Record = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
