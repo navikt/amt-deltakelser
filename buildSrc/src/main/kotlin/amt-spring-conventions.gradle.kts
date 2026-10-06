@@ -13,7 +13,17 @@ val libsWrapper = VersionCatalogWrapper.fromProject(project)
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+}
+
+// Override Spring Boot's managed Jackson versions to apply the security fixes in 3.1.7.
+// Merk at Spring Boot ikke funker med 3.2.3
+val jacksonVersion = "3.1.7"
+dependencyManagement {
+    dependencies {
+        dependency("tools.jackson.core:jackson-core:$jacksonVersion")
+        dependency("tools.jackson.core:jackson-databind:$jacksonVersion")
+    }
 }
 
 dependencies {
