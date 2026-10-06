@@ -16,6 +16,8 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Varselsdata
 import no.nav.amt.distribusjon.varsel.model.Varsel
+import no.nav.amt.distribusjon.varsel.model.oppgaveTekst
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -139,6 +141,62 @@ class VarselServiceTest : IntegrationTestBase() {
                 erEksterntVarsel shouldBe false
                 revarsles shouldBe null
             }
+        }
+
+        @Test
+        fun `endreUtkast - arrangor er endret - inaktiverer gammel oppgave og oppretter ny`() {
+            val gammelHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+            val gammelOppgave = Varsel.nyOppgave(gammelHendelse).copy(
+                status = Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(1),
+            )
+            varselRepository.upsert(gammelOppgave)
+
+            val oppdatertDeltaker = gammelHendelse.deltaker.copy(
+                deltakerliste = gammelHendelse.deltaker.deltakerliste.copy(
+                    arrangor = Hendelsesdata.arrangor(navn = "Ny arrangør"),
+                ),
+            )
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
+                deltaker = oppdatertDeltaker,
+            )
+
+            varselService.handleHendelse(hendelse)
+
+            val inaktivertOppgave = varselRepository.get(gammelOppgave.id).shouldBeSuccess()
+            inaktivertOppgave.status shouldBe Varsel.Status.INAKTIVERT
+
+            val nyOppgave = varselRepository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE).shouldBeSuccess()
+            assertSoftly(nyOppgave) {
+                status shouldBe Varsel.Status.AKTIV
+                tekst shouldBe oppgaveTekst(hendelse)
+                tekst shouldBe
+                    "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Tiltaksnavn hos Ny arrangør. Svar på spørsmålet her."
+            }
+
+            verify { outboxService.insertRecord(gammelOppgave.id, any(), any(), any()) }
+            verify { outboxService.insertRecord(nyOppgave.id, any(), any(), any()) }
+        }
+
+        @Test
+        fun `endreUtkast - oppgavetekst er uendret - beholder aktiv oppgave`() {
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+            val aktivOppgave = Varsel.nyOppgave(hendelse).copy(
+                status = Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(1),
+            )
+            varselRepository.upsert(aktivOppgave)
+
+            val endretUtkast = Hendelsesdata.hendelse(
+                payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
+                deltaker = hendelse.deltaker,
+            )
+
+            varselService.handleHendelse(endretUtkast)
+
+            varselRepository.get(aktivOppgave.id).shouldBeSuccess().status shouldBe Varsel.Status.AKTIV
+            verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
         }
 
         @Test
