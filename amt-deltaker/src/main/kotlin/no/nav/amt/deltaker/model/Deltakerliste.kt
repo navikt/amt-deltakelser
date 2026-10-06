@@ -27,7 +27,6 @@ data class Deltakerliste(
     val pameldingstype: GjennomforingPameldingType,
     val lopenummer: String? = null,
     val tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
-    val prisinformasjon: String?, // dette er ikke enkeltplass prisinformasjon
     val opplaringKategorisering: OpplaringKategoriseringValg? = null,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||

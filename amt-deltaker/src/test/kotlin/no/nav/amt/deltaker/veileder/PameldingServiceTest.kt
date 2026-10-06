@@ -516,7 +516,6 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 deltakerliste = lagDeltakerlisteMedTrengerGodkjenning()
                     .copy(
                         gjennomforingstype = GjennomforingType.Enkeltplass,
-                        prisinformasjon = "Dette tiltaket koster 100 kr/mnd",
                     ),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
