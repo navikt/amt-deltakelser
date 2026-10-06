@@ -51,6 +51,7 @@ fun Routing.registerInternalApi(
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun slettDeltaker(deltakerId: UUID) = Database.transaction {
+        deltakerProducerService.tombstone(deltakerId)
         innsokRepository.deleteForDeltaker(deltakerId)
         vurderingRepository.deleteForDeltaker(deltakerId)
         deltakerService.deleteDeltaker(deltakerId)
@@ -189,7 +190,6 @@ fun Routing.registerInternalApi(
             scope.launch {
                 log.info("slett-deltakere: Starter sletting av ${request.deltakere.size} deltakere")
                 request.deltakere.forEach { deltakerId ->
-                    deltakerProducerService.tombstone(deltakerId)
                     slettDeltaker(deltakerId)
                 }
                 log.info("slett-deltakere: Fullført sletting av ${request.deltakere.size} deltakere")

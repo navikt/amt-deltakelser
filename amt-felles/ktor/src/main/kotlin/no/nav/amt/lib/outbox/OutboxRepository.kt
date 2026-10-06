@@ -66,7 +66,7 @@ internal class OutboxRepository {
             SELECT * 
             FROM outbox_record
             WHERE status IN ('${OutboxRecordStatus.PENDING.name}', '${OutboxRecordStatus.FAILED.name}')
-            ORDER BY created_at
+            ORDER BY id
             LIMIT :limit
             """.trimIndent()
 

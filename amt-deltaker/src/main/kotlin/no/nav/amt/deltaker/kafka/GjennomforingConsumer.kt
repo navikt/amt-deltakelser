@@ -53,8 +53,10 @@ class GjennomforingConsumer(
             log.info("Mottok tombstone for gjennomføring: $key")
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(key)
             if (key !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
-                deltakerlisteRepository.delete(key)
-                amtGjennomforingProducer.produceTombstone(key)
+                Database.transaction {
+                    deltakerlisteRepository.delete(key)
+                    amtGjennomforingProducer.produceTombstone(key)
+                }
             } else {
                 log.error(
                     "Ignorerer tombstone for $key. " +

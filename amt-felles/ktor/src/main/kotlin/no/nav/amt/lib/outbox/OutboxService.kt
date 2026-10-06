@@ -42,6 +42,30 @@ class OutboxService(
     }
 
     /**
+     * Creates an outbox event that will be published as a Kafka tombstone.
+     *
+     * @param key The key of the event.
+     * @param topic The Kafka topic to which the tombstone will be published.
+     * @param suppressOutsideTxWarning Whether to suppress the warning when called outside a transaction.
+     * @return The created [OutboxRecord].
+     */
+    fun <K : Any> insertTombstone(
+        key: K,
+        topic: String,
+        suppressOutsideTxWarning: Boolean = false,
+    ): OutboxRecord {
+        val outboxRecord = NewOutboxRecord(
+            key = key.toString(),
+            valueType = OUTBOX_TOMBSTONE_VALUE_TYPE,
+            topic = topic,
+            value = objectMapper.readTree("null"),
+        )
+        return outboxRepository
+            .insertNewRecord(outboxRecord, suppressOutsideTxWarning)
+            .also { meter.incrementNewRecords(topic) }
+    }
+
+    /**
      * Finds unprocessed outbox events (with status PENDING or FAILED).
      *
      * @param limit The maximum number of events to return.

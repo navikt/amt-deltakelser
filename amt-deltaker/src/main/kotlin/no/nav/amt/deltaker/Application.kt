@@ -313,16 +313,13 @@ fun Application.module() {
 
     val deltakerProducer = DeltakerProducer(
         outboxService = outboxService,
-        producer = kafkaProducer,
     )
     val deltakerV1Producer = DeltakerV1Producer(
         outboxService = outboxService,
-        producer = kafkaProducer,
     )
 
     val deltakerEksternV1Producer = DeltakerEksternV1Producer(
         outboxService = outboxService,
-        producer = kafkaProducer,
     )
 
     val gjennomforingRequestProducer = GjennomforingRequestProducer(
@@ -331,7 +328,6 @@ fun Application.module() {
 
     val amtGjennomforingProducer = AmtGjennomforingProducer(
         outboxService = outboxService,
-        producer = kafkaProducer,
     )
 
     val deltakerProducerService = DeltakerProducerService(
