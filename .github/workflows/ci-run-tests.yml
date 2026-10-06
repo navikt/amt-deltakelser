@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      modules: ${{ steps.filter.outputs.changes }}
+      # Når all kjøres, dekker den hele testsettet, så modultestene blir overflødige.
+      modules: ${{ contains(fromJSON(steps.filter.outputs.changes), 'all') && '["all"]' || steps.filter.outputs.changes }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
