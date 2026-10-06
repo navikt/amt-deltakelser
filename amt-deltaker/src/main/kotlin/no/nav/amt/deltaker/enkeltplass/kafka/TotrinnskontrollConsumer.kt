@@ -63,6 +63,9 @@ class TotrinnskontrollConsumer(
     private val consumer = buildManagedKafkaConsumer(
         topic = Environment.TOTRINNSKONTROLL_TOPIC,
         consumeFunc = ::consume,
+        skipFilter = { record ->
+            Environment.isDev() && record.offset() in setOf(44L)
+        },
     )
 
     /**
