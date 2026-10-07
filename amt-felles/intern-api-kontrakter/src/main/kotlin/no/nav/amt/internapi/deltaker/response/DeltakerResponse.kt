@@ -29,7 +29,6 @@ data class DeltakerResponse(
     val deltakelsesmengder: DeltakelsesmengderResponse?, // veileder trenger
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
-    val prisinformasjon: String?,
     val sisteVurdering: VurderingResponse?,
     val importertFraArena: ImportertFraArena?,
 )

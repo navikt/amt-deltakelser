@@ -595,7 +595,6 @@ class GjennomforingUpserterTest {
             deltakerliste = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 status = GjennomforingStatusType.KLADD,
-                prisinformasjon = "1234",
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),
             ),
             startdato = LocalDate.now().minusMonths(1),

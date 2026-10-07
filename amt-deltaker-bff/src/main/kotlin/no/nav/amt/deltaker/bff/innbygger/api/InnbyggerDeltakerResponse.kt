@@ -29,7 +29,6 @@ data class InnbyggerDeltakerResponse(
     val importertFraArena: ImportertFraArenaResponse?,
     val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
     val erManueltDeltMedArrangor: Boolean,
-    val prisinformasjon: String?,
 ) {
     companion object {
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -57,7 +56,6 @@ data class InnbyggerDeltakerResponse(
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                prisinformasjon = prisinformasjon,
             )
         }
     }

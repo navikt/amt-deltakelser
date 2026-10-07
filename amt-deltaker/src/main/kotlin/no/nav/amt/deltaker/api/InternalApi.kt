@@ -238,7 +238,7 @@ fun Routing.registerInternalApi(
         /*
         Brukes til å opprette manglende gjennomføringer hos valp for enkeltplasser.
         Finner de manglende gjennomføringene i db slik:
-            SELECT dl.id, dl.prisinformasjon from deltaker d
+            SELECT dl.id from deltaker d
             join deltakerliste dl on d.deltakerliste_id=dl.id
             join deltaker_status ds on d.id=ds.deltaker_id
             WHERE ds.type='UTKAST_TIL_PAMELDING'
@@ -291,7 +291,7 @@ fun Routing.registerInternalApi(
                                 prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
                                     aarsak = @Suppress("ktlint:standard:max-line-length")
                                     GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                                    tilleggsopplysninger = gjennomforing.prisinformasjon,
+                                    tilleggsopplysninger = null,
                                 ),
                                 organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer
                                     ?: throw IllegalStateException("Enkeltplass må ha arrangør med organisasjonsnummer"),

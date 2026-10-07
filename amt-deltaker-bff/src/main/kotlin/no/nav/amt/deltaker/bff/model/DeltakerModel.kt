@@ -33,7 +33,6 @@ data class DeltakerModel(
     val erManueltDeltMedArrangor: Boolean,
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
-    val prisinformasjon: String?,
     val sisteVurdering: VurderingResponse?,
     val deltakelsesmengder: DeltakelsesmengderResponse?,
     val soktInnDato: LocalDate?,

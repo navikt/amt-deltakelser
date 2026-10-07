@@ -200,7 +200,6 @@ object TestData {
             deltakelsesmengder = DeltakelsesmengderResponse(),
             erLaastForEndringer = false,
             endringsforslagFraArrangor = emptyList(),
-            prisinformasjon = null,
             sisteVurdering = null,
             importertFraArena = null,
         )

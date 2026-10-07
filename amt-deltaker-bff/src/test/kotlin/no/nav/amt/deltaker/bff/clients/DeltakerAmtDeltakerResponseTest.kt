@@ -41,7 +41,6 @@ class DeltakerAmtDeltakerResponseTest {
             erLaastForEndringer shouldBe responseInTest.erLaastForEndringer
             vedtaksinformasjon shouldBe ModelMapper.toVedtaksinformasjon(responseInTest.vedtaksinformasjon!!)
             endringsforslagFraArrangor shouldBe responseInTest.endringsforslagFraArrangor
-            prisinformasjon shouldBe responseInTest.prisinformasjon
             soktInnDato shouldBe responseInTest.soktInnDato
             deltakelsesmengder shouldBe responseInTest.deltakelsesmengder
             importertFraArena shouldBe responseInTest.importertFraArena

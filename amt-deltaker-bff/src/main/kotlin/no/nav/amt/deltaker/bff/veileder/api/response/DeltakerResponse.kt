@@ -34,7 +34,6 @@ data class DeltakerResponse(
     val deltakelsesmengder: DeltakelsesmengderResponse,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
-    val prisinformasjon: String?,
 ) {
     companion object {
         fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -81,7 +80,6 @@ data class DeltakerResponse(
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderResponse) ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-                prisinformasjon = prisinformasjon,
             )
         }
     }
