@@ -531,7 +531,6 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             deltakerliste = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 status = GjennomforingStatusType.KLADD,
-                prisinformasjon = "1234",
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),
             ),
         )

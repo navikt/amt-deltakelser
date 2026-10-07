@@ -759,7 +759,6 @@ class DeltakerRepository {
             dl.pameldingstype AS "dl.pameldingstype",
             dl.lopenummer AS "dl.lopenummer",
             dl.tilgjengelig_fom AS "dl.tilgjengelig_fom",
-            dl.prisinformasjon AS "dl.prisinformasjon",
             a.navn AS "a.navn",
             a.id AS "a.id",
             a.organisasjonsnummer AS "a.organisasjonsnummer",
