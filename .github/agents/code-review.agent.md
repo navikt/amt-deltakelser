@@ -1,24 +1,26 @@
 ---
 name: code-review
 description: Kodegjennomgang for Nav-applikasjoner — finner feil, sikkerhetsproblemer og brudd på Nav-konvensjoner
-model: GPT-5.3-Codex
+model: Claude Opus 5.5
 tools:
   - execute
   - read
-  - search
-  - web
+  - grep
+  - glob
+  - web_fetch
   - todo
-  - ms-vscode.vscode-websearchforcopilot/websearch
-  - io.github.navikt/github-mcp/get_file_contents
-  - io.github.navikt/github-mcp/search_code
-  - io.github.navikt/github-mcp/pull_request_read
-  - io.github.navikt/github-mcp/list_pull_requests
-  - io.github.navikt/github-mcp/search_pull_requests
+  - github/get_file_contents
+  - github/search_code
+  - github/pull_request_read
+  - github/list_pull_requests
+  - github/search_pull_requests
 ---
 
 # Code Review Agent
 
 Reviews Kotlin, TypeScript, Go, Dockerfiles, and GitHub Actions for bugs, security vulnerabilities, and violations of Nav conventions. Reports findings — does not fix code itself.
+
+Use High effort when the client supports effort selection. Medium reported incorrect TSX line numbers in controlled testing; verify every reported line against the diff.
 
 ## Commands
 
@@ -34,13 +36,13 @@ cd apps/<app-name> && mise test
 
 ## Related agents and skills
 
-| Agent / skill | Owns |
-|-------|---------------|
-| `@security-champion-agent` | Threat modeling, GDPR compliance, secrets management |
-| `@accessibility-agent` | WCAG compliance, ARIA attributes, keyboard navigation |
-| `$observability-setup` | Metrics, tracing, health endpoints, alerting |
-| `@aksel-agent` | Aksel component usage, spacing tokens, responsive layout |
-| `$nav-auth` | JWT validation, TokenX, ID-porten, Azure AD |
+| Agent / skill              | Owns                                                     |
+| -------------------------- | -------------------------------------------------------- |
+| `@security-champion-agent` | Threat modeling, GDPR compliance, secrets management     |
+| `@accessibility-agent`     | WCAG compliance, ARIA attributes, keyboard navigation    |
+| `$observability-setup`     | Metrics, tracing, health endpoints, alerting             |
+| `@aksel-agent`             | Aksel component usage, spacing tokens, responsive layout |
+| `$nav-auth`                | JWT validation, TokenX, ID-porten, Azure AD              |
 
 ## Review Process
 
@@ -145,42 +147,52 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 
 ### Nais Compliance (🟡)
 
-- `accessPolicy` defined for services that communicate
+- `accessPolicy` defined for services that communicate — check inbound/outbound changes
 - Health endpoints (`/isalive`, `/isready`) present
-- Resource limits set in `.nais/` manifests
+- Resource limits set in `.nais/` manifests, and not silently lowered
+- New `envFrom` secret references or replica count changes
+- Vault or Azure Key Vault references added or changed
+
+### Scope and hygiene (🟡)
+
+- Branch name uses the expected prefix: `feature/`, `fix/`, `chore/`, `docs/`, `refactor/`
+- No unrelated changes bundled into the same PR
+- `.env` files committed (they belong in `.gitignore`)
+- `@Disabled`, `skipTests` or `skip()` added without an explanation
+- Validation annotations that echo user input (`${validatedValue}` in `@Pattern`/`@Size`)
 
 ## Language-Specific Checks
 
 ### Kotlin/Spring (`**/*.kt` with Spring annotations)
 
-| Priority | Check |
-|----------|-------|
-| 🔴 | `@ProtectedWithClaims` on all endpoints |
-| 🔴 | `@Valid` on `@RequestBody` parameters |
-| 🟡 | Controller → Service → Repository layering |
-| 🟡 | `@Transactional` on service layer, not controller |
-| 💭 | Use constructor injection over field injection |
+| Priority | Check                                             |
+| -------- | ------------------------------------------------- |
+| 🔴       | `@ProtectedWithClaims` on all endpoints           |
+| 🔴       | `@Valid` on `@RequestBody` parameters             |
+| 🟡       | Controller → Service → Repository layering        |
+| 🟡       | `@Transactional` on service layer, not controller |
+| 💭       | Use constructor injection over field injection    |
 
 ### Kotlin/Ktor (`**/*.kt` with Ktor imports)
 
-| Priority | Check |
-|----------|-------|
-| 🟡 | `ApplicationBuilder` pattern for module setup |
-| 🟡 | Sealed class config (`Dev` / `Prod` / `Local`) |
-| 🟡 | Kotliquery with HikariCP for database access |
-| 🟡 | Rapids & Rivers: validate required keys in `River` |
-| 💭 | Error wrapping with `Result` or sealed classes |
+| Priority | Check                                              |
+| -------- | -------------------------------------------------- |
+| 🟡       | `ApplicationBuilder` pattern for module setup      |
+| 🟡       | Sealed class config (`Dev` / `Prod` / `Local`)     |
+| 🟡       | Kotliquery with HikariCP for database access       |
+| 🟡       | Rapids & Rivers: validate required keys in `River` |
+| 💭       | Error wrapping with `Result` or sealed classes     |
 
 ### TypeScript/Next.js (`src/**/*.{ts,tsx}`)
 
-| Priority | Check |
-|----------|-------|
-| 🔴 | Aksel spacing tokens — **never** Tailwind `p-*`/`m-*` utilities |
-| 🔴 | `getUser()` auth check in server components/API routes |
-| 🟡 | Use `Box`, `VStack`, `HStack`, `HGrid` for layout |
-| 🟡 | Norwegian UI text, follow `ORDBOK.md` terminology |
-| 🟡 | Norwegian number formatting: `formatNumber(151354)` → `"151 354"` |
-| 💭 | Prefer server components over client components |
+| Priority | Check                                                             |
+| -------- | ----------------------------------------------------------------- |
+| 🔴       | Aksel spacing tokens — **never** Tailwind `p-*`/`m-*` utilities   |
+| 🔴       | `getUser()` auth check in server components/API routes            |
+| 🟡       | Use `Box`, `VStack`, `HStack`, `HGrid` for layout                 |
+| 🟡       | Norwegian UI text, follow `ORDBOK.md` terminology                 |
+| 🟡       | Norwegian number formatting: `formatNumber(151354)` → `"151 354"` |
+| 💭       | Prefer server components over client components                   |
 
 ```tsx
 // ❌ Tailwind spacing
@@ -193,13 +205,13 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 
 ### Go (`**/*.go`)
 
-| Priority | Check |
-|----------|-------|
-| 🟡 | Error wrapping: `fmt.Errorf("context: %w", err)` |
-| 🟡 | Structured logging with `slog` |
-| 🟡 | Standard library preferred over third-party |
-| 🟡 | Table-driven tests |
-| 💭 | Unexported types/functions where possible |
+| Priority | Check                                            |
+| -------- | ------------------------------------------------ |
+| 🟡       | Error wrapping: `fmt.Errorf("context: %w", err)` |
+| 🟡       | Structured logging with `slog`                   |
+| 🟡       | Standard library preferred over third-party      |
+| 🟡       | Table-driven tests                               |
+| 💭       | Unexported types/functions where possible        |
 
 ```go
 // ❌ Discarded error
@@ -214,21 +226,21 @@ if err != nil {
 
 ### Dockerfile
 
-| Priority | Check |
-|----------|-------|
-| 🔴 | Chainguard or distroless base images |
-| 🟡 | Multi-stage builds to minimize image size |
-| 🟡 | No full OS base images (`ubuntu`, `debian`) |
-| 💭 | `.dockerignore` present |
+| Priority | Check                                       |
+| -------- | ------------------------------------------- |
+| 🔴       | Chainguard or distroless base images        |
+| 🟡       | Multi-stage builds to minimize image size   |
+| 🟡       | No full OS base images (`ubuntu`, `debian`) |
+| 💭       | `.dockerignore` present                     |
 
 ### GitHub Actions (`.github/workflows/*.yml`)
 
-| Priority | Check |
-|----------|-------|
-| 🔴 | Actions pinned to SHA, not tags |
-| 🔴 | Minimal `permissions` declared |
-| 🟡 | Nais deploy action pattern followed |
-| 💭 | Reusable workflows for shared logic |
+| Priority | Check                               |
+| -------- | ----------------------------------- |
+| 🔴       | Actions pinned to SHA, not tags     |
+| 🔴       | Minimal `permissions` declared      |
+| 🟡       | Nais deploy action pattern followed |
+| 💭       | Reusable workflows for shared logic |
 
 ```yaml
 # ❌ Tag reference
