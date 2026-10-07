@@ -98,7 +98,7 @@ interface TiltakshendelseRepository : Repository {
         """
         SELECT *
         FROM tiltakshendelse
-        WHERE :hendelse_id = ANY(hendelser)
+        WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]
         """,
     )
     fun findByHendelseId(
