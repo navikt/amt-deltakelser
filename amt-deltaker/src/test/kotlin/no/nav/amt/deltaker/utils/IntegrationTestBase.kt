@@ -61,6 +61,7 @@ import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
+import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorBehandletRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorService
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -99,6 +100,7 @@ abstract class IntegrationTestBase {
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
     protected open val deltakerRepository: DeltakerRepository = mockk()
     protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    protected open val endringFraArrangorBehandletRepository: EndringFraArrangorBehandletRepository = mockk()
     protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
     protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk()
     protected open val forslagRepository: ForslagRepository = mockk()
@@ -366,6 +368,7 @@ abstract class IntegrationTestBase {
         EndringFraArrangorService(
             deltakerService = deltakerService,
             endringFraArrangorRepository = endringFraArrangorRepository,
+            endringFraArrangorBehandletRepository = endringFraArrangorBehandletRepository,
             distribuerEndringService = distribuerEndringService,
             deltakerHistorikkService = deltakerHistorikkService,
         )

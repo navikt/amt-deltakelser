@@ -37,16 +37,17 @@ class EndringFraArrangorRepository {
         val sql =
             """
             INSERT INTO endring_fra_arrangor (
-                id, 
-                deltaker_id, 
-                arrangor_ansatt_id, 
-                opprettet, endring
+                id,
+                deltaker_id,
+                arrangor_ansatt_id,
+                opprettet,
+                endring
             )
             VALUES (
-                :id, 
-                :deltaker_id, 
-                :arrangor_ansatt_id, 
-                :opprettet, 
+                :id,
+                :deltaker_id,
+                :arrangor_ansatt_id,
+                :opprettet,
                 :endring
             )
             ON CONFLICT (id) DO NOTHING
@@ -63,8 +64,8 @@ class EndringFraArrangorRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
-        it.update(
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+        session.update(
             queryOf(
                 "DELETE FROM endring_fra_arrangor WHERE deltaker_id = :deltaker_id",
                 mapOf("deltaker_id" to deltakerId),

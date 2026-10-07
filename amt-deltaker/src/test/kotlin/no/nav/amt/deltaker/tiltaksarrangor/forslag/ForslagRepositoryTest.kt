@@ -40,11 +40,18 @@ class ForslagRepositoryTest {
         }
 
         @Test
-        fun `upsert - eksisterende forslag - oppdaterer`() {
+        fun `upsert - eksisterende forslag med avgjort status - oppdaterer`() {
             // Arrange
             val deltaker = TestData.lagDeltaker()
             TestRepository.insert(deltaker)
-            val forslag = TestData.lagForslag(deltakerId = deltaker.id, begrunnelse = "Gammel")
+            val forslag = TestData.lagForslag(
+                deltakerId = deltaker.id,
+                begrunnelse = "Gammel",
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+            )
             forslagRepository.upsert(forslag)
 
             val oppdatert = forslag.copy(begrunnelse = "Ny begrunnelse")
@@ -56,6 +63,89 @@ class ForslagRepositoryTest {
             val resultat = forslagRepository.getForDeltaker(deltaker.id)
             resultat.size shouldBe 1
             resultat.single().begrunnelse shouldBe "Ny begrunnelse"
+        }
+
+        @Test
+        fun `upsert - duplikat VenterPaSvar med samme id - oppdaterer ikke eksisterende rad`() {
+            // Arrange
+            // Et forslag får alltid en ny, unik ID når det opprettes (se ForslagService.opprettForslag
+            // i amt-tiltaksarrangor-bff), så en innkommende VenterPaSvar med en ID som allerede finnes
+            // er alltid en duplikatlevering fra Kafka eller BFF-ens outbox, uansett lagret status.
+            val deltaker = TestData.lagDeltaker()
+            TestRepository.insert(deltaker)
+            val forslag = TestData.lagForslag(deltakerId = deltaker.id, begrunnelse = "Opprinnelig")
+            forslagRepository.upsert(forslag)
+            val lagretForslagFraDb = forslagRepository.get(forslag.id).getOrThrow()
+
+            val duplikat = forslag.copy(begrunnelse = "Duplikatlevering med annen tekst")
+
+            // Act
+            val erOppdatert = forslagRepository.upsert(duplikat)
+
+            // Assert
+            erOppdatert shouldBe false
+            forslagRepository.get(forslag.id).getOrThrow() shouldBe lagretForslagFraDb
+        }
+
+        @Test
+        fun `upsert - foreldet VenterPaSvar etter annen status - beholder lagret forslag uendret`() {
+            val avgjorteStatuser = listOf(
+                Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+                Forslag.Status.Avvist(
+                    avvistAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    avvist = LocalDateTime.now(),
+                    begrunnelseFraNav = "Avslått",
+                ),
+                Forslag.Status.Erstattet(
+                    erstattetMedForslagId = UUID.randomUUID(),
+                    erstattet = LocalDateTime.now(),
+                ),
+                Forslag.Status.Tilbakekalt(
+                    tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                    tilbakekalt = LocalDateTime.now(),
+                ),
+            )
+
+            avgjorteStatuser.forEach { status ->
+                val deltaker = TestData.lagDeltaker()
+                TestRepository.insert(deltaker)
+                val lagretForslag = TestData.lagForslag(deltakerId = deltaker.id, status = status)
+                forslagRepository.upsert(lagretForslag)
+                val lagretForslagFraDb = forslagRepository.get(lagretForslag.id).getOrThrow()
+
+                val foreldetForslag = lagretForslag.copy(
+                    begrunnelse = "Foreldet melding",
+                    status = Forslag.Status.VenterPaSvar,
+                )
+
+                forslagRepository.upsert(foreldetForslag)
+
+                forslagRepository.get(lagretForslag.id).getOrThrow() shouldBe lagretForslagFraDb
+            }
+        }
+
+        @Test
+        fun `upsert - VenterPaSvar endres til avgjort status - oppdaterer`() {
+            val deltaker = TestData.lagDeltaker()
+            TestRepository.insert(deltaker)
+            val ventendeForslag = TestData.lagForslag(deltakerId = deltaker.id)
+            forslagRepository.upsert(ventendeForslag)
+            val ventendeForslagFraDb = forslagRepository.get(ventendeForslag.id).getOrThrow()
+
+            val godkjentForslag = ventendeForslag.copy(
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+            )
+
+            forslagRepository.upsert(godkjentForslag)
+
+            forslagRepository.get(ventendeForslag.id).getOrThrow() shouldBe
+                ventendeForslagFraDb.copy(status = godkjentForslag.status)
         }
     }
 
