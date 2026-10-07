@@ -4,7 +4,6 @@ import com.ninjasquad.springmockk.MockkBean
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
-import io.mockk.verify
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -45,11 +44,15 @@ class EndringServiceTest(
             oppdatertDeltaker.startDato shouldBe request.startdato
             oppdatertDeltaker.sluttDato shouldBe request.sluttdato
 
-            val keys = mutableListOf<String>()
-            val values = mutableListOf<String>()
-            verify { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
+            val record = jdbcTemplate
+                .query(
+                    "SELECT key, value FROM kafka_producer_record WHERE topic = ?",
+                    { rs, _ -> rs.getBytes("key").toString(Charsets.UTF_8) to rs.getBytes("value").toString(Charsets.UTF_8) },
+                    MELDING_TOPIC,
+                ).single()
 
-            val endring = objectMapper.readValue<EndringFraArrangor>(values.last())
+            val endring = objectMapper.readValue<EndringFraArrangor>(record.second)
+            record.first shouldBe endring.id.toString()
             endring.deltakerId shouldBe deltaker.id
             endring.endring.shouldBeInstanceOf<EndringFraArrangor.LeggTilOppstartsdato>()
         }

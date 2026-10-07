@@ -2,8 +2,6 @@ package no.nav.tiltaksarrangor.melding.forslag
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import io.mockk.verify
-import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
@@ -23,6 +21,7 @@ import no.nav.tiltaksarrangor.testutils.getKoordinator
 import no.nav.tiltaksarrangor.testutils.getNavAnsatt
 import no.nav.tiltaksarrangor.testutils.getNavEnhet
 import org.springframework.context.ApplicationContext
+import org.springframework.jdbc.core.JdbcTemplate
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -141,21 +140,11 @@ fun forlengDeltakelseForslag(
 )
 
 fun <T : Forslag.Endring> assertProducedForslag(
-    producer: Producer<String, String>,
+    jdbcTemplate: JdbcTemplate,
     forslagId: UUID,
     endringstype: KClass<T>,
 ) {
-    val keys = mutableListOf<String>()
-    val values = mutableListOf<String>()
-
-    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
-
-    val forslagMap = keys.zip(values).associate { (k, v) ->
-        UUID.fromString(k) to objectMapper.readValue<Forslag>(v)
-    }
-
-    val producedForslag = forslagMap[forslagId]
-        ?: error("Forslag med id $forslagId ble ikke produsert. Produserte: ${forslagMap.keys}")
+    val producedForslag = getProducedForslag(jdbcTemplate, forslagId)
 
     assertSoftly(producedForslag) {
         id shouldBe forslagId
@@ -164,17 +153,12 @@ fun <T : Forslag.Endring> assertProducedForslag(
 }
 
 fun getProducedForslag(
-    producer: Producer<String, String>,
+    jdbcTemplate: JdbcTemplate,
     id: UUID,
-): Forslag {
-    val keys = mutableListOf<String>()
-    val values = mutableListOf<String>()
-
-    verify(atLeast = 1) { producer.produce(eq(MELDING_TOPIC), capture(keys), capture(values)) }
-
-    val forslagMap = keys.zip(values).associate { (k, v) ->
-        UUID.fromString(k) to objectMapper.readValue<Forslag>(v)
-    }
-
-    return forslagMap[id] ?: error("Forslag med id $id ble ikke produsert. Produserte: ${forslagMap.keys}")
-}
+): Forslag = jdbcTemplate
+    .query(
+        "SELECT value FROM kafka_producer_record WHERE topic = ? ORDER BY id",
+        { rs, _ -> objectMapper.readValue<Forslag>(rs.getBytes("value").toString(Charsets.UTF_8)) },
+        MELDING_TOPIC,
+    ).lastOrNull { it.id == id }
+    ?: error("Forslag med id $id ble ikke produsert")

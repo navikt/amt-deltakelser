@@ -16,6 +16,7 @@ import no.nav.tiltaksarrangor.repositories.model.AnsattDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -26,6 +27,7 @@ class ForslagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    @Transactional
     fun opprettForslag(
         request: ForslagRequest,
         ansatt: AnsattDbo,
@@ -39,6 +41,7 @@ class ForslagService(
                 request.harDeltatt,
                 request.harFullfort,
             )
+
             is IkkeAktuellRequest -> Forslag.IkkeAktuell(request.aarsak)
             is DeltakelsesmengdeRequest -> Forslag.Deltakelsesmengde(request.deltakelsesprosent, request.dagerPerUke, request.gyldigFra)
             is SluttdatoRequest -> Forslag.Sluttdato(request.sluttdato)
@@ -94,6 +97,7 @@ class ForslagService(
         }
     }
 
+    @Transactional
     fun tilbakekall(
         id: UUID,
         ansatt: AnsattDbo,
@@ -115,5 +119,10 @@ class ForslagService(
         meldingProducer.produce(tilbakekaltForslag)
 
         log.info("Tilbakekalte forslag $id")
+    }
+
+    @Transactional
+    fun republiserForslag(forslag: Forslag) {
+        meldingProducer.produce(forslag)
     }
 }

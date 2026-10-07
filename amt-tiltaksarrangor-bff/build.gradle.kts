@@ -7,6 +7,7 @@ dependencies {
 
     implementation(libs.nav.common.audit.log)
     implementation(libs.nav.common.rest)
+    implementation(libs.nav.common.kafka)
 
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc.template)

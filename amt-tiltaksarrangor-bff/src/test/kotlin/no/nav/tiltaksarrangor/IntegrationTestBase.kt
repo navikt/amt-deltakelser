@@ -2,7 +2,6 @@ package no.nav.tiltaksarrangor
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
-import no.nav.amt.lib.kafka.Producer
 import no.nav.tiltaksarrangor.client.TexasTokenExchangeClient
 import no.nav.tiltaksarrangor.client.amtarrangor.AmtArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
@@ -41,15 +40,12 @@ abstract class IntegrationTestBase : RepositoryTestBase() {
     @MockkBean
     protected lateinit var amtPersonClient: AmtPersonClient
 
-    @MockkBean(relaxed = true)
-    protected lateinit var producer: Producer<String, String>
-
     @LocalServerPort
     private var localServerPort: Int = 0
 
     @AfterEach
     fun cleanup() {
-        clearMocks(amtArrangorClient, hentArrangorClient, amtPersonClient, producer)
+        clearMocks(amtArrangorClient, hentArrangorClient, amtPersonClient)
     }
 
     fun getTokenxToken(
