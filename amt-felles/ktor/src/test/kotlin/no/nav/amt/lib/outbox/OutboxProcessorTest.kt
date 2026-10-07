@@ -4,6 +4,8 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
+import io.mockk.verify
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -49,6 +51,32 @@ class OutboxProcessorTest {
         outboxRepository.get(record.id).shouldBeNull()
 
         verifyProducedRecord(record)
+    }
+
+    @Test
+    fun `process - tombstone record - publishes Kafka tombstone`() {
+        val key = UUID.randomUUID()
+        val topic = "tombstone-process-test-${UUID.randomUUID()}"
+        val record = outboxRepository.insertNewRecord(
+            NewOutboxRecord(
+                key = key.toString(),
+                value = objectMapper.readTree("null"),
+                valueType = OUTBOX_TOMBSTONE_VALUE_TYPE,
+                topic = topic,
+            ),
+        )
+        val producer = mockk<Producer<String, String>>(relaxed = true)
+        val processor = OutboxProcessor(
+            outboxService = outboxService,
+            jobManager = JobManager({ true }, { true }),
+            producer = producer,
+        )
+
+        processor.process(record)
+
+        verify { producer.tombstone(topic, key.toString()) }
+        verify(exactly = 0) { producer.produce(any(), any(), any()) }
+        outboxRepository.get(record.id).shouldBeNull()
     }
 
     @Test

@@ -71,12 +71,19 @@ class OutboxProcessor(
         }
     }
 
-    private fun process(record: OutboxRecord) {
-        producer.produce(
-            topic = record.topic,
-            key = record.key,
-            value = objectMapper.writeValueAsString(record.value),
-        )
+    internal fun process(record: OutboxRecord) {
+        if (record.valueType == OUTBOX_TOMBSTONE_VALUE_TYPE) {
+            producer.tombstone(
+                topic = record.topic,
+                key = record.key,
+            )
+        } else {
+            producer.produce(
+                topic = record.topic,
+                key = record.key,
+                value = objectMapper.writeValueAsString(record.value),
+            )
+        }
         outboxService.markAsProcessed(record)
         log.info("Processed outbox-record ${record.id} for key ${record.key} on topic ${record.topic}")
     }
