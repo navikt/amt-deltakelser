@@ -36,8 +36,8 @@ interface JournalforingstatusRepository : Repository {
         @Bind("hendelse_id") hendelseId: UUID,
         @Bind("journalpost_id") journalpostId: String?,
         @Bind("bestillingsid") bestillingsId: UUID?,
-        @Bind("kan_ikke_distribueres") kanIkkeDistribueres: Boolean,
-        @Bind("kan_ikke_journalfores") kanIkkeJournalfores: Boolean,
+        @Bind("kan_ikke_distribueres") kanIkkeDistribueres: Boolean?,
+        @Bind("kan_ikke_journalfores") kanIkkeJournalfores: Boolean?,
     )
 
     fun upsert(journalforingstatus: Journalforingstatus) {
@@ -45,8 +45,8 @@ interface JournalforingstatusRepository : Repository {
             hendelseId = journalforingstatus.hendelseId,
             journalpostId = journalforingstatus.journalpostId,
             bestillingsId = journalforingstatus.bestillingsId,
-            kanIkkeDistribueres = journalforingstatus.kanIkkeDistribueres ?: false,
-            kanIkkeJournalfores = journalforingstatus.kanIkkeJournalfores ?: false,
+            kanIkkeDistribueres = journalforingstatus.kanIkkeDistribueres,
+            kanIkkeJournalfores = journalforingstatus.kanIkkeJournalfores,
         )
     }
 
