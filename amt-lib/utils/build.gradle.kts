@@ -10,9 +10,6 @@ dependencies {
     api(libs.tools.jackson.module.kotlin)
 
     api(libs.postgresql)
-    api(libs.jdbi.core)
-    api(libs.jdbi.sqlobject)
-    api(libs.jdbi.kotlin)
 
     implementation(libs.kotlinx.coroutines.core)
 
