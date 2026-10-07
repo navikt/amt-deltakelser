@@ -57,14 +57,7 @@ class OutboxProcessorTest {
     fun `process - tombstone record - publishes Kafka tombstone`() {
         val key = UUID.randomUUID()
         val topic = "tombstone-process-test-${UUID.randomUUID()}"
-        val record = outboxRepository.insertNewRecord(
-            NewOutboxRecord(
-                key = key.toString(),
-                value = objectMapper.readTree("null"),
-                valueType = OUTBOX_TOMBSTONE_VALUE_TYPE,
-                topic = topic,
-            ),
-        )
+        val record = outboxService.insertTombstone(key, topic)
         val producer = mockk<Producer<String, String>>(relaxed = true)
         val processor = OutboxProcessor(
             outboxService = outboxService,

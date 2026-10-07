@@ -74,7 +74,6 @@ import no.nav.amt.deltaker.veileder.KladdService
 import no.nav.amt.deltaker.veileder.PameldingService
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
-import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
@@ -227,36 +226,23 @@ abstract class IntegrationTestBase {
     }
 
     protected open val outboxService: OutboxService = mockk()
-    protected open val stringStringProducer: Producer<String, String> = mockk()
     protected open val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected open val unleashToggle: CommonUnleashToggle = mockk()
 
     protected open val deltakerProducer: DeltakerProducer by lazy {
-        DeltakerProducer(
-            outboxService = outboxService,
-            producer = stringStringProducer,
-        )
+        DeltakerProducer(outboxService)
     }
 
     protected open val amtGjennomforingProducer: AmtGjennomforingProducer by lazy {
-        AmtGjennomforingProducer(
-            outboxService = outboxService,
-            producer = stringStringProducer,
-        )
+        AmtGjennomforingProducer(outboxService)
     }
 
     protected open val deltakerV1Producer: DeltakerV1Producer by lazy {
-        DeltakerV1Producer(
-            outboxService = outboxService,
-            producer = stringStringProducer,
-        )
+        DeltakerV1Producer(outboxService)
     }
 
     protected open val deltakerEksternV1Producer: DeltakerEksternV1Producer by lazy {
-        DeltakerEksternV1Producer(
-            outboxService = outboxService,
-            producer = stringStringProducer,
-        )
+        DeltakerEksternV1Producer(outboxService)
     }
 
     protected open val deltakerProducerService: DeltakerProducerService by lazy {
@@ -452,7 +438,9 @@ abstract class IntegrationTestBase {
         every {
             outboxService.insertRecord(any(), any(), any(), any())
         } returns mockOutboxRecord
-        every { stringStringProducer.tombstone(any(), any()) } returns Unit
+        every {
+            outboxService.insertTombstone(any(), any(), any())
+        } returns mockOutboxRecord
     }
 
     @AfterEach

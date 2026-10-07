@@ -224,7 +224,6 @@ fun Application.module() {
     val tiltakskoordinatorTilgangRepository = TiltakskoordinatorTilgangRepository()
     val tiltakskoordinatorsDeltakerlisteProducer = TiltakskoordinatorsDeltakerlisteProducer(
         outboxService,
-        kafkaProducer,
     )
 
     val sporbarhetsloggService = SporbarhetsloggService(AuditLoggerImpl())

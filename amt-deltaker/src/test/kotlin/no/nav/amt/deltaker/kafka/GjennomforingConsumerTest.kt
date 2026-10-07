@@ -32,6 +32,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
+import no.nav.amt.lib.outbox.OutboxRecord
 import no.nav.amt.lib.testing.utils.TestData.lagArrangor
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
@@ -92,7 +93,7 @@ class GjennomforingConsumerTest {
         every { deltakerService.avsluttDeltakere(any<List<Deltaker>>()) } just runs
         every { kladdService.slettKladd(any()) } just runs
         every { amtGjennomforingProducer.produce(any()) } just runs
-        every { amtGjennomforingProducer.produceTombstone(any()) } just runs
+        every { amtGjennomforingProducer.produceTombstone(any()) } returns mockk<OutboxRecord>()
     }
 
     @AfterEach
