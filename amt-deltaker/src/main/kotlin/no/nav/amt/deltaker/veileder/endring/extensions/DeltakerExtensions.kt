@@ -46,12 +46,23 @@ fun Deltaker.endreDeltakersOppstart(
 
         val now = LocalDate.now()
 
+        // blir false hvis nySluttdato = null
+        val nySluttdatoHarPassert = nySluttdato.erPassert(now)
+
         return when {
-            skalBliIkkeAktuell(nyStartdato, nySluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
-            !nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-            nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            nySluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
-            else -> status
+            skalBliIkkeAktuell(
+                startdato = nyStartdato,
+                sluttdato = nySluttdato,
+                now = now,
+            ) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+
+            // nySluttdato er i fortiden
+            nySluttdatoHarPassert -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
+
+            // hvis nyStartdato mangler eller er i fremtiden
+            nyStartdato == null || now < nyStartdato -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+
+            else -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
         }
     }
 
