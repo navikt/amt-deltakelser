@@ -1,5 +1,4 @@
 ---
-description: "GitHub Actions for Nav: SHA-pinning av actions, minimale permissions, Nais-deploy, caching, hemmeligheter og workflow-sikkerhet."
 applyTo: ".github/workflows/*.{yml,yaml}"
 ---
 

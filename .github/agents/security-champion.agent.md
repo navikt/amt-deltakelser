@@ -1,30 +1,30 @@
 ---
 name: security-champion-agent
 description: Navs sikkerhetsarkitektur, trusselmodellering, compliance og sikkerhetspraksis
-model: GPT-6 Sol
+model: GPT-5.6 Sol
 tools:
   - execute
   - read
   - edit
-  - grep
-  - glob
-  - web_fetch
+  - search
+  - web
   - todo
-  - github/get_file_contents
-  - github/search_code
-  - github/search_repositories
-  - github/list_commits
-  - github/get_commit
-  - github/issue_read
-  - github/list_issues
-  - github/search_issues
-  - github/pull_request_read
-  - github/list_pull_requests
-  - github/search_pull_requests
-  - github/get_latest_release
-  - github/list_releases
-  - github/list_tags
-  - github/list_branches
+  - ms-vscode.vscode-websearchforcopilot/websearch
+  - io.github.navikt/github-mcp/get_file_contents
+  - io.github.navikt/github-mcp/search_code
+  - io.github.navikt/github-mcp/search_repositories
+  - io.github.navikt/github-mcp/list_commits
+  - io.github.navikt/github-mcp/get_commit
+  - io.github.navikt/github-mcp/issue_read
+  - io.github.navikt/github-mcp/list_issues
+  - io.github.navikt/github-mcp/search_issues
+  - io.github.navikt/github-mcp/pull_request_read
+  - io.github.navikt/github-mcp/list_pull_requests
+  - io.github.navikt/github-mcp/search_pull_requests
+  - io.github.navikt/github-mcp/get_latest_release
+  - io.github.navikt/github-mcp/list_releases
+  - io.github.navikt/github-mcp/list_tags
+  - io.github.navikt/github-mcp/list_branches
 ---
 
 # Security Champion Agent
@@ -75,8 +75,7 @@ git log -p --all -S 'password' -- '*.kt' '*.ts' | head -100
 | `$observability-setup` | Security alerts, anomaly detection |
 | `threat-model` skill | STRIDE-A systematic analysis with data flow diagrams |
 | `security-review` skill | Pre-commit scanning (trivy, zizmor, govulncheck) |
-| `security-core` instruction | Always-on rules: logging, secrets, queries, ownership, `azp`, TLS |
-| `$security-owasp` skill | Code-level OWASP Top 10:2025 anti-patterns for Kotlin/Go |
+| `security-owasp` instruction | Code-level OWASP Top 10:2025 anti-patterns for Kotlin/Go |
 
 ## Nav Security Principles
 

@@ -1,5 +1,4 @@
 ---
-description: "Dockerfile-standarder for Nav: Chainguard-baseimages, multi-stage builds, non-root, .dockerignore og lagcaching."
 applyTo: "**/Dockerfile"
 ---
 
