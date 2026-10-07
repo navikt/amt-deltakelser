@@ -134,8 +134,7 @@ interface HendelseRepository : Repository {
         @BindList("hendelseIder") hendelseIder: List<UUID>,
     ): List<Hendelse>
 
-    fun getHendelser(hendelseIder: List<UUID>): List<Hendelse> =
-        if (hendelseIder.isEmpty()) emptyList() else findHendelser(hendelseIder)
+    fun getHendelser(hendelseIder: List<UUID>): List<Hendelse> = if (hendelseIder.isEmpty()) emptyList() else findHendelser(hendelseIder)
 }
 
 class HendelseMapper : RowMapper<Hendelse> {
