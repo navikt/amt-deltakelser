@@ -10,6 +10,7 @@ import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
+import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.hendelse.model.toModel
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DistribuerJournalpostRequest
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
@@ -24,6 +25,29 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class JournalforingServiceTest : IntegrationTestBase() {
+    private val journalforingstatusRepository by repo<JournalforingstatusRepository>()
+    private val hendelseRepository by repo<HendelseRepository>()
+
+    @Test
+    fun `upsert preserves null status flags`() {
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
+        hendelseRepository.insert(hendelse)
+
+        journalforingstatusRepository.upsert(
+            Journalforingstatus(
+                hendelseId = hendelse.id,
+                journalpostId = null,
+                bestillingsId = null,
+                kanIkkeDistribueres = null,
+                kanIkkeJournalfores = null,
+            ),
+        )
+
+        val savedStatus = journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()
+        savedStatus.kanIkkeDistribueres shouldBe null
+        savedStatus.kanIkkeJournalfores shouldBe null
+    }
+
     @BeforeEach
     fun setupMocks() {
         coEvery { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) } returns "pdf".toByteArray()
@@ -89,7 +113,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
         assertSoftly(journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()) {
             it.journalpostId shouldBe journalpostId
             bestillingsId shouldBe null
-            kanIkkeDistribueres shouldBe false
+            kanIkkeDistribueres shouldBe null
             kanIkkeJournalfores shouldBe false
         }
     }

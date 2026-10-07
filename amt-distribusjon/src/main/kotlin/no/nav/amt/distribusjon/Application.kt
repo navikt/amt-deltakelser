@@ -31,20 +31,16 @@ import no.nav.amt.distribusjon.arrangormelding.ArrangorMeldingConsumer
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
 import no.nav.amt.distribusjon.distribusjonskanal.DokdistkanalClient
 import no.nav.amt.distribusjon.hendelse.HendelseConsumer
-import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
-import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.dokarkiv.DokarkivClient
 import no.nav.amt.distribusjon.journalforing.dokdistfordeling.DokdistfordelingClient
 import no.nav.amt.distribusjon.journalforing.job.EndringsvedtakJob
 import no.nav.amt.distribusjon.journalforing.pdf.PdfgenClient
 import no.nav.amt.distribusjon.journalforing.person.AmtPersonClient
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseProducer
-import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseRepository
 import no.nav.amt.distribusjon.tiltakshendelse.TiltakshendelseService
 import no.nav.amt.distribusjon.varsel.VarselJobService
 import no.nav.amt.distribusjon.varsel.VarselOutboxHandler
-import no.nav.amt.distribusjon.varsel.VarselRepository
 import no.nav.amt.distribusjon.varsel.VarselService
 import no.nav.amt.distribusjon.varsel.hendelse.VarselHendelseConsumer
 import no.nav.amt.distribusjon.veilarboppfolging.VeilarboppfolgingClient
@@ -56,6 +52,7 @@ import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.jdbi.createJdbiDatabaseApi
 import no.nav.amt.lib.utils.job.JobManager
 import no.nav.amt.lib.utils.leaderelection.Leader
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
@@ -81,7 +78,8 @@ fun Application.module() {
 
     val environment = env
 
-    Database.init(config = environment.databaseConfig)
+    val dataSource = Database.init(config = environment.databaseConfig)
+    val databaseApi = createJdbiDatabaseApi(dataSource)
 
     val httpClient = HttpClient(CIO) {
         engine {
@@ -158,19 +156,16 @@ fun Application.module() {
     )
 
     val outboxService = OutboxService()
+    val outboxJdbiInsertService = outboxService.jdbiInserter(databaseApi)
     val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
 
-    val hendelseRepository = HendelseRepository()
-    val varselRepository = VarselRepository()
-
     val varselService = VarselService(
-        varselRepository = VarselRepository(),
-        hendelseRepository = hendelseRepository,
-        outboxHandler = VarselOutboxHandler(outboxService),
+        db = databaseApi,
+        outboxHandler = VarselOutboxHandler(outboxJdbiInsertService),
     )
 
     val journalforingService = JournalforingService(
-        JournalforingstatusRepository(),
+        databaseApi,
         amtPersonClient,
         pdfgenClient,
         veilarboppfolgingClient,
@@ -180,9 +175,9 @@ fun Application.module() {
     )
 
     val tiltakshendelseService = TiltakshendelseService(
-        tiltakshendelseRepository = TiltakshendelseRepository(),
+        db = databaseApi,
         amtDeltakerClient = amtDeltakerClient,
-        tiltakshendelseProducer = TiltakshendelseProducer(outboxService),
+        tiltakshendelseProducer = TiltakshendelseProducer(outboxJdbiInsertService),
     )
 
     val consumers = listOf(
@@ -190,11 +185,11 @@ fun Application.module() {
             varselService,
             journalforingService,
             tiltakshendelseService,
-            hendelseRepository,
+            databaseApi,
             dokdistkanalClient,
             veilarboppfolgingClient,
         ),
-        VarselHendelseConsumer(varselRepository, varselService),
+        VarselHendelseConsumer(databaseApi, varselService),
         ArrangorMeldingConsumer(tiltakshendelseService),
     )
     consumers.forEach { it.start() }
@@ -205,8 +200,8 @@ fun Application.module() {
 
     val endringsvedtakJob = EndringsvedtakJob(
         jobManager,
-        hendelseRepository,
         journalforingService,
+        databaseApi,
         initialDelay = environment.endringsvedtakJobInitialDelay,
         jobPeriod = environment.endringsvedtakJobPeriod,
         gracePeriod = environment.endringsvedtakJobGracePeriod,
@@ -240,7 +235,7 @@ fun Application.module() {
 
     monitor.subscribe(ApplicationStopped) {
         log.info("Shutting down database")
-        Database.close()
+        dataSource.close()
 
         log.info("Shutting down producers")
         runCatching {

@@ -5,34 +5,20 @@ import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.amt.lib.utils.database.Database.query
-import org.flywaydb.core.Flyway
-import javax.sql.DataSource
 
 object Database {
-    private lateinit var dataSource: DataSource
+    private lateinit var dataSource: HikariDataSource
     private val transactionalSessionThreadLocal = ThreadLocal<TransactionalSession?>()
     internal val transactionalSession get() = transactionalSessionThreadLocal.get()
 
-    fun init(config: DatabaseConfig) {
-        dataSource = HikariDataSource().apply {
-            if (config.jdbcURL.isNotEmpty()) {
-                jdbcUrl = config.jdbcURL
-            } else {
-                dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
-                addDataSourceProperty("serverName", config.dbHost)
-                addDataSourceProperty("portNumber", config.dbPort)
-                addDataSourceProperty("databaseName", config.dbDatabase)
-                addDataSourceProperty("user", config.dbUsername)
-                addDataSourceProperty("password", config.dbPassword)
-            }
+    /**
+     * @return Returnerer en initialisert dataSource for å underlette samkjøring med [no.nav.amt.lib.utils.database.jdbi.JdbiDatabase]
+     */
+    fun init(config: DatabaseConfig): HikariDataSource {
+        dataSource = DatabaseInit.createDataSource(config)
 
-            maximumPoolSize = 10
-            minimumIdle = 1
-            leakDetectionThreshold = 15_000
-        }
-
-        runMigration()
+        DatabaseInit.runMigration(dataSource)
+        return dataSource
     }
 
     fun <A> query(block: (Session) -> A): A {
@@ -75,17 +61,6 @@ object Database {
     }
 
     fun close() {
-        (dataSource as HikariDataSource).close()
+        dataSource.close()
     }
-
-    private fun runMigration(initSql: String? = null): Int = Flyway
-        .configure()
-        .connectRetries(5)
-        .dataSource(dataSource)
-        .initSql(initSql)
-        .validateMigrationNaming(true)
-        .load()
-        .migrate()
-        .migrations
-        .size
 }

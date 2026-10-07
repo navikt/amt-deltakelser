@@ -17,6 +17,7 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
+import no.nav.amt.lib.utils.database.jdbi.MockDatabase
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -196,7 +197,6 @@ class EndringsvedtakJobTest {
     @Test
     fun `startJob - starter jobb med forventet initialDelay og period`() {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
-        val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
 
         val initialDelay = Duration.ofMinutes(5)
@@ -204,8 +204,8 @@ class EndringsvedtakJobTest {
 
         EndringsvedtakJob(
             jobManager,
-            hendelseRepository,
             journalforingService,
+            db = mockk(),
             initialDelay,
             period,
             Duration.ofHours(1),
@@ -227,8 +227,8 @@ class EndringsvedtakJobTest {
         gracePeriod: Duration = Duration.ofMinutes(30),
     ) = EndringsvedtakJob(
         jobManager = mockk(relaxUnitFun = true),
-        hendelseRepository = mockk(),
         journalforingService = mockk(),
+        db = mockk(),
         initialDelay = initialDelay,
         jobPeriod = jobPeriod,
         gracePeriod = gracePeriod,
@@ -236,17 +236,19 @@ class EndringsvedtakJobTest {
 
     private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
-        val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
-
-        every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
-        every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+        val db = MockDatabase.create {
+            repo<HendelseRepository> {
+                every { hentIkkeJournalforteHendelser() } returns hendelser
+                every { hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+            }
+        }
 
         return TestSetup(
             job = EndringsvedtakJob(
                 jobManager,
-                hendelseRepository,
                 journalforingService,
+                db = db,
                 initialDelay = Duration.ofMinutes(5),
                 jobPeriod = Duration.ofMinutes(10),
                 gracePeriod = Duration.ofMinutes(30),

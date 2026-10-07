@@ -7,12 +7,12 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class TiltakshendelseService(
-    private val tiltakshendelseRepository: TiltakshendelseRepository,
+    private val db: DatabaseApi,
     private val amtDeltakerClient: AmtDeltakerClient,
     private val tiltakshendelseProducer: TiltakshendelseProducer,
 ) {
@@ -24,7 +24,7 @@ class TiltakshendelseService(
     }
 
     fun handleHendelse(hendelse: Hendelse) {
-        if (tiltakshendelseRepository.getByHendelseId(hendelse.id).isSuccess) {
+        if (db.repo(TiltakshendelseRepository::class) { it.getByHendelseId(hendelse.id) }.isSuccess) {
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
@@ -65,7 +65,7 @@ class TiltakshendelseService(
     suspend fun handleForslag(forslag: Forslag) {
         when (forslag.status) {
             is Forslag.Status.VenterPaSvar -> {
-                if (tiltakshendelseRepository.getForslagHendelse(forslag.id).isSuccess) {
+                if (db.repo(TiltakshendelseRepository::class) { it.getForslagHendelse(forslag.id) }.isSuccess) {
                     log.info("Tiltakshendelse for forslag ${forslag.id} finnes allerede. Ignorerer duplikat VenterPaSvar.")
                     return
                 }
@@ -82,24 +82,26 @@ class TiltakshendelseService(
     }
 
     fun stoppForslagHendelse(forslagId: UUID) {
-        tiltakshendelseRepository.getForslagHendelse(forslagId).onSuccess {
-            val inaktivertHendelse = it.copy(
-                aktiv = false,
-            )
-            Database.transaction {
-                lagreOgDistribuer(inaktivertHendelse)
+        db.forbindelse { forbindelse ->
+            forbindelse.bruk(TiltakshendelseRepository::class).getForslagHendelse(forslagId).onSuccess {
+                val inaktivertHendelse = it.copy(
+                    aktiv = false,
+                )
+                forbindelse.transaksjon {
+                    lagreOgDistribuer(inaktivertHendelse)
+                }
             }
         }
     }
 
     fun reproduser(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        val tiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
     }
 
     fun reproduserOgSettAktivFalse(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        val tiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.get(id) }.getOrThrow()
         tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
@@ -114,11 +116,13 @@ class TiltakshendelseService(
     }
 
     private fun opprettEllerOppdaterPrisendringStartHendelse(hendelse: Hendelse) {
-        val aktivHendelse = tiltakshendelseRepository
-            .getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = Tiltakshendelse.Type.PRISENDRING,
-            ).getOrNull()
+        val aktivHendelse = db
+            .repo(TiltakshendelseRepository::class) {
+                it.getAktivHendelse(
+                    deltakerId = hendelse.deltaker.id,
+                    hendelseType = Tiltakshendelse.Type.PRISENDRING,
+                )
+            }.getOrNull()
 
         val tiltakshendelse = aktivHendelse
             ?.copy(hendelser = aktivHendelse.hendelser.plus(hendelse.id))
@@ -133,7 +137,7 @@ class TiltakshendelseService(
     private suspend fun opprettStartHendelse(forslag: Forslag) {
         val deltaker = amtDeltakerClient.getDeltaker(forslag.deltakerId)
 
-        Database.transaction {
+        db.transaksjon {
             lagreOgDistribuer(
                 forslag.toHendelse(
                     personIdent = deltaker.navBruker.personident,
@@ -148,11 +152,13 @@ class TiltakshendelseService(
         hendelse: Hendelse,
         hendelseType: Tiltakshendelse.Type,
     ) {
-        tiltakshendelseRepository
-            .getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = hendelseType,
-            ).onSuccess { hendelseFraDb ->
+        db
+            .repo(TiltakshendelseRepository::class) {
+                it.getAktivHendelse(
+                    deltakerId = hendelse.deltaker.id,
+                    hendelseType = hendelseType,
+                )
+            }.onSuccess { hendelseFraDb ->
                 val inaktivertHendelse = hendelseFraDb.copy(
                     aktiv = false,
                     hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
@@ -162,7 +168,7 @@ class TiltakshendelseService(
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
-        val lagretTiltakshendelse = tiltakshendelseRepository.upsert(tiltakshendelse)
+        val lagretTiltakshendelse = db.repo(TiltakshendelseRepository::class) { it.upsert(tiltakshendelse) }
         tiltakshendelseProducer.produce(lagretTiltakshendelse)
         log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id}")
     }

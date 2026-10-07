@@ -10,7 +10,7 @@ import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
-import no.nav.amt.lib.utils.database.Database.transaction
+import no.nav.amt.lib.utils.database.jdbi.DatabaseApi
 import no.nav.amt.lib.utils.objectMapper
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class VarselHendelseConsumer(
-    private val varselRepository: VarselRepository,
+    private val db: DatabaseApi,
     private val varselService: VarselService,
     groupId: String = Environment.KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
@@ -46,9 +46,11 @@ class VarselHendelseConsumer(
 
         val varselId = UUID.fromString(key)
 
-        varselRepository.get(varselId).onSuccess {
-            transaction {
-                handterVarselHendelse(it, objectMapper.readValue(value))
+        db.forbindelse { forbindelse ->
+            forbindelse.bruk(VarselRepository::class).get(varselId).onSuccess { varsel ->
+                forbindelse.transaksjon {
+                    handterVarselHendelse(varsel, objectMapper.readValue(value))
+                }
             }
         }
     }

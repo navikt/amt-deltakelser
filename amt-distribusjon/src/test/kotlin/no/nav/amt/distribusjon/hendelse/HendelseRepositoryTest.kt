@@ -1,32 +1,24 @@
 package no.nav.amt.distribusjon.hendelse
 
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
-import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.testing.RepositoryTest
 import no.nav.amt.lib.utils.objectMapper
-import no.nav.amt.lib.utils.toPGObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDateTime
 import java.util.UUID
 
-class HendelseRepositoryTest {
-    private val hendelseRepository = HendelseRepository()
-    private val journalforingstatusRepository = JournalforingstatusRepository()
-
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
+class HendelseRepositoryTest : RepositoryTest() {
+    private val journalforingstatusRepository by repo<JournalforingstatusRepository>()
+    private val hendelseRepository by repo<HendelseRepository>()
+    private val testRepository by repo<TestRepository>()
 
     @Test
     fun `insert - inserter hendelse i database`() {
@@ -53,7 +45,7 @@ class HendelseRepositoryTest {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -77,7 +69,7 @@ class HendelseRepositoryTest {
         fun `hentIkkeJournalforteHendelser - hendelse kan ikke journalfores - returnerer tom liste`() {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse(), opprettet = LocalDateTime.now().minusHours(1))
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
                     hendelseId = hendelse.id,
@@ -102,7 +94,7 @@ class HendelseRepositoryTest {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -128,7 +120,7 @@ class HendelseRepositoryTest {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             // Act
             val ikkeJournalforteHendelser = hendelseRepository.hentIkkeJournalforteHendelser()
@@ -148,7 +140,7 @@ class HendelseRepositoryTest {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -176,7 +168,7 @@ class HendelseRepositoryTest {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -203,7 +195,7 @@ class HendelseRepositoryTest {
                 opprettet = LocalDateTime.now().minusHours(1),
                 distribusjonskanal = Distribusjonskanal.PRINT,
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -230,7 +222,7 @@ class HendelseRepositoryTest {
                 payload = HendelseTypeData.forlengDeltakelse(),
                 opprettet = LocalDateTime.now().minusHours(1),
             )
-            TestRepository.insertHendelse(hendelse)
+            testRepository.insertHendelse(hendelse)
 
             journalforingstatusRepository.upsert(
                 Journalforingstatus(
@@ -254,7 +246,7 @@ class HendelseRepositoryTest {
     fun `getHendelser - skal returnere hendelser`() {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-        TestRepository.insertHendelse(hendelse)
+        testRepository.insertHendelse(hendelse)
 
         // Act
         val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))
@@ -277,42 +269,7 @@ class HendelseRepositoryTest {
             put("navn", "Overordnet Arrangør")
         }
 
-        val sql =
-            """
-            INSERT INTO hendelse (
-                id,
-                deltaker_id,
-                deltaker,
-                ansvarlig,
-                payload,
-                distribusjonskanal,
-                manuelloppfolging,
-                created_at
-            )
-            VALUES (
-                :id,
-                :deltaker_id,
-                :deltaker,
-                :ansvarlig,
-                :payload,
-                :distribusjonskanal,
-                :manuelloppfolging,
-                :created_at
-            )
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to hendelse.id,
-            "deltaker_id" to hendelse.deltaker.id,
-            "deltaker" to objectMapper.toPGObject(deltakerNode),
-            "ansvarlig" to objectMapper.toPGObject(hendelse.ansvarlig),
-            "payload" to objectMapper.toPGObject(hendelse.payload),
-            "distribusjonskanal" to hendelse.distribusjonskanal.name,
-            "manuelloppfolging" to hendelse.manuellOppfolging,
-            "created_at" to hendelse.opprettet,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        testRepository.insertHendelse(hendelse, deltakerOverride = deltakerNode)
 
         // Act
         val hendelser = hendelseRepository.getHendelser(listOf(hendelse.id))

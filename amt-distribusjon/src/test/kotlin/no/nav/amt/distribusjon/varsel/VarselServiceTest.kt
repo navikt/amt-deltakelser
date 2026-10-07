@@ -11,6 +11,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
+import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
@@ -25,6 +26,9 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class VarselServiceTest : IntegrationTestBase() {
+    private val hendelseRepository by repo<HendelseRepository>()
+    private val varselRepository by repo<VarselRepository>()
+
     private fun setupMocks(hendelse: Hendelse) {
         coEvery {
             dokdistkanalClient.bestemDistribusjonskanal(hendelse.deltaker.personident, hendelse.deltaker.id)

@@ -52,16 +52,21 @@ object TestPostgresContainer {
             .apply { addEnv("TZ", "Europe/Oslo") }
     }
 
-    private fun initDatabase() {
+    /**
+     * [DatabaseConfig] som peker til testcontaineren [bootstrap] har startet.
+     */
+    fun databaseConfig(): DatabaseConfig {
         val c = container
-        Database.init(
-            DatabaseConfig(
-                dbUsername = c.username,
-                dbPassword = c.password,
-                dbDatabase = c.databaseName,
-                dbHost = c.host,
-                dbPort = c.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString(),
-            ),
+        return DatabaseConfig(
+            dbUsername = c.username,
+            dbPassword = c.password,
+            dbDatabase = c.databaseName,
+            dbHost = c.host,
+            dbPort = c.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString(),
         )
+    }
+
+    private fun initDatabase() {
+        Database.init(databaseConfig())
     }
 }
