@@ -357,26 +357,24 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal kaste exception når delvis oppdatering gir sluttdato før startdato`() = runTest {
-            val deltaker = kladdDeltakerInTest.copy(
-                startdato = LocalDate.of(2026, 2, 1),
-                sluttdato = LocalDate.of(2026, 2, 2),
-            )
+        fun `skal lagre datoer selv om sluttdato er før startdato`() = runTest {
+            val startdato = LocalDate.of(2026, 2, 1)
+            val sluttdato = LocalDate.of(2026, 1, 1)
             val request = oppdaterKladdRequest.copy(
-                startdato = null,
-                sluttdato = LocalDate.of(2026, 1, 1),
+                startdato = startdato,
+                sluttdato = sluttdato,
             )
 
-            stubDeltaker(deltaker)
+            enkeltplassService.oppdaterKladd(
+                deltakerId = kladdDeltakerInTest.id,
+                oppdaterKladdRequest = request,
+            )
 
-            shouldThrow<IllegalArgumentException> {
-                enkeltplassService.oppdaterKladd(
-                    deltakerId = deltaker.id,
-                    oppdaterKladdRequest = request,
+            verify {
+                deltakerRepository.updateEnkeltplass(
+                    match { it.startdato == startdato && it.sluttdato == sluttdato },
                 )
             }
-
-            verify(exactly = 0) { deltakerRepository.updateEnkeltplass(any()) }
         }
     }
 
