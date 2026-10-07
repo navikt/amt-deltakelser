@@ -6,8 +6,6 @@ dependencies {
     api(project(":amt-lib:testing"))
     implementation(project(":amt-felles:ktor"))
 
-    testImplementation(libs.archunit.junit5)
-
     implementation(libs.testcontainers.postgresql)
     implementation(libs.testcontainers.kafka)
 
