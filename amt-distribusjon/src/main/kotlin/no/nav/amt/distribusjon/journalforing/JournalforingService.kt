@@ -86,6 +86,7 @@ class JournalforingService(
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
             is HendelseType.EnkeltplassGodkjennPrisendring,
+            is HendelseType.EnkeltplassEndrePrisinfo,
             -> handleEndringsvedtak(
                 hendelse = hendelse,
                 journalforingstatus = journalforingstatus,
@@ -96,7 +97,6 @@ class JournalforingService(
             is HendelseType.OpprettUtkast,
             is HendelseType.AvbrytUtkast,
             is HendelseType.DeltakerSistBesokt,
-            is HendelseType.EnkeltplassEndrePrisinfo, // håndteres med EnkeltplassGodkjennPrisendring
             is HendelseType.EnkeltplassTilbakekallPrisendring,
             -> Unit
 

@@ -286,6 +286,7 @@ abstract class IntegrationTestBase {
             unleashToggle = unleashToggle,
             gjennomforingUpserter = gjennomforingUpserter,
             opplaringKategoriseringClient = opplaringKategoriseringClient,
+            distribuerEndringService = distribuerEndringService,
         )
     }
 

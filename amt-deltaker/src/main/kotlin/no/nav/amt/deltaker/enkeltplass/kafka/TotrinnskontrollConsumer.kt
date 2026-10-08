@@ -136,44 +136,32 @@ class TotrinnskontrollConsumer(
             "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv"
         }
         val (godkjentAvNavAnsatt, godkjentAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
+        val okonomiForDeltakelseErGodkjent = totrinnskontrollHendelse.type == TotrinnskontrollType.ENKELTPLASS_OKONOMI ||
+            (
+                totrinnskontrollHendelse.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING &&
+                    deltaker.status.type == DeltakerStatus.Type.SOKT_INN
+            )
 
-        when (totrinnskontrollHendelse.type) {
-            TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
-                processGodkjentInnsoking(
-                    deltaker = deltaker,
-                    prisinfoId = totrinnskontrollHendelse.id,
-                    behandletAvNavAnsatt = behandletAvNavAnsatt,
-                    behandletAvNavEnhet = behandletAvNavEnhet,
-                    godkjentAvNavAnsatt = godkjentAvNavAnsatt,
-                    godkjentAvNavEnhet = godkjentAvNavEnhet,
-                )
-            }
-
-            TotrinnskontrollType.ENKELTPLASS_PRISENDRING -> {
-                if (deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-                    processGodkjentInnsoking(
-                        deltaker = deltaker,
-                        prisinfoId = totrinnskontrollHendelse.id,
-                        behandletAvNavAnsatt = behandletAvNavAnsatt,
-                        behandletAvNavEnhet = behandletAvNavEnhet,
-                        godkjentAvNavAnsatt = godkjentAvNavAnsatt,
-                        godkjentAvNavEnhet = godkjentAvNavEnhet,
-                    )
-                } else {
-                    processGodkjentPrisEndring(
-                        deltaker = deltaker,
-                        prisinfoId = totrinnskontrollHendelse.id,
-                        behandletAvNavAnsatt = behandletAvNavAnsatt,
-                        behandletAvNavEnhet = behandletAvNavEnhet,
-                        godkjentAvNavAnsatt = godkjentAvNavAnsatt,
-                        godkjentAvNavEnhet = godkjentAvNavEnhet,
-                    )
-                }
-            }
-
-            else -> {
-                error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
-            }
+        if (okonomiForDeltakelseErGodkjent) {
+            processGodkjentInnsoking(
+                deltaker = deltaker,
+                prisinfoId = totrinnskontrollHendelse.id,
+                behandletAvNavAnsatt = behandletAvNavAnsatt,
+                behandletAvNavEnhet = behandletAvNavEnhet,
+                godkjentAvNavAnsatt = godkjentAvNavAnsatt,
+                godkjentAvNavEnhet = godkjentAvNavEnhet,
+            )
+        } else if (totrinnskontrollHendelse.type == TotrinnskontrollType.ENKELTPLASS_PRISENDRING) {
+            processGodkjentPrisEndring(
+                deltaker = deltaker,
+                prisinfoId = totrinnskontrollHendelse.id,
+                behandletAvNavAnsatt = behandletAvNavAnsatt,
+                behandletAvNavEnhet = behandletAvNavEnhet,
+                godkjentAvNavAnsatt = godkjentAvNavAnsatt,
+                godkjentAvNavEnhet = godkjentAvNavEnhet,
+            )
+        } else {
+            error("Uventet totrinnskontrolltype: ${totrinnskontrollHendelse.type}")
         }
     }
 

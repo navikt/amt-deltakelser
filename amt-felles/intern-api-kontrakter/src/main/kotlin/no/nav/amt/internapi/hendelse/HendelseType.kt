@@ -14,6 +14,9 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 
+/**
+ * Payload for deltaker-hendelse-v1 topic
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface HendelseType {
     sealed interface HendelseMedForslag : HendelseType {

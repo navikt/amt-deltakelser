@@ -17,8 +17,10 @@ import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
@@ -33,6 +35,7 @@ class VeilederEndringService(
     private val unleashToggle: CommonUnleashToggle,
     private val gjennomforingUpserter: GjennomforingUpserter,
     private val opplaringKategoriseringClient: OpplaringKategoriseringClient,
+    private val distribuerEndringService: DistribuerEndringService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -70,8 +73,9 @@ class VeilederEndringService(
         ) ?: return eksisterendeDeltaker
 
         // hent eller opprett Nav-ansatt før transaksjonen starter
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endringRequest.endretAv)
-
+        val (navAnsatt, navEnhet) = navAnsattService.hentNavAnsattOgEnhet(
+            endringRequest.endretAv,
+        )
         // hentOpplaringKategorisering er suspend og må kjøres før db-transaksjon
         val kategoriseringForTiltak = if (endringRequest is EndretOpplaringKategoriseringRequest) {
             opplaringKategoriseringClient.hentOpplaringKategorisering(
@@ -99,6 +103,19 @@ class VeilederEndringService(
                     }
 
                     is EndretPrisinfoRequest -> {
+                        if (deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
+                            /*
+                             * Vi skal ikke generere endringvedtak for forslag til prisendring hvis økonomi allerede
+                             * For status søkt inn -> Endringsbrev før godkjenning "autogodgjenning"
+                             * For etterfølgende status -> Endringsbrev etter godkjenning (ikke her)
+                             */
+                            distribuerEndringService.produceHendelse(
+                                deltaker = deltaker,
+                                navAnsatt = navAnsatt,
+                                enhet = navEnhet,
+                                endring = HendelseType.EnkeltplassEndrePrisinfo(prisinfo = endringRequest.prisinfo),
+                            )
+                        }
                         val prisinformasjonId = gjennomforingUpserter.lagreOgProduserPrisinfoEndring(
                             gjennomforingId = deltaker.deltakerliste.id,
                             prisinfo = endringRequest.prisinfo,
