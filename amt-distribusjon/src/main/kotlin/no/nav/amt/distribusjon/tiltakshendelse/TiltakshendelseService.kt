@@ -34,14 +34,11 @@ class TiltakshendelseService(
             )
 
             is HendelseType.EnkeltplassEndrePrisinfo -> {
-                // Når endringen ikke krever godkjenning (status søkt inn) er den automatisk iverksatt,
-                // og det skal ikke opprettes en tiltakshendelse som ber om godkjenning i tiltaksadministrasjon.
-                if (!hendelse.payload.kreverGodkjenning) {
-                    return
+                if (hendelse.payload.kreverGodkjenning) {
+                    opprettEllerOppdaterPrisendringStartHendelse(
+                        hendelse = hendelse,
+                    )
                 }
-                opprettEllerOppdaterPrisendringStartHendelse(
-                    hendelse = hendelse,
-                )
             }
 
             is HendelseType.AvbrytUtkast,

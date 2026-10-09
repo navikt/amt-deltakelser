@@ -56,27 +56,28 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
     ) : HendelseSystemKanOpprette
 
-    // medfører hovedvedtak
+    /**
+     * Opprettes i tilfelle økonomiansvarlig har godkjent en deltakelse i sin helhet(i motsetning til en individuell prisendring)
+     * Medfører hovedvedtak
+     * ops "Utkast" er i betydningen "gjennomføringutkast"(deltakelsen som godkjennes vil alltid være Søkt inn)
+     */
     data class EnkeltplassOkonomiGodkjennUtkast(
         val utkast: UtkastDto,
     ) : HendelseType
 
     /**
-     * Dette må tolkes som en faktisk, iverksatt endring
-     * For å ikke skape forvirring for om dette er et slags "Forslag"
-     * Denne hendelsen skal brukes når amt-distribusjon skal agere på en iverksatt endring
-     * Innbygger: Varsles når man endrer pris og status er SØKT INN(fordi den er "automatisk iverksatt")
-     * Veileder: Varsles når man har en pending pris som venter godkjenning
-     * @kreverGodkjenning skal være true når status på deltakelsen er forbi søkt inn
-     * slik at amt-distribusjon kan distribuere til forskjellige aktører utifra informasjonen
+     * Opprettes i tilfelle nav veileder endrer pris, uavhengig av status på deltakelsen
+     * @kreverGodkjenning brukes for å bestemme hvilke kanaler som skal varsles. Skal være true når status på deltakelsen er forbi søkt inn
+     * fordi det betyr samtidig at endringen ikke må eksplisitt godkjennes av økonomiansvarlig med EnkeltplassGodkjennPrisendring
      */
     data class EnkeltplassEndrePrisinfo(
-        // Man kan endre prisinfo i forskjellige statuser som skal føre til forskjellig resultat i varsling/brev/modia
         val kreverGodkjenning: Boolean,
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
-    // medfører endringsvedtak
+    /**
+     * Opprettes i tilfelle økonomiansvarlig har godkjent en EnkeltplassEndrePrisinfo
+     */
     data class EnkeltplassGodkjennPrisendring(
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType

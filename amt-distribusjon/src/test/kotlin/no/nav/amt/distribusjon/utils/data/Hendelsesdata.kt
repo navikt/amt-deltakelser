@@ -267,6 +267,15 @@ object HendelseTypeData {
         prisinfo = prisinfo,
     )
 
+    fun enkeltplassGodkjennPrisendring(
+        prisinfo: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
+            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            tilleggsopplysninger = null,
+        ),
+    ) = HendelseType.EnkeltplassGodkjennPrisendring(
+        prisinfo = prisinfo,
+    )
+
     fun sistBesokt(sistBesokt: ZonedDateTime = ZonedDateTime.now()) = HendelseType.DeltakerSistBesokt(sistBesokt)
 
     fun utkast(
