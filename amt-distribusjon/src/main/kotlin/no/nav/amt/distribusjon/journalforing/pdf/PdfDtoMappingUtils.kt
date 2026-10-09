@@ -133,7 +133,6 @@ fun tilEndringDto(
     is HendelseType.InnbyggerGodkjennUtkast,
     is HendelseType.NavGodkjennUtkast,
     is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
-    is HendelseType.EnkeltplassEndrePrisinfo,
     is HendelseType.EnkeltplassTilbakekallPrisendring,
     is HendelseType.ReaktiverDeltakelse,
     is HendelseType.EndreSluttarsak,
@@ -335,8 +334,12 @@ fun tilEndringDto(
             EndringDto.Avslag.Vurdering(it.vurderingstype.visningsnavn(), it.begrunnelse)
         },
     )
-
-    is HendelseType.EnkeltplassGodkjennPrisendring -> EndringDto.GodkjennPrisendring(
+    is HendelseType.EnkeltplassEndrePrisinfo -> EndringDto.GodkjennPrisendring(
+        tittel = "Pris og betalingsbetingelser er endret",
+        prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
+    )
+    is HendelseType.EnkeltplassGodkjennPrisendring,
+    -> EndringDto.GodkjennPrisendring(
         tittel = "Pris og betalingsbetingelser er endret",
         prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
     )

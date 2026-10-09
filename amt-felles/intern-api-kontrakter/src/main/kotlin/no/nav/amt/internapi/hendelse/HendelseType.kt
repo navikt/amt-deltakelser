@@ -66,9 +66,9 @@ sealed interface HendelseType {
     ) : HendelseType
 
     /**
-     * Opprettes i tilfelle nav veileder endrer pris, uavhengig av status på deltakelsen
+     * Opprettes når en NAV-veileder endrer pris, uavhengig av deltakerens status.
      * @kreverGodkjenning brukes for å bestemme hvilke kanaler som skal varsles. Skal være true når status på deltakelsen er forbi søkt inn
-     * fordi det betyr samtidig at endringen ikke må eksplisitt godkjennes av økonomiansvarlig med EnkeltplassGodkjennPrisendring
+     * Disse endringen må eksplisitt godkjennes av økonomiansvarlig med EnkeltplassGodkjennPrisendring
      */
     data class EnkeltplassEndrePrisinfo(
         val kreverGodkjenning: Boolean,

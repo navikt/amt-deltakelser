@@ -33,7 +33,6 @@ import java.util.UUID
 /**
  * Håndtererer journalføring av brev til innbygger
  * Populerer journalforingstatus tabellen for dokumentasjon av status
- * og for
  */
 class JournalforingService(
     private val journalforingstatusRepository: JournalforingstatusRepository,
