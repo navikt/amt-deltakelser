@@ -59,12 +59,6 @@ class JournalforingService(
             )
             is HendelseType.EnkeltplassEndrePrisinfo,
             -> {
-                /*
-                 * Vi skal ikke generere endringsvedtak for prisendring hvis den krever godkjenning, fordi da skal
-                 * endringen eksplisitt godkjennes i tiltaksadministrasjon og journalføres via EnkeltplassGodkjennPrisendring.
-                 * kreverGodkjenning = false (status søkt inn) -> endringsbrev før godkjenning (automatisk iverksatt)
-                 * kreverGodkjenning = true (vedtak fattet)    -> endringsbrev etter godkjenning i tiltaksadministrasjon (ikke her)
-                 */
                 if (!hendelse.payload.kreverGodkjenning) {
                     handleEndringsvedtak(
                         hendelse = hendelse,
