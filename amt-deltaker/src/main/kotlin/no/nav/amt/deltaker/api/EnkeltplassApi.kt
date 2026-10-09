@@ -88,6 +88,7 @@ fun Routing.registerEnkeltplassApi(
                     call.respond(deltakerResponse)
                 }
 
+                // Hvorfor har denne havnet her? har ikke nødvendigvis noe med utkast å gjøre
                 post("/meld-paa-direkte") {
                     val request: EnkeltplassPameldingDecoratedRequest = call.receive()
 

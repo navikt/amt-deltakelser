@@ -5,7 +5,6 @@ import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -35,12 +34,11 @@ class TiltakshendelseService(
             )
 
             is HendelseType.EnkeltplassEndrePrisinfo -> {
-                if (hendelse.deltaker.status?.type == DeltakerStatus.Type.SOKT_INN) {
-                    return
+                if (hendelse.payload.kreverGodkjenning) {
+                    opprettEllerOppdaterPrisendringStartHendelse(
+                        hendelse = hendelse,
+                    )
                 }
-                opprettEllerOppdaterPrisendringStartHendelse(
-                    hendelse = hendelse,
-                )
             }
 
             is HendelseType.AvbrytUtkast,

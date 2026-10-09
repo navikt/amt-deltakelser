@@ -30,6 +30,10 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
+/**
+ * Håndtererer journalføring av brev til innbygger
+ * Populerer journalforingstatus tabellen for dokumentasjon av status
+ */
 class JournalforingService(
     private val journalforingstatusRepository: JournalforingstatusRepository,
     private val amtPersonClient: AmtPersonClient,
@@ -53,7 +57,15 @@ class JournalforingService(
                 utkast = hendelse.payload.utkast,
                 journalforingstatus = journalforingstatus,
             )
-
+            is HendelseType.EnkeltplassEndrePrisinfo,
+            -> {
+                if (!hendelse.payload.kreverGodkjenning) {
+                    handleEndringsvedtak(
+                        hendelse = hendelse,
+                        journalforingstatus = journalforingstatus,
+                    )
+                }
+            }
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,
@@ -96,7 +108,6 @@ class JournalforingService(
             is HendelseType.OpprettUtkast,
             is HendelseType.AvbrytUtkast,
             is HendelseType.DeltakerSistBesokt,
-            is HendelseType.EnkeltplassEndrePrisinfo, // håndteres med EnkeltplassGodkjennPrisendring
             is HendelseType.EnkeltplassTilbakekallPrisendring,
             -> Unit
 

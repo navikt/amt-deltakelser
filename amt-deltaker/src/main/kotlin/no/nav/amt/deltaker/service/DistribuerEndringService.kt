@@ -97,9 +97,12 @@ class DistribuerEndringService(
         navEnhet: NavEnhet,
     ) {
         val endring: HendelseType = if (deltakerEndring.endring is DeltakerEndring.Endring.ReaktiverDeltakelse) {
-            deltakerEndring.toHendelseEndring(deltaker.toUtkastDto())
+            deltakerEndring.toHendelseEndring(
+                utkast = deltaker.toUtkastDto(),
+                deltakerStatus = deltaker.status.type,
+            )
         } else {
-            deltakerEndring.toHendelseEndring()
+            deltakerEndring.toHendelseEndring(deltakerStatus = deltaker.status.type)
         }
 
         hendelseProducer.produce(
