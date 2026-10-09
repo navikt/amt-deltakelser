@@ -30,6 +30,11 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
+/**
+ * Håndtererer journalføring av brev til innbygger
+ * Populerer journalforingstatus tabellen for dokumentasjon av status
+ * og for
+ */
 class JournalforingService(
     private val journalforingstatusRepository: JournalforingstatusRepository,
     private val amtPersonClient: AmtPersonClient,
@@ -53,7 +58,21 @@ class JournalforingService(
                 utkast = hendelse.payload.utkast,
                 journalforingstatus = journalforingstatus,
             )
-
+            is HendelseType.EnkeltplassEndrePrisinfo,
+            -> {
+                /*
+                 * Vi skal ikke generere endringsvedtak for prisendring hvis den krever godkjenning, fordi da skal
+                 * endringen eksplisitt godkjennes i tiltaksadministrasjon og journalføres via EnkeltplassGodkjennPrisendring.
+                 * kreverGodkjenning = false (status søkt inn) -> endringsbrev før godkjenning (automatisk iverksatt)
+                 * kreverGodkjenning = true (vedtak fattet)    -> endringsbrev etter godkjenning i tiltaksadministrasjon (ikke her)
+                 */
+                if (!hendelse.payload.kreverGodkjenning) {
+                    handleEndringsvedtak(
+                        hendelse = hendelse,
+                        journalforingstatus = journalforingstatus,
+                    )
+                }
+            }
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,
@@ -86,7 +105,6 @@ class JournalforingService(
             is HendelseType.LeggTilOppstartsdato,
             is HendelseType.FjernOppstartsdato,
             is HendelseType.EnkeltplassGodkjennPrisendring,
-            is HendelseType.EnkeltplassEndrePrisinfo,
             -> handleEndringsvedtak(
                 hendelse = hendelse,
                 journalforingstatus = journalforingstatus,

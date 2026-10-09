@@ -16,7 +16,7 @@ data class Hendelse(
     val distribusjonskanal: Distribusjonskanal,
     val manuellOppfolging: Boolean,
 ) {
-    fun erEndringsVedtakSomSkalJournalfores(): Boolean = when (payload) {
+    fun erEndringSomSkalJournalfores(): Boolean = when (payload) {
         is HendelseType.AvsluttDeltakelse,
         is HendelseType.AvbrytDeltakelse,
         is HendelseType.EndreDeltakelsesmengde,
@@ -32,10 +32,10 @@ data class Hendelse(
         is HendelseType.EndreAvslutning,
         is HendelseType.EnkeltplassGodkjennPrisendring, // endringsvedtak
         is HendelseType.EnkeltplassEndreOpplaringKategorisering,
+        is HendelseType.EnkeltplassEndrePrisinfo,
         -> true
 
         is HendelseType.EnkeltplassOkonomiGodkjennUtkast, // hovedvedtak
-        is HendelseType.EnkeltplassEndrePrisinfo,
         is HendelseType.EnkeltplassTilbakekallPrisendring,
         is HendelseType.InnbyggerGodkjennUtkast,
         is HendelseType.NavGodkjennUtkast,

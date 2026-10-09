@@ -41,7 +41,7 @@ class EndringsvedtakJob(
 
     suspend fun journalforEndringsvedtak() {
         val hendelser = getIkkeJournalforteHendelser()
-            .filter { it.hendelse.erEndringsVedtakSomSkalJournalfores() }
+            .filter { it.hendelse.erEndringSomSkalJournalfores() }
 
         val endringsvedtakPerDeltaker = hendelser.groupBy { it.hendelse.deltaker.id }
 

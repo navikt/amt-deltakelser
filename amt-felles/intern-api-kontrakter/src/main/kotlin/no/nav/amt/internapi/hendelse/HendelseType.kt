@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Aarsak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -60,7 +61,18 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
     ) : HendelseType
 
+    /**
+     * Dette må tolkes som en faktisk, iverksatt endring
+     * For å ikke skape forvirring for om dette er et slags "Forslag"
+     * Denne hendelsen skal brukes når amt-distribusjon skal agere på en iverksatt endring
+     * Innbygger: Varsles når man endrer pris og status er SØKT INN(fordi den er "automatisk iverksatt")
+     * Veileder: Varsles når man har en pending pris som venter godkjenning
+     * @kreverGodkjenning skal være true når status på deltakelsen er forbi søkt inn
+     * slik at amt-distribusjon kan distribuere til forskjellige aktører utifra informasjonen
+     */
     data class EnkeltplassEndrePrisinfo(
+        // Man kan endre prisinfo i forskjellige statuser som skal føre til forskjellig resultat i varsling/brev/modia
+        val kreverGodkjenning: Boolean,
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
@@ -205,14 +217,20 @@ data class InnholdDto(
     val beskrivelse: String?,
 )
 
-fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
+fun DeltakerEndring.toHendelseEndring(
+    utkast: UtkastDto? = null,
+    deltakerStatus: DeltakerStatus.Type? = null,
+) = when (val endring = this.endring) {
     is Endring.EndrePrisinfo -> if (endring.status == Endring.EndrePrisinfo.Status.TILBAKEKALT) {
         HendelseType.EnkeltplassTilbakekallPrisendring(
             prisinformasjonId = requireNotNull(endring.prisinformasjonId) { "Missing prisinformasjonId for tilbakekalt prisinfo" },
         )
     } else {
         HendelseType.EnkeltplassEndrePrisinfo(
-            endring.prisinfo,
+            // Når deltakelsen er SØKT INN er prisendringen automatisk iverksatt og krever ikke egen godkjenning.
+            // I senere statuser (vedtak fattet) må endringen godkjennes eksplisitt i tiltaksadministrasjon.
+            kreverGodkjenning = deltakerStatus != DeltakerStatus.Type.SOKT_INN,
+            prisinfo = endring.prisinfo,
         )
     }
 

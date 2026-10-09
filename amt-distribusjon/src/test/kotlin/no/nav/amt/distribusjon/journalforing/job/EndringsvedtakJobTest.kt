@@ -87,6 +87,31 @@ class EndringsvedtakJobTest {
         }
 
     @Test
+    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalfores som endringsvedtak`() = runTest {
+        val deltakerId = UUID.randomUUID()
+
+        val hendelser = listOf(
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(60),
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 1 && liste.all { it.hendelse.deltaker.id == deltakerId }
+                },
+            )
+        }
+    }
+
+    @Test
     fun `journalforEndringsvedtak - behandler ikke hendelser innenfor graceperiode`() = runTest {
         val deltakerId = UUID.randomUUID()
 

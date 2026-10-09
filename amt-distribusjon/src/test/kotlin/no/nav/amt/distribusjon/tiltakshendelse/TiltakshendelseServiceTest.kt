@@ -17,7 +17,6 @@ import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -109,6 +108,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             val deltaker = Hendelsesdata.lagDeltaker()
             val opprettPrisendring1 = Hendelsesdata.hendelse(
                 payload = HendelseType.EnkeltplassEndrePrisinfo(
+                    kreverGodkjenning = true,
                     prisinfo = PrisinformasjonDto.IngenKostnader(
                         aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                         tilleggsopplysninger = null,
@@ -118,6 +118,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             )
             val opprettPrisendring2 = Hendelsesdata.hendelse(
                 payload = HendelseType.EnkeltplassEndrePrisinfo(
+                    kreverGodkjenning = true,
                     prisinfo = PrisinformasjonDto.IngenKostnader(
                         aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                         tilleggsopplysninger = null,
@@ -146,19 +147,10 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `handleHendelse - prisendring for SOKT_INN - ignoreres`() {
-            // Arrange
-            val soktInnDeltaker = Hendelsesdata.lagDeltaker().copy(
-                status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
-            )
+        fun `handleHendelse - prisendring krever ikke godkjenning - ignoreres`() {
+            // Arrange: deltaker har aktiv status, men endringen krever ikke godkjenning (automatisk iverksatt)
             val prisendring = Hendelsesdata.hendelse(
-                payload = HendelseType.EnkeltplassEndrePrisinfo(
-                    prisinfo = PrisinformasjonDto.IngenKostnader(
-                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                        tilleggsopplysninger = null,
-                    ),
-                ),
-                deltaker = soktInnDeltaker,
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false),
             )
 
             // Act
@@ -169,6 +161,26 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             // Assert
             val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(prisendring.id)
             tiltakshendelse.isFailure shouldBe true
+        }
+
+        @Test
+        fun `handleHendelse - prisendring krever godkjenning - oppretter aktiv tiltakshendelse`() {
+            // Arrange
+            val prisendring = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = true),
+            )
+
+            // Act
+            Database.transaction {
+                tiltakshendelseService.handleHendelse(prisendring)
+            }
+
+            // Assert
+            assertSoftly(tiltakshendelseRepository.getByHendelseId(prisendring.id).shouldBeSuccess()) {
+                type shouldBe Tiltakshendelse.Type.PRISENDRING
+                tekst shouldBe PRISINFO_TIL_GODKJENNING_TEKST
+                aktiv shouldBe true
+            }
         }
 
         @Test
@@ -377,6 +389,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         // Arrange
         val opprettHendelse = Hendelsesdata.hendelse(
             payload = HendelseType.EnkeltplassEndrePrisinfo(
+                kreverGodkjenning = true,
                 prisinfo = PrisinformasjonDto.IngenKostnader(
                     aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = null,

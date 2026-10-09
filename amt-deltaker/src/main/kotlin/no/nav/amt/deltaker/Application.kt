@@ -393,7 +393,6 @@ fun Application.module() {
         unleashToggle = unleashToggle,
         gjennomforingUpserter = gjennomforingUpserter,
         opplaringKategoriseringClient = opplaringKategoriseringClient,
-        distribuerEndringService = distribuerEndringService,
     )
 
     val endringFraArrangorService = EndringFraArrangorService(

@@ -256,6 +256,17 @@ object HendelseTypeData {
         endringFraForslag: Forslag.Endring? = Forslag.Sluttarsak(EndringAarsak.Annet("annet")),
     ) = HendelseType.EndreSluttarsak(aarsak, begrunnelseFraNav, begrunnelseFraArrangor, endringFraForslag)
 
+    fun enkeltplassEndrePrisinfo(
+        kreverGodkjenning: Boolean,
+        prisinfo: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
+            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
+            tilleggsopplysninger = null,
+        ),
+    ) = HendelseType.EnkeltplassEndrePrisinfo(
+        kreverGodkjenning = kreverGodkjenning,
+        prisinfo = prisinfo,
+    )
+
     fun sistBesokt(sistBesokt: ZonedDateTime = ZonedDateTime.now()) = HendelseType.DeltakerSistBesokt(sistBesokt)
 
     fun utkast(
