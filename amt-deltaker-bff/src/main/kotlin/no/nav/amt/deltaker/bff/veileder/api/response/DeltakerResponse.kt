@@ -8,6 +8,7 @@ import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengdeResponse as DeltakelsesmengdeVeilederResponse
 
 data class DeltakerResponse(
     val deltakerId: UUID,
@@ -34,6 +35,7 @@ data class DeltakerResponse(
     val deltakelsesmengder: DeltakelsesmengderResponse,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
+    val alleDeltakelsesMengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
 ) {
     companion object {
         fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -42,8 +44,8 @@ data class DeltakerResponse(
                 fornavn = navBruker.fornavn,
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
-                deltakerliste = gjennomforing.let(::DeltakerlisteResponse),
-                status = status.toDeltakerStatusResponse(),
+                deltakerliste = DeltakerlisteResponse(gjennomforing),
+                status = DeltakerStatusResponse(status),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
@@ -75,8 +77,8 @@ data class DeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 harAdresse = navBruker.adresse != null,
-                // Her bør det gjøres noen forenklinger
-                // Kan dette utledes i amt-deltaker?
+                alleDeltakelsesMengder = alleDeltakelsesMengder.map(::DeltakelsesmengdeVeilederResponse),
+                // deltakelsesmengder skal bort i neste iterasjon
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderResponse) ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,

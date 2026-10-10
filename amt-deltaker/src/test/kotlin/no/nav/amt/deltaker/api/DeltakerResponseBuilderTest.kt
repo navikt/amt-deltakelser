@@ -522,6 +522,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 nesteDeltakelsesmengde shouldBe null
                 sisteDeltakelsesmengde shouldBe null
             }
+            response.alleDeltakelsesMengder shouldBe emptyList()
         }
 
         @Test
@@ -605,6 +606,14 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 nesteDeltakelsesmengde shouldBe fremtidigResponse
                 sisteDeltakelsesmengde shouldBe fremtidigResponse
             }
+            response.alleDeltakelsesMengder shouldBe listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                ),
+                fremtidigResponse,
+            )
         }
 
         @Test
@@ -795,6 +804,72 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                     dagerPerUke = 2F,
                     gyldigFra = fjernesteFremtidigGyldigFra,
                 )
+            }
+        }
+
+        @Test
+        fun `deltakelsesmengder inkluderer alle gyldige perioder utenfor deltakerens sluttdato`() = runTest {
+            val navAnsatt = TestData.lagNavAnsatt()
+            val navEnhet = TestData.lagNavEnhet()
+            val startdato = LocalDate.now().minusMonths(1)
+            val sluttdato = LocalDate.now().plusDays(14)
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(navVeilederId = navAnsatt.id, navEnhetId = navEnhet.id),
+                startdato = startdato,
+                sluttdato = sluttdato,
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+                dagerPerUke = 5F,
+            )
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                fattet = startdato.atStartOfDay(),
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+            )
+            val nesteGyldigFra = LocalDate.now().plusDays(7)
+            val neste = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 75F,
+                dagerPerUke = 4F,
+                gyldigFra = nesteGyldigFra,
+                endret = LocalDateTime.now(),
+            )
+            val sisteGyldigFra = LocalDate.now().plusMonths(2)
+            val siste = endreDeltakelsesmengde(
+                deltakerId = deltaker.id,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+                deltakelsesprosent = 50F,
+                dagerPerUke = 2F,
+                gyldigFra = sisteGyldigFra,
+                endret = LocalDateTime.now().plusSeconds(1),
+            )
+            setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), neste, siste))
+
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+
+            response.alleDeltakelsesMengder shouldBe listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 75F,
+                    dagerPerUke = 4F,
+                    gyldigFra = nesteGyldigFra,
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = sisteGyldigFra,
+                ),
+            )
+            assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
+                nesteDeltakelsesmengde?.gyldigFra shouldBe nesteGyldigFra
+                sisteDeltakelsesmengde?.gyldigFra shouldBe nesteGyldigFra
             }
         }
 

@@ -55,6 +55,10 @@ class DeltakerResponseBuilder(
             id = deltaker.id,
             inkluderFullHistorikk = false,
         )
+        val deltakelsesmengder = historikk.toDeltakelsesmengder()
+        val gjeldendeDeltakelsesmengder = deltaker.startdato
+            ?.let { deltakelsesmengder.periode(it, deltaker.sluttdato) }
+            ?: deltakelsesmengder
 
         return DeltakerResponse(
             id = deltaker.id,
@@ -92,17 +96,15 @@ class DeltakerResponseBuilder(
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak
             // EndringFraArrangor.LeggTilOppstartsdato
-            deltakelsesmengder = historikk
-                .toDeltakelsesmengder()
-                .let { mengder ->
-                    // Usikker på hva dette handler om men koden er kopiert fra Deltaker
-                    deltaker.startdato?.let { mengder.periode(it, deltaker.sluttdato) } ?: mengder
-                }.let { deltakelsesmengder ->
-                    DeltakelsesmengderResponse(
-                        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
-                        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
-                    )
-                },
+            alleDeltakelsesMengder = deltakelsesmengder.map { DeltakelsesmengdeResponse(it) },
+            // denne skal bort i neeste iterasjon
+            deltakelsesmengder = DeltakelsesmengderResponse(
+                nesteDeltakelsesmengde = gjeldendeDeltakelsesmengder.nesteGjeldende
+                    ?.let(::DeltakelsesmengdeResponse),
+                sisteDeltakelsesmengde = gjeldendeDeltakelsesmengder
+                    .lastOrNull()
+                    ?.let(::DeltakelsesmengdeResponse),
+            ),
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
