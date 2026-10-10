@@ -312,8 +312,8 @@ private fun List<Deltakelsesmengde>.oppdaterEtterStartdato(
                 it == raamengde ||
                     (
                         it.opprettet == raamengde.opprettet &&
-                            it.deltakelsesprosent == raamengde.deltakelsesprosent &&
-                            it.dagerPerUke == raamengde.dagerPerUke
+                            Objects.equals(it.deltakelsesprosent, raamengde.deltakelsesprosent) &&
+                            Objects.equals(it.dagerPerUke, raamengde.dagerPerUke)
                     )
             }
     }
