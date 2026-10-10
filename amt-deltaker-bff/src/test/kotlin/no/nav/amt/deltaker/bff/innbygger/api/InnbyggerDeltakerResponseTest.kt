@@ -20,19 +20,19 @@ class InnbyggerDeltakerResponseTest {
     @Test
     fun `fromModel - deltaker med alle felter - mapper alle felter korrekt`() {
         val deltakerResponse = lagDeltakerResponse()
-        val alleDeltakelsesMengder = listOf(
+        val gyldigeDeltakelsesmengder = listOf(
             DeltakelsesmengdeResponse(60F, 3F, LocalDate.now()),
             DeltakelsesmengdeResponse(80F, 4F, LocalDate.now().plusDays(7)),
         )
         val model = ModelMapper.toDeltaker(
-            deltakerResponse.copy(alleDeltakelsesMengder = alleDeltakelsesMengder),
+            deltakerResponse.copy(gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder),
         )
 
         val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
         val deltakelsesmengder = model.deltakelsesmengder
             ?.let(::DeltakelsesmengderVeilederResponse)
             ?: DeltakelsesmengderVeilederResponse()
-        val alleDeltakelsesMengderResponse = alleDeltakelsesMengder.map(::DeltakelsesmengdeVeilederResponse)
+        val gyldigeDeltakelsesmengderResponse = gyldigeDeltakelsesmengder.map(::DeltakelsesmengdeVeilederResponse)
 
         result.deltakerId shouldBe model.id
         result.status shouldBe DeltakerStatusResponse(model.status)
@@ -44,7 +44,7 @@ class InnbyggerDeltakerResponseTest {
         result.erManueltDeltMedArrangor shouldBe model.erManueltDeltMedArrangor
         result.adresseDelesMedArrangor shouldBe model.adresseDelesMedArrangor
         result.deltakelsesmengder shouldBe deltakelsesmengder
-        result.alleDeltakelsesMengder shouldBe alleDeltakelsesMengderResponse
+        result.gyldigeDeltakelsesmengder shouldBe gyldigeDeltakelsesmengderResponse
     }
 
     @Test

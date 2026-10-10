@@ -57,7 +57,7 @@ class DeltakerResponseTest {
     }
 
     @Test
-    fun `alleDeltakelsesMengder - mapper alle perioder i riktig rekkefolge`() {
+    fun `gyldigeDeltakelsesmengder - mapper alle perioder i riktig rekkefolge`() {
         val gyldigFra = LocalDate.now()
         val modeller = listOf(
             InternDeltakelsesmengdeResponse(
@@ -77,11 +77,11 @@ class DeltakerResponseTest {
             ),
         )
         val deltaker = ModelMapper.toDeltaker(
-            lagDeltakerResponse().copy(alleDeltakelsesMengder = modeller),
+            lagDeltakerResponse().copy(gyldigeDeltakelsesmengder = modeller),
         )
 
         val response = DeltakerResponse.fromDeltakerModel(deltaker)
 
-        response.alleDeltakelsesMengder shouldBe modeller.map(::DeltakelsesmengdeResponse)
+        response.gyldigeDeltakelsesmengder shouldBe modeller.map(::DeltakelsesmengdeResponse)
     }
 }

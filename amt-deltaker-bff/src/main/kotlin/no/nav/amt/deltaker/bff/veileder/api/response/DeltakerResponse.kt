@@ -35,7 +35,7 @@ data class DeltakerResponse(
     val deltakelsesmengder: DeltakelsesmengderResponse,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
-    val alleDeltakelsesMengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
 ) {
     companion object {
         fun fromDeltakerModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -77,7 +77,7 @@ data class DeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 harAdresse = navBruker.adresse != null,
-                alleDeltakelsesMengder = alleDeltakelsesMengder.map(::DeltakelsesmengdeVeilederResponse),
+                gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder.map(::DeltakelsesmengdeVeilederResponse),
                 // deltakelsesmengder skal bort i neste iterasjon
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderResponse) ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,

@@ -35,7 +35,7 @@ data class DeltakerModel(
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val sisteVurdering: VurderingResponse?,
-    val alleDeltakelsesMengder: List<DeltakelsesmengdeResponse> = emptyList(),
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeResponse> = emptyList(),
     val deltakelsesmengder: DeltakelsesmengderResponse?, // denne skal bort i neste iterasjon
     val soktInnDato: LocalDate?,
     val importertFraArena: ImportertFraArena?,

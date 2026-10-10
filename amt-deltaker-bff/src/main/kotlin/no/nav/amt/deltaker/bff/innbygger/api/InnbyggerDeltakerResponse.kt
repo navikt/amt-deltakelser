@@ -29,7 +29,7 @@ data class InnbyggerDeltakerResponse(
     val importertFraArena: ImportertFraArenaResponse?,
     val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
     val erManueltDeltMedArrangor: Boolean,
-    val alleDeltakelsesMengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
 ) {
     companion object {
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
@@ -56,7 +56,7 @@ data class InnbyggerDeltakerResponse(
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
-                alleDeltakelsesMengder = alleDeltakelsesMengder.map(::DeltakelsesmengdeVeilederResponse),
+                gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder.map(::DeltakelsesmengdeVeilederResponse),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }

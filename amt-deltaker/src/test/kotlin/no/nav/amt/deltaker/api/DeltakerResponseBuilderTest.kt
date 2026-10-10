@@ -522,7 +522,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 nesteDeltakelsesmengde shouldBe null
                 sisteDeltakelsesmengde shouldBe null
             }
-            response.alleDeltakelsesMengder shouldBe emptyList()
+            response.gyldigeDeltakelsesmengder shouldBe emptyList()
         }
 
         @Test
@@ -606,7 +606,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 nesteDeltakelsesmengde shouldBe fremtidigResponse
                 sisteDeltakelsesmengde shouldBe fremtidigResponse
             }
-            response.alleDeltakelsesMengder shouldBe listOf(
+            response.gyldigeDeltakelsesmengder shouldBe listOf(
                 DeltakelsesmengdeResponse(
                     deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = 5F,
@@ -850,7 +850,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
 
-            response.alleDeltakelsesMengder shouldBe listOf(
+            response.gyldigeDeltakelsesmengder shouldBe listOf(
                 DeltakelsesmengdeResponse(
                     deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = 5F,

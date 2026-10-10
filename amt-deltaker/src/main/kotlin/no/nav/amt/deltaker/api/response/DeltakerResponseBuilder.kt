@@ -96,8 +96,8 @@ class DeltakerResponseBuilder(
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak
             // EndringFraArrangor.LeggTilOppstartsdato
-            alleDeltakelsesMengder = deltakelsesmengder.map { DeltakelsesmengdeResponse(it) },
-            // denne skal bort i neeste iterasjon
+            gyldigeDeltakelsesmengder = deltakelsesmengder.map { DeltakelsesmengdeResponse(it) },
+            // denne skal bort i neste iterasjon
             deltakelsesmengder = DeltakelsesmengderResponse(
                 nesteDeltakelsesmengde = gjeldendeDeltakelsesmengder.nesteGjeldende
                     ?.let(::DeltakelsesmengdeResponse),
