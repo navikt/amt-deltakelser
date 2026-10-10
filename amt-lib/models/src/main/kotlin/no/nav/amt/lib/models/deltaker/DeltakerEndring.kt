@@ -85,9 +85,9 @@ data class DeltakerEndring(
         ) : Endring
 
         data class EndreDeltakelsesmengde(
+            val gyldigFra: LocalDate,
             val deltakelsesprosent: Float?,
             val dagerPerUke: Float?,
-            val gyldigFra: LocalDate?,
             val begrunnelse: String?,
             val pavirkerPris: Boolean = false,
         ) : Endring

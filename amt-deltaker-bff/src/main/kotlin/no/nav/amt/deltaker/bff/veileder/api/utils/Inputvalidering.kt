@@ -7,12 +7,11 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndringRequestFromFrontend
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -87,9 +86,10 @@ fun validerDeltakelsesmengde(
 ) {
     require(
         validerNyDeltakelsesmengde(
-            eksisterendeDeltaker.deltakelsesmengder,
-            Deltakelsesmengde(
-                deltakelsesprosent = nyProsent?.toFloat() ?: FALLBACK_DELTAKELSESPROSENT,
+            deltakerStartdato = eksisterendeDeltaker.startdato,
+            deltakelsesmengder = eksisterendeDeltaker.gyldigeDeltakelsesmengder,
+            nyDeltakelsesmengde = Deltakelsesmengde(
+                deltakelsesprosent = nyProsent?.toFloat(),
                 dagerPerUke = nyDagerPerUke?.toFloat(),
                 gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),
@@ -104,19 +104,23 @@ fun validerDeltakelsesmengde(
  * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
  */
 fun validerNyDeltakelsesmengde(
-    deltakelsesmengde: DeltakelsesmengderResponse?,
+    deltakelsesmengder: List<DeltakelsesmengdeResponse>,
     nyDeltakelsesmengde: Deltakelsesmengde,
+    deltakerStartdato: LocalDate?,
 ): Boolean {
-    val siste = deltakelsesmengde?.sisteDeltakelsesmengde ?: return true
+    // ikke tillatt å endre deltakelsemengde bakover i tid
+    if (nyDeltakelsesmengde.gyldigFra < LocalDate.now()) return false
 
-    return if (
-        !(siste.dagerPerUke?.equals(nyDeltakelsesmengde.dagerPerUke) ?: (nyDeltakelsesmengde.dagerPerUke == null)) ||
-        siste.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent
-    ) {
-        true
-    } else {
-        nyDeltakelsesmengde.gyldigFra < siste.gyldigFra
-    }
+    // ikke tillatt å sette deltakelsemengde gyldig fra før deltakelse startdato
+    if (deltakerStartdato != null && nyDeltakelsesmengde.gyldigFra < deltakerStartdato) return false
+
+    // hvis ny deltakelsesmengde, er det en endring
+    val existing = deltakelsesmengder
+        .firstOrNull { it.gyldigFra == nyDeltakelsesmengde.gyldigFra }
+        ?: return true
+
+    return existing.dagerPerUke != nyDeltakelsesmengde.dagerPerUke ||
+        existing.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent
 }
 
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {

@@ -4,7 +4,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.EMPTY_DELTAKELSESPROSENT
 import java.time.LocalDateTime
 
 fun DeltakerHistorikk.toDeltakelsesmengdeEkstern() = when (this) {
@@ -23,9 +22,9 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengdeEkstern(op
     .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
     ?.let {
         Deltakelsesmengde(
-            deltakelsesprosent = it.deltakelsesprosent ?: EMPTY_DELTAKELSESPROSENT,
+            deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
-            gyldigFra = it.gyldigFra ?: opprettet.toLocalDate(),
+            gyldigFra = it.gyldigFra,
             opprettet = opprettet,
         )
     }
@@ -34,7 +33,7 @@ fun Vedtak.toDeltakelsesmengdeEkstern(): Deltakelsesmengde? = this.deltakerVedVe
     .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
     ?.let {
         Deltakelsesmengde(
-            deltakelsesprosent = it.deltakelsesprosent ?: EMPTY_DELTAKELSESPROSENT,
+            deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
             gyldigFra = this.fattet?.toLocalDate() ?: this.opprettet.toLocalDate(),
             opprettet = this.fattet ?: this.opprettet,
@@ -45,7 +44,7 @@ fun ImportertFraArena.toDeltakelsesmengdeEkstern(): Deltakelsesmengde? = this.de
     .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
     ?.let {
         Deltakelsesmengde(
-            deltakelsesprosent = it.deltakelsesprosent ?: EMPTY_DELTAKELSESPROSENT,
+            deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
             gyldigFra = it.innsoktDato,
             opprettet = it.innsoktDato.atStartOfDay(),

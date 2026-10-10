@@ -229,7 +229,7 @@ class AmtDeltakerClientTest {
                         endretAvEnhet = "~endretAvEnhet~",
                         deltakelsesprosent = null,
                         dagerPerUke = null,
-                        gyldigFra = null,
+                        gyldigFra = LocalDate.now(),
                         begrunnelse = null,
                         pavirkerPris = false,
                         forslagId = null,

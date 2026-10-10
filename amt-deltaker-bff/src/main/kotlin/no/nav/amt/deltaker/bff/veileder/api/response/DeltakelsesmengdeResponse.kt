@@ -4,7 +4,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import java.time.LocalDate
 
 data class DeltakelsesmengdeResponse(
-    val deltakelsesprosent: Float,
+    val deltakelsesprosent: Float?,
     val dagerPerUke: Float?,
     val gyldigFra: LocalDate,
 ) {

@@ -23,6 +23,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -80,7 +81,7 @@ class DeltakerKafkaPayloadBuilderTest {
             .buildDeltakerV1Record(deltaker)
             .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
             DeltakerV1Dto.DeltakelsesmengdeDto(
-                it.deltakelsesprosent,
+                it.deltakelsesprosent ?: FALLBACK_DELTAKELSESPROSENT,
                 it.dagerPerUke,
                 it.gyldigFra,
                 it.opprettet,
@@ -160,12 +161,13 @@ class DeltakerKafkaPayloadBuilderTest {
 
     @Test
     fun `buildDeltakerEksternV1Record - bevarer manglende deltakelsesprosent i deltakelsesmengde`() {
+        val startdato = requireNotNull(deltaker.startdato)
         val eksplisittProsent = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
                 deltakelsesprosent = 50F,
                 dagerPerUke = 3F,
-                gyldigFra = deltaker.startdato,
+                gyldigFra = startdato,
                 begrunnelse = null,
             ),
             endretAv = veileder.id,
@@ -177,7 +179,7 @@ class DeltakerKafkaPayloadBuilderTest {
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
                 deltakelsesprosent = null,
                 dagerPerUke = 2F,
-                gyldigFra = deltaker.startdato?.plusDays(1),
+                gyldigFra = startdato.plusDays(1),
                 begrunnelse = null,
             ),
             endretAv = veileder.id,

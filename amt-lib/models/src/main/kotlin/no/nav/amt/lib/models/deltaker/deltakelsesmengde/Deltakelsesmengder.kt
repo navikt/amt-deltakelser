@@ -4,14 +4,14 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
-import java.util.Objects
 
 /**
  * Deltakelsesmengder er en liste av alle gyldige deltakelsesmengder, både frem og tilbake i tid, den er sortert på gyldig-fra stigende.
  *
- * Gitt en liste med flere overlappende endringen via konstruktøren eller `List<DeltakerHistorikk>.toDeltakelsesmengder()`
- * produserer denne en sortert liste hvor de endringene som har blitt invalidert av andre endringer er filtrert vekk.
+ * For samme gyldig-fra-dato beholdes den sist opprettede endringen. Endringer med senere gyldig-fra-dato
+ * beholdes slik at en tilbakedatert endring ikke fjerner framtidige perioder.
  */
+@Deprecated("Ikke bruk denne")
 class Deltakelsesmengder(
     mengder: List<Deltakelsesmengde>,
     startdatoer: List<LocalDate> = emptyList(),
@@ -57,49 +57,34 @@ class Deltakelsesmengder(
      * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
      */
     fun validerNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde): Boolean {
-        val siste = deltakelsesmengder.lastOrNull() ?: return true
+        val aktivDeltakelsesmengde = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() }
+            ?: return true
 
-        return !Objects.equals(siste.dagerPerUke, deltakelsesmengde.dagerPerUke) ||
-            siste.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
-            deltakelsesmengde.gyldigFra < siste.gyldigFra
+        val mengdeErEndret = aktivDeltakelsesmengde.dagerPerUke != deltakelsesmengde.dagerPerUke ||
+            aktivDeltakelsesmengde.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent
+
+        return mengdeErEndret || deltakelsesmengde.gyldigFra < aktivDeltakelsesmengde.gyldigFra
     }
 
-    private fun finnGyldigeDeltakelsesmengder(
-        deltakelsesmengder: List<Deltakelsesmengde>,
-        gyldigeDeltakelsesmengder: MutableList<Deltakelsesmengde> = mutableListOf(),
-    ): List<Deltakelsesmengde> {
-        if (deltakelsesmengder.isEmpty()) return gyldigeDeltakelsesmengder
+    private fun finnGyldigeDeltakelsesmengder(deltakelsesmengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> {
+        val sistePerGyldigFra = deltakelsesmengder
+            .sortedBy { it.opprettet }
+            .associateBy { it.gyldigFra }
 
-        val forsteGyldigePeriode = deltakelsesmengder.minByOrNull { it.gyldigFra } ?: return gyldigeDeltakelsesmengder
+        return sistePerGyldigFra.values
+            .sortedBy { it.gyldigFra }
+            .fold(mutableListOf<Deltakelsesmengde>()) { gyldigeDeltakelsesmengder, periode ->
+                val forrige = gyldigeDeltakelsesmengder.lastOrNull()
 
-        val nesteGyldigePerioder = deltakelsesmengder.subList(0, deltakelsesmengder.indexOf(forsteGyldigePeriode))
+                if (forrige == null ||
+                    forrige.deltakelsesprosent != periode.deltakelsesprosent ||
+                    forrige.dagerPerUke != periode.dagerPerUke
+                ) {
+                    gyldigeDeltakelsesmengder.add(periode)
+                }
 
-        return finnGyldigeDeltakelsesmengder(
-            deltakelsesmengder = nesteGyldigePerioder,
-            gyldigeDeltakelsesmengder = mergePerioder(forsteGyldigePeriode, gyldigeDeltakelsesmengder),
-        )
-    }
-
-    /**
-     * Hvis deltakelsesmengden er lik forrige, men har en senere gyldig-fra så trenger vi ikke å beholde den.
-     *
-     * Dette burde ikke være nødvendig om man validerer deltakelsesmengdene riktig.
-     */
-    private fun mergePerioder(
-        periode: Deltakelsesmengde,
-        deltakelsesmengder: MutableList<Deltakelsesmengde>,
-    ): MutableList<Deltakelsesmengde> {
-        val forrige = deltakelsesmengder.lastOrNull()
-
-        if (forrige != null &&
-            forrige.deltakelsesprosent == periode.deltakelsesprosent &&
-            Objects.equals(forrige.dagerPerUke, periode.dagerPerUke)
-        ) {
-            return deltakelsesmengder
-        }
-
-        deltakelsesmengder.add(periode)
-        return deltakelsesmengder
+                gyldigeDeltakelsesmengder
+            }
     }
 
     /**
@@ -121,17 +106,19 @@ class Deltakelsesmengder(
         deltakelsesmengder: List<Deltakelsesmengde>,
         startdato: LocalDate,
     ): List<Deltakelsesmengde> {
-        val periode = periode(
-            deltakelsesmengder = deltakelsesmengder,
-            fraOgMed = startdato,
-            tilOgMed = null,
-        ).toMutableList()
+        val initial = deltakelsesmengder
+            .filter { it.gyldigFra <= startdato }
+            // Startdato-justerte mengder kan ha gyldigFra senere enn en nyere, tilbakedatert endring.
+            .maxByOrNull { it.opprettet }
+            ?: deltakelsesmengder.minByOrNull { it.gyldigFra }
+            ?: return emptyList()
 
-        val justert = periode.firstOrNull()?.copy(gyldigFra = startdato) ?: return periode
-
-        periode[0] = justert
-
-        return periode
+        return listOf(initial.copy(gyldigFra = startdato)) +
+            deltakelsesmengder.filter {
+                it !== initial &&
+                    it.gyldigFra > startdato &&
+                    it.opprettet > initial.opprettet
+            }
     }
 
     private fun periode(

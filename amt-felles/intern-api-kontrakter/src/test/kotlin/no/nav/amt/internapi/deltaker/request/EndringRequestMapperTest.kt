@@ -71,6 +71,7 @@ class EndringRequestMapperTest {
         val endring = EndringRequestMapper.toEndring(request) as DeltakerEndring.Endring.EndreDeltakelsesmengde
 
         endring.pavirkerPris shouldBe true
+        endring.gyldigFra shouldBe request.gyldigFra
     }
 
     @Test

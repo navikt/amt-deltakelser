@@ -135,7 +135,7 @@ class DeltakelsesmengderPeriodeTest {
     }
 
     @Test
-    fun `DeltakelsesmengderPeriode - tilDato er null - returnerer riktig deltakelsesmengder`() {
+    fun `DeltakelsesmengderPeriode - tilDato er null - beholder senere perioder etter tilbakedatert endring`() {
         val fraDato = "2024-01-01".toDate()
         val tilDato = null
 
@@ -181,15 +181,20 @@ class DeltakelsesmengderPeriodeTest {
                     opprettet = "2024-01-25".toDateTime(),
                 ),
             )
-        val historikk =
-            TestData.lagDeltakerHistorikk(
-                endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
-            )
+        val historikk = TestData.lagDeltakerHistorikk(
+            endringer = gyldigeDeltakelsesmengder + ugyldigeDeltakelsesmengder,
+        )
 
         val deltakelsesmengder = historikk.toDeltakelsesmengder().periode(fraDato, tilDato)
 
-        deltakelsesmengder.size shouldBe 3
-        deltakelsesmengder shouldBe gyldigeDeltakelsesmengder.map { it.toDeltakelsesmengde() }
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            "2024-01-01".toDate(),
+            "2024-01-05".toDate(),
+            "2024-01-10".toDate(),
+            "2024-01-15".toDate(),
+            "2024-01-30".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(69F, 70F, 80F, 100F, 90F)
     }
 
     @Test
