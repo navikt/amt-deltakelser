@@ -27,6 +27,26 @@ class DeltakelsesmengderTest {
     }
 
     @Test
+    fun `Deltakelsesmengder - vedtak med kun dager per uke - returnerer deltakelsesmengde`() {
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = null,
+            dagerPerUke = 3F,
+            fattet = LocalDateTime.now(),
+        )
+
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(vedtak = listOf(vedtak))
+            .toDeltakelsesmengder()
+
+        deltakelsesmengder.size shouldBe 1
+        assertSoftly(deltakelsesmengder.first()) {
+            deltakelsesprosent shouldBe null
+            dagerPerUke shouldBe 3F
+            gyldigFra shouldBe vedtak.fattet!!.toLocalDate()
+        }
+    }
+
+    @Test
     fun `Deltakelsesmengder - kun importert fra arena - returnerer riktig deltakelsesmengder`() {
         val importertFraArena = TestData.lagImportertFraArena()
         val historikk = TestData.lagDeltakerHistorikk(importertFraArena = listOf(importertFraArena))
@@ -40,6 +60,25 @@ class DeltakelsesmengderTest {
             dagerPerUke shouldBe importertFraArena.deltakerVedImport.dagerPerUke
             gyldigFra shouldBe importertFraArena.deltakerVedImport.innsoktDato
             opprettet shouldBe importertFraArena.deltakerVedImport.innsoktDato.atStartOfDay()
+        }
+    }
+
+    @Test
+    fun `Deltakelsesmengder - importert fra arena med kun dager per uke - returnerer deltakelsesmengde`() {
+        val importertFraArena = TestData.lagImportertFraArena(
+            deltakelsesprosent = null,
+            dagerPerUke = 3F,
+        )
+
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(importertFraArena = listOf(importertFraArena))
+            .toDeltakelsesmengder()
+
+        deltakelsesmengder.size shouldBe 1
+        assertSoftly(deltakelsesmengder.first()) {
+            deltakelsesprosent shouldBe null
+            dagerPerUke shouldBe 3F
+            gyldigFra shouldBe importertFraArena.deltakerVedImport.innsoktDato
         }
     }
 

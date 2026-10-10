@@ -30,20 +30,24 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengde(opprettet
     opprettet = opprettet,
 )
 
-fun Vedtak.toDeltakelsesmengde() = this.deltakerVedVedtak.deltakelsesprosent?.let {
-    Deltakelsesmengde(
-        deltakelsesprosent = this.deltakerVedVedtak.deltakelsesprosent,
-        dagerPerUke = this.deltakerVedVedtak.dagerPerUke,
-        gyldigFra = this.fattet?.toLocalDate() ?: this.opprettet.toLocalDate(),
-        opprettet = this.fattet ?: this.opprettet,
-    )
-}
+fun Vedtak.toDeltakelsesmengde() = this.deltakerVedVedtak
+    .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
+    ?.let {
+        Deltakelsesmengde(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = this.fattet?.toLocalDate() ?: this.opprettet.toLocalDate(),
+            opprettet = this.fattet ?: this.opprettet,
+        )
+    }
 
-fun ImportertFraArena.toDeltakelsesmengde() = this.deltakerVedImport.deltakelsesprosent?.let {
-    Deltakelsesmengde(
-        deltakelsesprosent = this.deltakerVedImport.deltakelsesprosent,
-        dagerPerUke = this.deltakerVedImport.dagerPerUke,
-        gyldigFra = this.deltakerVedImport.innsoktDato,
-        opprettet = this.deltakerVedImport.innsoktDato.atStartOfDay(),
-    )
-}
+fun ImportertFraArena.toDeltakelsesmengde() = this.deltakerVedImport
+    .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
+    ?.let {
+        Deltakelsesmengde(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = it.innsoktDato,
+            opprettet = it.innsoktDato.atStartOfDay(),
+        )
+    }
