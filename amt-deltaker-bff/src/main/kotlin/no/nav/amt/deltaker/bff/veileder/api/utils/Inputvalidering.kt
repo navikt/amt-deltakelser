@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnho
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Objects
 import java.util.UUID
 
 const val MAX_BAKGRUNNSINFORMASJON_LENGDE = 1000
@@ -119,8 +120,12 @@ fun validerNyDeltakelsesmengde(
         .firstOrNull { it.gyldigFra == nyDeltakelsesmengde.gyldigFra }
         ?: return true
 
-    return existing.dagerPerUke != nyDeltakelsesmengde.dagerPerUke ||
-        existing.deltakelsesprosent != nyDeltakelsesmengde.deltakelsesprosent
+    return !(
+        Objects.equals(existing.dagerPerUke, nyDeltakelsesmengde.dagerPerUke) && Objects.equals(
+            existing.deltakelsesprosent,
+            nyDeltakelsesmengde.deltakelsesprosent,
+        )
+    )
 }
 
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {

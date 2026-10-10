@@ -4,6 +4,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
+import java.util.Objects
 
 /**
  * Deltakelsesmengder er en liste av alle gyldige deltakelsesmengder, både frem og tilbake i tid, den er sortert på gyldig-fra stigende.
@@ -60,8 +61,12 @@ class Deltakelsesmengder(
         val aktivDeltakelsesmengde = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() }
             ?: return true
 
-        val mengdeErEndret = aktivDeltakelsesmengde.dagerPerUke != deltakelsesmengde.dagerPerUke ||
-            aktivDeltakelsesmengde.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent
+        val mengdeErEndret = !(
+            Objects.equals(
+                aktivDeltakelsesmengde.dagerPerUke,
+                deltakelsesmengde.dagerPerUke,
+            ) && Objects.equals(aktivDeltakelsesmengde.deltakelsesprosent, deltakelsesmengde.deltakelsesprosent)
+        )
 
         return mengdeErEndret || deltakelsesmengde.gyldigFra < aktivDeltakelsesmengde.gyldigFra
     }
@@ -77,8 +82,8 @@ class Deltakelsesmengder(
                 val forrige = gyldigeDeltakelsesmengder.lastOrNull()
 
                 if (forrige == null ||
-                    forrige.deltakelsesprosent != periode.deltakelsesprosent ||
-                    forrige.dagerPerUke != periode.dagerPerUke
+                    !Objects.equals(forrige.deltakelsesprosent, periode.deltakelsesprosent) ||
+                    !Objects.equals(forrige.dagerPerUke, periode.dagerPerUke)
                 ) {
                     gyldigeDeltakelsesmengder.add(periode)
                 }
