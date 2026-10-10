@@ -121,11 +121,9 @@ class Deltakelsesmengder(
     ): List<Deltakelsesmengde> {
         val perioderForEllerPaStartdato = deltakelsesmengder
             .filter { it.gyldigFra <= startdato }
-        val initial = perioderForEllerPaStartdato.maxByOrNull { it.opprettet }
-        if (initial == null) {
-            val sisteEndring = deltakelsesmengder.maxByOrNull { it.opprettet } ?: return emptyList()
-            return listOf(sisteEndring.copy(gyldigFra = startdato))
-        }
+        val initial = perioderForEllerPaStartdato.maxByOrNull { it.gyldigFra }
+            ?: deltakelsesmengder.minByOrNull { it.gyldigFra }
+            ?: return emptyList()
 
         return listOf(initial.copy(gyldigFra = startdato)) +
             deltakelsesmengder.filter { it !== initial && it.gyldigFra > startdato }
@@ -203,27 +201,53 @@ class Deltakelsesmengder(
 }
 
 // Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
-fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder = this
-    .sortedBy { it.sistEndret }
-    .fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
-        val deltakelsesmengde = if (isForDeltakerExternalTopic) {
-            historikk.toDeltakelsesmengdeEkstern()
-        } else {
-            historikk.toDeltakelsesmengde()
-        }
+fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder {
+    val historyState = sortedBy { it.sistEndret }
+        .fold(DeltakelsesmengderHistoryState()) { state, historikk ->
+            val deltakelsesmengde = if (isForDeltakerExternalTopic) {
+                historikk.toDeltakelsesmengdeEkstern()
+            } else {
+                historikk.toDeltakelsesmengde()
+            }
 
-        val startdato = historikk.toStartdato()
+            val startdato = historikk.toStartdato()
+            val effektivStartdato = startdato ?: state.startdato
+            val rawMengder = state.rawMengder + listOfNotNull(deltakelsesmengde)
+            val oppdaterteMengder = when {
+                deltakelsesmengde != null &&
+                    effektivStartdato != null &&
+                    deltakelsesmengde.gyldigFra <= effektivStartdato ->
+                    Deltakelsesmengder(rawMengder, listOf(effektivStartdato))
 
-        when {
-            deltakelsesmengde != null -> Deltakelsesmengder(
-                mengder = mengder.plus(deltakelsesmengde),
-                startdatoer = listOfNotNull(startdato),
+                deltakelsesmengde != null -> Deltakelsesmengder(
+                    mengder = state.deltakelsesmengder + deltakelsesmengde,
+                    startdatoer = listOfNotNull(effektivStartdato),
+                )
+
+                startdato != null && state.startdato != null && startdato < state.startdato ->
+                    state.deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
+
+                startdato != null ->
+                    Deltakelsesmengder(rawMengder, listOf(startdato))
+
+                else -> state.deltakelsesmengder
+            }
+
+            DeltakelsesmengderHistoryState(
+                rawMengder = rawMengder,
+                startdato = effektivStartdato,
+                deltakelsesmengder = oppdaterteMengder,
             )
-
-            startdato != null -> mengder.avgrensPeriodeTilStartdato(startdato)
-            else -> mengder
         }
-    }
+
+    return historyState.deltakelsesmengder
+}
+
+private data class DeltakelsesmengderHistoryState(
+    val rawMengder: List<Deltakelsesmengde> = emptyList(),
+    val startdato: LocalDate? = null,
+    val deltakelsesmengder: Deltakelsesmengder = Deltakelsesmengder(emptyList()),
+)
 
 private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
     is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
@@ -248,16 +272,10 @@ private fun DeltakerHistorikk.toStartdato() = when (this) {
         }
 
     is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-
     is DeltakerHistorikk.Forslag -> null
-
     is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.deltakerVedImport.startdato
-
     is DeltakerHistorikk.Vedtak -> this.vedtak.deltakerVedVedtak.startdato
-
     is DeltakerHistorikk.VurderingFraArrangor -> null
-
     is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
-
     is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> null
 }

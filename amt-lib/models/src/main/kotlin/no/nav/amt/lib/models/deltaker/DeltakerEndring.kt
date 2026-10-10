@@ -85,11 +85,11 @@ data class DeltakerEndring(
         ) : Endring
 
         data class EndreDeltakelsesmengde(
+            val deltakelsesprosent: Float?,
+            val dagerPerUke: Float?,
             // 283 rader av 11586 i prod (10.10.2026) hvor denne er null. DeltakerEndring.endret
             // blir benyttet som fallback og kan evt. brukes i backfill for å gjøre gyldigFra non-nullable.
             val gyldigFra: LocalDate?,
-            val deltakelsesprosent: Float?,
-            val dagerPerUke: Float?,
             val begrunnelse: String?,
             val pavirkerPris: Boolean = false,
         ) : Endring

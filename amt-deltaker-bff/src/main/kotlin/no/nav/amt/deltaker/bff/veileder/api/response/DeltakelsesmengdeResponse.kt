@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse as InternDeltakelsesmengdeResponse
 import java.time.LocalDate
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse as InternDeltakelsesmengdeResponse
 
 data class DeltakelsesmengdeResponse(
     val deltakelsesprosent: Float?,
