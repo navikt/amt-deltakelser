@@ -9,6 +9,46 @@ import java.time.LocalDateTime
 
 class DeltakelsesmengderStartdatoTest {
     @Test
+    fun `tilbakedatert endring gjenoppretter senere periode med samme mengde som grunnmengden`() {
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = 100F,
+            dagerPerUke = 5F,
+            fattet = "2024-01-01".toDateTime(),
+        )
+        val senereLikMengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            dagerPerUke = 5,
+            gyldigFra = "2024-01-10".toDate(),
+            opprettet = "2024-01-10".toDateTime(),
+        )
+        val tilbakedatertEndring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            gyldigFra = "2024-01-05".toDate(),
+            opprettet = "2024-01-11".toDateTime(),
+        )
+        val startdato = "2024-01-04".toDate()
+
+        val deltakelsesmengder = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(vedtak),
+            endringer = listOf(senereLikMengde, tilbakedatertEndring),
+            endringerFraArrangor = listOf(
+                TestData.lagLeggTilOppstartsdato(
+                    startdato = startdato,
+                    opprettet = "2024-01-02".toDateTime(),
+                ),
+            ),
+        ).toDeltakelsesmengder()
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            startdato,
+            "2024-01-05".toDate(),
+            "2024-01-10".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(100F, 50F, 100F)
+    }
+
+    @Test
     fun `manglende gyldigFra i historisk endring bruker opprettelsesdato`() {
         val opprettet = LocalDateTime.parse("2024-01-05T12:00:00")
         val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(

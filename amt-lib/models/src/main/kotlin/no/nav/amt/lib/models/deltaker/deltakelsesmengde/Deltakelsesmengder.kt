@@ -215,14 +215,9 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boo
             // Behold råperiodene så startdatojusteringer kan bygges på nytt uten å miste opprinnelige datoer.
             val rawMengder = state.rawMengder + listOfNotNull(deltakelsesmengde)
             val oppdaterteMengder = when {
-                // En ny mengde før startdatoen må kunne bli grunnmengden når tidslinjen avgrenses.
-                deltakelsesmengde != null &&
-                    effektivStartdato != null &&
-                    deltakelsesmengde.gyldigFra <= effektivStartdato ->
-                    Deltakelsesmengder(rawMengder, listOf(effektivStartdato))
-
+                // Rebuild from raw amounts so previously collapsed boundaries can reappear after corrections.
                 deltakelsesmengde != null -> Deltakelsesmengder(
-                    mengder = state.deltakelsesmengder + deltakelsesmengde,
+                    mengder = rawMengder,
                     startdatoer = listOfNotNull(effektivStartdato),
                 )
 
