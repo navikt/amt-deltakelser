@@ -413,4 +413,37 @@ class DeltakelsesmengderStartdatoTest {
         // Mengde fra vedtak skal fortsatt finnes
         deltakelsesmengder.size shouldBe 1
     }
+
+    @Test
+    fun `startdato fjernet - fjerner startdatobegrensningen fra deltakelsesmengdene`() {
+        val vedtak = TestData.lagVedtak(
+            fattet = "2024-10-15".toDateTime(),
+        )
+        val endreDeltakelsesmengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 60,
+            gyldigFra = "2024-11-01".toDate(),
+            opprettet = "2024-10-27".toDateTime(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(vedtak),
+            endringerFraArrangor = listOf(
+                TestData.lagLeggTilOppstartsdato(
+                    startdato = "2024-10-20".toDate(),
+                    opprettet = "2024-10-20".toDateTime(),
+                ),
+            ),
+            endringer = listOf(
+                endreDeltakelsesmengde,
+                TestData.lagFjernOppstartsdato(opprettet = "2024-11-02".toDateTime()),
+            ),
+        )
+
+        val deltakelsesmengder = historikk.toDeltakelsesmengder()
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            "2024-10-15".toDate(),
+            "2024-11-01".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(100F, 60F)
+    }
 }

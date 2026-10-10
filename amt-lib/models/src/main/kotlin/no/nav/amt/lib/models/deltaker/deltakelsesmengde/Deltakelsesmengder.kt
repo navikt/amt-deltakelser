@@ -210,10 +210,12 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boo
                 historikk.toDeltakelsesmengde()
             }
 
-            val startdato = historikk.toStartdato()
-            val effektivStartdato = startdato ?: state.startdato
+            val startdatoOppdatering = historikk.toStartdatoOppdatering()
+            val effektivStartdato = startdatoOppdatering?.startdato ?: state.startdato
+            // Behold råperiodene så startdatojusteringer kan bygges på nytt uten å miste opprinnelige datoer.
             val rawMengder = state.rawMengder + listOfNotNull(deltakelsesmengde)
             val oppdaterteMengder = when {
+                // En ny mengde før startdatoen må kunne bli grunnmengden når tidslinjen avgrenses.
                 deltakelsesmengde != null &&
                     effektivStartdato != null &&
                     deltakelsesmengde.gyldigFra <= effektivStartdato ->
@@ -224,18 +226,32 @@ fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boo
                     startdatoer = listOfNotNull(effektivStartdato),
                 )
 
-                startdato != null && state.startdato != null && startdato < state.startdato ->
-                    state.deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
+                startdatoOppdatering != null -> when {
+                    // Fjerning av startdato opphever avgrensningen, så bygg tidslinjen fra råperiodene.
+                    startdatoOppdatering.startdato == null ->
+                        Deltakelsesmengder(rawMengder)
 
-                startdato != null ->
-                    Deltakelsesmengder(rawMengder, listOf(startdato))
+                    // Ved tilbakedatering beholdes mengden som gjaldt før endringen og senere perioder.
+                    state.startdato != null && startdatoOppdatering.startdato < state.startdato ->
+                        state.deltakelsesmengder.flyttStartdatoTilbake(
+                            forrigeStartdato = state.startdato,
+                            nyStartdato = startdatoOppdatering.startdato,
+                        )
+
+                    else ->
+                        state.deltakelsesmengder.avgrensPeriodeTilStartdato(startdatoOppdatering.startdato)
+                }
 
                 else -> state.deltakelsesmengder
             }
 
             DeltakelsesmengderHistoryState(
                 rawMengder = rawMengder,
-                startdato = effektivStartdato,
+                startdato = if (startdatoOppdatering != null) {
+                    startdatoOppdatering.startdato
+                } else {
+                    state.startdato
+                },
                 deltakelsesmengder = oppdaterteMengder,
             )
         }
@@ -249,6 +265,19 @@ private data class DeltakelsesmengderHistoryState(
     val deltakelsesmengder: Deltakelsesmengder = Deltakelsesmengder(emptyList()),
 )
 
+private fun Deltakelsesmengder.flyttStartdatoTilbake(
+    forrigeStartdato: LocalDate,
+    nyStartdato: LocalDate,
+): Deltakelsesmengder {
+    val aktivMengde = lastOrNull { it.gyldigFra <= forrigeStartdato } ?: firstOrNull()
+        ?: return Deltakelsesmengder(emptyList())
+
+    return Deltakelsesmengder(
+        mengder = listOf(aktivMengde.copy(gyldigFra = nyStartdato)) +
+            filter { it !== aktivMengde && it.gyldigFra > nyStartdato },
+    )
+}
+
 private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
     is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
     is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
@@ -256,26 +285,31 @@ private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
     else -> null
 }
 
-private fun DeltakerHistorikk.toStartdato() = when (this) {
-    is DeltakerHistorikk.Endring ->
-        if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
-            this.endring.endring.startdato
-        } else {
-            null
-        }
+private fun DeltakerHistorikk.toStartdatoOppdatering(): StartdatoOppdatering? = when (this) {
+    is DeltakerHistorikk.Endring -> when (val endring = this.endring.endring) {
+        is DeltakerEndring.Endring.EndreStartdato -> StartdatoOppdatering(endring.startdato)
+        is DeltakerEndring.Endring.FjernOppstartsdato -> StartdatoOppdatering(null)
+        else -> null
+    }
 
     is DeltakerHistorikk.EndringFraArrangor ->
         if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
-            this.endringFraArrangor.endring.startdato
+            StartdatoOppdatering(this.endringFraArrangor.endring.startdato)
         } else {
             null
         }
 
     is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
     is DeltakerHistorikk.Forslag -> null
-    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.deltakerVedImport.startdato
-    is DeltakerHistorikk.Vedtak -> this.vedtak.deltakerVedVedtak.startdato
+    is DeltakerHistorikk.ImportertFraArena ->
+        StartdatoOppdatering(this.importertFraArena.deltakerVedImport.startdato)
+
+    is DeltakerHistorikk.Vedtak -> StartdatoOppdatering(this.vedtak.deltakerVedVedtak.startdato)
     is DeltakerHistorikk.VurderingFraArrangor -> null
     is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
     is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> null
 }
+
+private data class StartdatoOppdatering(
+    val startdato: LocalDate?,
+)
