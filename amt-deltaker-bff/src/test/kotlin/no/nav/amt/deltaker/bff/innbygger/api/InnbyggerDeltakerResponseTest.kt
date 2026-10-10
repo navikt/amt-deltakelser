@@ -22,7 +22,7 @@ class InnbyggerDeltakerResponseTest {
         val deltakerResponse = lagDeltakerResponse()
         val gyldigeDeltakelsesmengder = listOf(
             DeltakelsesmengdeResponse(60F, 3F, LocalDate.now()),
-            DeltakelsesmengdeResponse(80F, 4F, LocalDate.now().plusDays(7)),
+            DeltakelsesmengdeResponse(null, 4F, LocalDate.now().plusDays(7)),
         )
         val model = ModelMapper.toDeltaker(
             deltakerResponse.copy(gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder),

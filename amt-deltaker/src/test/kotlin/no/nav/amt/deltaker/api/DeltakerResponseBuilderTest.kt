@@ -655,6 +655,18 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             // Assert
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
+            response.gyldigeDeltakelsesmengder shouldBe listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 2F,
+                    gyldigFra = gyldigFraInnenforPeriode,
+                ),
+            )
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
                 sisteDeltakelsesmengde shouldBe DeltakelsesmengdeResponse(
                     deltakelsesprosent = 50F,

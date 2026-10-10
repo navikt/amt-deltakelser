@@ -56,6 +56,9 @@ class DeltakerResponseBuilder(
             inkluderFullHistorikk = false,
         )
         val deltakelsesmengder = historikk.toDeltakelsesmengder()
+        val gyldigeDeltakelsesmengder = deltaker.startdato
+            ?.let { deltakelsesmengder.periode(it, null) }
+            ?: deltakelsesmengder
         val gjeldendeDeltakelsesmengder = deltaker.startdato
             ?.let { deltakelsesmengder.periode(it, deltaker.sluttdato) }
             ?: deltakelsesmengder
@@ -96,7 +99,7 @@ class DeltakerResponseBuilder(
             // DeltakerHistorikk.Endring
             // DeltakerHistorikk.Vedtak
             // EndringFraArrangor.LeggTilOppstartsdato
-            gyldigeDeltakelsesmengder = deltakelsesmengder.map { DeltakelsesmengdeResponse(it) },
+            gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder.map { DeltakelsesmengdeResponse(it) },
             // denne skal bort i neste iterasjon
             deltakelsesmengder = DeltakelsesmengderResponse(
                 nesteDeltakelsesmengde = gjeldendeDeltakelsesmengder.nesteGjeldende

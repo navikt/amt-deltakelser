@@ -29,16 +29,17 @@ class DeltakelsesmengderStartdatoTest {
         )
         val startdato = "2024-01-04".toDate()
 
-        val deltakelsesmengder = TestData.lagDeltakerHistorikk(
-            vedtak = listOf(vedtak),
-            endringer = listOf(senereLikMengde, tilbakedatertEndring),
-            endringerFraArrangor = listOf(
-                TestData.lagLeggTilOppstartsdato(
-                    startdato = startdato,
-                    opprettet = "2024-01-02".toDateTime(),
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(
+                vedtak = listOf(vedtak),
+                endringer = listOf(senereLikMengde, tilbakedatertEndring),
+                endringerFraArrangor = listOf(
+                    TestData.lagLeggTilOppstartsdato(
+                        startdato = startdato,
+                        opprettet = "2024-01-02".toDateTime(),
+                    ),
                 ),
-            ),
-        ).toDeltakelsesmengder()
+            ).toDeltakelsesmengder()
 
         deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
             startdato,
