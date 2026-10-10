@@ -31,4 +31,5 @@ data class DeltakerResponse(
     val endringsforslagFraArrangor: List<Forslag>,
     val sisteVurdering: VurderingResponse?,
     val importertFraArena: ImportertFraArena?,
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeResponse> = emptyList(),
 )

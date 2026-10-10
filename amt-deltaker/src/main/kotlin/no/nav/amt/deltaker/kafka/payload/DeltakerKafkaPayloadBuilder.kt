@@ -15,6 +15,7 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.EMPTY_DELTAKELSESPROSENT
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
@@ -313,7 +314,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerV1Dto.DeltakelsesmengdeDto(
-            deltakelsesprosent = it.deltakelsesprosent,
+            deltakelsesprosent = it.deltakelsesprosent ?: FALLBACK_DELTAKELSESPROSENT,
             dagerPerUke = it.dagerPerUke,
             gyldigFra = it.gyldigFra,
             opprettet = it.opprettet,
@@ -322,7 +323,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerEksternV1Dto.DeltakelsesmengdeDto(
-            deltakelsesprosent = it.deltakelsesprosent.takeIf { prosent -> prosent > EMPTY_DELTAKELSESPROSENT },
+            deltakelsesprosent = it.deltakelsesprosent?.takeIf { prosent -> prosent > EMPTY_DELTAKELSESPROSENT },
             dagerPerUke = it.dagerPerUke,
             gyldigFraDato = it.gyldigFra,
             opprettetTidspunkt = it.opprettet,

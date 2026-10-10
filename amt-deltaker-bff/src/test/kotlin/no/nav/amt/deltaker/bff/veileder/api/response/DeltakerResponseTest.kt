@@ -1,11 +1,15 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse as InternDeltakelsesmengdeResponse
 
 class DeltakerResponseTest {
     private val innholdselementer = listOf(
@@ -50,5 +54,34 @@ class DeltakerResponseTest {
                 else -> it.valgt shouldBe false
             }
         }
+    }
+
+    @Test
+    fun `gyldigeDeltakelsesmengder - mapper alle perioder i riktig rekkefolge`() {
+        val gyldigFra = LocalDate.now()
+        val modeller = listOf(
+            InternDeltakelsesmengdeResponse(
+                deltakelsesprosent = 40F,
+                dagerPerUke = 2F,
+                gyldigFra = gyldigFra,
+            ),
+            InternDeltakelsesmengdeResponse(
+                deltakelsesprosent = 60F,
+                dagerPerUke = 3F,
+                gyldigFra = gyldigFra.plusDays(7),
+            ),
+            InternDeltakelsesmengdeResponse(
+                deltakelsesprosent = 80F,
+                dagerPerUke = 4F,
+                gyldigFra = gyldigFra.plusDays(14),
+            ),
+        )
+        val deltaker = ModelMapper.toDeltaker(
+            lagDeltakerResponse().copy(gyldigeDeltakelsesmengder = modeller),
+        )
+
+        val response = DeltakerResponse.fromDeltakerModel(deltaker)
+
+        response.gyldigeDeltakelsesmengder shouldBe modeller.map(::DeltakelsesmengdeResponse)
     }
 }

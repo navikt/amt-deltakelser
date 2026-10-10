@@ -3,12 +3,11 @@ package no.nav.amt.lib.models.deltaker.deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Deltakelsesmengde(
-    val deltakelsesprosent: Float,
+    val deltakelsesprosent: Float?,
     val dagerPerUke: Float?,
     val gyldigFra: LocalDate,
     val opprettet: LocalDateTime,
@@ -25,26 +24,30 @@ fun DeltakerEndring.toDeltakelsesmengde(): Deltakelsesmengde? = when (val endrin
 }
 
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengde(opprettet: LocalDateTime) = Deltakelsesmengde(
-    deltakelsesprosent = this.deltakelsesprosent ?: FALLBACK_DELTAKELSESPROSENT,
+    deltakelsesprosent = this.deltakelsesprosent,
     dagerPerUke = this.dagerPerUke,
     gyldigFra = this.gyldigFra ?: opprettet.toLocalDate(),
     opprettet = opprettet,
 )
 
-fun Vedtak.toDeltakelsesmengde() = this.deltakerVedVedtak.deltakelsesprosent?.let {
-    Deltakelsesmengde(
-        deltakelsesprosent = this.deltakerVedVedtak.deltakelsesprosent,
-        dagerPerUke = this.deltakerVedVedtak.dagerPerUke,
-        gyldigFra = this.fattet?.toLocalDate() ?: this.opprettet.toLocalDate(),
-        opprettet = this.fattet ?: this.opprettet,
-    )
-}
+fun Vedtak.toDeltakelsesmengde() = this.deltakerVedVedtak
+    .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
+    ?.let {
+        Deltakelsesmengde(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = this.fattet?.toLocalDate() ?: this.opprettet.toLocalDate(),
+            opprettet = this.fattet ?: this.opprettet,
+        )
+    }
 
-fun ImportertFraArena.toDeltakelsesmengde() = this.deltakerVedImport.deltakelsesprosent?.let {
-    Deltakelsesmengde(
-        deltakelsesprosent = this.deltakerVedImport.deltakelsesprosent,
-        dagerPerUke = this.deltakerVedImport.dagerPerUke,
-        gyldigFra = this.deltakerVedImport.innsoktDato,
-        opprettet = this.deltakerVedImport.innsoktDato.atStartOfDay(),
-    )
-}
+fun ImportertFraArena.toDeltakelsesmengde() = this.deltakerVedImport
+    .takeUnless { it.deltakelsesprosent == null && it.dagerPerUke == null }
+    ?.let {
+        Deltakelsesmengde(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = it.innsoktDato,
+            opprettet = it.innsoktDato.atStartOfDay(),
+        )
+    }

@@ -9,19 +9,33 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengdeResponse as DeltakelsesmengdeVeilederResponse
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
 
 class InnbyggerDeltakerResponseTest {
     @Test
     fun `fromModel - deltaker med alle felter - mapper alle felter korrekt`() {
         val deltakerResponse = lagDeltakerResponse()
-        val model = ModelMapper.toDeltaker(deltakerResponse)
+        val gyldigeDeltakelsesmengder = listOf(
+            DeltakelsesmengdeResponse(60F, 3F, LocalDate.now()),
+            DeltakelsesmengdeResponse(null, 4F, LocalDate.now().plusDays(7)),
+        )
+        val model = ModelMapper.toDeltaker(
+            deltakerResponse.copy(gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder),
+        )
 
         val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
+        val deltakelsesmengder = model.deltakelsesmengder
+            ?.let(::DeltakelsesmengderVeilederResponse)
+            ?: DeltakelsesmengderVeilederResponse()
+        val gyldigeDeltakelsesmengderResponse = gyldigeDeltakelsesmengder.map(::DeltakelsesmengdeVeilederResponse)
 
         result.deltakerId shouldBe model.id
-        result.status shouldBe model.status.toDeltakerStatusResponse()
+        result.status shouldBe DeltakerStatusResponse(model.status)
         result.startdato shouldBe model.startdato
         result.sluttdato shouldBe model.sluttdato
         result.dagerPerUke shouldBe model.dagerPerUke
@@ -29,6 +43,8 @@ class InnbyggerDeltakerResponseTest {
         result.bakgrunnsinformasjon shouldBe model.bakgrunnsinformasjon
         result.erManueltDeltMedArrangor shouldBe model.erManueltDeltMedArrangor
         result.adresseDelesMedArrangor shouldBe model.adresseDelesMedArrangor
+        result.deltakelsesmengder shouldBe deltakelsesmengder
+        result.gyldigeDeltakelsesmengder shouldBe gyldigeDeltakelsesmengderResponse
     }
 
     @Test

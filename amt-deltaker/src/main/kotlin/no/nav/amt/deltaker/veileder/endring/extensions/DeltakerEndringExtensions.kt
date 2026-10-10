@@ -51,7 +51,12 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> handleEndring(
             deltaker = deltaker,
             hasChanges = { this.hasChanges(getDeltakelsemengder(deltaker.id)) },
-            apply = DeltakerEndring.Endring.EndreDeltakelsesmengde::endreDeltakelsesmengde,
+            apply = {
+                endreDeltakelsesmengde(
+                    deltaker = deltaker,
+                    deltakelsesmengder = getDeltakelsemengder(deltaker.id),
+                )
+            },
         )
 
         is DeltakerEndring.Endring.EndreInnhold -> handleEndring(

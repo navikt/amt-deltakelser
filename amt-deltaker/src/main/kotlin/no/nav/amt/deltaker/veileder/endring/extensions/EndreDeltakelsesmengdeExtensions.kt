@@ -27,7 +27,10 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.validerGyldigFra(deltaker: De
     }
 }
 
-fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltaker: Deltaker): VellykketEndring {
+fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(
+    deltaker: Deltaker,
+    deltakelsesmengder: Deltakelsesmengder,
+): VellykketEndring {
     val nyDeltakelsesmengde = this.toDeltakelsesmengde(LocalDateTime.now())
 
     // Defence-in-depth: også validert i DeltakerService før runCatching for å gi 400 Bad Request
@@ -39,10 +42,14 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltak
         (deltaker.startdato != null && nyDeltakelsesmengde.gyldigFra == deltaker.startdato)
 
     return if (skalGjeldeUmiddelbart) {
+        val gjeldendeDeltakelsesmengde = deltakelsesmengder
+            .medNyDeltakelsesmengde(nyDeltakelsesmengde)
+            .gjeldende ?: nyDeltakelsesmengde
+
         VellykketEndring(
             deltaker.copy(
-                deltakelsesprosent = this.deltakelsesprosent,
-                dagerPerUke = this.dagerPerUke,
+                deltakelsesprosent = gjeldendeDeltakelsesmengde.deltakelsesprosent,
+                dagerPerUke = gjeldendeDeltakelsesmengde.dagerPerUke,
             ),
         )
     } else {

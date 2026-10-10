@@ -7,10 +7,10 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerStatusResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengdeResponse as DeltakelsesmengdeVeilederResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
 
 data class InnbyggerDeltakerResponse(
@@ -29,13 +29,14 @@ data class InnbyggerDeltakerResponse(
     val importertFraArena: ImportertFraArenaResponse?,
     val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
     val erManueltDeltMedArrangor: Boolean,
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeVeilederResponse> = emptyList(),
 ) {
     companion object {
         fun fromModel(deltaker: DeltakerModel) = with(deltaker) {
             InnbyggerDeltakerResponse(
                 deltakerId = id,
                 deltakerliste = deltaker.gjennomforing.let(::DeltakerlisteResponse),
-                status = status.toDeltakerStatusResponse(),
+                status = DeltakerStatusResponse(status),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
@@ -55,6 +56,7 @@ data class InnbyggerDeltakerResponse(
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
                 deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
+                gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder.map(::DeltakelsesmengdeVeilederResponse),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }

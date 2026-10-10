@@ -60,8 +60,14 @@ fun Deltaker.endreDeltakersOppstart(
         nyStartdato = startdato,
         nySluttdato = faktiskSluttdato,
     )
-    val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
-    val gjeldendeDeltakelsmengde = oppdatertDeltakelsmengde.gjeldende
+    val gjeldendeDeltakelsmengde = if (
+        startdato != null &&
+        (this.startdato == null || !startdato.isBefore(this.startdato))
+    ) {
+        deltakelsesmengder.avgrensPeriodeTilStartdato(startdato).gjeldende
+    } else {
+        null
+    }
 
     return this.copy(
         startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,

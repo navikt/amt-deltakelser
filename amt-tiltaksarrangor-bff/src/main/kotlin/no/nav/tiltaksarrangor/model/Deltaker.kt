@@ -78,7 +78,7 @@ data class DeltakelsesmengderDto(
 )
 
 data class DeltakelsesmengdeDto(
-    val deltakelsesprosent: Float,
+    val deltakelsesprosent: Float?,
     val dagerPerUke: Float?,
     val gyldigFra: LocalDate,
 )
