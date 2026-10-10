@@ -1,18 +1,22 @@
 # Periodiserte deltakelsesmengder
 
-Deltakelsesmengder blir periodisert med en gyldig fra dato, for deltakere på Arbeidsforberedende Trening (AFT), og Varig Tilrettelagt Arbeid Skjermet (VTA).
+Deltakelsesmengder blir periodisert med en gyldig fra-dato for deltakere på Arbeidsforberedende trening (AFT) og varig tilrettelagt arbeid i skjermet virksomhet (VTA).
 
-Det betyr at en deltaker nå har en liste med deltakelsesmengder for hele deltakelsen, slik at man kan se hvor ofte en deltaker deltok på tiltaket på en gitt dato.
+Det betyr at en deltaker har en liste med deltakelsesmengder for hele deltakelsen, slik at man kan se hvor ofte en deltaker deltok på tiltaket på en gitt dato. Periodene er sortert etter gyldig fra-dato. Hvis flere endringer har samme gyldig fra-dato, gjelder den sist opprettede. En periode uten endring i verdiene fra den foregående perioden vises ikke som en egen periode.
 
-Når en deltaker har en startdato må veileder for deltakeren oppgi denne gyldig fra datoen når de endrer på deltakelsesmengde. De kan velge å sette den til hvilken som helst dato, innenfor deltakers start- og sluttdato, og den må være innenfor gjennomføringens start- og sluttdato.
+Når en deltaker har en startdato, må veilederen oppgi gyldig fra-dato når deltakelsesmengden endres. Datoen må være innenfor deltakerens start- og sluttdato og gjennomføringens start- og sluttdato.
 
-Siden en periode av deltakelsesmengder er avhengig av start- og sluttdato på deltakeren så vil perioden også bli endret hvis veileder endrer på start- eller sluttdato.
+Periodene avgrenses av deltakerens startdato. Hvis startdatoen flyttes frem, begynner første periode på den nye startdatoen. Hvis startdatoen flyttes tilbake, videreføres mengden som gjaldt ved forrige startdato fra den nye datoen. Senere perioder beholdes. Hvis startdatoen fjernes, fjernes startdatobegrensningen.
 
-Hvis en deltaker ikke har fått en startdato enda så er det ikke mulig for veileder å velge en gyldig fra dato på deltakelsesmengde, gyldig fra blir da automatisk satt til å være dagens dato, og perioden vil bli automatisk justert til å være gyldig fra startdato når det legges til en oppstartsdato.
+Hvis en deltaker ikke har fått en startdato ennå, kan veilederen ikke velge gyldig fra-dato. Datoen settes automatisk til dagens dato, og perioden justeres til startdatoen når den legges til.
 
-Skjemaene våre for deltakere inneholder fra før en `dagerPerUke` og `deltakelsesprosent` eller `prosentStilling`, disse skal alltid reflektere hva enn som er deltakers nåværende deltakelsesmengde. Så når en deltakelsesmengde med en gyldig fra dato frem i tid blir registrert vil `dagerPerUke` og `deltakelsesprosent` først bli oppdatert på gyldig fra datoen. Mens listen `deltakelsesmengder` vil inneholde alle _gjeldende_ endringer i perioden, både fra fortid og fremtid. Endringer reflekteres umiddelbart i listen når de blir registrert.
+Deltakerens felter `dagerPerUke` og `deltakelsesprosent` viser mengden som gjelder nå. En jobb oppdaterer disse feltene når en fremtidig gyldig fra-dato passeres. En tilbakedatert endring oppdaterer dem bare hvis den endrer mengden som gjelder nå. Den periodiserte listen viser både historiske og fremtidige endringer umiddelbart etter at de er registrert.
 
-Nye meldinger på topic `deltaker-v1` vil inneholde listen `deltakelsesmengder: List<DeltakelsesmengdeDto>`, men det er kun deltakere på Arbeidsforberedende Trening, og Varig Tilrettelagt Arbeid (Skjermet) hvor listen vil inneholde noen elementer, på de andre tiltakstypene vil listen være tom for nå (det er ikke mulig å sette deltakelsesmengde for disse i påmeldingsløsning i modia). Se [deltaker-v1 dokumentasjon](https://github.com/navikt/amt-tiltak/blob/main/.docs/deltaker-v1.md) for mer informasjon.
+I modellen og veilederresponsen kan `deltakelsesprosent` og `dagerPerUke` være `null` uavhengig av hverandre. En deltakelsesmengde tas med fra vedtak eller Arena-import når minst ett av feltene har en verdi; den andre verdien forblir `null`. I `deltaker-v1`-meldingen settes manglende deltakelsesprosent fortsatt til 100 % av hensyn til den eksisterende kontrakten.
+
+Nye meldinger på topic `deltaker-v1` inneholder listen `deltakelsesmengder: List<DeltakelsesmengdeDto>`. Listen avgrenses av deltakerens start- og sluttdato når disse er satt, og vil bare inneholde elementer for deltakere på AFT og VTA; for andre tiltakstyper vil den være tom. Se [deltaker-v1-dokumentasjonen](https://github.com/navikt/amt-tiltak/blob/main/.docs/deltaker-v1.md) for mer informasjon.
+
+Veilederresponsen har også listen `gyldigeDeltakelsesmengder`, med alle perioder fra og med deltakerens startdato. Listen avgrenses ikke av sluttdatoen, slik at senere perioder blir med. Feltene `deltakelsesprosent` og `dagerPerUke` er nullable også i denne responsen. Den eldre responsen `deltakelsesmengder` beholdes midlertidig.
 
 ## Eksempler
 
@@ -118,25 +122,7 @@ Deltaker(
 
 **17.12.2024: Deltakelsesmengde endres tilbake i tid**
 
-1. Veileder oppdager en feil, deltaker deltok ikke 100% fra 10.12.2024, men 90%. Siden det ikke er mulig å bestemme noen gyldig til dato, så har vi begrensede muligheter til å tolke hva som er intensjonen med en slik endring. Så vi må anta at når det kommer en endring med gyldig fra før noen andre endringer så må vi anta at den skal være gjeldende fra og med 10.12.2024 frem til deltakelsen avsluttes. Så det betyr at vi fjerner alle deltakelsesmengder som har en gyldig fra større eller lik den nye deltakelsesmengden.
-
-```kotlin
-Deltaker(
-    ...
-    deltakelsesprosent = 90,
-    dagerPerUke = 5,
-    deltakelsesmengder = [
-        Deltakelsesmengde(
-            deltakelsesprosent = 90,
-            dagerPerUke = 5,
-            gyldigFra = "2024-12-10",
-            opprettet = "2024-12-17",
-        ),
-    ]
-)
-```
-
-2. Hvis det var riktig at deltakeren deltok 90% 10.12 også 40% fra og med 15.12, så må veileder utføre en endring igjen for å registrere den på nytt.
+1. Veilederen oppdager at deltakeren ikke deltok 100 % fra 10.12.2024, men 90 %. Endringen erstatter derfor mengden fra 10.12.2024. Senere perioder med en senere gyldig fra-dato beholdes.
 
 ```kotlin
 Deltaker(
@@ -154,11 +140,13 @@ Deltaker(
             deltakelsesprosent = 40,
             dagerPerUke = 2,
             gyldigFra = "2024-12-15",
-            opprettet = "2024-12-17",
+            opprettet = "2024-12-10",
         ),
     ]
 )
 ```
+
+Perioden på 40 % fra 15.12 beholdes automatisk, slik at veilederen ikke trenger å registrere den på nytt.
 
 **18.12.2024: Startdato endres frem i tid til 17.12.2024**
 
@@ -222,16 +210,16 @@ Deltaker(
         Deltakelsesmengde(
             deltakelsesprosent = 100,
             dagerPerUke = null,
-            gyldigFra = "2024-02-01",
-            opprettet = "2024-01-02",
+            gyldigFra = "2025-02-01",
+            opprettet = "2025-01-02",
         ),
     ]
 )
 ```
 
-**03.01.2025: Sluttdato endres til 15.01.2024**
+**03.01.2025: Sluttdato endres til 15.01.2025**
 
-Siden sluttdatoen 15.01 er før den fremtidige deltakelsesmengden 01.02 så er den ikke lenger gyldig for denne perioden.
+Siden sluttdatoen 15.01 er før den fremtidige deltakelsesmengden 01.02, vises ikke den fremtidige perioden mens denne sluttdatoen gjelder.
 
 ```kotlin
 Deltaker(
@@ -251,15 +239,15 @@ Deltaker(
 )
 ```
 
-**05.01.2025: Sluttdato endres til 31.03.2024**
+**05.01.2025: Sluttdato endres til 31.03.2025**
 
-Fordi sluttdatoen 31.03 er etter den fremtidige deltakelsesmengden 01.02, vil den nå være gyldig igjen for denne perioden.
+Fordi sluttdatoen 31.03 er etter den fremtidige deltakelsesmengden 01.02, vises perioden igjen.
 
 ```kotlin
 Deltaker(
     ...
     startdato = "2024-12-10"
-    sluttdato = "2025-01-15"
+    sluttdato = "2025-03-31"
     deltakelsesprosent = 40,
     dagerPerUke = 2,
     deltakelsesmengder = [
@@ -272,8 +260,8 @@ Deltaker(
         Deltakelsesmengde(
             deltakelsesprosent = 100,
             dagerPerUke = null,
-            gyldigFra = "2024-02-01",
-            opprettet = "2024-01-02",
+            gyldigFra = "2025-02-01",
+            opprettet = "2025-01-02",
         ),
     ]
 )
