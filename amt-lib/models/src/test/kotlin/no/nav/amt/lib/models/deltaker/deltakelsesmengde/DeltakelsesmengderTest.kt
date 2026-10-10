@@ -389,6 +389,33 @@ class DeltakelsesmengderTest {
     }
 
     @Test
+    fun `validerNyDeltakelsesmengde - tilbakedatert mengde er lik mengden pa datoen - returnerer true`() {
+        val iDag = LocalDate.now()
+        val tidligere = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = iDag.minusDays(10),
+            opprettet = iDag.minusDays(10).atStartOfDay(),
+        )
+        val aktiv = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 50,
+            gyldigFra = iDag.minusDays(5),
+            opprettet = iDag.minusDays(5).atStartOfDay(),
+        )
+        val ny = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = iDag.minusDays(7),
+            opprettet = iDag.atStartOfDay(),
+        )
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(endringer = listOf(tidligere, aktiv))
+            .toDeltakelsesmengder()
+
+        deltakelsesmengder.validerNyDeltakelsesmengde(
+            ny.toDeltakelsesmengde().shouldNotBeNull(),
+        ) shouldBe true
+    }
+
+    @Test
     fun `validerNyDeltakelsesmengde - bare fremtidige mengder finnes - returnerer true`() {
         val framtidig = TestData.lagEndreDeltakelsesmengde(
             deltakelsesprosent = 100,
@@ -456,6 +483,33 @@ class DeltakelsesmengderTest {
 
         deltakelsesmengder.validerNyDeltakelsesmengde(
             andreEndring.toDeltakelsesmengde().shouldNotBeNull(),
+        ) shouldBe true
+    }
+
+    @Test
+    fun `validerNyDeltakelsesmengde - planlegger retur til dagens mengde etter fremtidig endring`() {
+        val iDag = LocalDate.now()
+        val aktiv = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = iDag.minusDays(5),
+            opprettet = iDag.minusDays(5).atStartOfDay(),
+        )
+        val planlagt = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 50,
+            gyldigFra = iDag.plusDays(5),
+            opprettet = iDag.minusDays(1).atStartOfDay(),
+        )
+        val returTilAktivMengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = iDag.plusDays(10),
+            opprettet = iDag.atStartOfDay(),
+        )
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(endringer = listOf(aktiv, planlagt))
+            .toDeltakelsesmengder()
+
+        deltakelsesmengder.validerNyDeltakelsesmengde(
+            returTilAktivMengde.toDeltakelsesmengde().shouldNotBeNull(),
         ) shouldBe true
     }
 

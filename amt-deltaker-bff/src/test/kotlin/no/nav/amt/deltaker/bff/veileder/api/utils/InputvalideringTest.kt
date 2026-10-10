@@ -434,6 +434,35 @@ class InputvalideringTest {
         }
 
         @Test
+        fun `validerNyDeltakelsesmengde - tilbakedatert mengde er lik mengden pa datoen - returnerer true`() {
+            val iDag = LocalDate.now()
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(10),
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = iDag.minusDays(7),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
+        }
+
+        @Test
         fun `validerNyDeltakelsesmengde - framtidig dato med samme verdier som aktiv mengde returnerer false`() {
             val eksisterende = listOf(
                 DeltakelsesmengdeResponse(
@@ -453,6 +482,35 @@ class InputvalideringTest {
                 nyDeltakelsesmengde = ny,
                 deltakerStartdato = null,
             ) shouldBe false
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - planlegger retur til dagens mengde etter fremtidig endring`() {
+            val iDag = LocalDate.now()
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.plusDays(5),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = iDag.plusDays(10),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
         }
 
         @Test

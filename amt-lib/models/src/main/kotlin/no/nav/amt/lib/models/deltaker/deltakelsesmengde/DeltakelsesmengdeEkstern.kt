@@ -24,7 +24,7 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengdeEkstern(op
         Deltakelsesmengde(
             deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
-            gyldigFra = it.gyldigFra,
+            gyldigFra = it.gyldigFra ?: opprettet.toLocalDate(),
             opprettet = opprettet,
         )
     }

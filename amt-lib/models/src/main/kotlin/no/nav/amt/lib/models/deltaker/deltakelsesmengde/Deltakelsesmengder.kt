@@ -58,17 +58,21 @@ class Deltakelsesmengder(
      * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
      */
     fun validerNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde): Boolean {
-        val aktivDeltakelsesmengde = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() }
+        val aktivIDag = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() }
+            ?: return true
+        val aktivPaNyDato = deltakelsesmengder.lastOrNull {
+            it.gyldigFra <= deltakelsesmengde.gyldigFra
+        }
             ?: return true
 
-        val mengdeErEndret = !(
+        val mengdeErEndretPaNyDato = !(
             Objects.equals(
-                aktivDeltakelsesmengde.dagerPerUke,
+                aktivPaNyDato.dagerPerUke,
                 deltakelsesmengde.dagerPerUke,
-            ) && Objects.equals(aktivDeltakelsesmengde.deltakelsesprosent, deltakelsesmengde.deltakelsesprosent)
+            ) && Objects.equals(aktivPaNyDato.deltakelsesprosent, deltakelsesmengde.deltakelsesprosent)
         )
 
-        return mengdeErEndret || deltakelsesmengde.gyldigFra < aktivDeltakelsesmengde.gyldigFra
+        return mengdeErEndretPaNyDato || deltakelsesmengde.gyldigFra < aktivIDag.gyldigFra
     }
 
     private fun finnGyldigeDeltakelsesmengder(deltakelsesmengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> {
@@ -115,10 +119,13 @@ class Deltakelsesmengder(
         deltakelsesmengder: List<Deltakelsesmengde>,
         startdato: LocalDate,
     ): List<Deltakelsesmengde> {
-        val initial = deltakelsesmengder
-            .maxByOrNull { it.opprettet }
-            ?: deltakelsesmengder.minByOrNull { it.gyldigFra }
-            ?: return emptyList()
+        val perioderForEllerPaStartdato = deltakelsesmengder
+            .filter { it.gyldigFra <= startdato }
+        val initial = perioderForEllerPaStartdato.maxByOrNull { it.opprettet }
+        if (initial == null) {
+            val sisteEndring = deltakelsesmengder.maxByOrNull { it.opprettet } ?: return emptyList()
+            return listOf(sisteEndring.copy(gyldigFra = startdato))
+        }
 
         return listOf(initial.copy(gyldigFra = startdato)) +
             deltakelsesmengder.filter { it !== initial && it.gyldigFra > startdato }

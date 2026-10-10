@@ -5,8 +5,50 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.utils.TestData
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 class DeltakelsesmengderStartdatoTest {
+    @Test
+    fun `manglende gyldigFra i historisk endring bruker opprettelsesdato`() {
+        val opprettet = LocalDateTime.parse("2024-01-05T12:00:00")
+        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+            gyldigFra = null,
+            deltakelsesprosent = 50F,
+            dagerPerUke = null,
+            begrunnelse = null,
+        )
+
+        endring.toDeltakelsesmengde(opprettet).gyldigFra shouldBe opprettet.toLocalDate()
+        endring.toDeltakelsesmengdeEkstern(opprettet)?.gyldigFra shouldBe opprettet.toLocalDate()
+    }
+
+    @Test
+    fun `startdato endres før planlagt mengde - beholder gjeldende mengde og fremtidig mengde`() {
+        val deltakelsesmengder = Deltakelsesmengder(
+            mengder = listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = null,
+                    gyldigFra = "2024-01-01".toDate(),
+                    opprettet = "2024-01-01".toDateTime(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = null,
+                    gyldigFra = "2024-03-01".toDate(),
+                    opprettet = "2024-02-01".toDateTime(),
+                ),
+            ),
+            startdatoer = listOf("2024-01-15".toDate()),
+        )
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            "2024-01-15".toDate(),
+            "2024-03-01".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(100F, 50F)
+    }
+
     @Test
     fun `startdato flyttes frem - beholder senere planlagte mengder selv om de ble opprettet tidligere`() {
         val deltakelsesmengder = Deltakelsesmengder(

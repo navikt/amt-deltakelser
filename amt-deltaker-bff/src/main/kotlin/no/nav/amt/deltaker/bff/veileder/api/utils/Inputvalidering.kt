@@ -115,15 +115,20 @@ fun validerNyDeltakelsesmengde(
     if (deltakerStartdato != null && nyDeltakelsesmengde.gyldigFra < deltakerStartdato) return false
     if (deltakerSluttdato != null && nyDeltakelsesmengde.gyldigFra > deltakerSluttdato) return false
 
-    val aktivDeltakelsesmengde = deltakelsesmengder
+    val aktivIDag = deltakelsesmengder
         .filter { it.gyldigFra <= LocalDate.now() }
         .maxByOrNull { it.gyldigFra }
         ?: return true
 
-    val mengdeErEndret = !Objects.equals(aktivDeltakelsesmengde.dagerPerUke, nyDeltakelsesmengde.dagerPerUke) ||
-        !Objects.equals(aktivDeltakelsesmengde.deltakelsesprosent, nyDeltakelsesmengde.deltakelsesprosent)
+    val aktivPaNyDato = deltakelsesmengder
+        .filter { it.gyldigFra <= nyDeltakelsesmengde.gyldigFra }
+        .maxByOrNull { it.gyldigFra }
+        ?: return true
 
-    return mengdeErEndret || nyDeltakelsesmengde.gyldigFra < aktivDeltakelsesmengde.gyldigFra
+    val mengdeErEndretPaNyDato = !Objects.equals(aktivPaNyDato.dagerPerUke, nyDeltakelsesmengde.dagerPerUke) ||
+        !Objects.equals(aktivPaNyDato.deltakelsesprosent, nyDeltakelsesmengde.deltakelsesprosent)
+
+    return mengdeErEndretPaNyDato || nyDeltakelsesmengde.gyldigFra < aktivIDag.gyldigFra
 }
 
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {

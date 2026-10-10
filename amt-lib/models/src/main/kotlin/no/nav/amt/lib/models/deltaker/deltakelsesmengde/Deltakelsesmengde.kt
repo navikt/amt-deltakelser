@@ -26,7 +26,7 @@ fun DeltakerEndring.toDeltakelsesmengde(): Deltakelsesmengde? = when (val endrin
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.toDeltakelsesmengde(opprettet: LocalDateTime) = Deltakelsesmengde(
     deltakelsesprosent = this.deltakelsesprosent,
     dagerPerUke = this.dagerPerUke,
-    gyldigFra = this.gyldigFra,
+    gyldigFra = this.gyldigFra ?: opprettet.toLocalDate(),
     opprettet = opprettet,
 )
 
