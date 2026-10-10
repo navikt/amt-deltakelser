@@ -203,6 +203,55 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
+    fun `oppdaterDeltaker - korrigering pa startdato - beholder senere gjeldende mengde`() {
+        val iDag = LocalDate.now()
+        val startdato = iDag.minusDays(7)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = startdato,
+            sluttdato = iDag.plusMonths(1),
+            deltakelsesprosent = 50F,
+            dagerPerUke = 3F,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                    opprettet = startdato.atStartOfDay(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = iDag.minusDays(2),
+                    opprettet = LocalDateTime.now().minusDays(2),
+                ),
+            ),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 75,
+            dagerPerUke = 4,
+            begrunnelse = null,
+            gyldigFra = startdato,
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 50F
+        resultat.deltaker.dagerPerUke shouldBe 3F
+    }
+
+    @Test
     fun `oppdaterDeltaker - fremtidig gyldigFra - returnerer erFremtidigEndring true`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
