@@ -42,9 +42,9 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(
         (deltaker.startdato != null && nyDeltakelsesmengde.gyldigFra == deltaker.startdato)
 
     return if (skalGjeldeUmiddelbart) {
-        val gjeldendeDeltakelsesmengde = Deltakelsesmengder(
-            deltakelsesmengder + nyDeltakelsesmengde,
-        ).gjeldende ?: nyDeltakelsesmengde
+        val gjeldendeDeltakelsesmengde = deltakelsesmengder
+            .medNyDeltakelsesmengde(nyDeltakelsesmengde)
+            .gjeldende ?: nyDeltakelsesmengde
 
         VellykketEndring(
             deltaker.copy(

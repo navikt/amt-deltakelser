@@ -9,6 +9,77 @@ import java.time.LocalDateTime
 
 class DeltakelsesmengderStartdatoTest {
     @Test
+    fun `tilbakedatert endring beholder senere lik periode`() {
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = 100F,
+            dagerPerUke = 5F,
+            fattet = "2024-01-01".toDateTime(),
+        )
+        val senereLikMengde = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            dagerPerUke = 5,
+            gyldigFra = "2024-01-10".toDate(),
+            opprettet = "2024-01-10".toDateTime(),
+        )
+        val tilbakedatertEndring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            gyldigFra = "2024-01-05".toDate(),
+            opprettet = "2024-01-11".toDateTime(),
+        )
+
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(
+                vedtak = listOf(vedtak),
+                endringer = listOf(senereLikMengde, tilbakedatertEndring),
+            ).toDeltakelsesmengder()
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            "2024-01-01".toDate(),
+            "2024-01-05".toDate(),
+            "2024-01-10".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(100F, 50F, 100F)
+    }
+
+    @Test
+    fun `grunnmengdekorreksjon oppdaterer raaperioder for senere endringer`() {
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = 100F,
+            fattet = "2024-01-01".toDateTime(),
+        )
+        val startdato = "2024-01-10".toDate()
+        val grunnmengdekorreksjon = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 75,
+            gyldigFra = "2024-01-05".toDate(),
+            opprettet = "2024-01-12".toDateTime(),
+        )
+        val senereEndring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 50,
+            gyldigFra = "2024-01-20".toDate(),
+            opprettet = "2024-01-13".toDateTime(),
+        )
+
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(
+                vedtak = listOf(vedtak),
+                endringer = listOf(grunnmengdekorreksjon, senereEndring),
+                endringerFraArrangor = listOf(
+                    TestData.lagLeggTilOppstartsdato(
+                        startdato = startdato,
+                        opprettet = "2024-01-02".toDateTime(),
+                    ),
+                ),
+            ).toDeltakelsesmengder()
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            startdato,
+            "2024-01-20".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(75F, 50F)
+    }
+
+    @Test
     fun `tilbakedatert endring gjenoppretter senere periode med samme mengde som grunnmengden`() {
         val vedtak = TestData.lagVedtak(
             deltakelsesprosent = 100F,

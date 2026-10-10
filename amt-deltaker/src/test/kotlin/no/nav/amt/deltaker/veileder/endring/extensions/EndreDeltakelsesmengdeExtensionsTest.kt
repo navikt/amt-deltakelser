@@ -252,6 +252,56 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
+    fun `oppdaterDeltaker - tilbakedatert endring gjenoppretter raaperiode ved beregning av snapshot`() {
+        val iDag = LocalDate.now()
+        val startdato = iDag.minusDays(10)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = startdato,
+            sluttdato = iDag.plusMonths(1),
+            deltakelsesprosent = 100F,
+            dagerPerUke = 5F,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            mengder = listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                    opprettet = startdato.atStartOfDay(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                    opprettet = iDag.minusDays(5).atStartOfDay(),
+                ),
+            ),
+            startdatoer = listOf(startdato),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            begrunnelse = null,
+            gyldigFra = iDag.minusDays(7),
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 100F
+        resultat.deltaker.dagerPerUke shouldBe 5F
+    }
+
+    @Test
     fun `oppdaterDeltaker - fremtidig gyldigFra - returnerer erFremtidigEndring true`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
