@@ -104,7 +104,11 @@ class Deltakelsesmengder(
     ): List<Deltakelsesmengde> {
         if (deltakelsesmengder.isEmpty() || startdatoer.isEmpty()) return deltakelsesmengder
 
-        return startdatoer.fold(deltakelsesmengder) { periode, startdato -> justerGyldigFra(periode, startdato) }
+        val sisteStartdato = startdatoer.lastOrNull() ?: return deltakelsesmengder
+        return justerGyldigFra(
+            deltakelsesmengder = deltakelsesmengder,
+            startdato = sisteStartdato,
+        )
     }
 
     private fun justerGyldigFra(
@@ -112,18 +116,12 @@ class Deltakelsesmengder(
         startdato: LocalDate,
     ): List<Deltakelsesmengde> {
         val initial = deltakelsesmengder
-            .filter { it.gyldigFra <= startdato }
-            // Startdato-justerte mengder kan ha gyldigFra senere enn en nyere, tilbakedatert endring.
             .maxByOrNull { it.opprettet }
             ?: deltakelsesmengder.minByOrNull { it.gyldigFra }
             ?: return emptyList()
 
         return listOf(initial.copy(gyldigFra = startdato)) +
-            deltakelsesmengder.filter {
-                it !== initial &&
-                    it.gyldigFra > startdato &&
-                    it.opprettet > initial.opprettet
-            }
+            deltakelsesmengder.filter { it !== initial && it.gyldigFra > startdato }
     }
 
     private fun periode(
@@ -158,7 +156,7 @@ class Deltakelsesmengder(
     }
 
     /**
-     * Man må sorterer på opprettet her for at `finnGyldigeDeltakelsesmengde` skal gi riktig svar.
+     * Man må sortere på opprettet her for at `finnGyldigeDeltakelsesmengder` skal gi riktig svar.
      */
     private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> = mengder.sortedWith(
         compareByDescending<Deltakelsesmengde> { it.opprettet }

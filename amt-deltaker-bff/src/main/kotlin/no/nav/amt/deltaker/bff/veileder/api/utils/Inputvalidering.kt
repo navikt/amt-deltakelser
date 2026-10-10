@@ -88,6 +88,7 @@ fun validerDeltakelsesmengde(
     require(
         validerNyDeltakelsesmengde(
             deltakerStartdato = eksisterendeDeltaker.startdato,
+            deltakerSluttdato = eksisterendeDeltaker.sluttdato,
             deltakelsesmengder = eksisterendeDeltaker.gyldigeDeltakelsesmengder,
             nyDeltakelsesmengde = Deltakelsesmengde(
                 deltakelsesprosent = nyProsent?.toFloat(),
@@ -108,24 +109,21 @@ fun validerNyDeltakelsesmengde(
     deltakelsesmengder: List<DeltakelsesmengdeResponse>,
     nyDeltakelsesmengde: Deltakelsesmengde,
     deltakerStartdato: LocalDate?,
+    deltakerSluttdato: LocalDate? = null,
 ): Boolean {
-    // ikke tillatt å endre deltakelsemengde bakover i tid
-    if (nyDeltakelsesmengde.gyldigFra < LocalDate.now()) return false
-
     // ikke tillatt å sette deltakelsemengde gyldig fra før deltakelse startdato
     if (deltakerStartdato != null && nyDeltakelsesmengde.gyldigFra < deltakerStartdato) return false
+    if (deltakerSluttdato != null && nyDeltakelsesmengde.gyldigFra > deltakerSluttdato) return false
 
-    // hvis ny deltakelsesmengde, er det en endring
-    val existing = deltakelsesmengder
-        .firstOrNull { it.gyldigFra == nyDeltakelsesmengde.gyldigFra }
+    val aktivDeltakelsesmengde = deltakelsesmengder
+        .filter { it.gyldigFra <= LocalDate.now() }
+        .maxByOrNull { it.gyldigFra }
         ?: return true
 
-    return !(
-        Objects.equals(existing.dagerPerUke, nyDeltakelsesmengde.dagerPerUke) && Objects.equals(
-            existing.deltakelsesprosent,
-            nyDeltakelsesmengde.deltakelsesprosent,
-        )
-    )
+    val mengdeErEndret = !Objects.equals(aktivDeltakelsesmengde.dagerPerUke, nyDeltakelsesmengde.dagerPerUke) ||
+        !Objects.equals(aktivDeltakelsesmengde.deltakelsesprosent, nyDeltakelsesmengde.deltakelsesprosent)
+
+    return mengdeErEndret || nyDeltakelsesmengde.gyldigFra < aktivDeltakelsesmengde.gyldigFra
 }
 
 fun validerDeltakerKanReaktiveres(opprinneligDeltaker: DeltakerModel) {

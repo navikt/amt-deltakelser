@@ -342,16 +342,17 @@ class DeltakelsesmengderTest {
 
     @Test
     fun `validerNyDeltakelsesmengde - ny deltakelsesmengde fører ikke til endring - returnerer false`() {
+        val aktivGyldigFra = LocalDate.now().minusDays(5)
         val forsteEndring = TestData.lagEndreDeltakelsesmengde(
             deltakelsesprosent = 100,
-            gyldigFra = "2024-01-15".toDate(),
-            opprettet = "2024-01-15".toDateTime(),
+            gyldigFra = aktivGyldigFra,
+            opprettet = aktivGyldigFra.atStartOfDay(),
         )
 
         val andreEndring = TestData.lagEndreDeltakelsesmengde(
             deltakelsesprosent = 100,
-            gyldigFra = "2024-01-20".toDate(),
-            opprettet = "2024-01-30".toDateTime(),
+            gyldigFra = aktivGyldigFra.plusDays(5),
+            opprettet = LocalDateTime.now(),
         )
 
         val historikk = TestData.lagDeltakerHistorikk(
@@ -363,6 +364,28 @@ class DeltakelsesmengderTest {
         deltakelsesmengder.validerNyDeltakelsesmengde(
             andreEndring.toDeltakelsesmengde().shouldNotBeNull(),
         ) shouldBe false
+    }
+
+    @Test
+    fun `validerNyDeltakelsesmengde - uendret mengde med gyldigFra før aktiv mengde - returnerer true`() {
+        val aktivGyldigFra = LocalDate.now().minusDays(5)
+        val aktiv = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = aktivGyldigFra,
+            opprettet = aktivGyldigFra.atStartOfDay(),
+        )
+        val ny = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = 100,
+            gyldigFra = aktivGyldigFra.minusDays(5),
+            opprettet = LocalDateTime.now(),
+        )
+        val deltakelsesmengder = TestData
+            .lagDeltakerHistorikk(endringer = listOf(aktiv))
+            .toDeltakelsesmengder()
+
+        deltakelsesmengder.validerNyDeltakelsesmengde(
+            ny.toDeltakelsesmengde().shouldNotBeNull(),
+        ) shouldBe true
     }
 
     @Test

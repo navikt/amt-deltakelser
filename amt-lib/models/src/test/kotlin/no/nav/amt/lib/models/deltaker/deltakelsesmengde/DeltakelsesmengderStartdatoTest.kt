@@ -8,6 +8,39 @@ import org.junit.jupiter.api.Test
 
 class DeltakelsesmengderStartdatoTest {
     @Test
+    fun `startdato flyttes frem - beholder senere planlagte mengder selv om de ble opprettet tidligere`() {
+        val deltakelsesmengder = Deltakelsesmengder(
+            mengder = listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 40F,
+                    dagerPerUke = null,
+                    gyldigFra = "2024-01-01".toDate(),
+                    opprettet = "2024-01-01".toDateTime(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = null,
+                    gyldigFra = "2024-01-20".toDate(),
+                    opprettet = "2024-01-02".toDateTime(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = null,
+                    gyldigFra = "2024-01-05".toDate(),
+                    opprettet = "2024-01-30".toDateTime(),
+                ),
+            ),
+            startdatoer = listOf("2024-01-10".toDate()),
+        )
+
+        deltakelsesmengder.map { it.gyldigFra } shouldBe listOf(
+            "2024-01-10".toDate(),
+            "2024-01-20".toDate(),
+        )
+        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(50F, 80F)
+    }
+
+    @Test
     fun `første deltakelsesmengde skal være gyldig fra deltakers startdato`() {
         val vedtak = TestData.lagVedtak(fattet = "2024-01-01".toDate().atStartOfDay())
         val startdato = TestData.lagLeggTilOppstartsdato(startdato = "2024-01-05".toDate())
