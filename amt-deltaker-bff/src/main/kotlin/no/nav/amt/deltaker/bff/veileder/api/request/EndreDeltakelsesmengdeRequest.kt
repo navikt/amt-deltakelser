@@ -12,8 +12,8 @@ import java.util.UUID
 data class EndreDeltakelsesmengdeRequest(
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
-    val begrunnelse: String?,
-    val gyldigFra: LocalDate = LocalDate.now(),
+    val begrunnelse: String?, // denne er vel påkrevd i frontend og bør kunne være non-nullable
+    val gyldigFra: LocalDate = LocalDate.now(), // denne er påkrevd i frontend og default bør kunne fjernes
     val pavirkerPris: Boolean = false,
     override val forslagId: UUID?,
 ) : EndringMedForslagRequest {
@@ -33,9 +33,18 @@ data class EndreDeltakelsesmengdeRequest(
             }
         }
 
-        validerDeltakelsesmengde(deltakelsesprosent, dagerPerUke, gyldigFra, deltaker)
+        validerDeltakelsesmengde(
+            nyProsent = deltakelsesprosent,
+            nyDagerPerUke = dagerPerUke,
+            gyldigFra = gyldigFra,
+            eksisterendeDeltaker = deltaker,
+        )
 
-        validerDeltakerKanEndres(this, deltaker)
+        validerDeltakerKanEndres(
+            request = this,
+            opprinneligDeltaker = deltaker,
+        )
+
         validerBegrunnelse(begrunnelse)
     }
 }
