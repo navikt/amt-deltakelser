@@ -12,9 +12,12 @@ import no.nav.amt.internapi.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class DeltakerEndringExtensionsTest {
     @Test
@@ -56,6 +59,42 @@ class DeltakerEndringExtensionsTest {
             status.type shouldBe DeltakerStatus.Type.SOKT_INN
             startdato.shouldBeNull()
             sluttdato.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `fjern oppstartsdato - oppdaterer deltakerens deltakelsesmengde fra gjenopprettet tidslinje`() {
+        // Arrange
+        val idag = LocalDate.now()
+        val startdato = idag.plusDays(2)
+        val deltakelsesmengder = Deltakelsesmengder(
+            mengder = listOf(
+                Deltakelsesmengde(100F, 5F, idag.minusDays(1), idag.minusDays(1).atStartOfDay()),
+                Deltakelsesmengde(50F, 3F, startdato, startdato.atStartOfDay()),
+            ),
+            startdato = startdato,
+        )
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = startdato.plusMonths(3),
+            deltakelsesprosent = 50F,
+            dagerPerUke = 3F,
+        )
+
+        // Act
+        val resultat = DeltakerEndring.Endring.FjernOppstartsdato(begrunnelse = null)
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        // Assert
+        assertSoftly(resultat.deltaker) {
+            startdato.shouldBeNull()
+            sluttdato.shouldBeNull()
+            deltakelsesprosent shouldBe 100F
+            dagerPerUke shouldBe 5F
         }
     }
 

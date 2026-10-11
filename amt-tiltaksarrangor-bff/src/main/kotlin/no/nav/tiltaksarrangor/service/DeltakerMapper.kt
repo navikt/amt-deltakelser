@@ -152,7 +152,7 @@ private fun tilDeltaker(
         deltakelsesmengder = deltakelsesmengder?.let {
             DeltakelsesmengderDto(
                 nesteDeltakelsesmengde = it.nesteGjeldende?.toDto(),
-                sisteDeltakelsesmengde = it.lastOrNull()?.toDto(),
+                sisteDeltakelsesmengde = it.perioder.lastOrNull()?.toDto(),
             )
         },
         ulesteEndringer = ulesteEndringer,

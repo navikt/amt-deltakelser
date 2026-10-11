@@ -844,7 +844,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
     @Nested
     inner class Deltakelsesmengde {
         @Test
-        fun `endret deltakelsesmengde upserter endring`() = runTest {
+        fun `endret deltakelsesmengde med gyldig fra i dag oppdaterer deltaker og upserter endring`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 startdato = LocalDate.now().minusMonths(3),

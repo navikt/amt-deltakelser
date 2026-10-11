@@ -246,7 +246,7 @@ data class ImportertFraArenaResponse(
             sluttdato = model.deltakerVedImport.sluttdato,
             dagerPerUke = model.deltakerVedImport.dagerPerUke,
             deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
-            status = model.deltakerVedImport.status.toDeltakerStatusResponse(),
+            status = DeltakerStatusResponse(model.deltakerVedImport.status),
         )
     }
 }

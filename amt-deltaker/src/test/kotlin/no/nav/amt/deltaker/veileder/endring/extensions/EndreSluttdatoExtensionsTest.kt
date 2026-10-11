@@ -114,8 +114,8 @@ class EndreSluttdatoExtensionsTest {
 
         // Fremtidig mengde etter ny sluttdato skal ikke vises i perioden
         val periodeEtterEndring = deltakelsesmengderMedFremtidig.periode(startdato, nySluttdato)
-        periodeEtterEndring.none { it.gyldigFra > nySluttdato } shouldBe true
-        periodeEtterEndring.size shouldBe 1
+        periodeEtterEndring.perioder.none { it.gyldigFra > nySluttdato } shouldBe true
+        periodeEtterEndring.perioder.size shouldBe 1
     }
 
     @Test
@@ -141,7 +141,7 @@ class EndreSluttdatoExtensionsTest {
 
         // Fremtidig mengde inkluderes nå fordi sluttdato er etter dens gyldigFra
         val periodeEtterForlengelse = deltakelsesmengder.periode(startdato, nySluttdato)
-        periodeEtterForlengelse.size shouldBe 2
-        periodeEtterForlengelse.last().gyldigFra shouldBe fremtidigMengdeGyldigFra
+        periodeEtterForlengelse.perioder.size shouldBe 2
+        periodeEtterForlengelse.perioder.last().gyldigFra shouldBe fremtidigMengdeGyldigFra
     }
 }

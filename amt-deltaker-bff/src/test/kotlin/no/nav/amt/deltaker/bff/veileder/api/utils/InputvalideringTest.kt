@@ -13,7 +13,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.EndreDeltakelsesmengdeReques
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
@@ -217,7 +216,7 @@ class InputvalideringTest {
     }
 
     @Test
-    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er lik startdato - kaster ikke exception`() {
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er lik startdato - kaster ikke unntak`() {
         val startdato = LocalDate.now().plusDays(5)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -237,7 +236,28 @@ class InputvalideringTest {
     }
 
     @Test
-    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er foer startdato, status VENTER_PA_OPPSTART - kaster exception`() {
+    fun `EndreDeltakelsesmengdeRequest valider - begge verdier er null - kaster unntak`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusMonths(3),
+        )
+        val request = EndreDeltakelsesmengdeRequest(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now(),
+            pavirkerPris = false,
+            forslagId = null,
+        )
+
+        val exception = shouldThrow<IllegalArgumentException> { request.valider(deltaker) }
+
+        exception.message shouldBe "Deltakelsesprosent og dager per uke kan ikke begge være null"
+    }
+
+    @Test
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er før startdato, status VENTER_PA_OPPSTART - kaster unntak`() {
         val startdato = LocalDate.now().plusDays(10)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -258,6 +278,7 @@ class InputvalideringTest {
 
     @Test
     fun `EndreDeltakelsesmengdeRequest valider - startdato null - validerer ikke gyldigFra mot startdato`() {
+        val gyldigFra = LocalDate.now().plusDays(5)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
@@ -267,7 +288,7 @@ class InputvalideringTest {
             deltakelsesprosent = 50,
             dagerPerUke = null,
             begrunnelse = "begrunnelse",
-            gyldigFra = LocalDate.now().minusMonths(2),
+            gyldigFra = gyldigFra,
             pavirkerPris = false,
             forslagId = null,
         )
@@ -276,7 +297,7 @@ class InputvalideringTest {
     }
 
     @Test
-    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra etter sluttdato - kaster exception`() {
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra etter sluttdato - kaster unntak`() {
         val sluttdato = LocalDate.now().plusMonths(1)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -298,7 +319,7 @@ class InputvalideringTest {
     @Nested
     inner class ValiderAktivGjennomforingTest {
         @Test
-        fun `validerAktivGjennomforing - status GJENNOMFORES - kaster ikke exception`() {
+        fun `validerAktivGjennomforing - status GJENNOMFORES - kaster ikke unntak`() {
             val gjennomforing = ModelMapper.toGjennomforing(lagGjennomforingResponse(status = GjennomforingStatusType.GJENNOMFORES))
             shouldNotThrow<IllegalArgumentException> {
                 validerAktivGjennomforing(gjennomforing)
@@ -306,7 +327,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerAktivGjennomforing - status AVSLUTTET - kaster exception`() {
+        fun `validerAktivGjennomforing - status AVSLUTTET - kaster unntak`() {
             val gjennomforing = ModelMapper.toGjennomforing(lagGjennomforingResponse(status = GjennomforingStatusType.AVSLUTTET))
             shouldThrow<IllegalArgumentException> {
                 validerAktivGjennomforing(gjennomforing)
@@ -318,134 +339,308 @@ class InputvalideringTest {
     inner class ValiderNyDeltakelsesmengdeTest {
         @Test
         fun `validerNyDeltakelsesmengde - ingen eksisterende mengde - returnerer true`() {
+            // Arrange
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = 50F,
                 dagerPerUke = 3F,
                 gyldigFra = LocalDate.now(),
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(null, ny) shouldBe true
+
+            // Act & Assert
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = emptyList(),
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
         }
 
         @Test
         fun `validerNyDeltakelsesmengde - endret prosent - returnerer true`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
-                    dagerPerUke = null,
-                    gyldigFra = LocalDate.now().minusDays(10),
-                ),
-                nesteDeltakelsesmengde = null,
+            val gyldigFra = LocalDate.now().plusDays(5)
+            val eksisterende = DeltakelsesmengdeResponse(
+                deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now().minusDays(5),
             )
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = 50F,
                 dagerPerUke = null,
-                gyldigFra = LocalDate.now(),
+                gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = listOf(eksisterende),
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
         }
 
         @Test
         fun `validerNyDeltakelsesmengde - endret dager per uke - returnerer true`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 50F,
-                    dagerPerUke = 3F,
-                    gyldigFra = LocalDate.now().minusDays(10),
-                ),
-                nesteDeltakelsesmengde = null,
+            val gyldigFra = LocalDate.now().plusDays(5)
+            val eksisterende = DeltakelsesmengdeResponse(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().minusDays(5),
             )
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = 50F,
                 dagerPerUke = 4F,
-                gyldigFra = LocalDate.now(),
+                gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = listOf(eksisterende),
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
         }
 
         @Test
-        fun `validerNyDeltakelsesmengde - samme verdier men tidligere gyldigFra - returnerer true`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
-                    deltakelsesprosent = 50F,
+        fun `validerNyDeltakelsesmengde - dato finnes i tidslinjen med uendrede verdier - returnerer false`() {
+            val gyldigFra = LocalDate.now().minusDays(5)
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 60F,
                     dagerPerUke = 3F,
-                    gyldigFra = LocalDate.now(),
+                    gyldigFra = gyldigFra,
                 ),
-                nesteDeltakelsesmengde = null,
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = 4F,
+                    gyldigFra = LocalDate.now().plusDays(15),
+                ),
             )
             val ny = Deltakelsesmengde(
-                deltakelsesprosent = 50F,
+                deltakelsesprosent = 60F,
                 dagerPerUke = 3F,
-                gyldigFra = LocalDate.now().minusDays(1),
+                gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe false
         }
 
         @Test
-        fun `validerNyDeltakelsesmengde - samme verdier og senere eller lik gyldigFra - returnerer false`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+        fun `validerNyDeltakelsesmengde - dato finnes i tidslinjen med endrede verdier - returnerer true`() {
+            val gyldigFra = LocalDate.now().plusDays(5)
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = gyldigFra,
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = 4F,
+                    gyldigFra = gyldigFra.plusDays(15),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 60F,
+                dagerPerUke = 3F,
+                gyldigFra = gyldigFra,
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - tilbakedatert mengde er lik mengden på datoen - returnerer true`() {
+            val iDag = LocalDate.now()
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(10),
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = iDag.minusDays(7),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - framtidig dato med samme verdier som aktiv mengde returnerer false`() {
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
                     deltakelsesprosent = 50F,
                     dagerPerUke = 3F,
                     gyldigFra = LocalDate.now().minusDays(5),
                 ),
-                nesteDeltakelsesmengde = null,
             )
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = 50F,
                 dagerPerUke = 3F,
-                gyldigFra = LocalDate.now(),
+                gyldigFra = LocalDate.now().plusDays(10),
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe false
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe false
         }
 
         @Test
-        fun `validerNyDeltakelsesmengde - dagerPerUke begge null, samme prosent og senere gyldigFra - returnerer false`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+        fun `validerNyDeltakelsesmengde - planlegger retur til dagens mengde etter fremtidig endring`() {
+            val iDag = LocalDate.now()
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                ),
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.plusDays(5),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 5F,
+                gyldigFra = iDag.plusDays(10),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - bare framtidige mengder finnes - returnerer true`() {
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = LocalDate.now().plusDays(5),
+                ),
+            )
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().plusDays(10),
+                opprettet = LocalDateTime.now(),
+            )
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - gyldigFra i fortiden returnerer false`() {
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
                     deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = null,
                     gyldigFra = LocalDate.now().minusDays(5),
                 ),
-                nesteDeltakelsesmengde = null,
             )
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
-                gyldigFra = LocalDate.now(),
+                gyldigFra = LocalDate.now().minusDays(1),
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe false
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe false
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - gyldigFra før deltakers startdato returnerer false`() {
+            val startdato = LocalDate.now().plusDays(10)
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = startdato.minusDays(1),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = emptyList(),
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = startdato,
+            ) shouldBe false
+        }
+
+        @Test
+        fun `validerNyDeltakelsesmengde - gyldigFra etter deltakers sluttdato returnerer false`() {
+            val sluttdato = LocalDate.now().plusDays(10)
+            val ny = Deltakelsesmengde(
+                deltakelsesprosent = 50F,
+                dagerPerUke = 3F,
+                gyldigFra = sluttdato.plusDays(1),
+                opprettet = LocalDateTime.now(),
+            )
+
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = emptyList(),
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+                deltakerSluttdato = sluttdato,
+            ) shouldBe false
         }
 
         @Test
         fun `validerNyDeltakelsesmengde - eksisterende har dagerPerUke, ny har null - returnerer true`() {
-            val eksisterende = DeltakelsesmengderResponse(
-                sisteDeltakelsesmengde = DeltakelsesmengdeResponse(
+            val gyldigFra = LocalDate.now().plusDays(5)
+            val eksisterende = listOf(
+                DeltakelsesmengdeResponse(
                     deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                     dagerPerUke = 5F,
-                    gyldigFra = LocalDate.now().minusDays(5),
+                    gyldigFra = gyldigFra,
                 ),
-                nesteDeltakelsesmengde = null,
             )
             val ny = Deltakelsesmengde(
                 deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
                 dagerPerUke = null,
-                gyldigFra = LocalDate.now(),
+                gyldigFra = gyldigFra,
                 opprettet = LocalDateTime.now(),
             )
-            validerNyDeltakelsesmengde(eksisterende, ny) shouldBe true
+            validerNyDeltakelsesmengde(
+                deltakelsesmengder = eksisterende,
+                nyDeltakelsesmengde = ny,
+                deltakerStartdato = null,
+            ) shouldBe true
         }
     }
 
     @Nested
     inner class ValiderDeltakerKanReaktiveresTest {
         @Test
-        fun `validerDeltakerKanReaktiveres - status IKKE_AKTUELL nylig - kaster ikke exception`() {
+        fun `validerDeltakerKanReaktiveres - status IKKE_AKTUELL nylig - kaster ikke unntak`() {
             val deltaker = TestData.lagDeltaker(
                 status = TestData.lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.IKKE_AKTUELL,
@@ -459,7 +654,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerDeltakerKanReaktiveres - status DELTAR - kaster exception`() {
+        fun `validerDeltakerKanReaktiveres - status DELTAR - kaster unntak`() {
             val deltaker = TestData.lagDeltaker(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusMonths(3),
@@ -470,7 +665,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerDeltakerKanReaktiveres DeltakerModel - status IKKE_AKTUELL - kaster ikke exception`() {
+        fun `validerDeltakerKanReaktiveres DeltakerModel - status IKKE_AKTUELL - kaster ikke unntak`() {
             val deltaker = lagDeltakerModel(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             )
@@ -480,7 +675,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerDeltakerKanReaktiveres DeltakerModel - status DELTAR - kaster exception`() {
+        fun `validerDeltakerKanReaktiveres DeltakerModel - status DELTAR - kaster unntak`() {
             val deltaker = lagDeltakerModel(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -532,35 +727,35 @@ class InputvalideringTest {
     @Nested
     inner class ValiderForslagEllerBegrunnelseTest {
         @Test
-        fun `validerForslagEllerBegrunnelse - forslagId satt - kaster ikke exception`() {
+        fun `validerForslagEllerBegrunnelse - forslagId satt - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerForslagEllerBegrunnelse(UUID.randomUUID(), null)
             }
         }
 
         @Test
-        fun `validerForslagEllerBegrunnelse - begrunnelse satt - kaster ikke exception`() {
+        fun `validerForslagEllerBegrunnelse - begrunnelse satt - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerForslagEllerBegrunnelse(null, "En begrunnelse")
             }
         }
 
         @Test
-        fun `validerForslagEllerBegrunnelse - begge satt - kaster ikke exception`() {
+        fun `validerForslagEllerBegrunnelse - begge satt - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerForslagEllerBegrunnelse(UUID.randomUUID(), "En begrunnelse")
             }
         }
 
         @Test
-        fun `validerForslagEllerBegrunnelse - ingen forslagId eller begrunnelse - kaster exception`() {
+        fun `validerForslagEllerBegrunnelse - ingen forslagId eller begrunnelse - kaster unntak`() {
             shouldThrow<IllegalArgumentException> {
                 validerForslagEllerBegrunnelse(null, null)
             }
         }
 
         @Test
-        fun `validerForslagEllerBegrunnelse - tom begrunnelse uten forslagId - kaster exception`() {
+        fun `validerForslagEllerBegrunnelse - tom begrunnelse uten forslagId - kaster unntak`() {
             shouldThrow<IllegalArgumentException> {
                 validerForslagEllerBegrunnelse(null, "")
             }
@@ -570,28 +765,28 @@ class InputvalideringTest {
     @Nested
     inner class ValiderBegrunnelseTest {
         @Test
-        fun `validerBegrunnelse - null - kaster ikke exception`() {
+        fun `validerBegrunnelse - null - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerBegrunnelse(null)
             }
         }
 
         @Test
-        fun `validerBegrunnelse - innenfor maks lengde - kaster ikke exception`() {
+        fun `validerBegrunnelse - innenfor maks lengde - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerBegrunnelse("En kort begrunnelse")
             }
         }
 
         @Test
-        fun `validerBegrunnelse - akkurat maks lengde - kaster ikke exception`() {
+        fun `validerBegrunnelse - akkurat maks lengde - kaster ikke unntak`() {
             shouldNotThrow<IllegalArgumentException> {
                 validerBegrunnelse(input(MAX_BEGRUNNELSE_LENGDE))
             }
         }
 
         @Test
-        fun `validerBegrunnelse - over maks lengde - kaster exception`() {
+        fun `validerBegrunnelse - over maks lengde - kaster unntak`() {
             shouldThrow<IllegalArgumentException> {
                 validerBegrunnelse(input(MAX_BEGRUNNELSE_LENGDE + 1))
             }
@@ -649,7 +844,7 @@ class InputvalideringTest {
     @Nested
     inner class ValiderDeltakerKanEndresDeltakerModelTest {
         @Test
-        fun `validerDeltakerKanEndres DeltakerModel - feilregistrert - kaster exception`() {
+        fun `validerDeltakerKanEndres DeltakerModel - feilregistrert - kaster unntak`() {
             val deltaker = lagDeltakerModel(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
             )
@@ -660,7 +855,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerDeltakerKanEndres DeltakerModel - aktiv deltaker - kaster ikke exception`() {
+        fun `validerDeltakerKanEndres DeltakerModel - aktiv deltaker - kaster ikke unntak`() {
             val deltaker = lagDeltakerModel(
                 status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -671,7 +866,7 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `validerDeltakerKanEndres DeltakerModel - har sluttet for mer enn to mnd siden - kaster exception`() {
+        fun `validerDeltakerKanEndres DeltakerModel - har sluttet for mer enn to mnd siden - kaster unntak`() {
             val deltaker = ModelMapper.toDeltaker(
                 TestData.lagDeltakerResponse(
                     status = TestData.lagDeltakerStatus(

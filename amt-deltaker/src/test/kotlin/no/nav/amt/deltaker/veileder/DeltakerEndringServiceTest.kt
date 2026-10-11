@@ -482,7 +482,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         ubehandlete.size shouldBe 0
 
         assertSoftly(deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()) {
-            size shouldBe 1
+            perioder.size shouldBe 1
             gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
             nesteGjeldende shouldBe null
         }

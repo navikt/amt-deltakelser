@@ -1,105 +1,132 @@
 package no.nav.amt.lib.models.deltaker.deltakelsesmengde
 
-import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
 import java.util.Objects
 
 /**
- * Deltakelsesmengder er en liste av alle gyldige deltakelsesmengder, både frem og tilbake i tid, den er sortert på gyldig-fra stigende.
+ * Deltakelsesmengder er en tidslinje med alle gyldige deltakelsesmengder, sortert på gyldig-fra stigende.
  *
- * Gitt en liste med flere overlappende endringen via konstruktøren eller `List<DeltakerHistorikk>.toDeltakelsesmengder()`
- * produserer denne en sortert liste hvor de endringene som har blitt invalidert av andre endringer er filtrert vekk.
+ * For samme gyldig-fra-dato beholdes den sist opprettede endringen. Endringer med senere gyldig-fra-dato
+ * beholdes slik at en tilbakedatert endring ikke fjerner framtidige perioder. Når en startdato er satt,
+ * justeres den første perioden slik at den ikke begynner før startdatoen.
  */
-class Deltakelsesmengder(
+class Deltakelsesmengder private constructor(
     mengder: List<Deltakelsesmengde>,
-    startdatoer: List<LocalDate> = emptyList(),
-) : List<Deltakelsesmengde> {
-    private val deltakelsesmengder = mengder
-        .let(::sorterMengder)
+    private val startdato: LocalDate?,
+    private val rawMengder: List<Deltakelsesmengde>,
+    private val raaperioderForTidslinje: List<Deltakelsesmengde>,
+) {
+    /**
+     * Oppretter en tidslinje fra deltakelsesmengdene og en valgfri startdato.
+     *
+     * @param mengder deltakelsesmengdene som skal sorteres og normaliseres
+     * @param startdato startdatoen som avgrenser den første perioden, hvis satt
+     */
+    constructor(
+        mengder: List<Deltakelsesmengde>,
+        startdato: LocalDate? = null,
+    ) : this(mengder, startdato, mengder, mengder)
+
+    /** Gyldige perioder i tidslinjen, sortert etter gyldig-fra. */
+    val perioder: List<Deltakelsesmengde> = mengder
         .let(::finnGyldigeDeltakelsesmengder)
-        .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
+        .let { avgrensPeriodeTilStartdato(it, startdato) }
+        .toList()
 
-    val gjeldende = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() } ?: deltakelsesmengder.firstOrNull()
+    /**
+     * Perioden som gjelder i dag, eller den første perioden dersom alle periodene ligger fram i tid.
+     */
+    val gjeldende = perioder.aktivPaaDato(LocalDate.now()) ?: perioder.firstOrNull()
 
+    /** Perioden etter [gjeldende], eller `null` hvis det ikke finnes en senere periode. */
     val nesteGjeldende: Deltakelsesmengde?
         get() {
-            val nesteGjeldendeIndex = deltakelsesmengder.indexOf(gjeldende) + 1
+            val nesteGjeldendeIndex = perioder.indexOf(gjeldende) + 1
 
-            if (deltakelsesmengder.size > nesteGjeldendeIndex) {
-                return deltakelsesmengder[nesteGjeldendeIndex]
+            if (perioder.size > nesteGjeldendeIndex) {
+                return perioder[nesteGjeldendeIndex]
             }
 
             return null
         }
 
+    /**
+     * Returnerer en tidslinje der periodene er avgrenset til den angitte startdatoen.
+     *
+     * Når [startdato] er `null`, gjenopprettes perioder som tidligere ble avgrenset bort.
+     *
+     * @param startdato startdatoen som første periode skal gjelde fra, eller `null` for ingen avgrensning
+     * @return en ny tidslinje avgrenset til startdatoen
+     */
     fun avgrensPeriodeTilStartdato(startdato: LocalDate?) = Deltakelsesmengder(
-        mengder = deltakelsesmengder,
-        startdatoer = listOfNotNull(startdato),
+        mengder = if (startdato == null) rawMengder else perioder,
+        startdato = startdato,
+        rawMengder = rawMengder,
+        raaperioderForTidslinje = if (startdato == null) rawMengder else raaperioderForTidslinje,
     )
 
     /**
-     * Finner hvilke deltakelsesmengder som var gjeldende for perioden f.o.m. t.o.m.
+     * Legger til en deltakelsesmengde og beregner tidslinjen på nytt uten å miste senere perioder.
+     *
+     * @param deltakelsesmengde mengden som skal legges til
+     * @return en ny tidslinje med den oppdaterte mengden
+     */
+    fun medNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde) = raaperioderForTidslinje.oppdaterEtterDeltakelsesmengde(
+        alleMengder = rawMengder + deltakelsesmengde,
+        nyDeltakelsesmengde = deltakelsesmengde,
+        startdato = startdato,
+    )
+
+    /**
+     * Finner periodene som gjelder fra og med [fraOgMed] til og med [tilOgMed].
+     *
+     * Den første perioden i resultatet begynner på [fraOgMed]. Hvis [tilOgMed] er `null`,
+     * tas alle senere perioder med.
+     *
+     * @param fraOgMed første dato i perioden
+     * @param tilOgMed siste dato i perioden, eller `null` for ingen sluttdato
+     * @return tidslinjen avgrenset til den angitte perioden
      */
     fun periode(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate?,
     ) = Deltakelsesmengder(
         mengder = periode(
-            deltakelsesmengder = deltakelsesmengder,
+            deltakelsesmengder = perioder,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
         ),
     )
 
     /**
-     * Validerer om ny deltakelsesmengde fører til en endring av gjeldende deltakelsesmengder for hele deltakelsen eller ikke.
+     * Vurderer om en ny deltakelsesmengde endrer den gjeldende tidslinjen.
+     *
+     * @param deltakelsesmengde mengden som skal vurderes
+     * @return `true` hvis det ikke finnes en aktiv mengde å sammenligne med, mengden er endret
+     *         på gyldig-fra-datoen, eller den er tilbakedatert før den aktive perioden
      */
     fun validerNyDeltakelsesmengde(deltakelsesmengde: Deltakelsesmengde): Boolean {
-        val siste = deltakelsesmengder.lastOrNull() ?: return true
+        val aktivIDag = perioder.aktivPaaDato(LocalDate.now()) ?: return true
+        val aktivPaNyDato = perioder.aktivPaaDato(deltakelsesmengde.gyldigFra) ?: return true
 
-        return !Objects.equals(siste.dagerPerUke, deltakelsesmengde.dagerPerUke) ||
-            siste.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
-            deltakelsesmengde.gyldigFra < siste.gyldigFra
+        val mengdeErEndretPaNyDato = !aktivPaNyDato.sammeMengdeSom(deltakelsesmengde)
+
+        return mengdeErEndretPaNyDato || deltakelsesmengde.gyldigFra < aktivIDag.gyldigFra
     }
 
-    private fun finnGyldigeDeltakelsesmengder(
-        deltakelsesmengder: List<Deltakelsesmengde>,
-        gyldigeDeltakelsesmengder: MutableList<Deltakelsesmengde> = mutableListOf(),
-    ): List<Deltakelsesmengde> {
-        if (deltakelsesmengder.isEmpty()) return gyldigeDeltakelsesmengder
+    private fun finnGyldigeDeltakelsesmengder(deltakelsesmengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> {
+        // Stabil sortering gjør at siste registrerte mengde vinner når opprettet og gyldigFra er like.
+        val sistePerGyldigFra = deltakelsesmengder
+            .sortedBy { it.opprettet }
+            .associateBy { it.gyldigFra }
 
-        val forsteGyldigePeriode = deltakelsesmengder.minByOrNull { it.gyldigFra } ?: return gyldigeDeltakelsesmengder
-
-        val nesteGyldigePerioder = deltakelsesmengder.subList(0, deltakelsesmengder.indexOf(forsteGyldigePeriode))
-
-        return finnGyldigeDeltakelsesmengder(
-            deltakelsesmengder = nesteGyldigePerioder,
-            gyldigeDeltakelsesmengder = mergePerioder(forsteGyldigePeriode, gyldigeDeltakelsesmengder),
-        )
-    }
-
-    /**
-     * Hvis deltakelsesmengden er lik forrige, men har en senere gyldig-fra så trenger vi ikke å beholde den.
-     *
-     * Dette burde ikke være nødvendig om man validerer deltakelsesmengdene riktig.
-     */
-    private fun mergePerioder(
-        periode: Deltakelsesmengde,
-        deltakelsesmengder: MutableList<Deltakelsesmengde>,
-    ): MutableList<Deltakelsesmengde> {
-        val forrige = deltakelsesmengder.lastOrNull()
-
-        if (forrige != null &&
-            forrige.deltakelsesprosent == periode.deltakelsesprosent &&
-            Objects.equals(forrige.dagerPerUke, periode.dagerPerUke)
-        ) {
-            return deltakelsesmengder
-        }
-
-        deltakelsesmengder.add(periode)
-        return deltakelsesmengder
+        return sistePerGyldigFra.values
+            .sortedBy { it.gyldigFra }
+            .fold(mutableListOf()) { perioder, periode ->
+                if (perioder.lastOrNull()?.sammeMengdeSom(periode) != true) perioder.add(periode)
+                perioder
+            }
     }
 
     /**
@@ -108,30 +135,27 @@ class Deltakelsesmengder(
      * Hvis startdato endres tilbake i tid skal den deltakelsesmengden som var gjeldende før startdatoendringen
      * ha en gyldig fra lik ny startdato, selv om det kan finnes en gyldig deltakelsesmengde som er før den gjeldende
      */
-    private fun avgrensPeriodeTilSisteStartdato(
+    private fun avgrensPeriodeTilStartdato(
         deltakelsesmengder: List<Deltakelsesmengde>,
-        startdatoer: List<LocalDate>,
+        startdato: LocalDate?,
     ): List<Deltakelsesmengde> {
-        if (deltakelsesmengder.isEmpty() || startdatoer.isEmpty()) return deltakelsesmengder
-
-        return startdatoer.fold(deltakelsesmengder) { periode, startdato -> justerGyldigFra(periode, startdato) }
+        if (deltakelsesmengder.isEmpty() || startdato == null) return deltakelsesmengder
+        return justerGyldigFra(
+            deltakelsesmengder = deltakelsesmengder,
+            startdato = startdato,
+        )
     }
 
     private fun justerGyldigFra(
         deltakelsesmengder: List<Deltakelsesmengde>,
         startdato: LocalDate,
     ): List<Deltakelsesmengde> {
-        val periode = periode(
-            deltakelsesmengder = deltakelsesmengder,
-            fraOgMed = startdato,
-            tilOgMed = null,
-        ).toMutableList()
+        val initial = deltakelsesmengder.aktivPaaDato(startdato)
+            ?: deltakelsesmengder.firstOrNull()
+            ?: return emptyList()
 
-        val justert = periode.firstOrNull()?.copy(gyldigFra = startdato) ?: return periode
-
-        periode[0] = justert
-
-        return periode
+        return listOf(initial.fraOgMed(startdato)) +
+            deltakelsesmengder.filter { it !== initial && it.gyldigFra > startdato }
     }
 
     private fun periode(
@@ -139,17 +163,12 @@ class Deltakelsesmengder(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate?,
     ): List<Deltakelsesmengde> {
-        // Finn den originale initialmengden (kan ha gyldigFra < fraOgMed)
-        val originalInitial =
-            deltakelsesmengder
-                .filter { it.gyldigFra <= fraOgMed }
-                .maxByOrNull { it.gyldigFra }
+        val originalInitial = deltakelsesmengder.aktivPaaDato(fraOgMed)
 
         // Juster gyldigFra til fraOgMed slik at den aldri er før startdato i det returnerte resultatet.
         // Dette håndterer tilfeller der mengden ble opprettet uten startdato (f.eks. gyldigFra = i dag)
         // og startdato senere ble satt til en fremtidig dato uten at historikk-folden justerte gyldigFra.
-        val initialDeltakelsesmengde = originalInitial
-            ?.let { if (it.gyldigFra < fraOgMed) it.copy(gyldigFra = fraOgMed) else it }
+        val initialDeltakelsesmengde = originalInitial?.fraOgMed(fraOgMed)
 
         val endringerIPerioden = deltakelsesmengder
             .filter {
@@ -165,102 +184,97 @@ class Deltakelsesmengder(
         return listOfNotNull(initialDeltakelsesmengde) + endringerIPerioden
     }
 
-    /**
-     * Man må sorterer på opprettet her for at `finnGyldigeDeltakelsesmengde` skal gi riktig svar.
-     */
-    private fun sorterMengder(mengder: List<Deltakelsesmengde>): List<Deltakelsesmengde> = mengder.sortedWith(
-        compareByDescending<Deltakelsesmengde> { it.opprettet }
-            .thenByDescending { it.gyldigFra },
-    )
-
-    override fun equals(other: Any?): Boolean = other != null &&
-        other is Deltakelsesmengder &&
-        this.deltakelsesmengder == other.deltakelsesmengder
-
-    override fun hashCode(): Int = this.deltakelsesmengder.hashCode()
-
-    override val size: Int = deltakelsesmengder.size
-
-    override fun contains(element: Deltakelsesmengde) = deltakelsesmengder.contains(element)
-
-    override fun containsAll(elements: Collection<Deltakelsesmengde>) = deltakelsesmengder.containsAll(elements)
-
-    override fun get(index: Int) = deltakelsesmengder[index]
-
-    override fun isEmpty() = deltakelsesmengder.isEmpty()
-
-    override fun iterator() = deltakelsesmengder.iterator()
-
-    override fun indexOf(element: Deltakelsesmengde) = deltakelsesmengder.indexOf(element)
-
-    override fun listIterator(): ListIterator<Deltakelsesmengde> = deltakelsesmengder.listIterator()
-
-    override fun listIterator(index: Int): ListIterator<Deltakelsesmengde> = deltakelsesmengder.listIterator(index)
-
-    override fun subList(
-        fromIndex: Int,
-        toIndex: Int,
-    ) = deltakelsesmengder.subList(fromIndex, toIndex)
-
-    override fun lastIndexOf(element: Deltakelsesmengde) = deltakelsesmengder.lastIndexOf(element)
+    companion object {
+        /**
+         * Oppretter en tidslinje fra den ferdigbehandlede deltakerhistorikken.
+         *
+         * @param mengder periodene som vises i tidslinjen
+         * @param rawMengder alle mengdene fra historikken, også de som er avgrenset bort
+         * @param raaperioderForTidslinje råperiodene som brukes ved senere oppdateringer
+         * @param startdato gjeldende startdato, hvis den finnes
+         */
+        internal fun fraHistorikk(
+            mengder: List<Deltakelsesmengde>,
+            rawMengder: List<Deltakelsesmengde>,
+            raaperioderForTidslinje: List<Deltakelsesmengde>,
+            startdato: LocalDate?,
+        ) = Deltakelsesmengder(
+            mengder = mengder,
+            startdato = startdato,
+            rawMengder = rawMengder,
+            raaperioderForTidslinje = raaperioderForTidslinje,
+        )
+    }
 }
 
-// Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
-fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder = this
-    .sortedBy { it.sistEndret }
-    .fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
-        val deltakelsesmengde = if (isForDeltakerExternalTopic) {
-            historikk.toDeltakelsesmengdeEkstern()
-        } else {
-            historikk.toDeltakelsesmengde()
-        }
+/**
+ * Lager en tidslinje av deltakelsesmengdene i historikken.
+ *
+ * @receiver historikkoppføringene som skal behandles
+ * @param isForDeltakerExternalTopic om mengdene skal tilpasses den eksterne deltakerstrømmen
+ * @return tidslinjen med gyldige deltakelsesmengder og eventuell startdatoavgrensning
+ */
+fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder =
+    toDeltakelsesmengderFraHistorikk(isForDeltakerExternalTopic)
 
-        val startdato = historikk.toStartdato()
+/**
+ * Finner mengden som gjelder på datoen i en liste sortert etter gyldig-fra.
+ *
+ * @param dato datoen mengden skal gjelde på
+ * @return siste mengde med gyldig-fra på eller før datoen, eller `null` hvis ingen gjelder ennå
+ */
+private fun List<Deltakelsesmengde>.aktivPaaDato(dato: LocalDate) = lastOrNull { it.gyldigFra <= dato }
 
-        when {
-            deltakelsesmengde != null -> Deltakelsesmengder(
-                mengder = mengder.plus(deltakelsesmengde),
-                startdatoer = listOfNotNull(startdato),
-            )
+/**
+ * Returnerer mengden med gyldig-fra justert til den angitte datoen.
+ *
+ * Returnerer samme instans hvis gyldig-fra allerede er datoen; ellers returneres en kopi.
+ *
+ * @param dato datoen mengden skal gjelde fra
+ * @return mengden med gyldig-fra lik datoen
+ */
+private fun Deltakelsesmengde.fraOgMed(dato: LocalDate) = if (gyldigFra == dato) this else copy(gyldigFra = dato)
 
-            startdato != null -> mengder.avgrensPeriodeTilStartdato(startdato)
-            else -> mengder
-        }
+/**
+ * Sammenligner deltakelsesprosent og dager per uke, uten å sammenligne datoer eller opprettelsestidspunkt.
+ *
+ * @param annen mengden som skal sammenlignes med denne
+ * @return `true` hvis begge mengdefeltene er like
+ */
+internal fun Deltakelsesmengde.sammeMengdeSom(annen: Deltakelsesmengde) =
+    Objects.equals(deltakelsesprosent, annen.deltakelsesprosent) && Objects.equals(dagerPerUke, annen.dagerPerUke)
+
+/**
+ * Legger en ny mengde til råperiodene og beregner tidslinjen med hensyn til startdatoen.
+ *
+ * Hvis den nye mengden gjelder på eller før startdatoen, beregnes grunnmengden fra alle historiske
+ * mengder, mens senere perioder beholdes fra råperiodene for tidslinjen.
+ *
+ * @param alleMengder alle kjente mengder fra historikken
+ * @param nyDeltakelsesmengde mengden som legges til
+ * @param startdato gjeldende startdato, hvis den finnes
+ * @return den oppdaterte tidslinjen
+ */
+internal fun List<Deltakelsesmengde>.oppdaterEtterDeltakelsesmengde(
+    alleMengder: List<Deltakelsesmengde>,
+    nyDeltakelsesmengde: Deltakelsesmengde,
+    startdato: LocalDate?,
+): Deltakelsesmengder {
+    if (startdato == null || nyDeltakelsesmengde.gyldigFra > startdato) {
+        return Deltakelsesmengder(
+            mengder = this + nyDeltakelsesmengde,
+            startdato = startdato,
+        )
     }
 
-private fun DeltakerHistorikk.toDeltakelsesmengde() = when (this) {
-    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.toDeltakelsesmengde()
-    is DeltakerHistorikk.Endring -> this.endring.toDeltakelsesmengde()
-    is DeltakerHistorikk.Vedtak -> this.vedtak.toDeltakelsesmengde()
-    else -> null
-}
+    val grunnmengde = Deltakelsesmengder(
+        mengder = alleMengder,
+        startdato = startdato,
+    ).perioder.firstOrNull()
+    val senereMengder = filter { it.gyldigFra > startdato }
 
-private fun DeltakerHistorikk.toStartdato() = when (this) {
-    is DeltakerHistorikk.Endring ->
-        if (this.endring.endring is DeltakerEndring.Endring.EndreStartdato) {
-            this.endring.endring.startdato
-        } else {
-            null
-        }
-
-    is DeltakerHistorikk.EndringFraArrangor ->
-        if (this.endringFraArrangor.endring is EndringFraArrangor.LeggTilOppstartsdato) {
-            this.endringFraArrangor.endring.startdato
-        } else {
-            null
-        }
-
-    is DeltakerHistorikk.InnsokPaaFellesOppstart -> null
-
-    is DeltakerHistorikk.Forslag -> null
-
-    is DeltakerHistorikk.ImportertFraArena -> this.importertFraArena.deltakerVedImport.startdato
-
-    is DeltakerHistorikk.Vedtak -> this.vedtak.deltakerVedVedtak.startdato
-
-    is DeltakerHistorikk.VurderingFraArrangor -> null
-
-    is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
-
-    is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> null
+    return Deltakelsesmengder(
+        mengder = listOfNotNull(grunnmengde) + senereMengder,
+        startdato = startdato,
+    )
 }

@@ -48,11 +48,20 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
             apply = DeltakerEndring.Endring.EndreBakgrunnsinformasjon::endreBakgrunnsinformasjon,
         )
 
-        is DeltakerEndring.Endring.EndreDeltakelsesmengde -> handleEndring(
-            deltaker = deltaker,
-            hasChanges = { this.hasChanges(getDeltakelsemengder(deltaker.id)) },
-            apply = DeltakerEndring.Endring.EndreDeltakelsesmengde::endreDeltakelsesmengde,
-        )
+        is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
+            val deltakelsesmengder = getDeltakelsemengder(deltaker.id)
+
+            handleEndring(
+                deltaker = deltaker,
+                hasChanges = { this.hasChanges(deltakelsesmengder) },
+                apply = {
+                    endreDeltakelsesmengde(
+                        deltaker = deltaker,
+                        deltakelsesmengder = deltakelsesmengder,
+                    )
+                },
+            )
+        }
 
         is DeltakerEndring.Endring.EndreInnhold -> handleEndring(
             deltaker = deltaker,
@@ -119,10 +128,24 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
             deltaker = deltaker,
             hasChanges = { deltaker.startdato != null },
             apply = {
+                val gjeldendeMengde = getDeltakelsemengder(deltaker.id)
+                    .avgrensPeriodeTilStartdato(null)
+                    .gjeldende
+
                 VellykketEndring(
                     deltaker.copy(
                         startdato = null,
                         sluttdato = null,
+                        deltakelsesprosent = if (gjeldendeMengde != null) {
+                            gjeldendeMengde.deltakelsesprosent
+                        } else {
+                            deltaker.deltakelsesprosent
+                        },
+                        dagerPerUke = if (gjeldendeMengde != null) {
+                            gjeldendeMengde.dagerPerUke
+                        } else {
+                            deltaker.dagerPerUke
+                        },
                     ),
                 )
             },

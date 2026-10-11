@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
+import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
@@ -7,15 +8,42 @@ import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDelt
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.internapi.deltaker.request.toEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomNavIdent
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class EndreDeltakelsesmengdeExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - gyldigFra er lik startdato - returnerer success`() {
+    fun `oppdaterDeltaker - deltakelsesprosent og dagerPerUke mangler - avviser endringen`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            begrunnelse = null,
+            gyldigFra = LocalDate.now(),
+            pavirkerPris = false,
+        )
+
+        request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeFailure()
+    }
+
+    @Test
+    fun `oppdaterDeltaker - gyldigFra er lik startdato - endringen godtas`() {
         val startdato = LocalDate.now().plusDays(5)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -42,7 +70,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - gyldigFra er etter startdato - returnerer success`() {
+    fun `oppdaterDeltaker - gyldigFra er etter startdato - endringen godtas`() {
         val startdato = LocalDate.now().minusMonths(1)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -69,7 +97,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - startdato er null - gyldigFra valideres ikke mot startdato - returnerer success`() {
+    fun `oppdaterDeltaker - startdato er null - gyldigFra valideres ikke mot startdato - endringen godtas`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
@@ -95,7 +123,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - gyldigFra er lik sluttdato - returnerer success`() {
+    fun `oppdaterDeltaker - gyldigFra er lik sluttdato - endringen godtas`() {
         val sluttdato = LocalDate.now().plusMonths(1)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -152,6 +180,153 @@ class EndreDeltakelsesmengdeExtensionsTest {
     }
 
     @Test
+    fun `oppdaterDeltaker - tilbakedatert endring - beholder dagens aktive deltakelsesmengde`() {
+        val iDag = LocalDate.now()
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = iDag.minusMonths(1),
+            sluttdato = iDag.plusMonths(1),
+            deltakelsesprosent = 50F,
+            dagerPerUke = 3F,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(7),
+                    opprettet = LocalDateTime.now().minusDays(7),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = iDag.minusDays(2),
+                    opprettet = LocalDateTime.now().minusDays(2),
+                ),
+            ),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 75,
+            dagerPerUke = 4,
+            begrunnelse = null,
+            gyldigFra = iDag.minusDays(5),
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 50F
+        resultat.deltaker.dagerPerUke shouldBe 3F
+    }
+
+    @Test
+    fun `oppdaterDeltaker - korrigering på startdato - beholder senere gjeldende mengde`() {
+        val iDag = LocalDate.now()
+        val startdato = iDag.minusDays(7)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = startdato,
+            sluttdato = iDag.plusMonths(1),
+            deltakelsesprosent = 50F,
+            dagerPerUke = 3F,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                    opprettet = startdato.atStartOfDay(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = 3F,
+                    gyldigFra = iDag.minusDays(2),
+                    opprettet = LocalDateTime.now().minusDays(2),
+                ),
+            ),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 75,
+            dagerPerUke = 4,
+            begrunnelse = null,
+            gyldigFra = startdato,
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 50F
+        resultat.deltaker.dagerPerUke shouldBe 3F
+    }
+
+    @Test
+    fun `oppdaterDeltaker - tilbakedatert endring gjenoppretter råperiode ved beregning av deltakelsesmengde`() {
+        val iDag = LocalDate.now()
+        val startdato = iDag.minusDays(10)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = startdato,
+            sluttdato = iDag.plusMonths(1),
+            deltakelsesprosent = 100F,
+            dagerPerUke = 5F,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            mengder = listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = startdato,
+                    opprettet = startdato.atStartOfDay(),
+                ),
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(5),
+                    opprettet = iDag.minusDays(5).atStartOfDay(),
+                ),
+            ),
+            startdato = startdato,
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            begrunnelse = null,
+            gyldigFra = iDag.minusDays(7),
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 100F
+        resultat.deltaker.dagerPerUke shouldBe 5F
+    }
+
+    @Test
     fun `oppdaterDeltaker - fremtidig gyldigFra - returnerer erFremtidigEndring true`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -205,6 +380,49 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        resultat.deltaker.deltakelsesprosent shouldBe 50F
+        resultat.deltaker.dagerPerUke shouldBe 3F
+        resultat.erFremtidigEndring shouldBe false
+    }
+
+    @Test
+    fun `oppdaterDeltaker - fremtidig startdato mangler i historikk - bruker startdato ved beregning av deltakelsesmengde`() {
+        val iDag = LocalDate.now()
+        val startdato = iDag.plusDays(5)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = iDag.plusMonths(3),
+            deltakelsesprosent = FALLBACK_DELTAKELSESPROSENT,
+        )
+        val deltakelsesmengder = Deltakelsesmengder(
+            listOf(
+                Deltakelsesmengde(
+                    deltakelsesprosent = 100F,
+                    dagerPerUke = 5F,
+                    gyldigFra = iDag.minusDays(1),
+                    opprettet = iDag.minusDays(1).atStartOfDay(),
+                ),
+            ),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 3,
+            begrunnelse = null,
+            gyldigFra = startdato,
+            pavirkerPris = false,
+        )
+
+        val resultat = request
+            .toEndring()
+            .anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { deltakelsesmengder },
             ).shouldBeSuccess()
 
         resultat.deltaker.deltakelsesprosent shouldBe 50F

@@ -32,6 +32,7 @@ class ModelMapper {
                 endringsforslagFraArrangor = endringsforslagFraArrangor,
                 sisteVurdering = sisteVurdering,
                 deltakelsesmengder = deltakelsesmengder,
+                gyldigeDeltakelsesmengder = gyldigeDeltakelsesmengder,
                 soktInnDato = soktInnDato,
                 importertFraArena = importertFraArena,
             )

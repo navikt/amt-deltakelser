@@ -9,11 +9,19 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.hasChanges(deltakelsemengder: Deltakelsesmengder): Boolean {
+    validerDeltakelsesmengde()
     val nyDeltakelsesmengde = this.toDeltakelsesmengde(LocalDateTime.now())
     return deltakelsemengder.validerNyDeltakelsesmengde(nyDeltakelsesmengde)
 }
 
+private fun DeltakerEndring.Endring.EndreDeltakelsesmengde.validerDeltakelsesmengde() {
+    require(deltakelsesprosent != null || dagerPerUke != null) {
+        "deltakelsesprosent og dagerPerUke kan ikke begge være null"
+    }
+}
+
 fun DeltakerEndring.Endring.EndreDeltakelsesmengde.validerGyldigFra(deltaker: Deltaker) {
+    validerDeltakelsesmengde()
     val nyDeltakelsesmengde = this.toDeltakelsesmengde(LocalDateTime.now())
 
     val startdato = deltaker.startdato
@@ -27,7 +35,10 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.validerGyldigFra(deltaker: De
     }
 }
 
-fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltaker: Deltaker): VellykketEndring {
+fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(
+    deltaker: Deltaker,
+    deltakelsesmengder: Deltakelsesmengder,
+): VellykketEndring {
     val nyDeltakelsesmengde = this.toDeltakelsesmengde(LocalDateTime.now())
 
     // Defence-in-depth: også validert i DeltakerService før runCatching for å gi 400 Bad Request
@@ -39,10 +50,15 @@ fun DeltakerEndring.Endring.EndreDeltakelsesmengde.endreDeltakelsesmengde(deltak
         (deltaker.startdato != null && nyDeltakelsesmengde.gyldigFra == deltaker.startdato)
 
     return if (skalGjeldeUmiddelbart) {
+        val gjeldendeDeltakelsesmengde = deltakelsesmengder
+            .medNyDeltakelsesmengde(nyDeltakelsesmengde)
+            .avgrensPeriodeTilStartdato(deltaker.startdato)
+            .gjeldende ?: nyDeltakelsesmengde
+
         VellykketEndring(
             deltaker.copy(
-                deltakelsesprosent = this.deltakelsesprosent,
-                dagerPerUke = this.dagerPerUke,
+                deltakelsesprosent = gjeldendeDeltakelsesmengde.deltakelsesprosent,
+                dagerPerUke = gjeldendeDeltakelsesmengde.dagerPerUke,
             ),
         )
     } else {

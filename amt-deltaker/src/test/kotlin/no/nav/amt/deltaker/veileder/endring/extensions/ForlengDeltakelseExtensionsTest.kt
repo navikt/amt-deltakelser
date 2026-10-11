@@ -123,11 +123,11 @@ class ForlengDeltakelseExtensionsTest {
 
         // Før forlengelse: fremtidig mengde ekskluderes fordi gyldigFra > gammelSluttdato
         val perioedFoerForlengelse = deltakelsesmengder.periode(startdato, gammelSluttdato)
-        perioedFoerForlengelse.size shouldBe 1
+        perioedFoerForlengelse.perioder.size shouldBe 1
 
         // Etter forlengelse: fremtidig mengde inkluderes fordi gyldigFra < nySluttdato
         val periodeEtterForlengelse = deltakelsesmengder.periode(startdato, nySluttdato)
-        periodeEtterForlengelse.size shouldBe 2
-        periodeEtterForlengelse.last().gyldigFra shouldBe fremtidigMengdeGyldigFra
+        periodeEtterForlengelse.perioder.size shouldBe 2
+        periodeEtterForlengelse.perioder.last().gyldigFra shouldBe fremtidigMengdeGyldigFra
     }
 }

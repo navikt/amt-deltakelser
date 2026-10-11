@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.bff.utils.FERIETILLEGG
 import no.nav.amt.deltaker.bff.utils.months
 import no.nav.amt.deltaker.bff.utils.weeks
 import no.nav.amt.deltaker.bff.utils.years
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -34,7 +35,8 @@ data class DeltakerModel(
     val erLaastForEndringer: Boolean,
     val endringsforslagFraArrangor: List<Forslag>,
     val sisteVurdering: VurderingResponse?,
-    val deltakelsesmengder: DeltakelsesmengderResponse?,
+    val gyldigeDeltakelsesmengder: List<DeltakelsesmengdeResponse> = emptyList(),
+    val deltakelsesmengder: DeltakelsesmengderResponse?, // denne skal bort i neste iterasjon
     val soktInnDato: LocalDate?,
     val importertFraArena: ImportertFraArena?,
 ) {

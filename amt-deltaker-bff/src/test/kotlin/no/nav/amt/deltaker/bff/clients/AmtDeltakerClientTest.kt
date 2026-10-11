@@ -54,7 +54,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -128,7 +128,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(expectedExceptionType, statusCode, expectedUrl, expectedErrorMessage, getDeltakerLambda)
         }
@@ -159,7 +159,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -197,7 +197,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -229,7 +229,7 @@ class AmtDeltakerClientTest {
                         endretAvEnhet = "~endretAvEnhet~",
                         deltakelsesprosent = null,
                         dagerPerUke = null,
-                        gyldigFra = null,
+                        gyldigFra = LocalDate.now(),
                         begrunnelse = null,
                         pavirkerPris = false,
                         forslagId = null,
@@ -239,7 +239,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -280,7 +280,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -319,7 +319,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -361,7 +361,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -401,7 +401,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -443,7 +443,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -480,7 +480,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -524,7 +524,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -567,7 +567,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -605,7 +605,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             runFailureTest(
                 exceptionType = expectedExceptionType,
@@ -662,7 +662,7 @@ class AmtDeltakerClientTest {
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
-        fun `skal kaste riktig exception ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
+        fun `skal kaste riktig unntak ved feilrespons`(testCase: Pair<HttpStatusCode, KClass<out Throwable>>) {
             val (statusCode, expectedExceptionType) = testCase
             val thrown = Assertions.assertThrows(expectedExceptionType.java) {
                 runTest {
