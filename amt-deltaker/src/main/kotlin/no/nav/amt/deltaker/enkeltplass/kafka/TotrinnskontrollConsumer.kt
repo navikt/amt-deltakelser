@@ -136,7 +136,6 @@ class TotrinnskontrollConsumer(
             "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv"
         }
         val (godkjentAvNavAnsatt, godkjentAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
-
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
                 processGodkjentInnsoking(
