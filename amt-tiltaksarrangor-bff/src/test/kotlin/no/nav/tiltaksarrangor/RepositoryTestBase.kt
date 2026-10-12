@@ -7,6 +7,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureJdbc
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.ApplicationContext
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestConstructor
@@ -22,6 +23,9 @@ import javax.sql.DataSource
 abstract class RepositoryTestBase {
     @Autowired
     protected lateinit var template: NamedParameterJdbcTemplate
+
+    @Autowired
+    protected lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
     protected lateinit var dataSource: DataSource

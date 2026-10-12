@@ -1,8 +1,10 @@
 package no.nav.tiltaksarrangor.service
 
 import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 
 private const val INNLOGGING_METRIC = "tiltaksarrangorbff_innlogging"
@@ -15,7 +17,15 @@ private const val VURDERING_OPPRETTET_METRIC = "tiltaksarrangorbff_vurdering_opp
 @Service
 class MetricsService(
     private val registry: MeterRegistry,
+    jdbcTemplate: JdbcTemplate,
 ) {
+    init {
+        Gauge
+            .builder(KAFKA_OUTBOX_WAITING_METRIC, jdbcTemplate) {
+                it.queryForObject("SELECT count(*) FROM kafka_producer_record", Long::class.java)!!.toDouble()
+            }.register(registry)
+    }
+
     private val innloggetKoordinatorCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.KOORDINATOR.name)
     private val innloggetVeilederCounter = registry.counter(INNLOGGING_METRIC, "rolle", RollePermutasjon.VEILEDER.name)
     private val innloggetKoordinatorOgVeilederCounter =
@@ -75,5 +85,9 @@ class MetricsService(
         VEILEDER,
         KOORDINATOR_OG_VEILEDER,
         TOTALT,
+    }
+
+    companion object {
+        private const val KAFKA_OUTBOX_WAITING_METRIC = "amt_tiltaksarrangor_bff_kafka_outbox_ventende"
     }
 }
