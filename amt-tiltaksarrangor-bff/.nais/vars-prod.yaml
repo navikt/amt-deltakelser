@@ -11,5 +11,6 @@ database_instance: amt-tiltaksarrangor-bff-2
 database_tier: db-custom-1-3840
 database_disk_autoresize: true
 database_point_in_time_recovery: true
+database_flags: [{name: cloudsql.enable_pgaudit, value: "on"}, {name: pgaudit.log, value: "write,ddl,role"}, {name: pgaudit.log_parameter, value: "on"}, {name: pgaudit.log_relation, value: "on"}]
 tiltak_tokenx_client_id: prod-gcp:amt:amt-tiltak
 arrangor_tokenx_client_id: prod-gcp:amt:amt-arrangor
