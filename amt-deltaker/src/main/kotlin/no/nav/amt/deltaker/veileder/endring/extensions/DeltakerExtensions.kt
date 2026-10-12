@@ -31,11 +31,10 @@ fun Deltaker.endreDeltakersOppstart(
         nyStartdato: LocalDate?,
         nySluttdato: LocalDate?,
     ): DeltakerStatus {
-        if (status.type == DeltakerStatus.Type.SOKT_INN) {
-            return status
-        }
+        fun nyStatusHvisEndret(eksisterendeStatus: DeltakerStatus.Type) =
+            if (status.type == eksisterendeStatus) status else nyDeltakerStatus(eksisterendeStatus)
 
-        // SkalBliIkkeAktuell er kun for Arena deltakere
+        // SkalBliIkkeAktuell er kun for Arena-deltakere
         fun Deltaker.skalBliIkkeAktuell(
             startdato: LocalDate?,
             sluttdato: LocalDate?,
@@ -44,13 +43,23 @@ fun Deltaker.endreDeltakersOppstart(
             startdato == null &&
             sluttdato.erPassert(now)
 
+        if (status.type == DeltakerStatus.Type.SOKT_INN) return status
+
         val now = LocalDate.now()
 
         return when {
-            skalBliIkkeAktuell(nyStartdato, nySluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
-            !nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-            nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            nySluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
+            skalBliIkkeAktuell(
+                startdato = nyStartdato,
+                sluttdato = nySluttdato,
+                now = now,
+            ) -> nyStatusHvisEndret(DeltakerStatus.Type.IKKE_AKTUELL)
+
+            !nySluttdato.erPassert(now) && (nyStartdato == null || nyStartdato.isAfter(now)) ->
+                nyStatusHvisEndret(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            nyStartdato != null && !nyStartdato.isAfter(now) && !nySluttdato.erPassert(now) ->
+                nyStatusHvisEndret(DeltakerStatus.Type.DELTAR)
+            nySluttdato.erPassert(now) ->
+                nyStatusHvisEndret(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
             else -> status
         }
     }
