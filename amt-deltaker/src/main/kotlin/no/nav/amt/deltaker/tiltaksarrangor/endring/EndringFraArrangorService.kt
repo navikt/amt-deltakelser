@@ -10,16 +10,6 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-/**
- * Kastes for å avbryte (rulle tilbake) transaksjonen i [DeltakerService.upsertAndProduceDeltaker]
- * når en [EndringFraArrangor] allerede er behandlet tidligere, dvs. en replay av en melding Kafka
- * eller BFF-ens outbox har levert på nytt. Fanges internt i [EndringFraArrangorService] og skal
- * aldri lekke videre til konsumenten.
- */
-private class EndringFraArrangorAlleredeBehandlet(
-    val endringId: UUID,
-) : RuntimeException()
-
 class EndringFraArrangorService(
     private val deltakerService: DeltakerService,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
@@ -120,4 +110,14 @@ class EndringFraArrangorService(
             }
         }
     }
+
+    /**
+     * Kastes for å avbryte (rulle tilbake) transaksjonen i [DeltakerService.upsertAndProduceDeltaker]
+     * når en [EndringFraArrangor] allerede er behandlet tidligere, dvs. en replay av en melding Kafka
+     * eller BFF-ens outbox har levert på nytt. Fanges internt i [EndringFraArrangorService] og skal
+     * aldri lekke videre til konsumenten.
+     */
+    private class EndringFraArrangorAlleredeBehandlet(
+        val endringId: UUID,
+    ) : RuntimeException()
 }
