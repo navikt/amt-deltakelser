@@ -33,7 +33,9 @@ class MeldingProducer(
             is Forslag.Status.VenterPaSvar,
             -> {
                 produce(forslag.id.toString(), objectMapper.writeValueAsString(forslag))
-                log.info("Produserte forslag ${forslag.id} med status ${forslag.status::class.simpleName}")
+                log.info(
+                    "Produserte forslag ${forslag.id} med status ${forslag.status::class.simpleName} for deltaker ${forslag.deltakerId}",
+                )
             }
         }
     }
