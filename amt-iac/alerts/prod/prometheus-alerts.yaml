@@ -44,6 +44,16 @@ spec:
                 ),
                 "outbox", "amt-arrangor", "", ""
               )
+              or
+              label_replace(
+                max by (app, namespace) (
+                  amt_tiltaksarrangor_bff_kafka_outbox_ventende{
+                    app="amt-tiltaksarrangor-bff",
+                    namespace="amt"
+                  }
+                ),
+                "outbox", "amt-tiltaksarrangor-bff", "", ""
+              )
             ) >= 20
           for: 5m
           annotations:

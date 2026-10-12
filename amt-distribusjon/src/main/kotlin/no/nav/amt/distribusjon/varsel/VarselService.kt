@@ -33,13 +33,22 @@ class VarselService(
             is HendelseType.ReaktiverDeltakelse,
             is HendelseType.NavGodkjennUtkast,
             is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
-            is HendelseType.EnkeltplassEndrePrisinfo,
             is HendelseType.EnkeltplassTilbakekallPrisendring,
             is HendelseType.EnkeltplassGodkjennPrisendring,
             -> {
                 inaktiverOppgave(hendelse.deltaker)
                 val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
                 handleNyttVarsel(beskjed, true)
+            }
+
+            is HendelseType.EnkeltplassEndrePrisinfo -> {
+                // Varsle innbygger kun når endringen er automatisk iverksatt (krever ikke godkjenning).
+                // Når endringen krever godkjenning varsles innbygger først ved EnkeltplassGodkjennPrisendring.
+                if (!hendelse.payload.kreverGodkjenning) {
+                    inaktiverOppgave(hendelse.deltaker)
+                    val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
+                    handleNyttVarsel(beskjed, true)
+                }
             }
 
             is HendelseType.EndreBakgrunnsinformasjon,

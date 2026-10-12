@@ -21,6 +21,7 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerMedDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.model.STATUSER_SOM_KAN_SKJULES
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -137,6 +138,7 @@ class TiltaksarrangorService(
             }
     }
 
+    @Transactional
     fun registrerVurdering(
         personIdent: String,
         deltakerId: UUID,
