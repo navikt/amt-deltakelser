@@ -3,6 +3,8 @@ package no.nav.amt.lib.outbox
 import tools.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
+internal const val OUTBOX_TOMBSTONE_VALUE_TYPE = "OUTBOX_TOMBSTONE"
+
 /**
  * Represents a record stored in the outbox, waiting to be published.
  *
@@ -29,7 +31,7 @@ import java.time.LocalDateTime
  * @property id The unique identifier of the record.
  * @property key The key of the record, used for partitioning in Kafka.
  * @property value The payload of the record, as a JSON object.
- * @property valueType The type of the payload, used for deserialization.
+ * @property valueType The type of the payload, or [OUTBOX_TOMBSTONE_VALUE_TYPE] for Kafka tombstones.
  * @property topic The Kafka topic to which the record will be published.
  * @property createdAt The timestamp when the record was created.
  * @property processedAt The timestamp when the record was successfully processed. Null if not yet processed.

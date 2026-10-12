@@ -97,7 +97,6 @@ object TestData {
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
         pameldingType: GjennomforingPameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
-        prisinformasjon: String? = null,
         opplaringKategorisering: OpplaringKategoriseringValg? = null,
         lopenummer: String? = "2026-01",
         tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
@@ -117,7 +116,6 @@ object TestData {
         pameldingstype = pameldingType,
         lopenummer = lopenummer,
         tilgjengeligForArrangorFraOgMedDato = tilgjengeligForArrangorFraOgMedDato,
-        prisinformasjon = prisinformasjon,
         opplaringKategorisering = opplaringKategorisering,
     )
 
@@ -370,7 +368,6 @@ object TestData {
         ),
         erLaastForEndringer = false,
         endringsforslagFraArrangor = emptyList(),
-        prisinformasjon = deltaker.deltakerliste.prisinformasjon,
         sisteVurdering = null,
         importertFraArena = null,
     )

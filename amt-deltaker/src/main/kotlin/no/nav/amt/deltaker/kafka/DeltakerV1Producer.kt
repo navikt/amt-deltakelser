@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
-import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
 
@@ -13,7 +12,6 @@ import java.util.UUID
  */
 class DeltakerV1Producer(
     private val outboxService: OutboxService,
-    private val producer: Producer<String, String>,
 ) {
     fun produce(deltakerV1Dto: DeltakerV1Dto) {
         outboxService.insertRecord(
@@ -23,8 +21,8 @@ class DeltakerV1Producer(
         )
     }
 
-    fun produceTombstone(deltakerId: UUID) = producer.tombstone(
+    fun produceTombstone(deltakerId: UUID) = outboxService.insertTombstone(
         topic = Environment.DELTAKER_V1_TOPIC,
-        key = deltakerId.toString(),
+        key = deltakerId,
     )
 }

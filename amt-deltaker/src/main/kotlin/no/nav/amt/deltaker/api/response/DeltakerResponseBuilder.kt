@@ -105,7 +105,6 @@ class DeltakerResponseBuilder(
                 },
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
-            prisinformasjon = deltaker.deltakerliste.prisinformasjon,
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
             // vi trenger alltid DeltakerHistorikk.ImportertFraArena
             importertFraArena = historikk

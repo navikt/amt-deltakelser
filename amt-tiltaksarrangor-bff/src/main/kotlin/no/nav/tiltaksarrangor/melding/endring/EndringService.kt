@@ -11,6 +11,7 @@ import no.nav.tiltaksarrangor.repositories.model.DeltakerDbo
 import no.nav.tiltaksarrangor.repositories.model.DeltakerlisteDbo
 import no.nav.tiltaksarrangor.service.DeltakerMapper
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -20,6 +21,7 @@ class EndringService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerMapper: DeltakerMapper,
 ) {
+    @Transactional
     fun endreDeltaker(
         deltaker: DeltakerDbo,
         deltakerliste: DeltakerlisteDbo,

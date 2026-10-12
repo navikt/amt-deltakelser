@@ -44,7 +44,6 @@ object DeltakerData {
         opprettet = LocalDateTime.now(),
         erLaastForEndringer = true,
         endringsforslagFraArrangor = emptyList(),
-        prisinformasjon = null,
         sisteVurdering = null,
         soktInnDato = null,
         deltakelsesmengder = DeltakelsesmengderResponse(),

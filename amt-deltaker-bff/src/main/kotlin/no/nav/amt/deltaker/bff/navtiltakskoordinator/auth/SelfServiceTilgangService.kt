@@ -63,7 +63,9 @@ class SelfServiceTilgangService(
                 )
             }
 
-        return stengTiltakskoordinatorTilgang(tilgang)
+        return Database.transaction {
+            stengTiltakskoordinatorTilgang(tilgang)
+        }
     }
 
     fun stengTilgangerTilDeltakerliste(deltakerlisteId: UUID) {
@@ -101,10 +103,9 @@ class SelfServiceTilgangService(
         )
     }
 
-    fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> {
+    fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = Database.transaction {
         val tilgang = tiltakskoordinatorTilgangRepository.get(id).getOrThrow()
-
-        return stengTiltakskoordinatorTilgang(tilgang)
+        stengTiltakskoordinatorTilgang(tilgang)
     }
 
     private fun upsertTilgang(

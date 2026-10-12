@@ -39,8 +39,7 @@ class DeltakerlisteRepository {
                 oppmote_sted,
                 pameldingstype,
                 lopenummer,
-                tilgjengelig_fom,
-                prisinformasjon
+                tilgjengelig_fom
             )
             VALUES (
                 :id,
@@ -57,8 +56,7 @@ class DeltakerlisteRepository {
                 :oppmote_sted,
                 :pameldingstype,
                 :lopenummer,
-                :tilgjengelig_fom,
-                :prisinformasjon
+                :tilgjengelig_fom
             )
             ON CONFLICT (id) DO UPDATE SET
                 navn     				= :navn,
@@ -75,7 +73,6 @@ class DeltakerlisteRepository {
                 pameldingstype          = :pameldingstype,
                 lopenummer              = :lopenummer,
                 tilgjengelig_fom        = :tilgjengelig_fom,
-                prisinformasjon         = :prisinformasjon,
                 modified_at             = CURRENT_TIMESTAMP
             """.trimIndent()
 
@@ -92,7 +89,6 @@ class DeltakerlisteRepository {
             "oppstart" to deltakerliste.oppstart.name,
             "apent_for_pamelding" to deltakerliste.apentForPamelding,
             "oppmote_sted" to deltakerliste.oppmoteSted,
-            "prisinformasjon" to deltakerliste.prisinformasjon,
             "pameldingstype" to deltakerliste.pameldingstype.name,
             "lopenummer" to deltakerliste.lopenummer,
             "tilgjengelig_fom" to deltakerliste.tilgjengeligForArrangorFraOgMedDato,
@@ -228,7 +224,6 @@ class DeltakerlisteRepository {
                dl.pameldingstype AS "dl.pameldingstype",
                dl.lopenummer AS "dl.lopenummer",
                dl.tilgjengelig_fom AS "dl.tilgjengelig_fom",
-               dl.prisinformasjon as "dl.prisinformasjon",
                a.id AS "a.id",
                a.navn AS "a.navn",
                a.organisasjonsnummer AS "a.organisasjonsnummer",
@@ -286,7 +281,6 @@ class DeltakerlisteRepository {
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
                 pameldingstype = row.string(col("pameldingstype")).let { GjennomforingPameldingType.valueOf(it) },
-                prisinformasjon = row.stringOrNull(col("prisinformasjon")),
                 lopenummer = row.stringOrNull(col("lopenummer")),
                 tilgjengeligForArrangorFraOgMedDato = row.localDateOrNull(col("tilgjengelig_fom")),
                 antallPlasser = row.intOrNull(col("antall_plasser")),

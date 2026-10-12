@@ -87,4 +87,40 @@ class OutboxServiceTest {
         record.value["list"].size() shouldBe 1000
         record.value["nested"]["inner"].asString() shouldBe "deep"
     }
+
+    @Test
+    fun `insertTombstone creates and persists a tombstone record`() {
+        val key = UUID.randomUUID()
+        val topic = "tombstone-topic"
+
+        val record = service.insertTombstone(key, topic)
+
+        assertSoftly(record) {
+            this.key shouldBe key.toString()
+            valueType shouldBe OUTBOX_TOMBSTONE_VALUE_TYPE
+            this.topic shouldBe topic
+            value.isNull shouldBe true
+        }
+
+        val persisted = repository.get(record.id).shouldNotBeNull()
+        assertSoftly(persisted) {
+            this.key shouldBe key.toString()
+            valueType shouldBe OUTBOX_TOMBSTONE_VALUE_TYPE
+            this.topic shouldBe topic
+            value.isNull shouldBe true
+        }
+    }
+
+    @Test
+    fun `findUnprocessedRecords preserves insertion order for a key and topic`() {
+        val key = UUID.randomUUID()
+        val topic = "ordered-topic"
+        val payload = service.insertRecord(key, TestValue("before-delete", 1), topic)
+        val tombstone = service.insertTombstone(key, topic)
+        val matchingRecords = repository.findUnprocessedRecords(500).filter {
+            it.key == key.toString() && it.topic == topic
+        }
+
+        matchingRecords.map { it.id } shouldBe listOf(payload.id, tombstone.id)
+    }
 }

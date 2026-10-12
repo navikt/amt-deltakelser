@@ -449,7 +449,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             erLaastForEndringer shouldBe true
             endringsforslagFraArrangor shouldBe expectedForslag
-            prisinformasjon shouldBe deltaker.deltakerliste.prisinformasjon
             sisteVurdering shouldBe VurderingResponse.fromVurdering(vurdering)
         }
     }

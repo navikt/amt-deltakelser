@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.outbox.OutboxService
 import java.util.UUID
@@ -16,7 +15,6 @@ import java.util.UUID
  */
 class AmtGjennomforingProducer(
     private val outboxService: OutboxService,
-    private val producer: Producer<String, String>,
 ) {
     fun produce(payload: AmtGjennomforingPayload) {
         outboxService.insertRecord(
@@ -26,8 +24,8 @@ class AmtGjennomforingProducer(
         )
     }
 
-    fun produceTombstone(gjennomforingId: UUID) = producer.tombstone(
+    fun produceTombstone(gjennomforingId: UUID) = outboxService.insertTombstone(
         topic = Environment.AMT_GJENNOMFORING_TOPIC,
-        key = gjennomforingId.toString(),
+        key = gjennomforingId,
     )
 }

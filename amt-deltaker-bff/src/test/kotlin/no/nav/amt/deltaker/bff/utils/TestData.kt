@@ -345,7 +345,6 @@ object TestData {
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
         erLaastForEndringer = !kanEndres,
         endringsforslagFraArrangor = emptyList(),
-        prisinformasjon = null,
         sisteVurdering = null,
         deltakelsesmengder = null,
         soktInnDato = createdAt.toLocalDate(),
@@ -399,7 +398,6 @@ object TestData {
         sistEndret = LocalDateTime.now(),
         erLaastForEndringer = erLaastForEndringer,
         endringsforslagFraArrangor = emptyList(),
-        prisinformasjon = null,
         sisteVurdering = null,
         deltakelsesmengder = null,
         soktInnDato = LocalDate.now(),
@@ -473,7 +471,6 @@ object TestData {
         deltakelsesinnhold: Deltakelsesinnhold? = lagDeltakelsesinnhold(),
         vedtaksinformasjon: VedtaksinformasjonResponse? = lagVedtaksinformasjonResponse(),
         endringsforslagFraArrangor: List<Forslag> = listOf(lagForslag()),
-        prisinformasjon: String? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
         erLaastForEndringer: Boolean = false,
     ) = DeltakerResponse(
@@ -494,7 +491,6 @@ object TestData {
         opprettet = opprettet,
         erLaastForEndringer = erLaastForEndringer,
         endringsforslagFraArrangor = endringsforslagFraArrangor,
-        prisinformasjon = prisinformasjon,
         sisteVurdering = null,
         soktInnDato = LocalDate.now().minusMonths(2),
         deltakelsesmengder = DeltakelsesmengderResponse(

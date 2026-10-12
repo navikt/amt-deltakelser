@@ -33,13 +33,22 @@ class VarselService(
             is HendelseType.ReaktiverDeltakelse,
             is HendelseType.NavGodkjennUtkast,
             is HendelseType.EnkeltplassOkonomiGodkjennUtkast,
-            is HendelseType.EnkeltplassEndrePrisinfo,
             is HendelseType.EnkeltplassTilbakekallPrisendring,
             is HendelseType.EnkeltplassGodkjennPrisendring,
             -> {
                 inaktiverOppgave(hendelse.deltaker)
                 val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
                 handleNyttVarsel(beskjed, true)
+            }
+
+            is HendelseType.EnkeltplassEndrePrisinfo -> {
+                // Varsle innbygger kun når endringen er automatisk iverksatt (krever ikke godkjenning).
+                // Når endringen krever godkjenning varsles innbygger først ved EnkeltplassGodkjennPrisendring.
+                if (!hendelse.payload.kreverGodkjenning) {
+                    inaktiverOppgave(hendelse.deltaker)
+                    val beskjed = slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse))
+                    handleNyttVarsel(beskjed, true)
+                }
             }
 
             is HendelseType.EndreBakgrunnsinformasjon,
@@ -58,6 +67,8 @@ class VarselService(
             -> handleNyttVarsel(slaSammenMedVentendeVarsel(Varsel.nyBeskjed(hendelse)))
 
             is HendelseType.EndreUtkast,
+            -> oppdaterOppgave(hendelse)
+
             is HendelseType.EndreSluttarsak,
             -> log.info("Oppretter ikke varsel for hendelse ${hendelse.payload::class} for deltaker ${hendelse.deltaker.id}")
 
@@ -148,6 +159,35 @@ class VarselService(
         varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
             ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
         }
+    }
+
+    /**
+     * Inaktiverer aktiv oppgave og oppretter en ny dersom endringen påvirker oppgaveteksten.
+     * Oppgaven må fornyes ved endret arrangør fordi varselet ikke kan redigeres.
+     */
+    private fun oppdaterOppgave(hendelse: Hendelse) {
+        val varsel = varselRepository
+            .getSisteVarsel(
+                deltakerId = hendelse.deltaker.id,
+                type = Varsel.Type.OPPGAVE,
+            ).getOrNull()
+            ?.takeIf { it.erAktiv }
+            ?: return
+
+        val nyOppgave = Varsel.nyOppgave(hendelse)
+
+        if (varsel.tekst == nyOppgave.tekst) return
+
+        ferdigstillSendtVarsel(
+            varsel = varsel,
+            nyStatus = Varsel.Status.INAKTIVERT,
+        )
+
+        // som ved første deling opprettes oppgaven med en gang, slik at brukeren raskt ser riktig arrangør.
+        handleNyttVarsel(
+            varsel = nyOppgave,
+            sendUmiddelbart = true,
+        )
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {

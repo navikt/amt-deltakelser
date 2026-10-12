@@ -29,7 +29,6 @@ class InnbyggerDeltakerResponseTest {
         result.bakgrunnsinformasjon shouldBe model.bakgrunnsinformasjon
         result.erManueltDeltMedArrangor shouldBe model.erManueltDeltMedArrangor
         result.adresseDelesMedArrangor shouldBe model.adresseDelesMedArrangor
-        result.prisinformasjon shouldBe model.prisinformasjon
     }
 
     @Test
@@ -123,15 +122,5 @@ class InnbyggerDeltakerResponseTest {
         result.deltakerliste.startdato shouldBe gjennomforing.startDato
         result.deltakerliste.sluttdato shouldBe gjennomforing.sluttDato
         result.deltakerliste.oppmoteSted shouldBe gjennomforing.oppmoteSted
-    }
-
-    @Test
-    fun `fromModel - deltaker med prisinformasjon - mapper prisinformasjon`() {
-        val deltakerResponse = lagDeltakerResponse(prisinformasjon = "100 kr per dag")
-        val model = ModelMapper.toDeltaker(deltakerResponse)
-
-        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
-
-        result.prisinformasjon shouldBe "100 kr per dag"
     }
 }

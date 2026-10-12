@@ -119,6 +119,7 @@ class EnkeltplassService(
         oppdaterKladdEllerUtkast(
             deltaker = deltaker,
             oppdaterKladdRequest = oppdaterKladdRequest,
+            validerDatoer = false,
         )
     }
 
@@ -139,6 +140,7 @@ class EnkeltplassService(
 
         return oppdaterKladdEllerUtkast(
             deltaker = deltaker,
+            validerDatoer = true,
             oppdaterKladdRequest = with(decoratedRequest.wrappedRequest) {
                 OppdaterEnkeltplassKladdRequest(
                     beskrivelse = beskrivelse,
@@ -192,6 +194,7 @@ class EnkeltplassService(
     private suspend fun oppdaterKladdEllerUtkast(
         deltaker: Deltaker,
         oppdaterKladdRequest: OppdaterEnkeltplassKladdRequest,
+        validerDatoer: Boolean,
         afterUpdate: ((Deltaker) -> Deltaker)? = null,
     ): Deltaker {
         require(deltaker.deltakerliste.erNyForskriftOpplaring) {
@@ -213,7 +216,7 @@ class EnkeltplassService(
         val startdato = oppdaterKladdRequest.startdato ?: deltaker.startdato
         val sluttdato = oppdaterKladdRequest.sluttdato ?: deltaker.sluttdato
 
-        if (startdato != null && sluttdato != null) {
+        if (validerDatoer && startdato != null && sluttdato != null) {
             require(!sluttdato.isBefore(startdato)) { "Sluttdato kan ikke være før startdato" }
         }
 

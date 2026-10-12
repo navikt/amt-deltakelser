@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Aarsak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -14,6 +15,9 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 
+/**
+ * Payload for deltaker-hendelse-v1 topic
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface HendelseType {
     sealed interface HendelseMedForslag : HendelseType {
@@ -52,16 +56,28 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
     ) : HendelseSystemKanOpprette
 
-    // medfører hovedvedtak
+    /**
+     * Opprettes i tilfelle økonomiansvarlig har godkjent en deltakelse i sin helhet(i motsetning til en individuell prisendring)
+     * Medfører hovedvedtak
+     * ops "Utkast" er i betydningen "gjennomføringutkast"(deltakelsen som godkjennes vil alltid være Søkt inn)
+     */
     data class EnkeltplassOkonomiGodkjennUtkast(
         val utkast: UtkastDto,
     ) : HendelseType
 
+    /**
+     * Opprettes når en NAV-veileder endrer pris, uavhengig av deltakerens status.
+     * @kreverGodkjenning brukes for å bestemme hvilke kanaler som skal varsles. Skal være true når status på deltakelsen er forbi søkt inn
+     * Disse endringen må eksplisitt godkjennes av økonomiansvarlig med EnkeltplassGodkjennPrisendring
+     */
     data class EnkeltplassEndrePrisinfo(
+        val kreverGodkjenning: Boolean,
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
 
-    // medfører endringsvedtak
+    /**
+     * Opprettes i tilfelle økonomiansvarlig har godkjent en EnkeltplassEndrePrisinfo
+     */
     data class EnkeltplassGodkjennPrisendring(
         val prisinfo: PrisinformasjonDto,
     ) : HendelseType
@@ -202,14 +218,20 @@ data class InnholdDto(
     val beskrivelse: String?,
 )
 
-fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
+fun DeltakerEndring.toHendelseEndring(
+    utkast: UtkastDto? = null,
+    deltakerStatus: DeltakerStatus.Type? = null,
+) = when (val endring = this.endring) {
     is Endring.EndrePrisinfo -> if (endring.status == Endring.EndrePrisinfo.Status.TILBAKEKALT) {
         HendelseType.EnkeltplassTilbakekallPrisendring(
             prisinformasjonId = requireNotNull(endring.prisinformasjonId) { "Missing prisinformasjonId for tilbakekalt prisinfo" },
         )
     } else {
         HendelseType.EnkeltplassEndrePrisinfo(
-            endring.prisinfo,
+            // Når deltakelsen er SØKT INN er prisendringen automatisk iverksatt og krever ikke egen godkjenning.
+            // I senere statuser (vedtak fattet) må endringen godkjennes eksplisitt i tiltaksadministrasjon.
+            kreverGodkjenning = deltakerStatus != DeltakerStatus.Type.SOKT_INN,
+            prisinfo = endring.prisinfo,
         )
     }
 
