@@ -42,7 +42,7 @@ pdfgen-core-version = "1.1.82"
 
 # CVE-fixes
 netty-version = "4.2.19.Final"
-lz4-java-version = { strictly = "1.11.2" }
+lz4-java-version = { strictly = "1.11.4" }
 
 [libraries]
 
