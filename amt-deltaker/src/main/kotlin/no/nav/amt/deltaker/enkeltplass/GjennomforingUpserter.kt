@@ -101,12 +101,14 @@ class GjennomforingUpserter(
      * @param kodeverkValg Kodeverkverdier som skal lagres.
      * @param sertifiseringValg Sertifiseringer som skal lagres.
      * @param kategoriseringForTiltak Alle tilgjengelig kategoriseringsvalg for gjennomføringen.
+     * @param endretAvNavIdent Nav-ident for veileder som registrerte endringen
      */
     fun lagreOgProduserEnkeltplassEndreInnhold(
         gjennomforingId: UUID,
         kodeverkValg: Set<UUID>?,
         sertifiseringValg: Set<SertifiseringValg>?,
         kategoriseringForTiltak: OpplaringKategoriseringResponse,
+        endretAvNavIdent: String,
     ) {
         val opplaringKategoriseringValg = kategoriseringForTiltak.toOpplaringKategoriseringValg(
             kategoriseringValg = kodeverkValg ?: emptySet(),
@@ -121,6 +123,7 @@ class GjennomforingUpserter(
 
         val endreInnholdPayload = GjennomforingRequestPayload.EnkeltplassEndreInnhold(
             gjennomforingId = gjennomforingId,
+            behandletAv = endretAvNavIdent,
             payload = OpplaringKategoriseringRepoAdapter
                 .hentOpplaringKategoriseringValg(gjennomforingId)
                 .toMulighetsrommetKategorisering(),
