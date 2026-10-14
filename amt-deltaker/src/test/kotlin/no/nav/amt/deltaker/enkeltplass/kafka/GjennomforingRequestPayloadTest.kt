@@ -71,6 +71,7 @@ class GjennomforingRequestPayloadTest {
             val gjennomforingId = UUID.randomUUID()
             val payload = GjennomforingRequestPayload.EnkeltplassEndreInnhold(
                 gjennomforingId = gjennomforingId,
+                behandletAv = "~behandletAvNavIdent~",
                 payload = GjennomforingRequestPayload.UpsertEnkeltplass.OpplaringKategorisering(
                     verdier = emptyMap(),
                     sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1")),
@@ -157,6 +158,7 @@ class GjennomforingRequestPayloadTest {
         fun `EnkeltplassEndreInnhold med null payload overlever serialisering og deserialisering`() {
             val original = GjennomforingRequestPayload.EnkeltplassEndreInnhold(
                 gjennomforingId = UUID.randomUUID(),
+                behandletAv = "~behandletAvNavIdent~",
                 payload = null,
             )
 
