@@ -19,7 +19,7 @@ class TiltakshendelseService(
 
     companion object {
         const val UTKAST_TIL_PAMELDING_TEKST = "Utkast til påmelding"
-        const val PRISINFO_TIL_GODKJENNING_TEKST = "Prisinfo til godkjenning"
+        const val PRISINFO_TIL_GODKJENNING_TEKST = "Prisendring til godkjenning"
     }
 
     fun handleHendelse(hendelse: Hendelse) {
@@ -27,6 +27,7 @@ class TiltakshendelseService(
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
+        log.info("Håndterer ${hendelse.payload.javaClass} hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}.")
 
         when (hendelse.payload) {
             is HendelseType.OpprettUtkast -> opprettUtkastStartHendelse(
@@ -162,7 +163,7 @@ class TiltakshendelseService(
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
         val lagretTiltakshendelse = tiltakshendelseRepository.upsert(tiltakshendelse)
         tiltakshendelseProducer.produce(lagretTiltakshendelse)
-        log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id}")
+        log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id} for deltaker ${tiltakshendelse.deltakerId}")
     }
 }
 
