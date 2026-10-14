@@ -19,8 +19,6 @@ class CommonUnleashToggle(
     fun skalLeseGjennomforing(tiltakskode: String): Boolean =
         erKometMasterForTiltakstype(tiltakskode) || skalLeseArenaDataForTiltakstype(tiltakskode)
 
-    fun skalProdusereTilDeltakerEksternTopic(): Boolean = unleashClient.isEnabled(PRODUSER_TIL_DELTAKER_EKSTERN_TOPIC)
-
     fun prioriterSynkronKommunikasjon(): Boolean = unleashClient.isEnabled("amt.prioriter-synkron-kommunikasjon")
 
     fun getFeaturetoggles(features: List<String>): Map<String, Boolean> = features.associateWith { unleashClient.isEnabled(it) }
@@ -30,7 +28,6 @@ class CommonUnleashToggle(
     companion object {
         const val ENABLE_KOMET_DELTAKERE = "amt.enable-komet-deltakere"
         const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
-        const val PRODUSER_TIL_DELTAKER_EKSTERN_TOPIC = "amt.produser-deltakere-til-deltaker-ekstern-topic"
         const val OPPDATER_ALLE_AKTIVITETSKORT = "amt.oppdater-alle-aktivitetskort"
 
         private val tiltakstyperKometErMasterFor = setOf(
