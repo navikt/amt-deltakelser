@@ -5,7 +5,6 @@ import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -20,7 +19,7 @@ class TiltakshendelseService(
 
     companion object {
         const val UTKAST_TIL_PAMELDING_TEKST = "Utkast til påmelding"
-        const val PRISINFO_TIL_GODKJENNING_TEKST = "Prisinfo til godkjenning"
+        const val PRISINFO_TIL_GODKJENNING_TEKST = "Prisendring til godkjenning"
     }
 
     fun handleHendelse(hendelse: Hendelse) {
@@ -28,6 +27,7 @@ class TiltakshendelseService(
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
+        log.info("Håndterer ${hendelse.payload.javaClass} hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}.")
 
         when (hendelse.payload) {
             is HendelseType.OpprettUtkast -> opprettUtkastStartHendelse(
@@ -35,12 +35,11 @@ class TiltakshendelseService(
             )
 
             is HendelseType.EnkeltplassEndrePrisinfo -> {
-                if (hendelse.deltaker.status?.type == DeltakerStatus.Type.SOKT_INN) {
-                    return
+                if (hendelse.payload.kreverGodkjenning) {
+                    opprettEllerOppdaterPrisendringStartHendelse(
+                        hendelse = hendelse,
+                    )
                 }
-                opprettEllerOppdaterPrisendringStartHendelse(
-                    hendelse = hendelse,
-                )
             }
 
             is HendelseType.AvbrytUtkast,
@@ -164,7 +163,7 @@ class TiltakshendelseService(
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {
         val lagretTiltakshendelse = tiltakshendelseRepository.upsert(tiltakshendelse)
         tiltakshendelseProducer.produce(lagretTiltakshendelse)
-        log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id}")
+        log.info("Upsertet tiltakshendelse ${lagretTiltakshendelse.id} for deltaker ${tiltakshendelse.deltakerId}")
     }
 }
 

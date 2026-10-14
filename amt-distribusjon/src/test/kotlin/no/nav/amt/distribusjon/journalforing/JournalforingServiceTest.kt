@@ -257,6 +257,30 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever ikke godkjenning - lagrer endringsvedtak for journalforing`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false))
+
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert: endringsvedtak lagres og plukkes opp av asynkron jobb
+        journalforingstatusRepository.get(hendelse.id).shouldNotBeNull()
+    }
+
+    @Test
+    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever godkjenning - journalforer ikke`() = runTest {
+        // Arrange
+        val hendelse = Hendelsesdata.hendelse(HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = true))
+
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert: endringen godkjennes i tiltaksadministrasjon, ingen endringsvedtak lagres her
+        journalforingstatusRepository.get(hendelse.id) shouldBe null
+    }
+
+    @Test
     fun `journalforOgDistribuerEndringsvedtak - deltakelsesmengde og forleng - journalforer endringsvedtak`() = runTest {
         // Arrange
         val deltaker = Hendelsesdata.lagDeltaker()

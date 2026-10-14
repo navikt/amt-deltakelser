@@ -15,8 +15,6 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.job.JobManager
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -89,6 +87,91 @@ class EndringsvedtakJobTest {
         }
 
     @Test
+    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalfores som endringsvedtak`() = runTest {
+        val deltakerId = UUID.randomUUID()
+
+        val hendelser = listOf(
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(60),
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 1 && liste.all { it.hendelse.deltaker.id == deltakerId }
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `journalforEndringsvedtak - godkjent prisendring og vanlig endring eldre enn graceperiode - sendes samlet`() = runTest {
+        val deltakerId = UUID.randomUUID()
+
+        val hendelser = listOf(
+            // Godkjent prisendring (medfører endringsvedtak) + vanlig endring for samme deltaker, begge eldre enn grace
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(60),
+                payload = HendelseTypeData.enkeltplassGodkjennPrisendring(),
+            ),
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(40),
+                payload = HendelseTypeData.endreStartdato(),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 2 &&
+                        liste.all { it.hendelse.deltaker.id == deltakerId } &&
+                        liste.any { it.hendelse.payload is HendelseType.EnkeltplassGodkjennPrisendring }
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `journalforEndringsvedtak - godkjent prisendring innenfor graceperiode - venter og sender ikke`() = runTest {
+        val deltakerId = UUID.randomUUID()
+
+        val hendelser = listOf(
+            // Vanlig endring er gammel, men godkjent prisendring er nyeste og innenfor grace => hele batchen venter
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(60),
+                payload = HendelseTypeData.endreStartdato(),
+            ),
+            hendelseMedStatus(
+                deltakerId = deltakerId,
+                opprettet = LocalDateTime.now().minusMinutes(5),
+                payload = HendelseTypeData.enkeltplassGodkjennPrisendring(),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 0) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(any())
+        }
+    }
+
+    @Test
     fun `journalforEndringsvedtak - behandler ikke hendelser innenfor graceperiode`() = runTest {
         val deltakerId = UUID.randomUUID()
 
@@ -101,42 +184,6 @@ class EndringsvedtakJobTest {
         test.job.journalforEndringsvedtak()
 
         coVerify(exactly = 0) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
-    }
-
-    @Test
-    fun `journalforEndringsvedtak - sender EnkeltplassGodkjennPrisendring umiddelbart men samler fortsatt vanlige endringer`() = runTest {
-        val deltakerId = UUID.randomUUID()
-
-        val hendelser = listOf(
-            hendelseMedStatus(
-                deltakerId = deltakerId,
-                opprettet = LocalDateTime.now().minusMinutes(2),
-                payload = HendelseType.EnkeltplassGodkjennPrisendring(
-                    prisinfo = PrisinformasjonDto.IngenKostnader(
-                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                        tilleggsopplysninger = null,
-                    ),
-                ),
-            ),
-            hendelseMedStatus(
-                deltakerId = deltakerId,
-                opprettet = LocalDateTime.now().minusMinutes(2),
-                payload = HendelseTypeData.endreStartdato(),
-            ),
-        )
-
-        val test = testSetup(hendelser)
-
-        test.job.journalforEndringsvedtak()
-
-        coVerify(exactly = 1) {
-            test.journalforingService.journalforOgDistribuerEndringsvedtak(
-                match { liste ->
-                    liste.size == 1 && liste.single().hendelse.payload is HendelseType.EnkeltplassGodkjennPrisendring
-                },
-            )
-        }
-        coVerify(exactly = 1) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
     }
 
     @Test

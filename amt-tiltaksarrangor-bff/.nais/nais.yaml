@@ -17,6 +17,14 @@ spec:
             envVarPrefix: DB
         diskAutoresize: {{database_disk_autoresize}}
         pointInTimeRecovery: {{database_point_in_time_recovery}}
+{{#if database_flags}}
+        flags:
+{{#each database_flags}}
+          - name: {{name}}
+            value: "{{value}}"
+{{/each}}
+{{/if}}
+
 
   port: 8080
   ingresses:

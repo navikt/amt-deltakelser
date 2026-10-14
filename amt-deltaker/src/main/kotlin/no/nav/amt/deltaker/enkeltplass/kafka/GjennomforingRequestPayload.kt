@@ -47,6 +47,7 @@ sealed interface GjennomforingRequestPayload {
 
     data class EnkeltplassEndreInnhold(
         override val gjennomforingId: UUID,
+        val behandletAv: String, // veileder
         val payload: UpsertEnkeltplass.OpplaringKategorisering?, // ikke alle gjennomføringer har dette
     ) : GjennomforingRequestPayload
 

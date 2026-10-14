@@ -1,7 +1,7 @@
 [versions]
 kotlin-version = "2.4.10"
 ktor-version = "3.5.2"
-logback-version = "1.6.4"
+logback-version = "1.6.5"
 logstash-encoder-version = "9.0"
 prometheus-version = "1.17.1"
 ktlint-version = "14.2.0"
@@ -10,7 +10,7 @@ jackson2-version = "2.22.3"
 nav-common-version = "4.2026.09.24_06.17-80dfc0eacb29"
 poao-tilgang-version = "2026.05.05_13.02-76cbce4f654a"
 kotest-version = "6.2.5"
-flyway-version = "13.8.0"
+flyway-version = "13.9.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.13"
@@ -41,8 +41,8 @@ jsoup-version = "1.23.2"
 pdfgen-core-version = "1.1.82"
 
 # CVE-fixes
-netty-version = "4.2.18.Final"
-lz4-java-version = { strictly = "1.11.2" }
+netty-version = "4.2.19.Final"
+lz4-java-version = { strictly = "1.11.4" }
 
 [libraries]
 

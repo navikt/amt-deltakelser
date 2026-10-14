@@ -144,6 +144,48 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `enkeltplassEndrePrisinfo - kreverGodkjenning false - oppretter beskjed til innbygger`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false),
+                deltaker = Hendelsesdata.lagDeltaker(deltakerId),
+            )
+
+            setupMocks(hendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldBeSuccess()) {
+                type shouldBe Varsel.Type.BESKJED
+            }
+        }
+
+        @Test
+        fun `enkeltplassEndrePrisinfo - kreverGodkjenning true - oppretter ikke beskjed til innbygger`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = true),
+                deltaker = Hendelsesdata.lagDeltaker(deltakerId),
+            )
+
+            setupMocks(hendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            varselRepository
+                .getSisteVarsel(
+                    deltakerId = deltakerId,
+                    type = Varsel.Type.BESKJED,
+                ).shouldBeFailure()
+        }
+
+        @Test
         fun `endreUtkast - arrangor er endret - inaktiverer gammel oppgave og oppretter ny`() {
             val gammelHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
             val gammelOppgave = Varsel.nyOppgave(gammelHendelse).copy(
