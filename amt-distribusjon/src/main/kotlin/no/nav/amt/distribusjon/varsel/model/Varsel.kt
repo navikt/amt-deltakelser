@@ -101,11 +101,19 @@ data class Varsel(
         val eksterntVarsel = this.erEksterntVarsel || varsel.erEksterntVarsel
 
         return this.copy(
+            // Et revarsel kan bygge på en eldre beskjed enn den som allerede venter.
+            tekst = if (varsel.erRevarsel) this.tekst else varsel.tekst,
             hendelser = this.hendelser.plus(varsel.hendelser),
             erEksterntVarsel = eksterntVarsel,
             aktivFra = nesteUtsendingstidspunkt(),
             aktivTil = nesteUtsendingstidspunkt().plus(beskjedAktivLengde),
-            revarsles = if (eksterntVarsel) revarslingstidspunkt() else null,
+            // Revarsler er engangsvarsler: behold koblingen til originalvarselet og ikke planlegg et nytt revarsel.
+            revarselForVarsel = if (varsel.erRevarsel) varsel.revarselForVarsel else revarselForVarsel,
+            revarsles = when {
+                varsel.erRevarsel -> null
+                eksterntVarsel -> revarslingstidspunkt()
+                else -> null
+            },
         )
     }
 
