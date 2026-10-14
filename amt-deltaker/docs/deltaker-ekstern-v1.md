@@ -16,22 +16,23 @@
 På topicen `amt.deltaker-ekstern-v1` publiseres det siste øyeblikksbildet av deltakere på følgende tiltakstyper:
 
 - ARBEIDSFORBEREDENDE_TRENING
+- ARBEIDSMARKEDSOPPLAERING
 - ARBEIDSRETTET_REHABILITERING
 - AVKLARING
-- OPPFOLGING
-- VARIG_TILRETTELAGT_ARBEID_SKJERMET
 - DIGITALT_OPPFOLGINGSTILTAK
-- GRUPPE_ARBEIDSMARKEDSOPPLAERING
-- GRUPPE_FAG_OG_YRKESOPPLAERING
-- JOBBKLUBB
 - ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING
 - ENKELTPLASS_FAG_OG_YRKESOPPLAERING
-- HOYERE_UTDANNING
-- ARBEIDSMARKEDSOPPLAERING
-- NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
-- STUDIESPESIALISERING
 - FAG_OG_YRKESOPPLAERING
+- GRUPPE_ARBEIDSMARKEDSOPPLAERING
+- GRUPPE_FAG_OG_YRKESOPPLAERING
+- HOYERE_UTDANNING
 - HOYERE_YRKESFAGLIG_UTDANNING
+- JOBBKLUBB
+- NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
+- OPPFOLGING
+- STUDIESPESIALISERING
+- TILRETTELAGT_ARBEID_ORDINAER
+- VARIG_TILRETTELAGT_ARBEID_SKJERMET
 
 Topicen inneholder deltakere som kan ha **adressebeskyttelse** (kode 6/7), og skjermede personer (egen ansatt).
 
@@ -173,7 +174,7 @@ på [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=5737102
 
 For oppdatert informasjon er det best å se siste versjon direkte:
 
-- [DeltakerEksternV1Dto](https://github.com/navikt/amt-deltaker/blob/main/src/main/kotlin/no/nav/amt/deltaker/deltaker/kafka/dto/DeltakerEksternV1Dto.kt) (
+- [DeltakerEksternV1Dto](../src/main/kotlin/no/nav/amt/deltaker/kafka/payload/DeltakerEksternV1Dto.kt) (
   Skjema for deltakere)
 
 ```kotlin
