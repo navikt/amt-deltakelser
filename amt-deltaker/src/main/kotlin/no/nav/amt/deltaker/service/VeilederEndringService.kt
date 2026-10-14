@@ -86,6 +86,8 @@ class VeilederEndringService(
             erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != updateResult.deltaker.sluttdato,
             nesteStatus = updateResult.nesteStatus,
             beforeUpsert = { deltaker ->
+
+                // årsaken til when-uttrykket her er at prisendringer må påføres prisinformasjonId
                 val endringsRequestForUpsert = when (endringRequest) {
                     is EndretOpplaringKategoriseringRequest -> {
                         gjennomforingUpserter.lagreOgProduserEnkeltplassEndreInnhold(
@@ -93,6 +95,7 @@ class VeilederEndringService(
                             kodeverkValg = endringRequest.kodeverkValg(),
                             sertifiseringValg = endringRequest.sertifiseringValg,
                             kategoriseringForTiltak = kategoriseringForTiltak ?: error("Kodeverk mangler"),
+                            endretAvNavIdent = navAnsatt.navIdent,
                         )
 
                         endringRequest

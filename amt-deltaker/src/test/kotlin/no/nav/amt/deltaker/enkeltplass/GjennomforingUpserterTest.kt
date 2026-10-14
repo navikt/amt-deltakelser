@@ -253,6 +253,7 @@ class GjennomforingUpserterTest {
                 kodeverkValg = setOf(kodeverkId),
                 sertifiseringValg = sertifiseringer,
                 kategoriseringForTiltak = kategoriseringForTiltak,
+                endretAvNavIdent = "~endretAvNavIdent~",
             )
 
             // Assert
@@ -271,6 +272,7 @@ class GjennomforingUpserterTest {
             slot.captured shouldBe GjennomforingRequestPayload.EnkeltplassEndreInnhold(
                 gjennomforingId = deltaker.deltakerliste.id,
                 payload = lagretKategorisering.toMulighetsrommetKategorisering(),
+                behandletAv = "~endretAvNavIdent~",
             )
         }
 
@@ -306,6 +308,7 @@ class GjennomforingUpserterTest {
                     kodeverkValg = setOf(ugyldigKodeverkId),
                     sertifiseringValg = emptySet(),
                     kategoriseringForTiltak = kategoriseringForTiltak,
+                    endretAvNavIdent = "~endretAvNavIdent~",
                 )
             }
 
