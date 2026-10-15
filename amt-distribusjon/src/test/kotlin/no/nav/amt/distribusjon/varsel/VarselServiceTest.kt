@@ -16,8 +16,12 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Varselsdata
 import no.nav.amt.distribusjon.varsel.model.Varsel
+import no.nav.amt.distribusjon.varsel.model.beskjedTekst
 import no.nav.amt.distribusjon.varsel.model.oppgaveTekst
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,7 +61,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `navGodkjennUtkast - nnbyggers er under manuell oppfolging - oppretter ikke varsel`() {
+        fun `navGodkjennUtkast - innbyggers er under manuell oppfolging - oppretter ikke varsel`() {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 HendelseTypeData.navGodkjennUtkast(),
@@ -110,7 +114,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `enkeltplassEndreOpplaringKategorisering - oppretter ny varsel via handleNyttVarsel med sammenslaing av ventende varsel`() {
+        fun `enkeltplassEndreOpplaringKategorisering - oppretter nytt varsel via handleNyttVarsel med sammenslåing av ventende varsel`() {
             // Arrange
             val deltakerId = UUID.randomUUID()
             val oppgave = Varselsdata.varsel(
@@ -185,15 +189,103 @@ class VarselServiceTest : IntegrationTestBase() {
                 ).shouldBeFailure()
         }
 
+        private fun kurstypeValg(kurstype: String) = OpplaringKategoriseringValg(
+            valgteKategoriseringer = setOf(
+                OpplaringKategoriseringValg.ValgteFelt(
+                    representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                    valg = mapOf(UUID.randomUUID() to kurstype),
+                ),
+            ),
+            valgteSertifiseringer = emptySet(),
+        )
+
+        @Test
+        fun `enkeltplassEndreOpplaringKategorisering - oppdaterer teksten på ventende beskjed ved ny kurstype`() {
+            // Arrange
+            val deltaker = Hendelsesdata.lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(
+                        tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                    ),
+                    opplaringKategoriseringValg = kurstypeValg("Yrkesnorsk"),
+                ),
+            )
+            val forrigeHendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.endreDeltakelsesmengde(),
+                deltaker = deltaker,
+            )
+            val ventendeBeskjed = Varsel.nyBeskjed(forrigeHendelse)
+            varselRepository.upsert(ventendeBeskjed)
+
+            val nyKurstypeValg = kurstypeValg("Almenn norsk")
+            val oppdatertDeltaker = deltaker.copy(
+                deltakerliste = deltaker.deltakerliste.copy(
+                    opplaringKategoriseringValg = nyKurstypeValg,
+                ),
+            )
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.enkeltplassEndreOpplaringKategorisering(
+                    opplaringKategoriseringValg = nyKurstypeValg,
+                ),
+                deltaker = oppdatertDeltaker,
+            )
+            setupMocks(hendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            val oppdatertBeskjed = varselRepository.get(ventendeBeskjed.id).shouldBeSuccess()
+            assertSoftly(oppdatertBeskjed) {
+                tekst shouldBe beskjedTekst(hendelse)
+                tekst shouldBe "Ny endring på arbeidsmarkedstiltaket: Almenn norsk hos Arrangornavn."
+                hendelser shouldBe listOf(forrigeHendelse.id, hendelse.id)
+                status shouldBe Varsel.Status.VENTER_PA_UTSENDELSE
+            }
+        }
+
+        @Test
+        fun `endreUtkast - kurstype er endret - inaktiverer gammel oppgave og oppretter ny`() {
+            // Arrange
+            val gammelHendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.opprettUtkast(),
+                deltaker = Hendelsesdata.lagDeltaker(
+                    deltakerliste = Hendelsesdata.lagDeltakerliste(
+                        tiltak = Hendelsesdata.tiltak(
+                            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                        ),
+                        opplaringKategoriseringValg = kurstypeValg("Yrkesnorsk"),
+                    ),
+                ),
+            )
+            val nyKurstypeValg = kurstypeValg("Almenn norsk")
+            val oppdatertDeltaker = gammelHendelse.deltaker.copy(
+                deltakerliste = gammelHendelse.deltaker.deltakerliste.copy(
+                    opplaringKategoriseringValg = nyKurstypeValg,
+                ),
+            )
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
+                deltaker = oppdatertDeltaker,
+            )
+            val gammelOppgave = opprettAktivOppgave(gammelHendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            verifiserEndretUtkast(
+                gammelOppgave = gammelOppgave,
+                hendelse = hendelse,
+                forventetTekst =
+                    "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Almenn norsk hos Arrangornavn. Svar på spørsmålet her.",
+            )
+        }
+
         @Test
         fun `endreUtkast - arrangor er endret - inaktiverer gammel oppgave og oppretter ny`() {
+            // Arrange
             val gammelHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
-            val gammelOppgave = Varsel.nyOppgave(gammelHendelse).copy(
-                status = Varsel.Status.AKTIV,
-                aktivFra = nowUTC().minusDays(1),
-            )
-            varselRepository.upsert(gammelOppgave)
-
             val oppdatertDeltaker = gammelHendelse.deltaker.copy(
                 deltakerliste = gammelHendelse.deltaker.deltakerliste.copy(
                     arrangor = Hendelsesdata.arrangor(navn = "Ny arrangør"),
@@ -203,18 +295,41 @@ class VarselServiceTest : IntegrationTestBase() {
                 payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
                 deltaker = oppdatertDeltaker,
             )
+            val gammelOppgave = opprettAktivOppgave(gammelHendelse)
 
+            // Act
             varselService.handleHendelse(hendelse)
 
-            val inaktivertOppgave = varselRepository.get(gammelOppgave.id).shouldBeSuccess()
-            inaktivertOppgave.status shouldBe Varsel.Status.INAKTIVERT
+            // Assert
+            verifiserEndretUtkast(
+                gammelOppgave = gammelOppgave,
+                hendelse = hendelse,
+                forventetTekst =
+                    "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Tiltaksnavn hos Ny arrangør. Svar på spørsmålet her.",
+            )
+        }
+
+        private fun opprettAktivOppgave(gammelHendelse: Hendelse): Varsel {
+            val gammelOppgave = Varsel.nyOppgave(gammelHendelse).copy(
+                status = Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(1),
+            )
+            varselRepository.upsert(gammelOppgave)
+            return gammelOppgave
+        }
+
+        private fun verifiserEndretUtkast(
+            gammelOppgave: Varsel,
+            hendelse: Hendelse,
+            forventetTekst: String,
+        ) {
+            varselRepository.get(gammelOppgave.id).shouldBeSuccess().status shouldBe Varsel.Status.INAKTIVERT
 
             val nyOppgave = varselRepository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE).shouldBeSuccess()
             assertSoftly(nyOppgave) {
                 status shouldBe Varsel.Status.AKTIV
                 tekst shouldBe oppgaveTekst(hendelse)
-                tekst shouldBe
-                    "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Tiltaksnavn hos Ny arrangør. Svar på spørsmålet her."
+                tekst shouldBe forventetTekst
             }
 
             verify { outboxService.insertRecord(gammelOppgave.id, any(), any(), any()) }
@@ -364,151 +479,180 @@ class VarselServiceTest : IntegrationTestBase() {
                 verify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
                 verify { outboxService.insertRecord(nyttVarsel.id, any(), any(), any()) }
             }
+    }
 
-        @Nested
-        inner class SendRevarslerTests {
-            @Test
-            fun `sendRevarsler - inaktivert beskjed skal revarsles - oppretter og sender revarsel`() = runTest {
-                // Arrange
-                val skalRevarsles = Varselsdata.beskjed(
-                    status = Varsel.Status.INAKTIVERT,
-                    aktivFra = nowUTC().minusDays(7).plusMinutes(1),
-                    revarsles = nowUTC().minusMinutes(1),
-                )
-                varselRepository.upsert(skalRevarsles)
+    @Nested
+    inner class SendRevarslerTests {
+        @Test
+        fun `sendRevarsler - nyere ventende beskjed beholder teksten når revarsel slås sammen`() = runTest {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val skalRevarsles = Varselsdata.beskjed(
+                status = Varsel.Status.INAKTIVERT,
+                deltakerId = deltakerId,
+                aktivFra = nowUTC().minusDays(7),
+                aktivTil = nowUTC().plusDays(14),
+                tekst = "Gammel kurs- og arrangørtekst",
+                revarsles = nowUTC().minusMinutes(1),
+            )
+            val ventendeBeskjed = Varselsdata.beskjed(
+                deltakerId = deltakerId,
+                tekst = "Oppdatert kurs- og arrangørtekst",
+                erEksterntVarsel = false,
+            )
+            varselRepository.upsert(skalRevarsles)
+            varselRepository.upsert(ventendeBeskjed)
 
-                val hendelse = Hendelsesdata.hendelse(
-                    payload = HendelseTypeData.navGodkjennUtkast(),
-                    id = skalRevarsles.hendelser.first(),
-                )
-                hendelseRepository.insert(hendelse)
+            // Act
+            varselService.sendRevarsler()
 
-                // val forventetUrl = innbyggerDeltakerUrl(skalRevarsles.deltakerId, false)
+            // Assert
+            val revarsel = varselRepository.getAktivt(deltakerId).shouldBeSuccess()
+            assertSoftly(revarsel) {
+                tekst shouldBe ventendeBeskjed.tekst
+                hendelser shouldBe ventendeBeskjed.hendelser + skalRevarsles.hendelser
+            }
+        }
 
-                // Act
-                varselService.sendRevarsler()
+        @Test
+        fun `sendRevarsler - inaktivert beskjed skal revarsles - oppretter og sender revarsel`() = runTest {
+            // Arrange
+            val skalRevarsles = Varselsdata.beskjed(
+                status = Varsel.Status.INAKTIVERT,
+                aktivFra = nowUTC().minusDays(7).plusMinutes(1),
+                revarsles = nowUTC().minusMinutes(1),
+            )
+            varselRepository.upsert(skalRevarsles)
 
-                // Assert
-                varselRepository
-                    .get(skalRevarsles.id)
-                    .shouldBeSuccess()
-                    .revarsles shouldBe null
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.navGodkjennUtkast(),
+                id = skalRevarsles.hendelser.first(),
+            )
+            hendelseRepository.insert(hendelse)
 
-                val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
-                assertSoftly(revarsel) {
-                    erRevarsel shouldBe true
-                    kanRevarsles shouldBe false
-                    aktivFra shouldBeCloseTo nowUTC()
-                    aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC().plus(Varsel.beskjedAktivLengde)
-                    revarselForVarsel shouldBe skalRevarsles.id
-                }
+            // val forventetUrl = innbyggerDeltakerUrl(skalRevarsles.deltakerId, false)
 
-                verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+            // Act
+            varselService.sendRevarsler()
+
+            // Assert
+            varselRepository
+                .get(skalRevarsles.id)
+                .shouldBeSuccess()
+                .revarsles shouldBe null
+
+            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+            assertSoftly(revarsel) {
+                erRevarsel shouldBe true
+                kanRevarsles shouldBe false
+                aktivFra shouldBeCloseTo nowUTC()
+                aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC().plus(Varsel.beskjedAktivLengde)
+                revarselForVarsel shouldBe skalRevarsles.id
+            }
+            verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+        }
+
+        @Test
+        fun `sendRevarsler - aktiv beskjed skal revarsles - inaktiverer beskjed, oppretter og sender revarsel`() = runTest {
+            // Arrange
+            val skalRevarsles = Varselsdata.beskjed(
+                status = Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(7).plusMinutes(1),
+                revarsles = nowUTC().minusMinutes(1),
+            )
+            varselRepository.upsert(skalRevarsles)
+
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.navGodkjennUtkast(),
+                id = skalRevarsles.hendelser.first(),
+            )
+            hendelseRepository.insert(hendelse)
+
+            // val forventetUrl = innbyggerDeltakerUrl(skalRevarsles.deltakerId, false)
+
+            // Act
+            varselService.sendRevarsler()
+
+            // Assert
+            val oppdatertVarsel = varselRepository.get(skalRevarsles.id).shouldBeSuccess()
+            assertSoftly(oppdatertVarsel) {
+                revarsles shouldBe null
+                status shouldBe Varsel.Status.INAKTIVERT
+                aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC()
             }
 
-            @Test
-            fun `sendRevarsler - aktiv beskjed skal revarsles - inaktiverer beskjed, oppretter og sender revarsel`() = runTest {
-                // Arrange
-                val skalRevarsles = Varselsdata.beskjed(
-                    status = Varsel.Status.AKTIV,
-                    aktivFra = nowUTC().minusDays(7).plusMinutes(1),
-                    revarsles = nowUTC().minusMinutes(1),
-                )
-                varselRepository.upsert(skalRevarsles)
+            verify { outboxService.insertRecord(oppdatertVarsel.id, any(), any()) }
 
-                val hendelse = Hendelsesdata.hendelse(
-                    payload = HendelseTypeData.navGodkjennUtkast(),
-                    id = skalRevarsles.hendelser.first(),
-                )
-                hendelseRepository.insert(hendelse)
-
-                // val forventetUrl = innbyggerDeltakerUrl(skalRevarsles.deltakerId, false)
-
-                // Act
-                varselService.sendRevarsler()
-
-                // Assert
-                val oppdatertVarsel = varselRepository.get(skalRevarsles.id).shouldBeSuccess()
-                assertSoftly(oppdatertVarsel) {
-                    revarsles shouldBe null
-                    status shouldBe Varsel.Status.INAKTIVERT
-                    aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC()
-                }
-
-                verify { outboxService.insertRecord(oppdatertVarsel.id, any(), any()) }
-
-                val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
-                assertSoftly(revarsel) {
-                    erRevarsel shouldBe true
-                    kanRevarsles shouldBe false
-                    aktivFra shouldBeCloseTo nowUTC()
-                    aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC().plus(Varsel.beskjedAktivLengde)
-                    revarselForVarsel shouldBe skalRevarsles.id
-                }
-
-                verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+            assertSoftly(revarsel) {
+                erRevarsel shouldBe true
+                kanRevarsles shouldBe false
+                aktivFra shouldBeCloseTo nowUTC()
+                aktivTil.shouldNotBeNull() shouldBeCloseTo nowUTC().plus(Varsel.beskjedAktivLengde)
+                revarselForVarsel shouldBe skalRevarsles.id
             }
+            verify { outboxService.insertRecord(revarsel.id, any(), any(), any()) }
+        }
 
-            @Test
-            fun `sendRevarsler - aktiv beskjed skal ikke revarsles enda - endrer ingenting`() = runTest {
-                // Arrange
-                val skalIkkeRevarsles = Varselsdata.beskjed(
-                    Varsel.Status.AKTIV,
-                    aktivFra = nowUTC().minusDays(6).plusMinutes(1),
-                    revarsles = nowUTC().plusDays(1),
-                )
-                varselRepository.upsert(skalIkkeRevarsles)
+        @Test
+        fun `sendRevarsler - aktiv beskjed skal ikke revarsles enda - endrer ingenting`() = runTest {
+            // Arrange
+            val skalIkkeRevarsles = Varselsdata.beskjed(
+                Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(6).plusMinutes(1),
+                revarsles = nowUTC().plusDays(1),
+            )
+            varselRepository.upsert(skalIkkeRevarsles)
 
-                // Act
-                varselService.sendRevarsler()
+            // Act
+            varselService.sendRevarsler()
 
-                // Assert
-                val ikkeOppdatertVarsel = varselRepository.get(skalIkkeRevarsles.id).shouldBeSuccess()
-                assertSoftly(ikkeOppdatertVarsel) {
-                    revarsles.shouldNotBeNull() shouldBeCloseTo skalIkkeRevarsles.revarsles.shouldNotBeNull()
-                    status shouldBe skalIkkeRevarsles.status
-                    aktivTil.shouldNotBeNull() shouldBeCloseTo skalIkkeRevarsles.aktivTil
+            // Assert
+            val ikkeOppdatertVarsel = varselRepository.get(skalIkkeRevarsles.id).shouldBeSuccess()
+            assertSoftly(ikkeOppdatertVarsel) {
+                revarsles.shouldNotBeNull() shouldBeCloseTo skalIkkeRevarsles.revarsles.shouldNotBeNull()
+                status shouldBe skalIkkeRevarsles.status
+                aktivTil.shouldNotBeNull() shouldBeCloseTo skalIkkeRevarsles.aktivTil
+            }
+        }
+    }
+
+    @Nested
+    inner class UtlopBeskjedTests {
+        @Test
+        fun `utlopBeskjed - varsler kan ikke utløpes - feiler`() {
+            // Arrange
+            val ugyldigeVarsler = listOf(
+                Varselsdata.varsel(Varsel.Type.OPPGAVE),
+                Varselsdata.beskjed(status = Varsel.Status.INAKTIVERT),
+                Varselsdata.beskjed(status = Varsel.Status.AKTIV, aktivTil = nowUTC().plusMinutes(1)),
+            )
+
+            // Act & Assert
+            ugyldigeVarsler.forEach {
+                shouldThrow<IllegalArgumentException> {
+                    varselService.utlopBeskjed(it)
                 }
             }
         }
 
-        @Nested
-        inner class UtlopBeskjedTests {
-            @Test
-            fun `utlopBeskjed - varsler kan ikke utløpes - feiler`() {
-                // Arrange
-                val ugyldigeVarsler = listOf(
-                    Varselsdata.varsel(Varsel.Type.OPPGAVE),
-                    Varselsdata.beskjed(status = Varsel.Status.INAKTIVERT),
-                    Varselsdata.beskjed(status = Varsel.Status.AKTIV, aktivTil = nowUTC().plusMinutes(1)),
-                )
+        @Test
+        fun `utlopBeskjed - varsel er utløpt - utløper`() {
+            // Arrange
+            val utloptBeskjed = Varselsdata.beskjed(
+                Varsel.Status.AKTIV,
+                aktivFra = nowUTC().minusDays(21),
+                aktivTil = nowUTC().minusMinutes(1),
+            )
 
-                // Act & Assert
-                ugyldigeVarsler.forEach {
-                    shouldThrow<IllegalArgumentException> {
-                        varselService.utlopBeskjed(it)
-                    }
-                }
-            }
+            // Act
+            varselService.utlopBeskjed(utloptBeskjed)
 
-            @Test
-            fun `utlopBeskjed - varsel er utløpt - utløper`() {
-                // Arrange
-                val utloptBeskjed = Varselsdata.beskjed(
-                    Varsel.Status.AKTIV,
-                    aktivFra = nowUTC().minusDays(21),
-                    aktivTil = nowUTC().minusMinutes(1),
-                )
-
-                // Act
-                varselService.utlopBeskjed(utloptBeskjed)
-
-                // Assert
-                varselRepository
-                    .get(utloptBeskjed.id)
-                    .shouldBeSuccess()
-                    .status shouldBe Varsel.Status.UTLOPT
-            }
+            // Assert
+            varselRepository
+                .get(utloptBeskjed.id)
+                .shouldBeSuccess()
+                .status shouldBe Varsel.Status.UTLOPT
         }
     }
 }

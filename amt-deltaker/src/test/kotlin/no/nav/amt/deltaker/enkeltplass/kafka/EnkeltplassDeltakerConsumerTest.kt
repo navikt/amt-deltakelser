@@ -92,7 +92,6 @@ class EnkeltplassDeltakerConsumerTest {
 
     @BeforeEach
     fun setup() {
-        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
         every { deltakerProducer.produce(any()) } just Runs
         every { deltakerEksternV1Producer.produce(any()) } just Runs
         every { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
