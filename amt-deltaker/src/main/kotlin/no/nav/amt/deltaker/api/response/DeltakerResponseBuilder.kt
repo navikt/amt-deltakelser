@@ -99,7 +99,7 @@ class DeltakerResponseBuilder(
                     deltaker.startdato?.let { mengder.periode(it, deltaker.sluttdato) } ?: mengder
                 }.let { deltakelsesmengder ->
                     DeltakelsesmengderResponse(
-                        nesteDeltakelsesmengde = deltakelsesmengder.nesteGjeldende?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
+                        nesteDeltakelsesmengde = deltakelsesmengder.neste?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
                         sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
                     )
                 },
