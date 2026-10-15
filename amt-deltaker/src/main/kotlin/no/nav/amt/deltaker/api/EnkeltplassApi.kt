@@ -9,7 +9,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
+import no.nav.amt.deltaker.enkeltplass.GjennomforingRequestProducerService
 import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.service.DeltakerService
@@ -24,7 +24,7 @@ import no.nav.amt.lib.utils.database.Database
 fun Routing.registerEnkeltplassApi(
     enkeltplassService: EnkeltplassService,
     deltakerResponseBuilder: DeltakerResponseBuilder,
-    gjennomforingUpserter: GjennomforingUpserter,
+    gjennomforingRequestProducerService: GjennomforingRequestProducerService,
     distribuerEndringService: DistribuerEndringService,
     deltakerService: DeltakerService,
     navAnsattService: NavAnsattService,
@@ -110,7 +110,7 @@ fun Routing.registerEnkeltplassApi(
                 val (navAnsatt, navEnhet) = navAnsattService.hentNavAnsattOgEnhet(request.endretAv)
 
                 Database.transaction {
-                    val prisinformasjonId = gjennomforingUpserter.produserTilbakekallPrisendring(
+                    val prisinformasjonId = gjennomforingRequestProducerService.produserTilbakekallPrisendring(
                         deltakerId = deltakerId,
                         endretAvNavIdent = request.endretAv,
                     )

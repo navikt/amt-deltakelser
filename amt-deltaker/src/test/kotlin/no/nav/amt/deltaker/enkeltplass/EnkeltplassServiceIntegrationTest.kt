@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -34,6 +35,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -324,6 +326,10 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.OpprettUtkast>(deltakerInTest.id)
+            outboxService.assertProduced<AmtGjennomforingPayload>(
+                expectedKey = oppdatertDeltaker.deltakerliste.id,
+                expectedTopic = Environment.AMT_GJENNOMFORING_TOPIC,
+            )
         }
 
         @Test
@@ -370,6 +376,10 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltakerInTest.id)
+            outboxService.assertProduced<AmtGjennomforingPayload>(
+                expectedKey = oppdatertDeltaker.deltakerliste.id,
+                expectedTopic = Environment.AMT_GJENNOMFORING_TOPIC,
+            )
         }
 
         @Test
