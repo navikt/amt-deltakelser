@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.lib.ktor.routing.isReadyKey
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.utils.leaderelection.LeaderElectionClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -41,14 +40,15 @@ class DeltakelsesmengdeUpdateJob(
         }
     }
 
-    private fun behandleDeltakelsesmengder() {
-        var offset = 0
-        var endringer: List<DeltakerEndring>
-
+    // Intern slik at batchløkken kan testes uten å starte timeren.
+    internal fun behandleDeltakelsesmengder() {
+        var antallBehandlet = 0
         log.info("Starter jobb for å behandle deltakelsesmengder")
 
         do {
-            endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)
+            // Behandlede rader fjernes fra køen, så neste batch hentes alltid uten offset.
+            val endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+
             endringer.forEach { deltakerEndring ->
                 val opprinneligDeltaker = deltakerRepository.get(deltakerEndring.deltakerId).getOrThrow()
 
@@ -63,9 +63,9 @@ class DeltakelsesmengdeUpdateJob(
                         )
                     }
             }
-            offset += endringer.size
+            antallBehandlet += endringer.size
         } while (endringer.isNotEmpty())
 
-        log.info("Fullførte jobb for å behandle deltakelsesmengder, behandlet $offset endringer")
+        log.info("Fullførte jobb for å behandle deltakelsesmengder, behandlet $antallBehandlet endringer")
     }
 }

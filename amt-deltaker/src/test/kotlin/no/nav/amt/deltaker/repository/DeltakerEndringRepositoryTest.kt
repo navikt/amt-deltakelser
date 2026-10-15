@@ -19,6 +19,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class DeltakerEndringRepositoryTest {
     private val deltakerEndringRepository = DeltakerEndringRepository()
@@ -170,5 +171,57 @@ class DeltakerEndringRepositoryTest {
 
         endringer.size shouldBe 1
         sammenlignDeltakerEndring(endringer.first(), skalBehandles)
+    }
+
+    @Test
+    fun `getUbehandletDeltakelsesmengder - returnerer neste endring etter at første er behandlet`() {
+        // Arrange
+        val navEnhet = lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        navAnsattRepository.upsert(navAnsatt)
+
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insertAll(navEnhet, navAnsatt, deltaker)
+
+        val gyldigFra = LocalDate.now()
+        val endringer = listOf(
+            lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = navAnsatt.id,
+                endretAvEnhet = navEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 50F,
+                    dagerPerUke = null,
+                    gyldigFra = gyldigFra,
+                    begrunnelse = null,
+                ),
+            ),
+            lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = navAnsatt.id,
+                endretAvEnhet = navEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 60F,
+                    dagerPerUke = null,
+                    gyldigFra = gyldigFra,
+                    begrunnelse = null,
+                ),
+            ),
+        )
+        endringer.forEach { deltakerEndringRepository.upsert(it, null) }
+
+        // Act: Hent én rad, marker den som behandlet, og hent neste ventende rad.
+        val firstBatch = deltakerEndringRepository.getUbehandletDeltakelsesmengder(limit = 1)
+        firstBatch.size shouldBe 1
+        deltakerEndringRepository.upsert(firstBatch.single(), LocalDateTime.now())
+
+        val nextBatch = deltakerEndringRepository.getUbehandletDeltakelsesmengder(limit = 1)
+
+        // Assert
+        nextBatch.map { it.id } shouldBe endringer.filterNot { it.id == firstBatch.single().id }.map { it.id }
     }
 }
