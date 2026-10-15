@@ -61,7 +61,18 @@ class ForslagRepository {
         }
     }
 
-    fun upsert(forslag: Forslag) {
+    /**
+     * Setter inn forslaget. Ved ID-konflikt oppdateres raden bare hvis forslaget ikke har status
+     * [Forslag.Status.VenterPaSvar].
+     *
+     * BFF-en genererer en ny UUID når et forslag opprettes. Et innkommende ventende forslag med en
+     * ID som allerede finnes, behandles derfor som en duplikatlevering, ikke som en korrigering.
+     * Forslag med andre statuser oppdaterer raden med samme ID.
+     *
+     * @return `true` hvis en rad ble satt inn eller oppdatert, ellers `false` hvis en ID-konflikt
+     * gjorde at forslaget ble ignorert.
+     */
+    fun upsert(forslag: Forslag): Boolean {
         val sql =
             """
             INSERT INTO forslag (
@@ -71,7 +82,8 @@ class ForslagRepository {
                 opprettet, 
                 begrunnelse, 
                 endring,  
-                status)
+                status
+            )
             VALUES (
                 :id,
                 :deltaker_id,
@@ -82,13 +94,15 @@ class ForslagRepository {
                 :status
             )
             ON CONFLICT (id) DO UPDATE SET
-                deltaker_id     	= :deltaker_id,
-                arrangoransatt_id	= :arrangoransatt_id,
-                opprettet 			= :opprettet,
-                begrunnelse			= :begrunnelse,
-                endring				= :endring,
-                status              = :status,
+                deltaker_id     	= EXCLUDED.deltaker_id,
+                arrangoransatt_id	= EXCLUDED.arrangoransatt_id,
+                opprettet 			= EXCLUDED.opprettet,
+                begrunnelse			= EXCLUDED.begrunnelse,
+                endring				= EXCLUDED.endring,
+                status              = EXCLUDED.status,
                 modified_at         = CURRENT_TIMESTAMP
+            WHERE
+               EXCLUDED.status ->> 'type' <> 'VenterPaSvar'      
             """.trimIndent()
 
         val params = mapOf(
@@ -101,7 +115,7 @@ class ForslagRepository {
             "status" to objectMapper.toPGObject(forslag.status),
         )
 
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        return Database.query { session -> session.update(queryOf(sql, params)) } > 0
     }
 
     fun delete(id: UUID) = Database.query { session ->

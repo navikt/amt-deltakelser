@@ -22,7 +22,12 @@ class ForslagService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun upsertAndProduce(forslag: Forslag) {
-        forslagRepository.upsert(forslag)
+        val erOppdatert = forslagRepository.upsert(forslag)
+
+        if (!erOppdatert) {
+            log.info("Oppdaterte ikke forslag ${forslag.id} med status VenterPaSvar")
+            return
+        }
 
         when (forslag.status) {
             is Forslag.Status.Godkjent,

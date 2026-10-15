@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.testing.utils.withLogCapture
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -54,6 +55,36 @@ class ForslagServiceTest {
         val navEnhet = lagNavEnhet()
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<UUID>()) } returns navAnsatt
         coEvery { navEnhetService.hentEllerOpprettNavEnhet(any<String>()) } returns navEnhet
+    }
+
+    @Nested
+    inner class UpsertAndProduce {
+        @Test
+        fun `upsertAndProduce - foreldet VenterPaSvar - logger at forslaget ignoreres`() = runTest {
+            //  Arrange
+            val deltaker = TestData.lagDeltaker()
+            TestRepository.insert(deltaker)
+            val lagretForslag = TestData.lagForslag(
+                deltakerId = deltaker.id,
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(UUID.randomUUID(), UUID.randomUUID()),
+                    godkjent = LocalDateTime.now(),
+                ),
+            )
+            forslagRepository.upsert(lagretForslag)
+            val lagretForslagFraDb = forslagRepository.get(lagretForslag.id).getOrThrow()
+            val foreldetForslag = lagretForslag.copy(status = Forslag.Status.VenterPaSvar)
+
+            // Act & Assert
+            withLogCapture("no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagService") { logEvents ->
+                forslagService.upsertAndProduce(foreldetForslag)
+
+                logEvents.map { it.formattedMessage } shouldBe
+                    listOf("Oppdaterte ikke forslag ${foreldetForslag.id} med status VenterPaSvar")
+            }
+
+            forslagRepository.get(lagretForslag.id).getOrThrow() shouldBe lagretForslagFraDb
+        }
     }
 
     @Nested
