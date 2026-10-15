@@ -72,7 +72,14 @@ enum class Adressetype {
     BOSTEDSADRESSE,
 }
 
+/**
+ // Hvis det bare er en fremtidig så er sisteDeltakelsesmengde som returneres
+ og nesteDeltakelsesmengde er null
+ @nesteDeltakelsesmengde: vises i frontend som “neste periode”
+ @sisteDeltakelsesmengde: siste deltakelsesmengde som ble lagt til. brukes KUN som baseline i validering/logikk for å se om noe faktisk er endret
+ */
 data class DeltakelsesmengderDto(
+    // feil: er null hvis det bare er fremtidige endringer
     val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
     val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,
 )

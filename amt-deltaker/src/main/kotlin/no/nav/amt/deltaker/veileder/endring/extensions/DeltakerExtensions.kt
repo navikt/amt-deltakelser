@@ -61,14 +61,15 @@ fun Deltaker.endreDeltakersOppstart(
         nySluttdato = faktiskSluttdato,
     )
     val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
-    val gjeldendeDeltakelsmengde = oppdatertDeltakelsmengde.gjeldende
+    // Ved fremtidig startdato er ingen mengde gjeldende i dag; bruk da den første som gjelder fra ny startdato
+    val forsteGjeldendeMengde = oppdatertDeltakelsmengde.gjeldende ?: oppdatertDeltakelsmengde.firstOrNull()
 
     return this.copy(
         startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,
         sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else faktiskSluttdato,
         status = oppdatertStatus,
-        deltakelsesprosent = gjeldendeDeltakelsmengde?.deltakelsesprosent ?: deltakelsesprosent,
-        dagerPerUke = if (gjeldendeDeltakelsmengde != null) gjeldendeDeltakelsmengde.dagerPerUke else dagerPerUke,
+        deltakelsesprosent = forsteGjeldendeMengde?.deltakelsesprosent ?: deltakelsesprosent,
+        dagerPerUke = if (forsteGjeldendeMengde != null) forsteGjeldendeMengde.dagerPerUke else dagerPerUke,
     )
 }
 
