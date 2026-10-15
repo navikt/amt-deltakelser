@@ -45,10 +45,9 @@ class DeltakelsesmengdeUpdateJob(
         var antallBehandlet = 0
         log.info("Starter jobb for å behandle deltakelsesmengder")
 
-        while (true) {
+        do {
             // Behandlede rader fjernes fra køen, så neste batch hentes alltid uten offset.
             val endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
-            if (endringer.isEmpty()) break
 
             endringer.forEach { deltakerEndring ->
                 val opprinneligDeltaker = deltakerRepository.get(deltakerEndring.deltakerId).getOrThrow()
@@ -65,7 +64,7 @@ class DeltakelsesmengdeUpdateJob(
                     }
             }
             antallBehandlet += endringer.size
-        }
+        } while (endringer.isNotEmpty())
 
         log.info("Fullførte jobb for å behandle deltakelsesmengder, behandlet $antallBehandlet endringer")
     }
