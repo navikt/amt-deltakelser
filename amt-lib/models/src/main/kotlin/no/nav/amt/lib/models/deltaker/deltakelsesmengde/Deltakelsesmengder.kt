@@ -21,14 +21,14 @@ class Deltakelsesmengder(
         .let(::finnGyldigeDeltakelsesmengder)
         .let { avgrensPeriodeTilSisteStartdato(it, startdatoer) }
 
-    val gjeldende = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() } ?: deltakelsesmengder.firstOrNull()
+    val gjeldende = deltakelsesmengder.lastOrNull { it.gyldigFra <= LocalDate.now() }
 
-    val nesteGjeldende: Deltakelsesmengde?
+    val neste: Deltakelsesmengde?
         get() {
-            val nesteGjeldendeIndex = deltakelsesmengder.indexOf(gjeldende) + 1
+            val nesteMengdeIndex = deltakelsesmengder.indexOf(gjeldende) + 1
 
-            if (deltakelsesmengder.size > nesteGjeldendeIndex) {
-                return deltakelsesmengder[nesteGjeldendeIndex]
+            if (deltakelsesmengder.size > nesteMengdeIndex) {
+                return deltakelsesmengder[nesteMengdeIndex]
             }
 
             return null

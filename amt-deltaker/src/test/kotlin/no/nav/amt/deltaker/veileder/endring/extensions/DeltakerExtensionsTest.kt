@@ -203,4 +203,42 @@ class DeltakerExtensionsTest {
             deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
         }
     }
+
+    @Test
+    fun `endreDeltakersOppstart - manglende sluttdato og startdato i fortid - deltaker blir deltar`() {
+        val idag = LocalDate.now()
+        val startdato = idag.minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = startdato,
+            sluttdato = null,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = startdato,
+            sluttdato = null,
+            deltakelsesmengder = Deltakelsesmengder(emptyList()),
+        )
+
+        endretDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+    }
+
+    @Test
+    fun `endreDeltakersOppstart - beholder status nar statusen ikke endres`() {
+        val status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        val startdato = LocalDate.now().minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            status = status,
+            startdato = startdato,
+            sluttdato = null,
+        )
+
+        val endretDeltaker = deltaker.endreDeltakersOppstart(
+            startdato = startdato,
+            sluttdato = null,
+            deltakelsesmengder = Deltakelsesmengder(emptyList()),
+        )
+
+        endretDeltaker.status shouldBe status
+    }
 }

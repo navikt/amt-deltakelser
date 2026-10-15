@@ -433,9 +433,7 @@ abstract class IntegrationTestBase {
         mockkObject(DigitalBrukerCacheRepository)
         every { DigitalBrukerCacheRepository.hentForPersonidenter(any()) } returns emptyMap()
         every { DigitalBrukerCacheRepository.upsertBatch(any()) } returns Unit
-
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
 
         val mockOutboxRecord = mockk<OutboxRecord>()
         every {

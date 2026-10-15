@@ -72,6 +72,10 @@ enum class Adressetype {
     BOSTEDSADRESSE,
 }
 
+/**
+ @nesteDeltakelsesmengde: vises i frontend som “neste periode”
+ @sisteDeltakelsesmengde: siste deltakelsesmengde som ble lagt til. brukes KUN som baseline i validering/logikk for å se om noe faktisk er endret
+ */
 data class DeltakelsesmengderDto(
     val nesteDeltakelsesmengde: DeltakelsesmengdeDto?,
     val sisteDeltakelsesmengde: DeltakelsesmengdeDto?,

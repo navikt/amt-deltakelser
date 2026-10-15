@@ -151,7 +151,7 @@ private fun tilDeltaker(
         historikk = deltakerDbo.historikk,
         deltakelsesmengder = deltakelsesmengder?.let {
             DeltakelsesmengderDto(
-                nesteDeltakelsesmengde = it.nesteGjeldende?.toDto(),
+                nesteDeltakelsesmengde = it.neste?.toDto(),
                 sisteDeltakelsesmengde = it.lastOrNull()?.toDto(),
             )
         },

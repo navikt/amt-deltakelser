@@ -85,10 +85,7 @@ class DeltakerEndringRepository {
         )
     }
 
-    fun getUbehandletDeltakelsesmengder(
-        offset: Int = 0,
-        limit: Int = 500,
-    ): List<DeltakerEndring> {
+    fun getUbehandletDeltakelsesmengder(limit: Int = 500): List<DeltakerEndring> {
         val sql = selectDeltakerEndring(
             """
             de.behandlet IS NULL 
@@ -96,8 +93,7 @@ class DeltakerEndringRepository {
             AND de.endring->>'type' = :type
             AND de.endring->>'gyldigFra' <= :now
             """.trimIndent(),
-            offset,
-            limit,
+            limit = limit,
         )
 
         val params = mapOf(
@@ -134,7 +130,6 @@ class DeltakerEndringRepository {
 
         private fun selectDeltakerEndring(
             whereClause: String,
-            offset: Int? = null,
             limit: Int? = null,
         ) = """
             SELECT 
@@ -161,8 +156,7 @@ class DeltakerEndringRepository {
                     AND ds.type != 'FEILREGISTRERT'
                 LEFT JOIN forslag f ON f.id = de.forslag_id
             WHERE $whereClause
-            ORDER BY de.created_at
-            ${offset?.let { "OFFSET $it" } ?: ""}
+            ORDER BY de.created_at, de.id
             ${limit?.let { "LIMIT $it" } ?: ""}
             """.trimIndent()
     }
