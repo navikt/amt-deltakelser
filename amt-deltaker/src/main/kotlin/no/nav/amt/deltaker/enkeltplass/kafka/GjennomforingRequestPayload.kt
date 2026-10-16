@@ -101,7 +101,6 @@ sealed interface GjennomforingRequestPayload {
         ) : Prisinformasjon {
             enum class Aarsak {
                 OPPLAERINGEN_ER_KOSTNADSFRI,
-                OPPLAERINGEN_ER_EGENFINANSIERT,
             }
         }
 

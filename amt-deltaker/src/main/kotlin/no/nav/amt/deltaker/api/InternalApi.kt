@@ -289,8 +289,7 @@ fun Routing.registerInternalApi(
                                 tiltakskode = gjennomforing.tiltakstype.tiltakskode,
                                 // TODO: Hardkodet IngenKostnader
                                 prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                                    aarsak = @Suppress("ktlint:standard:max-line-length")
-                                    GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                                     tilleggsopplysninger = null,
                                 ),
                                 organisasjonsnummer = gjennomforing.arrangor?.organisasjonsnummer
