@@ -52,10 +52,6 @@ data class EnkeltplassPdfDto(
         data class IngenKostnader(
             val tilleggsopplysninger: String? = null,
         ) : Prisinformasjon
-
-        data class Innbyggerfinansiert(
-            val tilleggsopplysninger: String,
-        ) : Prisinformasjon
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

@@ -78,18 +78,6 @@ class EnkeltplassInnsokingsbrevTest :
                     doc.text() shouldContain "Opplæringen er kostnadsfri ved oppmøte"
                 }
 
-                it("skal vise Innbyggerfinansiert tekst med tilleggsopplysninger") {
-                    val brev = enkeltplassPdfDto(
-                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
-                            tilleggsopplysninger = "Du må betale for gjennomføring av kurset",
-                        ),
-                    )
-                    val doc = render("enkeltplass-innsokingsbrev", brev)
-
-                    doc.text() shouldContain "Du må selv betale for opplæringen"
-                    doc.text() shouldContain "Du må betale for gjennomføring av kurset"
-                }
             }
 
             describe("Innholdstyper") {

@@ -54,18 +54,6 @@ class EnkeltplassHovedvedtakTest :
                     doc.text() shouldContain "Nav har kjøpt en plass hos opplæringsstedet"
                 }
 
-                it("skal vise Innbyggerfinansiert tekst med tilleggsopplysninger") {
-                    val brev = enkeltplassPdfDto(
-                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
-                            tilleggsopplysninger = "Du må betale for gjennomføring av kurset",
-                        ),
-                    )
-                    val doc = render("enkeltplass-hovedvedtak", brev)
-
-                    doc.text() shouldContain "Du må selv betale for opplæringen"
-                    doc.text() shouldContain "Du må betale for gjennomføring av kurset"
-                }
             }
 
             describe("Innholdstyper") {
