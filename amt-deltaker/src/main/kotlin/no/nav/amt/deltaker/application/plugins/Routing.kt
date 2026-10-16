@@ -27,7 +27,7 @@ import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -91,7 +91,7 @@ fun Application.configureRouting(
     forslagService: ForslagService,
     forslagRepository: ForslagRepository,
     ulestHendelseRepository: UlestHendelseRepository,
-    gjennomforingUpserter: GjennomforingUpserter,
+    gjennomforingProducerService: GjennomforingProducerService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -149,7 +149,7 @@ fun Application.configureRouting(
         registerEnkeltplassApi(
             enkeltplassService = enkeltplassService,
             deltakerResponseBuilder = deltakerResponseBuilder,
-            gjennomforingUpserter = gjennomforingUpserter,
+            gjennomforingProducerService = gjennomforingProducerService,
             navAnsattService = navAnsattService,
             deltakerService = deltakerService,
             distribuerEndringService = distribuerEndringService,

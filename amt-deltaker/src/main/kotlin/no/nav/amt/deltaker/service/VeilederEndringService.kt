@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.service
 
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.extensions.getForslagId
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -31,7 +31,7 @@ class VeilederEndringService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val navAnsattService: NavAnsattService,
     private val unleashToggle: CommonUnleashToggle,
-    private val gjennomforingUpserter: GjennomforingUpserter,
+    private val gjennomforingProducerService: GjennomforingProducerService,
     private val opplaringKategoriseringClient: OpplaringKategoriseringClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -90,7 +90,7 @@ class VeilederEndringService(
                 // årsaken til when-uttrykket her er at prisendringer må påføres prisinformasjonId
                 val endringsRequestForUpsert = when (endringRequest) {
                     is EndretOpplaringKategoriseringRequest -> {
-                        gjennomforingUpserter.lagreOgProduserEnkeltplassEndreInnhold(
+                        gjennomforingProducerService.lagreOgProduserEnkeltplassEndreInnhold(
                             gjennomforingId = deltaker.deltakerliste.id,
                             kodeverkValg = endringRequest.kodeverkValg(),
                             sertifiseringValg = endringRequest.sertifiseringValg,
@@ -102,7 +102,7 @@ class VeilederEndringService(
                     }
 
                     is EndretPrisinfoRequest -> {
-                        val prisinformasjonId = gjennomforingUpserter.lagreOgProduserPrisinfoEndring(
+                        val prisinformasjonId = gjennomforingProducerService.lagreOgProduserPrisinfoEndring(
                             gjennomforingId = deltaker.deltakerliste.id,
                             prisinfo = endringRequest.prisinfo,
                             begrunnelse = endringRequest.begrunnelse,
@@ -113,7 +113,7 @@ class VeilederEndringService(
                     }
 
                     is TilbakekaltPrisendringRequest -> {
-                        val prisinformasjonId = gjennomforingUpserter.produserTilbakekallPrisendring(
+                        val prisinformasjonId = gjennomforingProducerService.produserTilbakekallPrisendring(
                             deltakerId = deltaker.id,
                             endretAvNavIdent = endringRequest.endretAv,
                         )

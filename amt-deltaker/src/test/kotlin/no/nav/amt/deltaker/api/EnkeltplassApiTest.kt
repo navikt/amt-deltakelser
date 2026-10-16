@@ -22,7 +22,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData
@@ -56,7 +56,7 @@ import java.util.UUID
 class EnkeltplassApiTest : IntegrationTestBase() {
     override val enkeltplassService = mockk<EnkeltplassService>()
     override val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
-    override val gjennomforingUpserter = mockk<GjennomforingUpserter>()
+    override val gjennomforingProducerService = mockk<GjennomforingProducerService>()
 
     @Nested
     inner class OpprettKladdTests {
@@ -382,7 +382,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             every { navEnhetRepository.get(navEnhetInTest.id) } returns navEnhetInTest
             every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
             every {
-                gjennomforingUpserter.produserTilbakekallPrisendring(
+                gjennomforingProducerService.produserTilbakekallPrisendring(
                     deltakerId = deltakerInTest.id,
                     endretAvNavIdent = "~endretAv~",
                 )
@@ -404,7 +404,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             response.status shouldBe HttpStatusCode.OK
 
             verify {
-                gjennomforingUpserter.produserTilbakekallPrisendring(
+                gjennomforingProducerService.produserTilbakekallPrisendring(
                     deltakerId = deltakerInTest.id,
                     endretAvNavIdent = "~endretAv~",
                 )

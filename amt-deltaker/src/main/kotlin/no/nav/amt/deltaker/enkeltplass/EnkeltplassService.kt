@@ -57,7 +57,7 @@ class EnkeltplassService(
     private val deltakerProducerService: DeltakerProducerService,
     private val innsokService: InnsokService,
     private val distribuerEndringService: DistribuerEndringService,
-    private val gjennomforingUpserter: GjennomforingUpserter,
+    private val gjennomforingProducerService: GjennomforingProducerService,
 ) {
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
@@ -323,7 +323,7 @@ class EnkeltplassService(
                 kategoriseringForTiltak = kategoriseringForTiltak,
             )
 
-            gjennomforingUpserter.produserGjennomforingUpsert(
+            gjennomforingProducerService.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
                 endretAvNavIdent = decoratedRequest.endretAv,
                 endretAvEnhet = decoratedRequest.endretAvEnhet,
