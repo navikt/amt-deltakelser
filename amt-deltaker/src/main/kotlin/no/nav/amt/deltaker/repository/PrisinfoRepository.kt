@@ -5,7 +5,6 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.GodkjentPrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus
-import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
@@ -21,7 +20,8 @@ object PrisinfoRepository {
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
-                ingenkostnader_aarsak
+                ingenkostnader_aarsak,
+                begrunnelse
             FROM enkeltplass_prisinformasjon
             WHERE id = ?
             """.trimIndent()
@@ -71,7 +71,8 @@ object PrisinfoRepository {
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
-                prisinfo.ingenkostnader_aarsak
+                prisinfo.ingenkostnader_aarsak,
+                prisinfo.begrunnelse
             FROM
                 deltakerliste_2_prisinformasjon d2p
                 JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
@@ -100,7 +101,8 @@ object PrisinfoRepository {
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
-                prisinfo.ingenkostnader_aarsak
+                prisinfo.ingenkostnader_aarsak,
+                prisinfo.begrunnelse
             FROM
                 deltakerliste_2_prisinformasjon d2p
                 JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
@@ -117,7 +119,7 @@ object PrisinfoRepository {
         }
     }
 
-    fun upsertPrisinfo(upsertDbo: PrisinfoUpsertDbo) {
+    fun upsertPrisinfo(prisinfoDbo: PrisinfoDbo) {
         val sql =
             """
             INSERT INTO enkeltplass_prisinformasjon (
@@ -127,7 +129,8 @@ object PrisinfoRepository {
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
-                ingenkostnader_aarsak
+                ingenkostnader_aarsak,
+                begrunnelse
             )
             VALUES (
                 :id,
@@ -136,7 +139,8 @@ object PrisinfoRepository {
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
                 :tilleggsopplysninger,
-                :ingenkostnader_aarsak
+                :ingenkostnader_aarsak,
+                :begrunnelse
             )
             ON CONFLICT (id) DO UPDATE SET
                 status = EXCLUDED.status,
@@ -144,17 +148,19 @@ object PrisinfoRepository {
                 anskaffelse_pris = EXCLUDED.anskaffelse_pris,
                 tilleggsopplysninger = EXCLUDED.tilleggsopplysninger,
                 ingenkostnader_aarsak = EXCLUDED.ingenkostnader_aarsak,
+                begrunnelse = EXCLUDED.begrunnelse,
                 modified_at = now()
             """.trimIndent()
 
         val params = mapOf(
-            "id" to upsertDbo.id,
-            "deltakerliste_id" to upsertDbo.gjennomforingId,
-            "status" to upsertDbo.status.name,
-            "prisinformasjon_json_type" to upsertDbo.prisinfoJsonSubtype,
-            "anskaffelse_pris" to upsertDbo.anskaffelsePris,
-            "tilleggsopplysninger" to upsertDbo.tilleggsopplysninger,
-            "ingenkostnader_aarsak" to upsertDbo.ingenkostnaderAarsak?.name,
+            "id" to prisinfoDbo.id,
+            "deltakerliste_id" to prisinfoDbo.gjennomforingId,
+            "status" to prisinfoDbo.status.name,
+            "prisinformasjon_json_type" to prisinfoDbo.prisinfoJsonSubtype,
+            "anskaffelse_pris" to prisinfoDbo.anskaffelsePris,
+            "tilleggsopplysninger" to prisinfoDbo.tilleggsopplysninger,
+            "ingenkostnader_aarsak" to prisinfoDbo.ingenkostnaderAarsak?.name,
+            "begrunnelse" to prisinfoDbo.begrunnelse,
         )
 
         Database.query { session ->
@@ -245,6 +251,7 @@ object PrisinfoRepository {
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
                 prisinfo.ingenkostnader_aarsak,
+                prisinfo.begrunnelse,
                 prisinfo.modified_at,
                 godkjenning.godkjent_av,
                 godkjenning.godkjent_av_enhet,
@@ -286,5 +293,6 @@ object PrisinfoRepository {
         ingenkostnaderAarsak = row.stringOrNull("ingenkostnader_aarsak")?.let {
             Aarsak.valueOf(it)
         },
+        begrunnelse = row.stringOrNull("begrunnelse"),
     )
 }

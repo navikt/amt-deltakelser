@@ -66,12 +66,13 @@ class GjennomforingUpserter(
     fun lagreOgProduserPrisinfoEndring(
         gjennomforingId: UUID,
         prisinfo: PrisinformasjonDto,
-        begrunnelse: String?,
+        begrunnelse: String,
         endretAvNavIdent: String,
     ): UUID {
         val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
             gjennomforingId = gjennomforingId,
             prisinformasjon = prisinfo,
+            begrunnelse = begrunnelse,
         )
 
         val endrePrisinfoPayload = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(

@@ -9,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -29,13 +28,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class PrisinfoRepositoryTest {
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-
-        private val gjennomforingInTest = lagDeltakerliste()
-    }
-
     @Nested
     inner class UpsertPrisinfoTests {
         @Test
@@ -43,7 +35,7 @@ class PrisinfoRepositoryTest {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
@@ -52,11 +44,11 @@ class PrisinfoRepositoryTest {
             )
 
             // Act
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
-                prisinformasjonId = upsertDbo.id,
+                prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
@@ -84,17 +76,17 @@ class PrisinfoRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             )
 
             // Act
-            PrisinfoRepository.upsertPrisinfo(upsertDbo = upsertDbo)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo = prisinfoDbo)
 
             Deltakerliste2PrisinfoRepository.upsert(
                 gjennomforingId = deltakerliste.id,
-                prisinformasjonId = upsertDbo.id,
+                prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
@@ -121,17 +113,17 @@ class PrisinfoRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 10000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
                 gjennomforingId = deltakerliste.id,
-                prisinformasjonId = upsertDbo.id,
+                prisinformasjonId = prisinfoDbo.id,
             )
 
             // Assert
@@ -144,18 +136,18 @@ class PrisinfoRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 10000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(upsertDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(prisinfoDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
                 gjennomforingId = deltakerliste.id,
-                prisinformasjonId = upsertDbo.id,
+                prisinformasjonId = prisinfoDbo.id,
             )
 
             // Assert
@@ -184,17 +176,17 @@ class PrisinfoRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 10000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
                 gjennomforingId = UUID.randomUUID(),
-                prisinformasjonId = upsertDbo.id,
+                prisinformasjonId = prisinfoDbo.id,
             )
 
             // Assert
@@ -270,12 +262,12 @@ class PrisinfoRepositoryTest {
             )
             TestRepository.insert(deltaker, vedtak)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -299,14 +291,14 @@ class PrisinfoRepositoryTest {
             )
             TestRepository.insert(deltaker, vedtak)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 20000,
                 tilleggsopplysninger = "Opplysning",
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
+            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -332,12 +324,12 @@ class PrisinfoRepositoryTest {
             )
             TestRepository.insert(deltaker, vedtak)
 
-            val godkjentPrisinfo = PrisinfoUpsertDbo(
+            val godkjentPrisinfo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 10000,
             )
-            val kladdPrisinfo = PrisinfoUpsertDbo(
+            val kladdPrisinfo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 25000,
@@ -357,13 +349,13 @@ class PrisinfoRepositoryTest {
         fun `returnerer tom liste for deltaker uten vedtak`() {
             TestRepository.insert(deltaker)
 
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
+            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -406,13 +398,13 @@ class PrisinfoRepositoryTest {
             TestRepository.insert(deltaker2, vedtak2)
 
             // Prisinfo on deltakerliste2 only
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste2.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 30000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
+            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
@@ -480,13 +472,20 @@ class PrisinfoRepositoryTest {
         }
 
         private fun godkjennNyPrisinfo() {
-            val upsertDbo = PrisinfoUpsertDbo(
+            val prisinfoDbo = PrisinfoDbo(
                 gjennomforingId = deltakerliste.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 20000,
             )
-            PrisinfoRepository.upsertPrisinfo(upsertDbo)
-            PrisinfoRepository.settGodkjent(upsertDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
+            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
         }
+    }
+
+    private companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        val gjennomforingInTest = lagDeltakerliste()
     }
 }

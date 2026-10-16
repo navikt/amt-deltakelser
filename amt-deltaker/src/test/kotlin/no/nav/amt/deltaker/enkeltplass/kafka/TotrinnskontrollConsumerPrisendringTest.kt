@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
@@ -12,7 +13,7 @@ import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -22,7 +23,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 import java.util.UUID
 
 class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase() {
@@ -56,9 +56,7 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
             )
         } returns lagIngenKostnader()
         every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
-        every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns listOf(
-            lagPrisinfoEndring(deltakerInTest.id, totrinnskontrollId),
-        )
+        every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns "Prisendringens begrunnelse"
     }
 
     @Nested
@@ -114,54 +112,36 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
     }
 
     @Nested
-    inner class HentBegrunnelseTests {
+    inner class BegrunnelseTests {
         @Test
-        fun `hentBegrunnelse - returnerer begrunnelse for prisinfoId`() {
+        fun `inkluderer begrunnelse fra prisinfo i hendelsen`() = runTest {
             // Arrange
-            val annenPrisinfoId = UUID.randomUUID()
             val forventetBegrunnelse = "Begrunnelse for godkjent prisendring"
-            every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns listOf(
-                lagPrisinfoEndring(deltakerInTest.id, annenPrisinfoId, "Annen begrunnelse"),
-                lagPrisinfoEndring(deltakerInTest.id, totrinnskontrollId, forventetBegrunnelse),
-            )
+            every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns forventetBegrunnelse
+            val hendelseSlot = slot<HendelseType>()
+            every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
 
             // Act
-            val begrunnelse = consumer.hentBegrunnelse(deltakerInTest.id, totrinnskontrollId)
+            processGodkjentPrisEndring(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
 
             // Assert
-            begrunnelse shouldBe forventetBegrunnelse
+            (hendelseSlot.captured as HendelseType.EnkeltplassGodkjennPrisendring).begrunnelse shouldBe forventetBegrunnelse
         }
 
         @Test
-        fun `hentBegrunnelse - kaster unntak når prisinfoendring ikke finnes`() {
+        fun `kaster unntak og publiserer ikke når begrunnelse mangler`() = runTest {
             // Arrange
-            every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns null
 
             // Act
             val exception = shouldThrow<IllegalStateException> {
-                consumer.hentBegrunnelse(deltakerInTest.id, totrinnskontrollId)
+                processGodkjentPrisEndring(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
             }
 
             // Assert
-            exception.message shouldBe
-                "Fant ikke prisinfoendring for deltaker ${deltakerInTest.id} og prisinfo $totrinnskontrollId"
-        }
-
-        @Test
-        fun `hentBegrunnelse - kaster unntak når prisinfoendring mangler begrunnelse`() {
-            // Arrange
-            every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns listOf(
-                lagPrisinfoEndring(deltakerInTest.id, totrinnskontrollId, begrunnelse = null),
-            )
-
-            // Act
-            val exception = shouldThrow<IllegalStateException> {
-                consumer.hentBegrunnelse(deltakerInTest.id, totrinnskontrollId)
-            }
-
-            // Assert
-            exception.message shouldBe
-                "Prisinfoendring mangler begrunnelse for deltaker ${deltakerInTest.id} og prisinfo $totrinnskontrollId"
+            exception.message shouldBe "Fant ikke begrunnelse for prisinfo $totrinnskontrollId"
+            verify(exactly = 0) { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
+            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
     }
 
@@ -169,24 +149,6 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
         fun lagIngenKostnader() = PrisinformasjonDto.IngenKostnader(
             aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = null,
-        )
-
-        fun lagPrisinfoEndring(
-            deltakerId: UUID,
-            prisinfoId: UUID,
-            begrunnelse: String? = "Prisendringens begrunnelse",
-        ) = DeltakerEndring(
-            id = UUID.randomUUID(),
-            deltakerId = deltakerId,
-            endring = DeltakerEndring.Endring.EndrePrisinfo(
-                prisinfo = lagIngenKostnader(),
-                begrunnelse = begrunnelse,
-                prisinformasjonId = prisinfoId,
-            ),
-            endretAv = UUID.randomUUID(),
-            endretAvEnhet = UUID.randomUUID(),
-            endret = LocalDateTime.now(),
-            forslag = null,
         )
 
         fun processGodkjentPrisEndring(

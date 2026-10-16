@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
-import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
@@ -23,7 +22,6 @@ abstract class TotrinnskontrollConsumerTestBase {
     protected val deltakerRepository = mockk<DeltakerRepository>()
     protected val deltakerService = mockk<DeltakerService>()
     protected val vedtakService = mockk<VedtakService>()
-    protected val deltakerEndringRepository = mockk<DeltakerEndringRepository>()
     protected val distribuerEndringService = mockk<DistribuerEndringService>()
     protected val navAnsattService = mockk<NavAnsattService>(relaxed = true)
 
@@ -31,7 +29,6 @@ abstract class TotrinnskontrollConsumerTestBase {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         vedtakService = vedtakService,
-        deltakerEndringRepository = deltakerEndringRepository,
         distribuerEndringService = distribuerEndringService,
         navAnsattService = navAnsattService,
     )

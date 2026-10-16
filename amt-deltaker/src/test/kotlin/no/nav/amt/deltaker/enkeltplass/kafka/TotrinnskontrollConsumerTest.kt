@@ -18,9 +18,7 @@ import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.internapi.hendelse.HendelseType
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
@@ -196,13 +194,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
 
             stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
             stubGjeldendePrisinfo(gjennomforingId, godkjentPrisinfo)
-            stubPrisinfoEndring(
-                deltakerEndringRepository,
-                deltakerInTest,
-                totrinnskontrollId,
-                navAnsattInTest.id,
-                navEnhetInTest.id,
-            )
+            stubBegrunnelse(totrinnskontrollId)
             every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
 
             // Act
@@ -244,13 +236,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     tilleggsopplysninger = null,
                 ),
             )
-            stubPrisinfoEndring(
-                deltakerEndringRepository,
-                deltakerInTest,
-                totrinnskontrollId,
-                navAnsattInTest.id,
-                navEnhetInTest.id,
-            )
+            stubBegrunnelse(totrinnskontrollId)
 
             // Act
             consumer.consume(
@@ -372,13 +358,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                 gjennomforingId,
             )
             stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
-            stubPrisinfoEndring(
-                deltakerEndringRepository,
-                deltakerInTest,
-                totrinnskontrollId,
-                navAnsattInTest.id,
-                navEnhetInTest.id,
-            )
+            stubBegrunnelse(totrinnskontrollId)
             stubGodkjennOkonomi(false)
 
             // Act
@@ -393,30 +373,6 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             // Assert
             verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
-            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
-        }
-
-        @Test
-        fun `consume - godkjent ENKELTPLASS_PRISENDRING skipper feilregistrert deltaker`() = runTest {
-            // Arrange
-            val deltakerInTest = lagEnkeltplassDeltaker(
-                DeltakerStatus.Type.FEILREGISTRERT,
-                gjennomforingId,
-            )
-            stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
-
-            // Act
-            consumer.consume(
-                key = totrinnskontrollId,
-                value = godkjentEnkeltplassPrisinformasjonPayload(
-                    gjennomforingId = gjennomforingId,
-                    totrinnskontrollId = totrinnskontrollId,
-                ),
-            )
-
-            // Assert
-            verify(exactly = 0) { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) }
-            verify(exactly = 0) { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
 
@@ -597,28 +553,8 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             } returns prisinfo
         }
 
-        fun stubPrisinfoEndring(
-            deltakerEndringRepository: DeltakerEndringRepository,
-            deltaker: Deltaker,
-            prisinfoId: UUID,
-            endretAv: UUID,
-            endretAvEnhet: UUID,
-        ) {
-            every { deltakerEndringRepository.getForDeltaker(deltaker.id) } returns listOf(
-                DeltakerEndring(
-                    id = UUID.randomUUID(),
-                    deltakerId = deltaker.id,
-                    endring = DeltakerEndring.Endring.EndrePrisinfo(
-                        prisinfo = lagIngenKostnader(),
-                        begrunnelse = "Testbegrunnelse",
-                        prisinformasjonId = prisinfoId,
-                    ),
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
-                    endret = LocalDateTime.now(),
-                    forslag = null,
-                ),
-            )
+        fun stubBegrunnelse(prisinfoId: UUID) {
+            every { PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId) } returns "Testbegrunnelse"
         }
 
         fun lagIngenKostnader() = PrisinformasjonDto.IngenKostnader(

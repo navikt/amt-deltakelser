@@ -13,10 +13,8 @@ import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.DeltakerUtils
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
-import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -48,7 +46,6 @@ class TotrinnskontrollConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val vedtakService: VedtakService,
-    private val deltakerEndringRepository: DeltakerEndringRepository,
     private val distribuerEndringService: DistribuerEndringService,
     private val navAnsattService: NavAnsattService,
 ) : Consumer<UUID, String?> {
@@ -179,21 +176,6 @@ class TotrinnskontrollConsumer(
         }
     }
 
-    internal fun hentBegrunnelse(
-        deltakerId: UUID,
-        prisinfoId: UUID,
-    ): String {
-        val prisinfoEndring = deltakerEndringRepository
-            .getForDeltaker(deltakerId)
-            .map { it.endring }
-            .filterIsInstance<DeltakerEndring.Endring.EndrePrisinfo>()
-            .firstOrNull { it.prisinformasjonId == prisinfoId }
-            ?: error("Fant ikke prisinfoendring for deltaker $deltakerId og prisinfo $prisinfoId")
-
-        return prisinfoEndring.begrunnelse
-            ?: error("Prisinfoendring mangler begrunnelse for deltaker $deltakerId og prisinfo $prisinfoId")
-    }
-
     /**
      * Prosesserer godkjent prisendring for en deltaker.
      *
@@ -207,16 +189,9 @@ class TotrinnskontrollConsumer(
         godkjentAvNavAnsatt: NavAnsatt,
         godkjentAvNavEnhet: NavEnhet,
     ) {
-        if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
-            log.info("Skipper godkjent prisendring for feilregistrert deltaker ${deltaker.id}")
-            return
-        }
-
         // henter begrunnelse først for å holde transaksjonen kort
-        val begrunnelse = hentBegrunnelse(
-            deltakerId = deltaker.id,
-            prisinfoId = prisinfoId,
-        )
+        val begrunnelse = PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId)
+            ?: error("Fant ikke begrunnelse for prisinfo $prisinfoId")
 
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(

@@ -6,7 +6,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -16,47 +16,31 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import java.util.UUID
 
 class PrisinfoBelopRepositoryTest {
-    companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-
-        private val gjennomforingInTest = lagDeltakerliste()
-
-        private val prisinfoUpsertDboInTest = PrisinfoUpsertDbo(
-            gjennomforingId = gjennomforingInTest.id,
-            prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
-            anskaffelsePris = 15000,
-            tilleggsopplysninger = "Standard opplysning",
-            ingenkostnaderAarsak = null,
-        )
-    }
-
     @Nested
     inner class LagrePrisinfoliste {
         @Test
         fun `tom liste - lagrer ingenting`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
-            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDboInTest)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDboInTest)
 
             // Act
             PrisinfoBelopRepository.lagrePrisinfoBelop(
-                prisinformasjonId = prisinfoUpsertDboInTest.id,
+                prisinformasjonId = prisinfoDboInTest.id,
                 belop = emptySet(),
             )
 
             // Assert
-            PrisinfoBelopRepository.hentPrisinfoBelop(prisinfoUpsertDboInTest.id).shouldBeEmpty()
+            PrisinfoBelopRepository.hentPrisinfoBelop(prisinfoDboInTest.id).shouldBeEmpty()
         }
 
         @Test
         fun `flere prisinfo - lagrer alle`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
-            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDboInTest)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDboInTest)
 
             val prisinfos = setOf(
                 Priskomponent(Tilskuddstype.SKOLEPENGER, 1),
@@ -68,13 +52,13 @@ class PrisinfoBelopRepositoryTest {
 
             // Act
             PrisinfoBelopRepository.lagrePrisinfoBelop(
-                prisinformasjonId = prisinfoUpsertDboInTest.id,
+                prisinformasjonId = prisinfoDboInTest.id,
                 belop = prisinfos,
             )
 
             // Assert
             PrisinfoBelopRepository
-                .hentPrisinfoBelop(prisinfoUpsertDboInTest.id)
+                .hentPrisinfoBelop(prisinfoDboInTest.id)
                 .shouldContainExactlyInAnyOrder(prisinfos)
         }
     }
@@ -84,10 +68,10 @@ class PrisinfoBelopRepositoryTest {
         @Test
         fun `ingen prisinfo lagret - returnerer tomt sett`() {
             TestRepository.insert(gjennomforingInTest)
-            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDboInTest)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDboInTest)
 
             // Act
-            val resultat = PrisinfoBelopRepository.hentPrisinfoBelop(prisinfoUpsertDboInTest.id)
+            val resultat = PrisinfoBelopRepository.hentPrisinfoBelop(prisinfoDboInTest.id)
 
             // Assert
             resultat.shouldBeEmpty()
@@ -98,7 +82,7 @@ class PrisinfoBelopRepositoryTest {
     inner class HentPrisinfoBelopBatchTests {
         @Test
         fun `tom liste - returnerer tomt map uten databasekall`() {
-            PrisinfoBelopRepository.hentPrisinfoBelop(emptyList<UUID>()) shouldBe emptyMap()
+            PrisinfoBelopRepository.hentPrisinfoBelop(emptyList()) shouldBe emptyMap()
         }
 
         @Test
@@ -106,17 +90,17 @@ class PrisinfoBelopRepositoryTest {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
-            val prisinfoA = PrisinfoUpsertDbo(
+            val prisinfoA = PrisinfoDbo(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 1000,
             )
-            val prisinfoB = PrisinfoUpsertDbo(
+            val prisinfoB = PrisinfoDbo(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 2000,
             )
-            val prisinfoUtenBelop = PrisinfoUpsertDbo(
+            val prisinfoUtenBelop = PrisinfoDbo(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 3000,
@@ -151,7 +135,7 @@ class PrisinfoBelopRepositoryTest {
         fun `ingen prisinfo lagret - kaster ikke exception`() {
             // Act & Assert
             shouldNotThrowAny {
-                PrisinfoBelopRepository.deleteForPrisinfo(prisinfoUpsertDboInTest.id)
+                PrisinfoBelopRepository.deleteForPrisinfo(prisinfoDboInTest.id)
             }
         }
 
@@ -159,7 +143,7 @@ class PrisinfoBelopRepositoryTest {
         fun `prisinfo lagret - sletter alle`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
-            PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDboInTest)
+            PrisinfoRepository.upsertPrisinfo(prisinfoDboInTest)
 
             val prisinfos = setOf(
                 Priskomponent(Tilskuddstype.SKOLEPENGER, 1),
@@ -170,15 +154,30 @@ class PrisinfoBelopRepositoryTest {
             )
 
             PrisinfoBelopRepository.lagrePrisinfoBelop(
-                prisinformasjonId = prisinfoUpsertDboInTest.id,
+                prisinformasjonId = prisinfoDboInTest.id,
                 belop = prisinfos,
             )
 
             // Act
-            val antallRaderSlettet = PrisinfoBelopRepository.deleteForPrisinfo(prisinfoUpsertDboInTest.id)
+            val antallRaderSlettet = PrisinfoBelopRepository.deleteForPrisinfo(prisinfoDboInTest.id)
 
             // Assert
             antallRaderSlettet shouldBe prisinfos.size
         }
+    }
+
+    private companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        val gjennomforingInTest = lagDeltakerliste()
+
+        val prisinfoDboInTest = PrisinfoDbo(
+            gjennomforingId = gjennomforingInTest.id,
+            prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+            anskaffelsePris = 15000,
+            tilleggsopplysninger = "Standard opplysning",
+            ingenkostnaderAarsak = null,
+        )
     }
 }

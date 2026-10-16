@@ -275,6 +275,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
             gjennomforingId = deltaker.deltakerliste.id,
             prisinformasjon = prisinfo,
+            begrunnelse = "Begrunnelse",
         )
         val endringsrequest = TilbakekaltPrisendringRequest(
             endretAv = navAnsattInTest.navIdent,
@@ -289,7 +290,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         )
 
         assertSoftly(resultat.endring.shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()) {
-            this.prisinfo shouldBe prisinfo
+            this.prisinfo shouldBe prisinfo.copy(begrunnelse = "Begrunnelse")
             this.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
             this.prisinformasjonId shouldBe prisinformasjonId
         }

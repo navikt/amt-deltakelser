@@ -113,7 +113,7 @@ class GjennomforingUpserterTest {
             PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(any(), any())
         } returns totrinnsIdInTest
         every {
-            PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any())
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any(), any())
         } returns totrinnsIdInTest
     }
 
@@ -137,6 +137,7 @@ class GjennomforingUpserterTest {
             )
 
             // Assert
+            verify { PrisinfoRepoAdapter.lagrePrisinfoEndring(deltaker.deltakerliste.id, nyPrisinfo, "~begrunnelse~") }
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = deltaker.deltakerliste.id,
@@ -167,7 +168,7 @@ class GjennomforingUpserterTest {
                 sut.lagreOgProduserPrisinfoEndring(
                     gjennomforingId = deltaker.deltakerliste.id,
                     prisinfo = nyPrisinfo,
-                    begrunnelse = null,
+                    begrunnelse = "~begrunnelse~",
                     endretAvNavIdent = "Z123456",
                 )
             }
@@ -186,7 +187,7 @@ class GjennomforingUpserterTest {
             sut.lagreOgProduserPrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinfo = nyPrisinfo,
-                begrunnelse = null,
+                begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = endretAv,
             )
 
