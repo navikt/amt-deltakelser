@@ -698,7 +698,6 @@ class VeilederApiTest : IntegrationTestBase() {
 
     private val endrePrisinfoRequest = EndrePrisinfoRequest(
         prisinformasjon = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = "Ingen kostnader",
         ),
         begrunnelse = "begrunnelse",

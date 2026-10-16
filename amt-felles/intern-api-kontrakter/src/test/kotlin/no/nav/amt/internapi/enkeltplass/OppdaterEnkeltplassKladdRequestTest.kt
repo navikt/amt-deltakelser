@@ -12,7 +12,6 @@ class OppdaterEnkeltplassKladdRequestTest {
         // Arrange
         val longString = "a".repeat(1000)
         val prisinformasjonInTest = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = longString,
         )
 

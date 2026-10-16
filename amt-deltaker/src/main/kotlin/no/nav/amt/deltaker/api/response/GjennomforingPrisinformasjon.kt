@@ -92,7 +92,7 @@ object GjennomforingPrisinformasjon {
         return when (prisinformasjon) {
             is PrisinformasjonDto.Anskaffelse -> prisinformasjon.copy(begrunnelse = begrunnelse)
             is PrisinformasjonDto.Tilskudd -> prisinformasjon.copy(begrunnelse = begrunnelse)
-            is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse)
+            is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse.orEmpty())
         }
     }
 }

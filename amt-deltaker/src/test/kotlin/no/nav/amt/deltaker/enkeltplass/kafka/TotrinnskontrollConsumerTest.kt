@@ -28,7 +28,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.utils.database.Database
@@ -70,8 +69,7 @@ class TotrinnskontrollConsumerTest {
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
         every { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), any<PrisinfoDbo.Rolle>()) } returns PrisinformasjonDto.IngenKostnader(
-            aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
+            tilleggsopplysninger = "",
         )
 
         coEvery {
@@ -265,8 +263,7 @@ class TotrinnskontrollConsumerTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(DeltakerStatus.Type.VENTER_PA_OPPSTART)
             val godkjentPrisinfo = PrisinformasjonDto.IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
             val hendelseSlot = slot<HendelseType>()
 
@@ -304,8 +301,7 @@ class TotrinnskontrollConsumerTest {
             stubEnkeltplassDeltaker(deltakerInTest)
             stubGjeldendePrisinfo(
                 PrisinformasjonDto.IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             )
 
@@ -332,8 +328,7 @@ class TotrinnskontrollConsumerTest {
             stubEnkeltplassDeltaker(deltakerInTest)
             stubGjeldendePrisinfo(
                 PrisinformasjonDto.IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             )
 
@@ -861,8 +856,7 @@ class TotrinnskontrollConsumerTest {
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 )
             } returns PrisinformasjonDto.IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
@@ -870,8 +864,7 @@ class TotrinnskontrollConsumerTest {
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 )
             } returns PrisinformasjonDto.IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
             every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
         }

@@ -20,7 +20,6 @@ import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
@@ -116,20 +115,21 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(gjennomforingInTest)
 
             val ingenKostnader = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "Gratis opplaering",
             )
 
-            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = ingenKostnader,
             )
 
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
+            val stored = PrisinfoRepository.hentPrisinfo(prisinfoId)
 
             // Assert
             result shouldBe ingenKostnader
+            stored?.ingenkostnaderAarsak shouldBe PrisinfoDbo.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI
         }
 
         @Test
@@ -609,8 +609,7 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(deltakerliste)
 
             val ingenKostnader = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
 
             // Act
@@ -688,8 +687,7 @@ class PrisinfoRepoAdapterTest {
             TestRepository.insert(deltakerliste)
 
             val ingenKostnader = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
 
             // Act
@@ -880,7 +878,6 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(deltakerliste.id, tilskudd)
 
             val ingenKostnader = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "Egenfinansiert",
             )
 

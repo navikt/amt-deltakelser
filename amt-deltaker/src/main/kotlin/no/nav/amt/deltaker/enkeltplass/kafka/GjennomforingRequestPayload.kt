@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -123,13 +122,7 @@ sealed interface GjennomforingRequestPayload {
                 )
 
                 is PrisinformasjonDto.IngenKostnader -> IngenKostnader(
-                    aarsak = when (source.aarsak) {
-                        Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI ->
-                            IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI
-
-                        Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT ->
-                            IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT
-                    },
+                    aarsak = IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = source.tilleggsopplysninger,
                 )
             }

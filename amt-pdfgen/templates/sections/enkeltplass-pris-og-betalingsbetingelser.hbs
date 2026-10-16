@@ -17,6 +17,12 @@
         <p class="margins-1-rem">
             Du eller Nav skal ikke betale for opplæringen.
         </p>
+
+        {{#if prisinformasjon.tilleggsopplysninger}}
+            <p class="margins-1-rem">
+                {{prisinformasjon.tilleggsopplysninger}}
+            </p>
+        {{/if}}
     {{/eq}}
 
     {{#eq prisinformasjon.type "Innbyggerfinansiert"}}

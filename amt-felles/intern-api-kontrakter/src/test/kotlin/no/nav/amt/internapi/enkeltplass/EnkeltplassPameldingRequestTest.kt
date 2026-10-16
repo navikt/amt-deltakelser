@@ -16,7 +16,6 @@ class EnkeltplassPameldingRequestTest {
         // Arrange
         val longString = "a".repeat(1000)
         val prisinformasjonInTest = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
             tilleggsopplysninger = longString,
         )
 
@@ -48,8 +47,7 @@ class EnkeltplassPameldingRequestTest {
                 startdato = LocalDate.of(2026, 1, 2),
                 sluttdato = LocalDate.of(2026, 1, 1),
                 prisinformasjon = PrisinformasjonDto.IngenKostnader(
-                    aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             )
         }
