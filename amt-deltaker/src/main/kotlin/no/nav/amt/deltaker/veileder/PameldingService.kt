@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.veileder
 
-import no.nav.amt.deltaker.enkeltplass.GjennomforingRequestProducerService
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -27,7 +27,7 @@ class PameldingService(
     private val vedtakService: VedtakService,
     private val distribuerEndringService: DistribuerEndringService,
     private val innsokService: InnsokService,
-    private val gjennomforingRequestProducerService: GjennomforingRequestProducerService,
+    private val gjennomforingProducerService: GjennomforingProducerService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -125,7 +125,7 @@ class PameldingService(
                 distribuerEndringService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
 
                 if (deltaker.erEnkeltplass && deltaker.status.type == DeltakerStatus.Type.SOKT_INN) {
-                    gjennomforingRequestProducerService.produserGjennomforing(deltaker)
+                    gjennomforingProducerService.produserGjennomforing(deltaker)
                 }
             },
         )

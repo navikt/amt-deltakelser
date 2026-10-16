@@ -27,7 +27,7 @@ import java.util.UUID
  *
  * Bygger opp korrekt payload basert på deltakerens status og sender til [GjennomforingRequestProducer].
  */
-class GjennomforingRequestProducerService(
+class GjennomforingProducerService(
     private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,

@@ -10,7 +10,7 @@ import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.amt.deltaker.enkeltplass.GjennomforingRequestProducerService.Companion.toMulighetsrommetKategorisering
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class GjennomforingRequestProducerServiceTest {
+class GjennomforingProducerServiceTest {
     private val navEnhetRepository = mockk<NavEnhetRepository>()
     private val navAnsattRepository = mockk<NavAnsattRepository>()
     private val vedtakService = mockk<VedtakService>()
@@ -57,7 +57,7 @@ class GjennomforingRequestProducerServiceTest {
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
     private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>(relaxed = true)
 
-    private val sut = GjennomforingRequestProducerService(
+    private val sut = GjennomforingProducerService(
         navEnhetRepository = navEnhetRepository,
         navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
