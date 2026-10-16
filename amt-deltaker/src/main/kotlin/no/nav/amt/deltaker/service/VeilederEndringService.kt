@@ -105,7 +105,9 @@ class VeilederEndringService(
                         val prisinformasjonId = gjennomforingProducerService.lagreOgProduserPrisinfoEndring(
                             gjennomforingId = deltaker.deltakerliste.id,
                             prisinfo = endringRequest.prisinfo,
-                            begrunnelse = endringRequest.begrunnelse,
+                            begrunnelse = requireNotNull(endringRequest.begrunnelse) {
+                                "${endringRequest::class.simpleName} krever begrunnelse for deltaker ${deltaker.id}"
+                            },
                             endretAvNavIdent = endringRequest.endretAv,
                         )
 

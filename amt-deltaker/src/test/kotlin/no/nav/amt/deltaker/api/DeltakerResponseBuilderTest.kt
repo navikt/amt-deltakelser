@@ -212,9 +212,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
             } returns emptyMap()
-            every {
-                PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id)
-            } returns null
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
@@ -259,35 +256,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         // Arrange
         val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
         val gjeldendePrisinfo = Anskaffelse(pris = 10000)
-        val prisinfoTilGodkjenning = Anskaffelse(pris = 12000)
-        val prisinformasjonId = UUID.randomUUID()
         val forventetBegrunnelse = "Oppdatert etter ny dokumentasjon"
-        val irrelevantBegrunnelse = "Dette er en annen endring"
-
-        val historikk = listOf(
-            DeltakerHistorikk.Endring(
-                lagDeltakerEndring(
-                    deltakerId = UUID.randomUUID(),
-                    endring = DeltakerEndring.Endring.EndrePrisinfo(
-                        prisinfo = Anskaffelse(pris = 99999),
-                        begrunnelse = irrelevantBegrunnelse,
-                        prisinformasjonId = UUID.randomUUID(),
-                        status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
-                    ),
-                ),
-            ),
-            DeltakerHistorikk.Endring(
-                lagDeltakerEndring(
-                    deltakerId = UUID.randomUUID(),
-                    endring = DeltakerEndring.Endring.EndrePrisinfo(
-                        prisinfo = prisinfoTilGodkjenning,
-                        begrunnelse = forventetBegrunnelse,
-                        prisinformasjonId = prisinformasjonId,
-                        status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
-                    ),
-                ),
-            ),
-        )
+        val prisinfoTilGodkjenning = Anskaffelse(pris = 12000, begrunnelse = forventetBegrunnelse)
 
         mockkObject(PrisinfoRepoAdapter)
         try {
@@ -297,15 +267,11 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
                 PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
                 PrisinfoDbo.Rolle.ENDRING to prisinfoTilGodkjenning,
             )
-            every {
-                PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id)
-            } returns prisinformasjonId
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(
                 deltakerliste = deltakerliste,
                 includeOpplaringKategorisering = true,
-                historikk = historikk,
             )
 
             // Assert
@@ -1002,83 +968,6 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             // Assert
             funnet?.aktiv shouldBe gjeldendePrisinfo
             funnet?.tilGodkjenning shouldBe endringPrisinfo
-        }
-    }
-
-    @Test
-    fun `buildGjennomforingResponse - prisinformasjonTilGodkjenning bruker nyeste matchende EndrePrisinfo-begrunnelse`() {
-        // Arrange
-        val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
-        val gjeldendePrisinfo = Anskaffelse(pris = 10000)
-        val prisinfoTilGodkjenning = Anskaffelse(pris = 12000)
-        val prisinformasjonId = UUID.randomUUID()
-        val eldreBegrunnelse = "Eldre begrunnelse"
-        val nyesteBegrunnelse = "Nyeste begrunnelse"
-        val now = LocalDateTime.now()
-
-        val historikk = listOf(
-            DeltakerHistorikk.Endring(
-                lagDeltakerEndring(
-                    deltakerId = UUID.randomUUID(),
-                    endring = DeltakerEndring.Endring.EndrePrisinfo(
-                        prisinfo = prisinfoTilGodkjenning,
-                        begrunnelse = eldreBegrunnelse,
-                        prisinformasjonId = prisinformasjonId,
-                        status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
-                    ),
-                    endret = now.minusDays(2),
-                ),
-            ),
-            DeltakerHistorikk.Endring(
-                lagDeltakerEndring(
-                    deltakerId = UUID.randomUUID(),
-                    endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                        deltakelsesprosent = 50F,
-                        dagerPerUke = 2F,
-                        gyldigFra = LocalDate.now(),
-                        begrunnelse = "Skal ignoreres",
-                    ),
-                    endret = now.minusDays(1),
-                ),
-            ),
-            DeltakerHistorikk.Endring(
-                lagDeltakerEndring(
-                    deltakerId = UUID.randomUUID(),
-                    endring = DeltakerEndring.Endring.EndrePrisinfo(
-                        prisinfo = prisinfoTilGodkjenning,
-                        begrunnelse = nyesteBegrunnelse,
-                        prisinformasjonId = prisinformasjonId,
-                        status = DeltakerEndring.Endring.EndrePrisinfo.Status.SENDT_TIL_GODKJENNING,
-                    ),
-                    endret = now,
-                ),
-            ),
-        )
-
-        mockkObject(PrisinfoRepoAdapter)
-        try {
-            every {
-                PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
-            } returns mapOf(
-                PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
-                PrisinfoDbo.Rolle.ENDRING to prisinfoTilGodkjenning,
-            )
-            every {
-                PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id)
-            } returns prisinformasjonId
-
-            // Act
-            val response = deltakerResponseBuilder.buildGjennomforingResponse(
-                deltakerliste = deltakerliste,
-                includeOpplaringKategorisering = true,
-                historikk = historikk,
-            )
-
-            // Assert
-            (response.prisinformasjon as Anskaffelse).begrunnelse shouldBe null
-            (response.prisinformasjonTilGodkjenning as Anskaffelse).begrunnelse shouldBe nyesteBegrunnelse
-        } finally {
-            unmockkObject(PrisinfoRepoAdapter)
         }
     }
 }

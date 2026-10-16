@@ -157,6 +157,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjon = prisinfo,
+                begrunnelse = "Begrunnelse",
             )
             val request = EndretPrisinfoRequest(
                 endretAv = navAnsattInTest.navIdent,
@@ -178,7 +179,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
-            ) shouldBe prisinfo
+            ) shouldBe prisinfo.copy(begrunnelse = "Begrunnelse")
             outboxService.assertNotProduced<GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon>(
                 expectedKey = deltaker.deltakerliste.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
@@ -203,6 +204,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjon = gammelPrisinfo,
+                begrunnelse = "Begrunnelse",
             )
             val nyPrisinfo = PrisinformasjonDto.Anskaffelse(pris = 7500)
             val request = EndretPrisinfoRequest(
@@ -222,7 +224,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
-            ) shouldBe nyPrisinfo
+            ) shouldBe nyPrisinfo.copy(begrunnelse = request.begrunnelse)
             deltakerEndringRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
             verify {
@@ -254,6 +256,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltaker.deltakerliste.id,
                 prisinformasjon = prisinfoTilGodkjenning,
+                begrunnelse = "Begrunnelse",
             )
             val request = TilbakekaltPrisendringRequest(
                 endretAv = navAnsattInTest.navIdent,
@@ -274,7 +277,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 .shouldBeInstanceOf<DeltakerEndring.Endring.EndrePrisinfo>()
 
             endring.status shouldBe DeltakerEndring.Endring.EndrePrisinfo.Status.TILBAKEKALT
-            endring.prisinfo shouldBe prisinfoTilGodkjenning
+            endring.prisinfo shouldBe prisinfoTilGodkjenning.copy(begrunnelse = "Begrunnelse")
             endring.prisinformasjonId shouldBe prisinformasjonId
 
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassTilbakekallPrisendring>(deltaker.id)

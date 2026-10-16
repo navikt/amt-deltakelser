@@ -189,6 +189,10 @@ class TotrinnskontrollConsumer(
         godkjentAvNavAnsatt: NavAnsatt,
         godkjentAvNavEnhet: NavEnhet,
     ) {
+        // henter begrunnelse først for å holde transaksjonen kort
+        val begrunnelse = PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId)
+            ?: error("Fant ikke begrunnelse for prisinfo $prisinfoId")
+
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
@@ -208,7 +212,10 @@ class TotrinnskontrollConsumer(
                 deltaker = deltaker,
                 navAnsatt = behandletAvNavAnsatt,
                 enhet = behandletAvNavEnhet,
-                endring = HendelseType.EnkeltplassGodkjennPrisendring(prisinfo = godkjentPrisinfo),
+                endring = HendelseType.EnkeltplassGodkjennPrisendring(
+                    prisinfo = godkjentPrisinfo,
+                    begrunnelse = begrunnelse,
+                ),
             )
         }
     }

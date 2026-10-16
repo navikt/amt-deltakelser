@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.repository
 
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
@@ -35,6 +34,8 @@ object PrisinfoRepoAdapter {
 
     fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
         Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
+
+    fun hentBegrunnelse(prisinformasjonId: UUID): String? = PrisinfoRepository.hentPrisinfo(prisinformasjonId)?.begrunnelse
 
     /**
      * Godkjenner prisinfo for økonomi.
@@ -148,7 +149,7 @@ object PrisinfoRepoAdapter {
         val faktiskPrisinfoId = eksisterendePrisinfoId ?: UUID.randomUUID()
 
         PrisinfoRepository.upsertPrisinfo(
-            prisinformasjon.toPrisinfoUpsertDbo(
+            prisinformasjon.toPrisinfoDbo(
                 prisinfoId = faktiskPrisinfoId,
                 gjennomforingId = gjennomforingId,
             ),
@@ -180,20 +181,23 @@ object PrisinfoRepoAdapter {
      *
      * @param gjennomforingId Gjennomføring-ID
      * @param prisinformasjon Prisinformasjonen som skal lagres (Anskaffelse | Tilskudd | IngenKostnader)
+     * @param begrunnelse Begrunnelsen for prisendringen
      * @return ID for lagret prisinfo
      */
     fun lagrePrisinfoEndring(
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
+        begrunnelse: String,
     ): UUID {
         // her skal vi sette inn en ny prisinfo
         val nyPrisinfoId = UUID.randomUUID()
 
         PrisinfoRepository.upsertPrisinfo(
-            prisinformasjon.toPrisinfoUpsertDbo(
+            prisinformasjon.toPrisinfoDbo(
                 prisinfoId = nyPrisinfoId,
                 gjennomforingId = gjennomforingId,
                 status = PrisinfoDbo.PrisinfoStatus.SENDT,
+                begrunnelse = begrunnelse,
             ),
         )
 
@@ -251,10 +255,12 @@ object PrisinfoRepoAdapter {
         ANSKAFFELSE_SUB_TYPE -> Anskaffelse(
             this.anskaffelsePris
                 ?: throw IllegalStateException("Anskaffelsepris kan ikke være null"),
+            begrunnelse = this.begrunnelse,
         )
 
         TILSKUDD_SUB_TYPE -> Tilskudd(
             tilleggsopplysninger = this.tilleggsopplysninger,
+            begrunnelse = this.begrunnelse,
             tilskudd = belop
                 .map {
                     TilskuddInfo(
@@ -268,6 +274,7 @@ object PrisinfoRepoAdapter {
             tilleggsopplysninger = this.tilleggsopplysninger,
             aarsak = this.ingenkostnaderAarsak
                 ?: throw IllegalStateException("Årsak for ingen kostnader kan ikke være null"),
+            begrunnelse = this.begrunnelse,
         )
 
         else -> throw IllegalStateException("Ukjent prisinfoJsonSubtype: ${this.prisinfoJsonSubtype}")
@@ -296,33 +303,37 @@ object PrisinfoRepoAdapter {
      * - **Tilskudd:** Lagrer `tilleggsopplysninger` (beløpene lagres separat via `lagrePrisinfoBelop`)
      * - **IngenKostnader:** Lagrer årsak og tilleggsopplysninger
      *
-     * @return [PrisinfoUpsertDbo]
+     * @return [PrisinfoDbo]
      */
-    internal fun PrisinformasjonDto.toPrisinfoUpsertDbo(
+    internal fun PrisinformasjonDto.toPrisinfoDbo(
         prisinfoId: UUID,
         gjennomforingId: UUID,
         status: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST,
-    ): PrisinfoUpsertDbo = when (this) {
-        is Anskaffelse -> PrisinfoUpsertDbo(
+        begrunnelse: String? = null,
+    ): PrisinfoDbo = when (this) {
+        is Anskaffelse -> PrisinfoDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
             status = status,
+            begrunnelse = begrunnelse,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = this.pris,
         )
 
-        is Tilskudd -> PrisinfoUpsertDbo(
+        is Tilskudd -> PrisinfoDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
             status = status,
+            begrunnelse = begrunnelse,
             prisinfoJsonSubtype = TILSKUDD_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
         )
 
-        is IngenKostnader -> PrisinfoUpsertDbo(
+        is IngenKostnader -> PrisinfoDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
             status = status,
+            begrunnelse = begrunnelse,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
             ingenkostnaderAarsak = this.aarsak,
@@ -354,6 +365,12 @@ object PrisinfoRepoAdapter {
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
-        return eksisterendePrisinfo?.sanitize() == endringRequest.prisinfo.sanitize()
+        return eksisterendePrisinfo?.utenBegrunnelse()?.sanitize() == endringRequest.prisinfo.utenBegrunnelse().sanitize()
+    }
+
+    private fun PrisinformasjonDto.utenBegrunnelse(): PrisinformasjonDto = when (this) {
+        is Anskaffelse -> copy(begrunnelse = null)
+        is Tilskudd -> copy(begrunnelse = null)
+        is IngenKostnader -> copy(begrunnelse = null)
     }
 }
