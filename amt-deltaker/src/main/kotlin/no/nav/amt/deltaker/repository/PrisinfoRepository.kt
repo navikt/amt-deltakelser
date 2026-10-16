@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.repository.dbo.GodkjentPrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus
 import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -284,7 +283,7 @@ object PrisinfoRepository {
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),
         ingenkostnaderAarsak = row.stringOrNull("ingenkostnader_aarsak")?.let {
-            Aarsak.valueOf(it)
+            PrisinfoDbo.Aarsak.valueOf(it)
         },
     )
 }

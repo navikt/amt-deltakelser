@@ -56,8 +56,7 @@ class DeltakerEndringEndringResponseTest {
     fun `endrePrisinfo - ingen kostnader - mappes korrekt`() {
         // Arrange
         val prisinfo = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
+            tilleggsopplysninger = "",
         )
         val endring = DeltakerEndring.Endring.EndrePrisinfo(
             prisinfo = prisinfo,

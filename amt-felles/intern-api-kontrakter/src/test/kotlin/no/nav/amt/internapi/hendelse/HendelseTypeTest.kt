@@ -18,8 +18,7 @@ class HendelseTypeTest {
         deltakerId = UUID.randomUUID(),
         endring = DeltakerEndring.Endring.EndrePrisinfo(
             prisinfo = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             ),
             begrunnelse = null,
             prisinformasjonId = prisinformasjonId,

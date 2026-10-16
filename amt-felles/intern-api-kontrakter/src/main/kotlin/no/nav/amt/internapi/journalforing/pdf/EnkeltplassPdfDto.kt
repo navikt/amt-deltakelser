@@ -49,10 +49,8 @@ data class EnkeltplassPdfDto(
             val totalpris: Int get() = tilskudd.sumOf { it.pris }
         }
 
-        object IngenKostnader : Prisinformasjon
-
-        data class Innbyggerfinansiert(
-            val tilleggsopplysninger: String,
+        data class IngenKostnader(
+            val tilleggsopplysninger: String? = null,
         ) : Prisinformasjon
     }
 

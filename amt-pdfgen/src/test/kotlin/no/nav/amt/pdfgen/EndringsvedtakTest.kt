@@ -105,7 +105,7 @@ class EndringsvedtakTest :
                         ),
                         EndringDto.GodkjennPrisendring(
                             tittel = "Pris og betalingsbetingelser er endret",
-                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                         ),
                     )
 
@@ -157,7 +157,7 @@ class EndringsvedtakTest :
                                 listOf(
                                     EndringDto.GodkjennPrisendring(
                                         tittel = "Pris og betalingsbetingelser er endret",
-                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                                     ),
                                 ),
                         ),

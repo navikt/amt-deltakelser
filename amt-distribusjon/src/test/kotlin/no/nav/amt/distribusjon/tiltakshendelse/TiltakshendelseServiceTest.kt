@@ -18,7 +18,6 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.database.Database
@@ -110,8 +109,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 payload = HendelseType.EnkeltplassEndrePrisinfo(
                     kreverGodkjenning = true,
                     prisinfo = PrisinformasjonDto.IngenKostnader(
-                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                        tilleggsopplysninger = null,
+                        tilleggsopplysninger = "",
                     ),
                 ),
                 deltaker = deltaker,
@@ -120,8 +118,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 payload = HendelseType.EnkeltplassEndrePrisinfo(
                     kreverGodkjenning = true,
                     prisinfo = PrisinformasjonDto.IngenKostnader(
-                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                        tilleggsopplysninger = null,
+                        tilleggsopplysninger = "",
                     ),
                 ),
                 deltaker = deltaker,
@@ -188,8 +185,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             testInaktiveringAvPrisendringHendelse(
                 hendelseType = HendelseType.EnkeltplassGodkjennPrisendring(
                     prisinfo = PrisinformasjonDto.IngenKostnader(
-                        aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                        tilleggsopplysninger = null,
+                        tilleggsopplysninger = "",
                     ),
                 ),
             )
@@ -391,8 +387,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             payload = HendelseType.EnkeltplassEndrePrisinfo(
                 kreverGodkjenning = true,
                 prisinfo = PrisinformasjonDto.IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             ),
         )
