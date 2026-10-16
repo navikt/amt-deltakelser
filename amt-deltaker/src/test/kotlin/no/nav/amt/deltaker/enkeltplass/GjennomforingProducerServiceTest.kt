@@ -10,13 +10,15 @@ import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter.Companion.toMulighetsrommetKategorisering
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService.Companion.toMulighetsrommetKategorisering
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -46,19 +48,23 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-class GjennomforingUpserterTest {
+class GjennomforingProducerServiceTest {
     private val navEnhetRepository = mockk<NavEnhetRepository>()
     private val navAnsattRepository = mockk<NavAnsattRepository>()
     private val vedtakService = mockk<VedtakService>()
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>()
     private val deltakerRepository = mockk<DeltakerRepository>()
+    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>(relaxed = true)
 
-    private val sut = GjennomforingUpserter(
+    private val sut = GjennomforingProducerService(
         navEnhetRepository = navEnhetRepository,
         navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerRepository = deltakerRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
+        amtGjennomforingProducer = amtGjennomforingProducer,
     )
 
     @BeforeEach
@@ -115,6 +121,8 @@ class GjennomforingUpserterTest {
         every {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any(), any())
         } returns totrinnsIdInTest
+
+        every { deltakerlisteRepository.get(any()) } returns Result.success(createBaseDeltaker().deltakerliste)
     }
 
     @Nested

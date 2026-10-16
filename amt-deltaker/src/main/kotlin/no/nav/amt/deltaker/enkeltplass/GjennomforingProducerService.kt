@@ -3,10 +3,13 @@ package no.nav.amt.deltaker.enkeltplass
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload.UpsertEnkeltplass
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
+import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
+import no.nav.amt.deltaker.kafka.toAmtGjennomforingPayload
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -24,13 +27,31 @@ import java.util.UUID
  *
  * Bygger opp korrekt payload basert på deltakerens status og sender til [GjennomforingRequestProducer].
  */
-class GjennomforingUpserter(
+class GjennomforingProducerService(
     private val navEnhetRepository: NavEnhetRepository,
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
     private val deltakerRepository: DeltakerRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
+    /**
+     * Publiserer en request til Mulighetsrommet på gjennomforing-request, og speiler samtidig
+     * gjennomføringen til det interne gjennomforing-intern-topicet.
+     *
+     * Hver publisering til gjennomforing-request betyr at gjennomføringen er opprettet eller endret
+     * lokalt. Nedstrøms konsumenter (bl.a. amt-aktivitetskort-publisher og bff-ene) trenger disse
+     * gjennomføringsdataene med en gang, uten å vente på retur-runden fra Mulighetsrommet, så vi
+     * publiserer alltid gjennomføringen til gjennomforing-intern her.
+     */
+    private fun produserRequest(payload: GjennomforingRequestPayload) {
+        gjennomforingRequestProducer.produce(payload)
+
+        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId).getOrThrow()
+        amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
+    }
+
     /**
      * Publiserer gjennomføring basert på ansvarlig Nav-ansatt fra det ufatttede vedtaket.
      *
@@ -90,7 +111,7 @@ class GjennomforingUpserter(
             ),
         )
 
-        gjennomforingRequestProducer.produce(endrePrisinfoPayload)
+        produserRequest(endrePrisinfoPayload)
 
         return totrinnskontrollId
     }
@@ -130,7 +151,7 @@ class GjennomforingUpserter(
                 .toMulighetsrommetKategorisering(),
         )
 
-        gjennomforingRequestProducer.produce(endreInnholdPayload)
+        produserRequest(endreInnholdPayload)
     }
 
     /**
@@ -159,7 +180,7 @@ class GjennomforingUpserter(
             ),
         )
 
-        gjennomforingRequestProducer.produce(tilbakekallPrisinfoPayload)
+        produserRequest(tilbakekallPrisinfoPayload)
 
         return prisinformasjonId
     }
@@ -193,7 +214,7 @@ class GjennomforingUpserter(
             behandletAv = endretAvNavIdent,
         )
 
-        gjennomforingRequestProducer.produce(gjennomforingRequestPayload)
+        produserRequest(gjennomforingRequestPayload)
 
         if (gjennomforingRequestPayload is GjennomforingRequestPayload.EnkeltplassSoktInn) {
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(

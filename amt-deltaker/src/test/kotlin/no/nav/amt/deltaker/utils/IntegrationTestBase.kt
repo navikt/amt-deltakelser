@@ -28,7 +28,7 @@ import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClie
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerCacheRepository
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassService
-import no.nav.amt.deltaker.enkeltplass.GjennomforingUpserter
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestProducer
 import no.nav.amt.deltaker.innbygger.DistribuerEndringProducer
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
@@ -148,13 +148,15 @@ abstract class IntegrationTestBase {
         InnsokService(repository = innsokRepository)
     }
 
-    protected open val gjennomforingUpserter: GjennomforingUpserter by lazy {
-        GjennomforingUpserter(
+    protected open val gjennomforingProducerService: GjennomforingProducerService by lazy {
+        GjennomforingProducerService(
             navAnsattRepository = navAnsattRepository,
             navEnhetRepository = navEnhetRepository,
             vedtakService = vedtakService,
             gjennomforingRequestProducer = gjennomforingRequestProducer,
             deltakerRepository = deltakerRepository,
+            deltakerlisteRepository = deltakerlisteRepository,
+            amtGjennomforingProducer = amtGjennomforingProducer,
         )
     }
 
@@ -167,7 +169,7 @@ abstract class IntegrationTestBase {
             vedtakService = vedtakService,
             distribuerEndringService = distribuerEndringService,
             innsokService = innsokService,
-            gjennomforingUpserter = gjennomforingUpserter,
+            gjennomforingProducerService = gjennomforingProducerService,
         )
     }
 
@@ -286,7 +288,7 @@ abstract class IntegrationTestBase {
             deltakerHistorikkService = deltakerHistorikkService,
             navAnsattService = navAnsattService,
             unleashToggle = unleashToggle,
-            gjennomforingUpserter = gjennomforingUpserter,
+            gjennomforingProducerService = gjennomforingProducerService,
             opplaringKategoriseringClient = opplaringKategoriseringClient,
         )
     }
@@ -346,7 +348,7 @@ abstract class IntegrationTestBase {
             deltakerProducerService = deltakerProducerService,
             innsokService = innsokService,
             distribuerEndringService = distribuerEndringService,
-            gjennomforingUpserter = gjennomforingUpserter,
+            gjennomforingProducerService = gjennomforingProducerService,
         )
     }
 
@@ -489,7 +491,7 @@ abstract class IntegrationTestBase {
                     forslagService = forslagService,
                     forslagRepository = forslagRepository,
                     ulestHendelseRepository = ulestHendelseRepository,
-                    gjennomforingUpserter = gjennomforingUpserter,
+                    gjennomforingProducerService = gjennomforingProducerService,
                 )
                 setUpTestRoute()
 
