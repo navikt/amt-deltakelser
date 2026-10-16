@@ -80,6 +80,7 @@ sealed interface HendelseType {
      */
     data class EnkeltplassGodkjennPrisendring(
         val prisinfo: PrisinformasjonDto,
+        val begrunnelse: String? = null, // må være nullable med default for bakoverkompabilitet
     ) : HendelseType
 
     data class EnkeltplassTilbakekallPrisendring(

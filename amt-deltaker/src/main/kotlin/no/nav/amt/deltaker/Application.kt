@@ -516,6 +516,7 @@ fun Application.module() {
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             vedtakService = vedtakService,
+            deltakerEndringRepository = deltakerEndringRepository,
             distribuerEndringService = distribuerEndringService,
             navAnsattService = navAnsattService,
         ),
