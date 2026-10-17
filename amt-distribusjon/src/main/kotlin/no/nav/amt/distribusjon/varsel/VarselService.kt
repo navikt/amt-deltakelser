@@ -81,21 +81,28 @@ class VarselService(
         }
     }
 
-    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean = if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
-        log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
-        true
-    } else {
-        !DigitalBrukerService.skalDistribueresDigitalt(hendelse.distribusjonskanal, hendelse.manuellOppfolging)
+    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean {
+        // Bare manglende varsel betyr at vi kan fortsette; databasefeil skal ikke føre til et nytt varsel.
+        val alleredeVarslet = varselRepository
+            .getByHendelseId(hendelse.id)
+            .map { true }
+            .getOrElse { cause -> if (cause is NoSuchElementException) false else throw cause }
+
+        return if (alleredeVarslet) {
+            log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
+            true
+        } else {
+            !DigitalBrukerService.skalDistribueresDigitalt(
+                distribusjonskanal = hendelse.distribusjonskanal,
+                erUnderManuellOppfolging = hendelse.manuellOppfolging,
+            )
+        }
     }
 
-    private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
-        val varsel = varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
-            onSuccess = { it.merge(nyttVarsel) },
-            onFailure = { nyttVarsel },
-        )
-
-        return varsel
-    }
+    private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel = varselRepository
+        .getVentendeVarsel(nyttVarsel.deltakerId)
+        .map { it.merge(nyttVarsel) }
+        .getOrElse { cause -> if (cause is NoSuchElementException) nyttVarsel else throw cause }
 
     private fun handleNyttVarsel(
         varsel: Varsel,
@@ -145,7 +152,10 @@ class VarselService(
     }
 
     private fun inaktiverTidligereBeskjed(deltakerId: UUID) {
-        val varsel = varselRepository.getAktivt(deltakerId).getOrNull()
+        val varsel = varselRepository
+            .getAktivt(deltakerId)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
         require(varsel?.type != Varsel.Type.OPPGAVE) {
             "deltaker-id $deltakerId: Kan ikke inaktivere oppgave ${varsel?.id} som om den var en beskjed"
         }
@@ -156,9 +166,10 @@ class VarselService(
     }
 
     private fun inaktiverOppgave(deltaker: HendelseDeltaker) {
-        varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
-            ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
-        }
+        val varsel = varselRepository
+            .getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE)
+            .getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
+        ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
     }
 
     /**
@@ -170,9 +181,9 @@ class VarselService(
             .getSisteVarsel(
                 deltakerId = hendelse.deltaker.id,
                 type = Varsel.Type.OPPGAVE,
-            ).getOrNull()
-            ?.takeIf { it.erAktiv }
-            ?: return
+            ).getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
+
+        if (!varsel.erAktiv) return
 
         val nyOppgave = Varsel.nyOppgave(hendelse)
 
@@ -191,9 +202,10 @@ class VarselService(
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {
-        varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
-            ferdigstillSendtVarsel(varsel, Varsel.Status.UTFORT)
-        }
+        val varsel = varselRepository
+            .getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE)
+            .getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
+        ferdigstillSendtVarsel(varsel, Varsel.Status.UTFORT)
     }
 
     private fun utforBeskjed(

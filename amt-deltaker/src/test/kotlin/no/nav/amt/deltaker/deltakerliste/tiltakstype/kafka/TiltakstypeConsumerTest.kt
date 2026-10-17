@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
@@ -87,6 +88,35 @@ class TiltakstypeConsumerTest {
         consumer.consume(tiltakstype.id, objectMapper.writeValueAsString(lagTiltakstypePayload(tiltakstype)))
 
         verify(exactly = 0) { amtGjennomforingProducer.produce(any()) }
+    }
+
+    @Test
+    fun `consumeTiltakstype - databasefeil ved oppslag - kaster videre og lagrer ikke tiltakstype`() {
+        // Arrange
+        val tiltakstype = TestData.lagTiltakstype()
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        val mockTiltakRepository = mockk<TiltakRepository>()
+        val mockDeltakerlisteRepository = mockk<DeltakerlisteRepository>()
+        every { mockTiltakRepository.get(tiltakstype.tiltakskode) } returns Result.failure(databaseFeil)
+        every { mockTiltakRepository.upsert(any()) } just runs
+        every { mockDeltakerlisteRepository.getManyForTiltakstype(any()) } returns emptyList()
+        val consumerWithMockedRepositories = TiltakConsumer(
+            mockTiltakRepository,
+            mockDeltakerlisteRepository,
+            amtGjennomforingProducer,
+        )
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            consumerWithMockedRepositories.consume(
+                tiltakstype.id,
+                objectMapper.writeValueAsString(lagTiltakstypePayload(tiltakstype)),
+            )
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        verify(exactly = 0) { mockTiltakRepository.upsert(any()) }
     }
 
     private fun lagreGjennomforing(tiltakstype: Tiltakstype): UUID {

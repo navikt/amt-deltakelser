@@ -42,7 +42,9 @@ class TiltakConsumer(
         val tiltakstypePayload = objectMapper.readValue<TiltakstypePayload>(value)
         val nyTiltakstype = tiltakstypePayload.toModel()
 
-        val eksisterendeTiltakstype = repository.get(nyTiltakstype.tiltakskode).getOrNull()
+        val eksisterendeTiltakstype = repository
+            .get(nyTiltakstype.tiltakskode)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
 
         Database.transaction {
             repository.upsert(nyTiltakstype)

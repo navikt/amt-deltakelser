@@ -36,7 +36,10 @@ class NavBrukerConsumer(
             log.warn("Mottok tombstone for nav-bruker: $key, skal ikke skje.")
             return
         }
-        val lagretNavBruker = repository.get(key).getOrNull()
+        val lagretNavBruker = repository
+            .get(key)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
         val navBrukerPayload = objectMapper.readValue<NavBrukerDto>(value)
 
         if (navBrukerPayload.innsatsgruppe == null) {
@@ -71,9 +74,5 @@ class NavBrukerConsumer(
     private fun harEndredePersonopplysninger(
         navBruker: NavBruker?,
         navBrukerDto: NavBrukerDto,
-    ): Boolean = if (navBruker == null) {
-        true
-    } else {
-        navBrukerDto.toModel() != navBruker
-    }
+    ): Boolean = navBruker == null || navBrukerDto.toModel() != navBruker
 }

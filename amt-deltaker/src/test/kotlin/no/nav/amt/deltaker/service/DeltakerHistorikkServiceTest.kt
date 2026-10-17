@@ -1,8 +1,11 @@
 package no.nav.amt.deltaker.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -55,6 +58,33 @@ class DeltakerHistorikkServiceTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+    }
+
+    @Test
+    fun `getForDeltaker - databasefeil ved oppslag av innsok - kaster videre`() {
+        // Arrange
+        val deltakerId = UUID.randomUUID()
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        val innsokRepository = mockk<InnsokRepository>()
+        every { innsokRepository.getForDeltaker(deltakerId) } returns Result.failure(databaseFeil)
+        val service = DeltakerHistorikkService(
+            deltakerEndringRepository = mockk(relaxed = true),
+            vedtakRepository = mockk(relaxed = true),
+            forslagRepository = mockk(relaxed = true),
+            endringFraArrangorRepository = mockk(relaxed = true),
+            importertFraArenaRepository = mockk(relaxed = true),
+            innsokRepository = innsokRepository,
+            endringFraTiltakskoordinatorRepository = mockk(relaxed = true),
+            vurderingRepository = mockk(relaxed = true),
+        )
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            service.getForDeltaker(deltakerId)
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
     }
 
     @Nested

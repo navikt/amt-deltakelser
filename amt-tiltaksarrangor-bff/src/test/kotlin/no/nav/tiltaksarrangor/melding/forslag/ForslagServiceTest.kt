@@ -1,8 +1,13 @@
 package no.nav.tiltaksarrangor.melding.forslag
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.tiltaksarrangor.IntegrationTestBase
+import no.nav.tiltaksarrangor.melding.MeldingProducer
 import no.nav.tiltaksarrangor.melding.forslag.request.ForlengDeltakelseRequest
 import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.shouldBeCloseTo
 import org.junit.jupiter.api.Test
@@ -64,6 +69,29 @@ class ForslagServiceTest(
                 forslagId = opprettetForslag.id,
                 endringstype = opprettetForslag.endring::class,
             )
+        }
+    }
+
+    @Test
+    fun `opprettForslag - databasefeil ved oppslag av ventende forslag - kaster videre`() {
+        // Arrange
+        with(ForslagCtx(applicationContext, forlengDeltakelseForslag())) {
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val mockRepository = mockk<ForslagRepository>()
+            val mockMeldingProducer = mockk<MeldingProducer>()
+            every { mockRepository.getVentende(any()) } returns Result.failure(databaseFeil)
+            val service = ForslagService(mockRepository, mockMeldingProducer)
+            val request = ForlengDeltakelseRequest(LocalDate.now().plusWeeks(42), "Fordi...")
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                service.opprettForslag(request, koordinator, deltaker)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { mockRepository.upsert(any()) }
+            verify(exactly = 0) { mockMeldingProducer.produce(any<Forslag>()) }
         }
     }
 

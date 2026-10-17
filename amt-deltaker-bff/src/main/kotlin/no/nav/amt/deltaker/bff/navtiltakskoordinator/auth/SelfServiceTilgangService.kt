@@ -24,9 +24,11 @@ class SelfServiceTilgangService(
         deltakerlisteId: UUID,
     ): Result<TiltakskoordinatorDeltakerlisteTilgang> {
         val koordinator = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
-        val aktivTilgang = tiltakskoordinatorTilgangRepository.hentAktivTilgang(koordinator.id, deltakerlisteId)
+        val aktivTilgang = tiltakskoordinatorTilgangRepository
+            .hentAktivTilgang(koordinator.id, deltakerlisteId)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
 
-        return if (aktivTilgang.isSuccess) {
+        return if (aktivTilgang != null) {
             log.error(
                 "Kan ikke legge til tilgang til deltakerliste $deltakerlisteId " +
                     "fordi nav-ansatt ${koordinator.id} har allerede tilgang fra før.",
@@ -55,12 +57,17 @@ class SelfServiceTilgangService(
         val koordinatorAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
 
         val tilgang = tiltakskoordinatorTilgangRepository
-            .hentAktivTilgang(koordinatorAnsatt.id, deltakerlisteId)
-            .getOrElse {
-                log.error("Ingen aktiv tilgang funnet for ${koordinatorAnsatt.id} / $deltakerlisteId", it)
-                return Result.failure(
-                    IllegalArgumentException("Nav-ansatt ${koordinatorAnsatt.id} har ikke tilgang til $deltakerlisteId"),
-                )
+            .hentAktivTilgang(
+                navAnsattId = koordinatorAnsatt.id,
+                deltakerlisteId = deltakerlisteId,
+            ).getOrElse { cause ->
+                if (cause is NoSuchElementException) {
+                    log.error("Ingen aktiv tilgang funnet for ${koordinatorAnsatt.id} / $deltakerlisteId", cause)
+                    return Result.failure(
+                        IllegalArgumentException("Nav-ansatt ${koordinatorAnsatt.id} har ikke tilgang til $deltakerlisteId"),
+                    )
+                }
+                throw cause
             }
 
         return Database.transaction {
@@ -80,11 +87,18 @@ class SelfServiceTilgangService(
         deltakerlisteId: UUID,
     ) {
         val koordinator = navAnsattService.hentEllerOpprettNavAnsatt(navIdent)
-        val aktivTilgang = tiltakskoordinatorTilgangRepository.hentAktivTilgang(koordinator.id, deltakerlisteId)
-
-        if (aktivTilgang.isFailure) {
-            throw AuthorizationException("Ansatt ${koordinator.id} har ikke tilgang til deltakerliste $deltakerlisteId")
-        }
+        tiltakskoordinatorTilgangRepository
+            .hentAktivTilgang(
+                navAnsattId = koordinator.id,
+                deltakerlisteId = deltakerlisteId,
+            ).onFailure { cause ->
+                if (cause is NoSuchElementException) {
+                    throw AuthorizationException(
+                        "Ansatt ${koordinator.id} har ikke tilgang til deltakerliste $deltakerlisteId",
+                    )
+                }
+                throw cause
+            }
     }
 
     private fun stengTiltakskoordinatorTilgang(

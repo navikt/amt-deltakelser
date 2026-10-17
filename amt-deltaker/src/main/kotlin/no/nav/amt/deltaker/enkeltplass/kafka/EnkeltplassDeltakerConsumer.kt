@@ -64,7 +64,10 @@ class EnkeltplassDeltakerConsumer(
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val eksisterendeDeltaker = deltakerRepository.get(deltakerPayload.id).getOrNull()
+        val eksisterendeDeltaker = deltakerRepository
+            .get(deltakerPayload.id)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
         val navBruker = navBrukerService.get(deltakerPayload.personIdent)
 
         // Work-around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere

@@ -189,6 +189,39 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
+    fun `consumeDeltaker - databasefeil ved oppslag av deltaker - kaster videre`() = runTest {
+        // Arrange
+        val deltakerliste = lagEnkeltplassDeltakerliste()
+        val deltaker = lagArenaDeltaker(deltakerliste = deltakerliste)
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        val mockDeltakerRepository = mockk<DeltakerRepository>()
+        val mockDeltakerlisteRepository = mockk<DeltakerlisteRepository>()
+        val mockNavBrukerService = mockk<NavBrukerService>()
+        val mockToggle = mockk<CommonUnleashToggle>()
+        every { mockDeltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
+        every { mockToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
+        every { mockDeltakerRepository.get(deltaker.id) } returns Result.failure(databaseFeil)
+        val consumerWithMockedRepositories = EnkeltplassDeltakerConsumer(
+            deltakerRepository = mockDeltakerRepository,
+            deltakerService = mockk(),
+            deltakerlisteRepository = mockDeltakerlisteRepository,
+            navBrukerService = mockNavBrukerService,
+            importertFraArenaRepository = mockk(),
+            unleashToggle = mockToggle,
+            deltakerProducerService = mockk(),
+        )
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            consumerWithMockedRepositories.consumeDeltaker(toPayload(deltaker))
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        coVerify(exactly = 0) { mockNavBrukerService.get(any()) }
+    }
+
+    @Test
     fun `consumeDeltaker - eksisterende deltaker - status endres fra DELTAR til FULLFORT - oppdaterer og produserer`() {
         // Arrange
         val deltakerListe = lagEnkeltplassDeltakerliste()

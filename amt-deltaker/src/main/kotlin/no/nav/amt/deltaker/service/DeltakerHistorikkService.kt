@@ -61,10 +61,11 @@ class DeltakerHistorikkService(
                 ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
         },
         { deltakerId ->
-            innsokRepository
+            val innsok = innsokRepository
                 .getForDeltaker(deltakerId)
-                .getOrNull()
-                ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
+                .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
+            innsok?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
         },
         // EndringFraArrangor er en del av kjernehistorikken fordi
         // `LeggTilOppstartsdato` brukes av `toDeltakelsesmengder()` for å avgrense perioden.

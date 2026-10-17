@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.innbygger
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.clearMocks
@@ -257,5 +258,33 @@ class NavBrukerConsumerTest {
         )
 
         verify(exactly = 0) { kladdService.slettKladd(any()) }
+    }
+
+    @Test
+    fun `consumeNavBruker - databasefeil ved oppslag - kaster videre`() = runTest {
+        // Arrange
+        val navBruker = lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        val repository = mockk<NavBrukerRepository>()
+        every { repository.get(navBruker.personId) } returns Result.failure(databaseFeil)
+        val navBrukerConsumer = NavBrukerConsumer(
+            repository = repository,
+            navEnhetService = mockk(),
+            deltakerService = deltakerService,
+            kladdService = kladdService,
+        )
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
+            )
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        verify(exactly = 0) { repository.upsert(any()) }
+        coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(any()) }
     }
 }

@@ -7,6 +7,10 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
@@ -23,8 +27,10 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -39,6 +45,126 @@ class VarselServiceTest : IntegrationTestBase() {
 
     @Nested
     inner class HandleHendelseTests {
+        private fun serviceWithRepository(repository: VarselRepository) = VarselService(
+            varselRepository = repository,
+            hendelseRepository = hendelseRepository,
+            outboxHandler = VarselOutboxHandler(outboxService),
+        )
+
+        @Test
+        fun `databasefeil ved duplikatsjekk kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.endreSluttdato())
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<VarselRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { repository.getVentendeVarsel(any()) }
+        }
+
+        @Test
+        fun `databasefeil ved henting av ventende varsel kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.endreSluttdato())
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<VarselRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke varsel"))
+            every { repository.getVentendeVarsel(hendelse.deltaker.id) } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { repository.upsert(any<Varsel>()) }
+        }
+
+        @Test
+        fun `databasefeil ved oppslag av aktivt varsel kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.navGodkjennUtkast())
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<VarselRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke varsel for hendelse"))
+            every { repository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE) } returns
+                Result.failure(NoSuchElementException("Fant ikke oppgave"))
+            every { repository.getVentendeVarsel(hendelse.deltaker.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke ventende varsel"))
+            every { repository.getAktivt(hendelse.deltaker.id) } returns Result.failure(databaseFeil)
+            every { repository.stoppRevarsler(hendelse.deltaker.id) } just runs
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { repository.upsert(any<Varsel>()) }
+        }
+
+        @Test
+        fun `databasefeil ved oppslag av siste oppgave ved endring av utkast kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
+            )
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<VarselRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke varsel for hendelse"))
+            every {
+                repository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE)
+            } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { repository.upsert(any<Varsel>()) }
+        }
+
+        @TestFactory
+        fun `databasefeil ved oppslag av oppgave kastes videre`() = listOf(
+            "inaktiveres" to HendelseTypeData.navGodkjennUtkast(),
+            "utfores" to HendelseTypeData.innbyggerGodkjennUtkast(),
+        ).map { (handling, payload) ->
+            DynamicTest.dynamicTest("oppgave som skal $handling") {
+                // Arrange
+                val hendelse = Hendelsesdata.hendelse(payload)
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val repository = mockk<VarselRepository>()
+                every { repository.getByHendelseId(hendelse.id) } returns
+                    Result.failure(NoSuchElementException("Fant ikke varsel for hendelse"))
+                every {
+                    repository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE)
+                } returns Result.failure(databaseFeil)
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    serviceWithRepository(repository).handleHendelse(hendelse)
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+                verify(exactly = 0) { repository.upsert(any<Varsel>()) }
+            }
+        }
+
         @Test
         fun `navGodkjennUtkast - innbyggers distribusjonskanal er ikke digital - oppretter ikke varsel`() {
             // Arrange
