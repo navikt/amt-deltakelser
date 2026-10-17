@@ -63,9 +63,11 @@ class EnkeltplassService(
         tiltakskode: Tiltakskode,
         personident: String,
     ): Deltaker {
-        deltakerRepository
+        val eksisterendeKladd = deltakerRepository
             .getKladd(personident, tiltakskode)
-            .getOrNull()
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
+        eksisterendeKladd
             ?.takeIf { it.erEnkeltplass }
             ?.let { return it }
 

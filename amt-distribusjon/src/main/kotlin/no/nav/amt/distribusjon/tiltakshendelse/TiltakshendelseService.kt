@@ -23,10 +23,16 @@ class TiltakshendelseService(
     }
 
     fun handleHendelse(hendelse: Hendelse) {
-        if (tiltakshendelseRepository.getByHendelseId(hendelse.id).isSuccess) {
+        val alleredeHandtert = tiltakshendelseRepository
+            .getByHendelseId(hendelse.id)
+            .map { true }
+            .getOrElse { cause -> if (cause is NoSuchElementException) false else throw cause }
+
+        if (alleredeHandtert) {
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
+
         log.info("Håndterer ${hendelse.payload.javaClass} hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}.")
 
         when (hendelse.payload) {
@@ -64,7 +70,12 @@ class TiltakshendelseService(
     suspend fun handleForslag(forslag: Forslag) {
         when (forslag.status) {
             is Forslag.Status.VenterPaSvar -> {
-                if (tiltakshendelseRepository.getForslagHendelse(forslag.id).isSuccess) {
+                val finnesAllerede = tiltakshendelseRepository
+                    .getForslagHendelse(forslag.id)
+                    .map { true }
+                    .getOrElse { cause -> if (cause is NoSuchElementException) false else throw cause }
+
+                if (finnesAllerede) {
                     log.info("Tiltakshendelse for forslag ${forslag.id} finnes allerede. Ignorerer duplikat VenterPaSvar.")
                     return
                 }
@@ -81,13 +92,16 @@ class TiltakshendelseService(
     }
 
     fun stoppForslagHendelse(forslagId: UUID) {
-        tiltakshendelseRepository.getForslagHendelse(forslagId).onSuccess {
-            val inaktivertHendelse = it.copy(
-                aktiv = false,
-            )
-            Database.transaction {
-                lagreOgDistribuer(inaktivertHendelse)
-            }
+        val forslagHendelse = tiltakshendelseRepository
+            .getForslagHendelse(forslagId)
+            .getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
+
+        val inaktivertHendelse = forslagHendelse.copy(
+            aktiv = false,
+        )
+
+        Database.transaction {
+            lagreOgDistribuer(inaktivertHendelse)
         }
     }
 
@@ -117,7 +131,7 @@ class TiltakshendelseService(
             .getAktivHendelse(
                 deltakerId = hendelse.deltaker.id,
                 hendelseType = Tiltakshendelse.Type.PRISENDRING,
-            ).getOrNull()
+            ).getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
 
         val tiltakshendelse = aktivHendelse
             ?.copy(hendelser = aktivHendelse.hendelser.plus(hendelse.id))
@@ -147,17 +161,17 @@ class TiltakshendelseService(
         hendelse: Hendelse,
         hendelseType: Tiltakshendelse.Type,
     ) {
-        tiltakshendelseRepository
+        val aktivHendelse = tiltakshendelseRepository
             .getAktivHendelse(
                 deltakerId = hendelse.deltaker.id,
                 hendelseType = hendelseType,
-            ).onSuccess { hendelseFraDb ->
-                val inaktivertHendelse = hendelseFraDb.copy(
-                    aktiv = false,
-                    hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
-                )
-                lagreOgDistribuer(inaktivertHendelse)
-            }
+            ).getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
+
+        val inaktivertHendelse = aktivHendelse.copy(
+            aktiv = false,
+            hendelser = aktivHendelse.hendelser.plus(hendelse.id),
+        )
+        lagreOgDistribuer(inaktivertHendelse)
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {

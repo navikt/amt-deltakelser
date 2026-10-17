@@ -1,8 +1,10 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.auth
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.bff.navansatt.NavAnsattService
@@ -84,6 +86,32 @@ class SelfServiceTilgangskontrollServiceTest {
                 actual.isFailure shouldBe true
             }
         }
+
+        @Test
+        fun `databasefeil ved oppslag av aktiv tilgang kastes videre uten å opprette tilgang`() = runTest {
+            // Arrange
+            with(TiltakskoordinatorTilgangContext()) {
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val tilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
+                every {
+                    tilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
+                } returns Result.failure(databaseFeil)
+                val tilgangService = SelfServiceTilgangService(
+                    navAnsattService = navAnsattService,
+                    tiltakskoordinatorTilgangRepository = tilgangRepository,
+                    tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
+                )
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    tilgangService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+                verify(exactly = 0) { tilgangRepository.upsert(any()) }
+            }
+        }
     }
 
     @Nested
@@ -122,6 +150,38 @@ class SelfServiceTilgangskontrollServiceTest {
                 actual.isFailure shouldBe true
             }
         }
+
+        @Test
+        fun `databasefeil ved oppslag av tilgang som skal fjernes kastes videre`() = runTest {
+            // Arrange
+            with(TiltakskoordinatorTilgangContext()) {
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val tilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
+                every {
+                    tilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
+                } returns Result.failure(databaseFeil)
+                val tilgangService = SelfServiceTilgangService(
+                    navAnsattService = navAnsattService,
+                    tiltakskoordinatorTilgangRepository = tilgangRepository,
+                    tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
+                )
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    tilgangService.fjernTiltakskoordinatorTilgang(
+                        navIdent = navAnsatt.navIdent,
+                        deltakerlisteId = deltakerliste.id,
+                    )
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+                verify(exactly = 1) {
+                    tilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
+                }
+                verify(exactly = 0) { tilgangRepository.upsert(any()) }
+            }
+        }
     }
 
     @Nested
@@ -149,6 +209,37 @@ class SelfServiceTilgangskontrollServiceTest {
                 medInaktivTilgang()
                 assertThrows<AuthorizationException> {
                     selfServiceTilgangService.verifiserTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
+                }
+            }
+        }
+
+        @Test
+        fun `databasefeil ved verifisering av tilgang kastes videre`() = runTest {
+            // Arrange
+            with(TiltakskoordinatorTilgangContext()) {
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val tilgangRepository = mockk<TiltakskoordinatorTilgangRepository>()
+                every {
+                    tilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
+                } returns Result.failure(databaseFeil)
+                val tilgangService = SelfServiceTilgangService(
+                    navAnsattService = navAnsattService,
+                    tiltakskoordinatorTilgangRepository = tilgangRepository,
+                    tiltakskoordinatorsDeltakerlisteProducer = tiltakskoordinatorsDeltakerlisteProducer,
+                )
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    tilgangService.verifiserTiltakskoordinatorTilgang(
+                        navIdent = navAnsatt.navIdent,
+                        deltakerlisteId = deltakerliste.id,
+                    )
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+                verify(exactly = 1) {
+                    tilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
                 }
             }
         }

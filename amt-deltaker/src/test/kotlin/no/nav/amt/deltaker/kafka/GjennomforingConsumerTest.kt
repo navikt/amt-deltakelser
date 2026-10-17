@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.kafka
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -300,6 +301,26 @@ class GjennomforingConsumerTest {
             verify { deltakerProducerService.produce(deltaker) }
             // Assert — handterDeltakere is NOT called
             verify(exactly = 0) { deltakerService.avsluttDeltakere(any()) }
+        }
+    }
+
+    @Nested
+    inner class DatabaseErrorsTest {
+        @Test
+        fun `skal kaste videre databasefeil ved oppslag av deltakerliste`() = runTest {
+            // Arrange
+            val deltakerliste = lagGruppeDeltakerliste()
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                consumePayloadFor(deltakerliste)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { deltakerlisteRepository.upsert(any<Deltakerliste>()) }
         }
     }
 

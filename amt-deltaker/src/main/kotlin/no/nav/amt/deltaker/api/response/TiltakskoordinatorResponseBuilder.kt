@@ -39,11 +39,16 @@ class TiltakskoordinatorResponseBuilder(
      * Henter gjennomføring og deltakere for en gjennomføring-id.
      */
     suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> {
-        val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId).getOrNull()
-            ?: return PaginatedResult(
-                pageSize = 0,
-                data = emptyList(),
-            )
+        val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId).getOrElse { cause ->
+            return if (cause is NoSuchElementException) {
+                PaginatedResult(
+                    pageSize = 0,
+                    data = emptyList(),
+                )
+            } else {
+                throw cause
+            }
+        }
 
         val rows = viewRepository.getDeltakere(request = request)
 

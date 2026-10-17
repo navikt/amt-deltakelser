@@ -88,13 +88,17 @@ class GjennomforingConsumer(
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
+        val eksisterendeGjennomforing = deltakerlisteRepository
+            .get(gjennomforingPayload.id)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
         if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
             kladderSomSkalSlettes.forEach { deltaker -> kladdService.slettKladd(deltaker.id) }
 
             log.info("Slettet ${kladderSomSkalSlettes.size} for deltakerliste ${gjennomforing.id} med status ${gjennomforing.status.name}")
         }
+
         if (eksisterendeGjennomforing != null) {
             if (eksisterendeGjennomforing == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")

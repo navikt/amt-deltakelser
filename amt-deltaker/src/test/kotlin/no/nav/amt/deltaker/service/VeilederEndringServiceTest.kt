@@ -11,12 +11,18 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.enkeltplass.GjennomforingProducerService
 import no.nav.amt.deltaker.enkeltplass.kafka.GjennomforingRequestPayload
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
@@ -34,6 +40,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.veileder.endring.DeltakerEndringService
 import no.nav.amt.internapi.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.internapi.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.internapi.deltaker.request.DeltakelsesmengdeRequest
@@ -46,6 +53,7 @@ import no.nav.amt.internapi.deltaker.request.StartdatoRequest
 import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.lib.ktor.clients.kodeverk.OpplaringKategoriseringClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -62,6 +70,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.lagOppfolgingsperiode
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -752,6 +761,74 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
 
     @Nested
     inner class Reaktivering {
+        @Test
+        fun `databasefeil ved oppslag av kladd ved reaktivering kastes videre`() = runTest {
+            // Arrange
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            )
+            val request = ReaktiverDeltakelseRequest(
+                endretAv = navAnsattInTest.navIdent,
+                endretAvEnhet = navEnhetInTest.enhetsnummer,
+                begrunnelse = "Reaktiverer deltaker",
+            )
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val deltakerService = mockk<DeltakerService>()
+            val deltakerRepository = mockk<DeltakerRepository>()
+            val deltakerEndringService = mockk<DeltakerEndringService>()
+            val navAnsattService = mockk<NavAnsattService>()
+            val unleashToggle = mockk<CommonUnleashToggle>()
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
+            every {
+                unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)
+            } returns true
+            every {
+                deltakerEndringService.hentEndringFraRequest(request, deltaker)
+            } returns DeltakerEndring.Endring.ReaktiverDeltakelse(
+                reaktivertDato = LocalDate.now(),
+                begrunnelse = request.begrunnelse,
+            )
+            coEvery { navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv) } returns navAnsattInTest
+            every {
+                deltakerService.upsertAndProduceDeltaker(any(), any(), any(), any(), any(), any())
+            } answers {
+                val oppdatertDeltaker = arg<Deltaker>(0)
+                arg<(Deltaker) -> Unit>(5)(oppdatertDeltaker)
+                oppdatertDeltaker
+            }
+            every {
+                deltakerRepository.getKladdForDeltakerliste(
+                    deltaker.deltakerliste.id,
+                    deltaker.navBruker.personident,
+                )
+            } returns Result.failure(databaseFeil)
+            val service = VeilederEndringService(
+                deltakerService = deltakerService,
+                deltakerRepository = deltakerRepository,
+                deltakerEndringService = deltakerEndringService,
+                deltakerHistorikkService = mockk<DeltakerHistorikkService>(),
+                navAnsattService = navAnsattService,
+                unleashToggle = unleashToggle,
+                gjennomforingProducerService = mockk<GjennomforingProducerService>(),
+                opplaringKategoriseringClient = mockk<OpplaringKategoriseringClient>(),
+            )
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                service.upsertEndretDeltaker(deltaker.id, request)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 1) {
+                deltakerRepository.getKladdForDeltakerliste(
+                    deltaker.deltakerliste.id,
+                    deltaker.navBruker.personident,
+                )
+            }
+            verify(exactly = 0) { deltakerService.deleteDeltaker(any()) }
+        }
+
         @Test
         fun `reaktiverer deltaker og sletter kladd`() = runTest {
             // Arrange

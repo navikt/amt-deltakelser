@@ -60,7 +60,8 @@ fun Routing.registerInternalApi(
     fun republiserDeltakere(
         deltakerIder: List<UUID>,
         request: RepubliserRequest,
-    ) {
+    ): Int {
+        var antallFeil = 0
         deltakerIder.forEach { deltakerId ->
             runCatching {
                 Database.transaction {
@@ -73,9 +74,11 @@ fun Routing.registerInternalApi(
                     )
                 }
             }.onFailure { e ->
+                antallFeil++
                 log.error("Feil ved relast av deltaker $deltakerId", e)
             }
         }
+        return antallFeil
     }
 
     route("/internal") {
@@ -135,8 +138,11 @@ fun Routing.registerInternalApi(
             scope.launch {
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 log.info("relast/tiltakstype: Starter relast av ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
-                republiserDeltakere(deltakerIder, request)
-                log.info("relast/tiltakstype: Fullført relast av ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+                val antallFeil = republiserDeltakere(deltakerIder, request)
+                log.loggFullfortRelast(
+                    "relast/tiltakstype: Fullført relast av ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}",
+                    antallFeil,
+                )
             }
             call.respond(HttpStatusCode.OK)
         }
@@ -147,11 +153,12 @@ fun Routing.registerInternalApi(
             scope.launch {
                 val tiltakskodeNavn = requestBody.tiltakskoder.map { it.name }
                 log.info("relast/tiltakstyper: Starter relast for tiltakskoder $tiltakskodeNavn")
+                var antallFeil = 0
                 requestBody.tiltakskoder.forEach { tiltakskode ->
                     val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
-                    republiserDeltakere(deltakerIder, requestBody.request)
+                    antallFeil += republiserDeltakere(deltakerIder, requestBody.request)
                 }
-                log.info("relast/tiltakstyper: Fullført relast for tiltakskoder $tiltakskodeNavn")
+                log.loggFullfortRelast("relast/tiltakstyper: Fullført relast for tiltakskoder $tiltakskodeNavn", antallFeil)
             }
             call.respond(HttpStatusCode.OK)
         }
@@ -161,13 +168,18 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
             scope.launch {
                 log.info("relast/alle-deltakere: Starter relast av alle deltakere komet er master for")
+                var totaltAntallFeil = 0
                 for (tiltakskode in Tiltakskode.entries) {
                     val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                     log.info("relast/alle-deltakere: Relaster ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
-                    republiserDeltakere(deltakerIder, request)
-                    log.info("relast/alle-deltakere: Fullført ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}")
+                    val antallFeil = republiserDeltakere(deltakerIder, request)
+                    totaltAntallFeil += antallFeil
+                    log.loggFullfortRelast(
+                        "relast/alle-deltakere: Fullført ${deltakerIder.size} deltakere for tiltakskode ${tiltakskode.name}",
+                        antallFeil,
+                    )
                 }
-                log.info("relast/alle-deltakere: Fullført relast av alle deltakere")
+                log.loggFullfortRelast("relast/alle-deltakere: Fullført relast av alle deltakere", totaltAntallFeil)
             }
             call.respond(HttpStatusCode.OK)
         }
@@ -177,8 +189,8 @@ fun Routing.registerInternalApi(
             val request = call.receive<RelastDeltakereRequest>()
             scope.launch {
                 log.info("relast/deltakere: Starter relast av ${request.deltakere.size} deltakere")
-                republiserDeltakere(request.deltakere, request.republiserRequest)
-                log.info("relast/deltakere: Fullført relast av ${request.deltakere.size} deltakere")
+                val antallFeil = republiserDeltakere(request.deltakere, request.republiserRequest)
+                log.loggFullfortRelast("relast/deltakere: Fullført relast av ${request.deltakere.size} deltakere", antallFeil)
             }
             call.respond(HttpStatusCode.OK)
         }
@@ -407,3 +419,14 @@ data class RepubliserTiltakskoderRequest(
 data class OpprettEnkeltplassGjennomforingerInternalRequest(
     val gjennomforingIder: List<UUID>,
 )
+
+private fun Logger.loggFullfortRelast(
+    melding: String,
+    antallFeil: Int,
+) {
+    if (antallFeil == 0) {
+        info(melding)
+    } else {
+        warn("$melding med $antallFeil feil")
+    }
+}

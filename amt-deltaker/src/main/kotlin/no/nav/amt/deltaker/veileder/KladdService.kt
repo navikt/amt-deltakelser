@@ -72,27 +72,29 @@ class KladdService(
     }
 
     fun slettKladd(deltakerId: UUID) {
-        deltakerRepository.get(deltakerId).onSuccess { opprinneligDeltaker ->
-            val gjennomforingId = opprinneligDeltaker.deltakerliste.id
-            if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-                log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
-                throw IllegalArgumentException(
-                    "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
-                )
-            }
+        val opprinneligDeltaker = deltakerRepository
+            .get(deltakerId)
+            .getOrElse { cause -> if (cause is NoSuchElementException) return else throw cause }
 
+        val gjennomforingId = opprinneligDeltaker.deltakerliste.id
+        if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
+            log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
+            throw IllegalArgumentException(
+                "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
+            )
+        }
+
+        if (opprinneligDeltaker.erEnkeltplass) {
+            require(!opprinneligDeltaker.deltakerliste.erDeltMedValp) {
+                "Kan ikke slette Enkeltplass gjennomføring $gjennomforingId som er delt med valp"
+            }
+        }
+
+        Database.transaction {
+            deltakerService.deleteDeltaker(deltakerId)
             if (opprinneligDeltaker.erEnkeltplass) {
-                require(!opprinneligDeltaker.deltakerliste.erDeltMedValp) {
-                    "Kan ikke slette Enkeltplass gjennomføring $gjennomforingId som er delt med valp"
-                }
-            }
-
-            Database.transaction {
-                deltakerService.deleteDeltaker(deltakerId)
-                if (opprinneligDeltaker.erEnkeltplass) {
-                    log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
-                    deltakerlisteRepository.delete(gjennomforingId)
-                }
+                log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
+                deltakerlisteRepository.delete(gjennomforingId)
             }
         }
     }

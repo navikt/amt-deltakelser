@@ -1,9 +1,12 @@
 package no.nav.amt.distribusjon.tiltakshendelse
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.Environment
@@ -29,6 +32,12 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltakshendelseServiceTest : IntegrationTestBase() {
+    private fun serviceWithRepository(repository: TiltakshendelseRepository) = TiltakshendelseService(
+        tiltakshendelseRepository = repository,
+        amtDeltakerClient = amtDeltakerClient,
+        tiltakshendelseProducer = tiltakshendelseProducer,
+    )
+
     @Nested
     inner class HandleHendelseTests {
         @Test
@@ -103,6 +112,23 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `handleHendelse - databasefeil ved duplikatsjekk kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<TiltakshendelseRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+        }
+
+        @Test
         fun `handleHendelse - flere prisendringer for samme deltaker - gjenbruker aktiv tiltakshendelse`() {
             // Arrange
             val deltaker = Hendelsesdata.lagDeltaker()
@@ -144,6 +170,51 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 hendelser shouldBe listOf(opprettPrisendring1.id, opprettPrisendring2.id)
                 aktiv shouldBe true
             }
+        }
+
+        @Test
+        fun `handleHendelse - databasefeil ved henting av aktiv prisendring kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(
+                HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = true),
+            )
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<TiltakshendelseRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke tiltakshendelse"))
+            every {
+                repository.getAktivHendelse(hendelse.deltaker.id, Tiltakshendelse.Type.PRISENDRING)
+            } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+        }
+
+        @Test
+        fun `handleHendelse - databasefeil ved henting av aktiv hendelse som skal stoppes kastes videre`() {
+            // Arrange
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.navGodkjennUtkast())
+            val databaseFeil = IllegalStateException("Database er utilgjengelig")
+            val repository = mockk<TiltakshendelseRepository>()
+            every { repository.getByHendelseId(hendelse.id) } returns
+                Result.failure(NoSuchElementException("Fant ikke tiltakshendelse"))
+            every {
+                repository.getAktivHendelse(hendelse.deltaker.id, Tiltakshendelse.Type.UTKAST)
+            } returns Result.failure(databaseFeil)
+
+            // Act
+            val kastetFeil = shouldThrow<IllegalStateException> {
+                serviceWithRepository(repository).handleHendelse(hendelse)
+            }
+
+            // Assert
+            kastetFeil.message shouldBe databaseFeil.message
+            verify(exactly = 0) { repository.upsert(any<Tiltakshendelse>()) }
         }
 
         @Test
@@ -204,6 +275,50 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
 
         @Nested
         inner class HandleForslagTests {
+            @Test
+            fun `handleForslag - databasefeil ved duplikatsjekk kastes videre`() = runTest {
+                // Arrange
+                val forslag = Forslag(
+                    id = UUID.randomUUID(),
+                    deltakerId = UUID.randomUUID(),
+                    opprettetAvArrangorAnsattId = UUID.randomUUID(),
+                    opprettet = LocalDateTime.now(),
+                    begrunnelse = "begrunnelse",
+                    endring = Forslag.ForlengDeltakelse(LocalDate.now()),
+                    status = Forslag.Status.VenterPaSvar,
+                )
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val repository = mockk<TiltakshendelseRepository>()
+                every { repository.getForslagHendelse(forslag.id) } returns Result.failure(databaseFeil)
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    serviceWithRepository(repository).handleForslag(forslag)
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+            }
+
+            @Test
+            fun `handleForslag - databasefeil ved stopp av forslag kastes videre`() {
+                // Arrange
+                val forslagId = UUID.randomUUID()
+                val databaseFeil = IllegalStateException("Database er utilgjengelig")
+                val repository = mockk<TiltakshendelseRepository>()
+                every { repository.getForslagHendelse(forslagId) } returns Result.failure(databaseFeil)
+                val service = serviceWithRepository(repository)
+
+                // Act
+                val kastetFeil = shouldThrow<IllegalStateException> {
+                    service.stoppForslagHendelse(forslagId)
+                }
+
+                // Assert
+                kastetFeil.message shouldBe databaseFeil.message
+                verify(exactly = 0) { repository.upsert(any<Tiltakshendelse>()) }
+            }
+
             @Test
             fun `ny ForlengDeltakelse venter på svar - oppretter ny tiltakshendelse`() = runTest {
                 // Arrange

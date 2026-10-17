@@ -101,6 +101,24 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
     }
 
+    @Test
+    fun `opprettKladd - databasefeil ved oppslag av eksisterende kladd - kaster videre`() = runTest {
+        // Arrange
+        val personident = "12345678901"
+        val tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        every { deltakerRepository.getKladd(personident, tiltakskode) } returns Result.failure(databaseFeil)
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            enkeltplassService.opprettKladd(tiltakskode, personident)
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        verify(exactly = 0) { deltakerRepository.upsertKladd(any()) }
+    }
+
     private fun setupDatabaseMocks() {
         mockkObject(Database)
         every { transaction<Any>(any()) } answers {

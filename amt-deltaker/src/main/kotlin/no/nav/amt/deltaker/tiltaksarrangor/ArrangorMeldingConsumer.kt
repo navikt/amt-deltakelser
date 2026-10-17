@@ -68,7 +68,10 @@ class ArrangorMeldingConsumer(
     }
 
     private fun handleVurdering(vurdering: Vurdering) {
-        val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrNull()
+        val deltaker = deltakerRepository
+            .get(vurdering.deltakerId)
+            .getOrElse { cause -> if (cause is NoSuchElementException) null else throw cause }
+
         if (deltaker == null) {
             log.warn("Fant ikke deltaker ${vurdering.deltakerId} for vurdering ${vurdering.id}, ignorerer")
             return
