@@ -204,26 +204,24 @@ class VeilederEndringService(
             endring.validerGyldigFra(eksisterendeDeltaker)
         }
 
-        return endring
-            .anvendPaaDeltaker(
-                deltaker = eksisterendeDeltaker,
-                getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-            ).getOrElse {
-                log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
-                )
+        val updateResult = endring.anvendPaaDeltaker(
+            deltaker = eksisterendeDeltaker,
+            getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
+        ) ?: run {
+            log.warn(
+                "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
+            )
 
-                // hvis forslag er godkjent og deltaker er uendret
-                endringRequest.getForslagId()?.let {
-                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
-                }
-
-                null
-            }.also {
-                if (it != null) {
-                    log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
-                }
+            // hvis forslag er godkjent og deltaker er uendret
+            endringRequest.getForslagId()?.let {
+                deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
             }
+
+            return null
+        }
+
+        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
+        return updateResult
     }
 
     private fun slettKladdIfExists(deltaker: Deltaker) {
