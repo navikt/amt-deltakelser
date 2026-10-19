@@ -50,9 +50,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @BeforeEach
     fun setupTiltakskoordinatorClientDefaults() {
         coEvery { tiltakskoordinatorClient.getUlesteHendelserForDeltakere(any()) } returns emptyMap()
-        coEvery { tiltakskoordinatorClient.getUlestHendelseTypeCountsForDeltakere(any()) } returns
-            no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model
-                .UlestHendelseTypeCounts()
     }
 
     @Test

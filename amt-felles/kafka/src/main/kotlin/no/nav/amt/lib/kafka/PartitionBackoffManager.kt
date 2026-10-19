@@ -64,14 +64,6 @@ internal class PartitionBackoffManager {
     internal fun calculateBackoffUntilMs(retryCount: Int): Long =
         System.currentTimeMillis() + min(COEFFICIENT * retryCount * retryCount + BASE_DELAY_MS, MAX_DELAY)
 
-    /**
-     * Returns the current retry count for a partition.
-     *
-     * @param tp the partition to check
-     * @return the number of consecutive failures
-     */
-    internal fun getRetryCount(tp: TopicPartition) = state[tp]?.retryCount ?: 0
-
     companion object {
         private const val COEFFICIENT = 500L
         private const val BASE_DELAY_MS = 1_000L
