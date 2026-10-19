@@ -317,9 +317,6 @@ class DeltakerRepository {
         )
     }
 
-    fun getOrThrow(id: UUID): Deltaker = get(id)
-        ?: throw NoSuchElementException("Ingen deltaker med id $id")
-
     fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
         Database.query { session ->
             session.run(

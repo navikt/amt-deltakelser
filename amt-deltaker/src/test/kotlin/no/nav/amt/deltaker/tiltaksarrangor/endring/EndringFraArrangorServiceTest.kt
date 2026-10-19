@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.tiltaksarrangor.endring
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -187,7 +188,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
             executor.shutdownNow()
         }
 
-        assertSoftly(deltakerRepository.getOrThrow(deltaker.id)) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             it.startdato shouldBe startdato
             it.sluttdato shouldBe sluttdato
         }
@@ -369,7 +370,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
 
         endring.endring shouldBe endringFraArrangor.endring
 
-        val deltakerEtterEndring = deltakerRepository.getOrThrow(deltaker.id)
+        val deltakerEtterEndring = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
         deltakerEtterEndring.sluttdato shouldBe gammelsluttdato
 
@@ -492,7 +493,7 @@ class EndringFraArrangorServiceTest : IntegrationTestWithDbBase() {
         // Replay etter korrigeringen skal ikke tilbakestille startdatoen
         val deltakerEtterKorrigeringReplay = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
         deltakerEtterKorrigeringReplay.startdato shouldBe korrigertStartdato
-        deltakerRepository.getOrThrow(deltaker.id).startdato shouldBe korrigertStartdato
+        deltakerRepository.get(deltaker.id).shouldNotBeNull().startdato shouldBe korrigertStartdato
 
         // En senere feilregistrering må heller ikke gjøre en allerede behandlet melding retrybar.
         deltakerService.feilregistrerDeltaker(deltaker.id)

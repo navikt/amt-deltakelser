@@ -148,7 +148,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer faktisk behandlet deltakeren
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
         assertSoftly(deltakerFromDb) {
             id shouldBe deltaker.id
             deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -251,7 +251,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer behandlet statusendringen
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
         val expectedDeltaker = deltakerMedEndringer.copy(
             status = deltakerMedEndringer.status.copy(
@@ -297,7 +297,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer behandlet endringene
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
         val expectedDeltaker = deltakerMedEndringer.copy(
             status = deltakerMedEndringer.status.copy(

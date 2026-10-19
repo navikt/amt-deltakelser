@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -30,7 +30,7 @@ import java.util.UUID
 class ForslagServiceTest {
     private val forslagRepository = ForslagRepository()
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
-    private val deltakerRepository = mockk<DeltakerRepository>(relaxed = true)
+    private val deltakerService = mockk<DeltakerService>(relaxed = true)
     private val deltakerProducerService = mockk<DeltakerProducerService>(relaxed = true)
     private val navAnsattService = mockk<NavAnsattService>(relaxed = true)
     private val navEnhetService = mockk<NavEnhetService>(relaxed = true)
@@ -38,7 +38,7 @@ class ForslagServiceTest {
     private val forslagService = ForslagService(
         forslagRepository = forslagRepository,
         arrangorMeldingProducer = arrangorMeldingProducer,
-        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -96,7 +96,7 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
 
             val begrunnelse = "Avslatt fordi det er ikke relevant"
 
@@ -125,7 +125,7 @@ class ForslagServiceTest {
                 status = Forslag.Status.VenterPaSvar,
             )
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
 
             // Act
             forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
@@ -142,7 +142,7 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             val tidFor = LocalDateTime.now()
 
             // Act

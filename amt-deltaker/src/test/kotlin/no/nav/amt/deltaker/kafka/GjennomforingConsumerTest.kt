@@ -328,7 +328,7 @@ class GjennomforingConsumerTest {
             // Mock the repository calls
             every { deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(originalDeltakerliste.id) } returns listOf(deltaker)
             every { deltakerRepository.upsert(any<Deltaker>()) } just runs
-            every { deltakerRepository.getOrThrow(deltaker.id) } returns
+            every { deltakerService.getOrThrow(deltaker.id) } returns
                 deltaker.copy(sluttdato = nySluttDato)
             every { deltakerService.lagreDeltakerStatus(any(), any(), any()) } returns lagDeltakerStatus()
 

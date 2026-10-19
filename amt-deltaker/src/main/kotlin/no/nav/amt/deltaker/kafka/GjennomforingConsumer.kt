@@ -198,7 +198,7 @@ class GjennomforingConsumer(
                     erDeltakerSluttdatoEndret = true,
                 )
                 deltakerProducerService.produce(
-                    deltaker = deltakerRepository.getOrThrow(deltaker.id),
+                    deltaker = deltakerService.getOrThrow(deltaker.id),
                     forcedUpdate = true,
                 )
 

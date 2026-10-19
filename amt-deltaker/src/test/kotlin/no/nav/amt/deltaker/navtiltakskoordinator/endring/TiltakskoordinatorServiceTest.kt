@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -702,7 +703,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             result.first().isSuccess shouldBe false
             result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
 
-            val deltakerResult = deltakerRepository.getOrThrow(deltaker.id)
+            val deltakerResult = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTELISTE
 
             assertDeltakerNotProduced(deltaker.id)
@@ -739,7 +740,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             result.first().isSuccess shouldBe false
             result.first().exception!!.message shouldBe "Ingen gyldig deltakerendring"
 
-            val deltakerResult = deltakerRepository.getOrThrow(deltaker.id)
+            val deltakerResult = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerResult.erManueltDeltMedArrangor shouldBe false
 
             assertDeltakerNotProduced(deltaker.id)
@@ -944,7 +945,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 endringer.size shouldBe 1
                 (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
 
-                val deltakerResult = deltakerRepository.getOrThrow(oppdateringResult.deltakerId)
+                val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).shouldNotBeNull()
                 assertSoftly(deltakerResult) {
                     status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
                     status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.KURS_FULLT
@@ -988,7 +989,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 // Assert
                 oppdateringResult.isSuccess shouldBe true
 
-                val deltakerResult = deltakerRepository.getOrThrow(oppdateringResult.deltakerId)
+                val deltakerResult = deltakerRepository.get(oppdateringResult.deltakerId).shouldNotBeNull()
                 assertSoftly(deltakerResult) {
                     status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
                     status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.ANNET
@@ -1029,7 +1030,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                     )
                 }
 
-                val deltakerResult = deltakerRepository.getOrThrow(deltaker.id)
+                val deltakerResult = deltakerRepository.get(deltaker.id).shouldNotBeNull()
                 deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
 
                 outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)
@@ -1063,7 +1064,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                     )
                 }
 
-                val deltakerResult = deltakerRepository.getOrThrow(deltaker.id)
+                val deltakerResult = deltakerRepository.get(deltaker.id).shouldNotBeNull()
                 deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
 
                 outboxService.assertNotProducedHendelse<HendelseType.Avslag>(deltaker.id)

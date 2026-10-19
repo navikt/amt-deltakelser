@@ -5,7 +5,6 @@ import no.nav.amt.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.DistribuerEndringService
 import no.nav.amt.deltaker.service.VedtakService
@@ -20,7 +19,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class PameldingService(
-    private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
@@ -149,7 +147,7 @@ class PameldingService(
         deltakerId: UUID,
         avbrytUtkastRequest: AvbrytUtkastRequest,
     ) {
-        val opprinneligDeltaker = deltakerRepository.getOrThrow(deltakerId)
+        val opprinneligDeltaker = deltakerService.getOrThrow(deltakerId)
 
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
             log.warn(

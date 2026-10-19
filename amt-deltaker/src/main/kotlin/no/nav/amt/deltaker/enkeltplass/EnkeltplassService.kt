@@ -268,7 +268,7 @@ class EnkeltplassService(
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyStatus: DeltakerStatus.Type,
     ): Deltaker {
-        val deltaker = deltakerRepository.getOrThrow(deltakerId)
+        val deltaker = deltakerService.getOrThrow(deltakerId)
         val gjennomforing = deltaker.deltakerliste
         val request = decoratedRequest.wrappedRequest
 

@@ -8,12 +8,12 @@ import no.nav.amt.deltaker.kafka.toAmtGjennomforingPayload
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -32,7 +32,7 @@ class GjennomforingProducerService(
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
-    private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
@@ -164,9 +164,7 @@ class GjennomforingProducerService(
         deltakerId: UUID,
         endretAvNavIdent: String,
     ): UUID {
-        val gjennomforingId = deltakerRepository
-            .getOrThrow(deltakerId)
-            .deltakerliste.id
+        val gjennomforingId = deltakerService.getOrThrow(deltakerId).deltakerliste.id
 
         val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
 

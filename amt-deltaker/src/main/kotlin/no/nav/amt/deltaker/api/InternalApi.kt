@@ -66,7 +66,7 @@ fun Routing.registerInternalApi(
             runCatching {
                 Database.transaction {
                     deltakerProducerService.produce(
-                        deltakerRepository.getOrThrow(deltakerId),
+                        deltakerService.getOrThrow(deltakerId),
                         forcedUpdate = request.forcedUpdate,
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                         publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
@@ -95,7 +95,7 @@ fun Routing.registerInternalApi(
             log.info("relast/{deltakerId}: Starter relast av deltaker $deltakerId")
             Database.transaction {
                 deltakerProducerService.produce(
-                    deltakerRepository.getOrThrow(deltakerId),
+                    deltakerService.getOrThrow(deltakerId),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
@@ -117,7 +117,7 @@ fun Routing.registerInternalApi(
             request.deltakere.forEach { deltakerId ->
                 Database.transaction {
                     deltakerProducerService.produce(
-                        deltakerRepository.getOrThrow(deltakerId).copy(sistEndret = LocalDateTime.now()),
+                        deltakerService.getOrThrow(deltakerId).copy(sistEndret = LocalDateTime.now()),
                         forcedUpdate = request.republiserRequest.forcedUpdate,
                         publiserTilDeltakerV1 = request.republiserRequest.publiserTilDeltakerV1,
                         publiserTilDeltakerEksternV1 = request.republiserRequest.publiserTilDeltakerEksternV1,
@@ -229,7 +229,7 @@ fun Routing.registerInternalApi(
                     ?: throw IllegalArgumentException(
                         "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
                     )
-                val deltaker = deltakerRepository.getOrThrow(endring.deltakerId)
+                val deltaker = deltakerService.getOrThrow(endring.deltakerId)
                 if (request.relastDeltaker) {
                     Database.transaction {
                         deltakerProducerService.produce(
@@ -336,7 +336,7 @@ fun Routing.registerInternalApi(
             log.info("ProduserUtkast: Produserer hendelse for ${request.deltakere.size} deltakere. DryRun: ${request.dryRun}")
             scope.launch {
                 request.deltakere.forEach { deltakerId ->
-                    val deltaker = deltakerRepository.getOrThrow(deltakerId)
+                    val deltaker = deltakerService.getOrThrow(deltakerId)
                     val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
                     if (vedtak == null) {

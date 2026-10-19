@@ -138,7 +138,7 @@ class DeltakerService(
     }
 
     fun feilregistrerDeltaker(deltakerId: UUID) {
-        val deltaker = deltakerRepository.getOrThrow(deltakerId)
+        val deltaker = getOrThrow(deltakerId)
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
             throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
@@ -201,7 +201,7 @@ class DeltakerService(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
     ) {
-        val deltaker = deltakerRepository.getOrThrow(deltakerId)
+        val deltaker = getOrThrow(deltakerId)
         distribuerEndringService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 

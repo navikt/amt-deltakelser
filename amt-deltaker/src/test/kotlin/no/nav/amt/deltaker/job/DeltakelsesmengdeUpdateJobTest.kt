@@ -4,7 +4,6 @@ import io.ktor.util.Attributes
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
@@ -23,7 +22,6 @@ class DeltakelsesmengdeUpdateJobTest {
             lagDeltakerEndring(deltakerId = deltaker.id),
         )
         val deltakerEndringRepository = mockk<DeltakerEndringRepository>()
-        val deltakerRepository = mockk<DeltakerRepository>()
         val deltakerEndringService = mockk<DeltakerEndringService>()
         val deltakerService = mockk<DeltakerService>()
 
@@ -35,7 +33,7 @@ class DeltakelsesmengdeUpdateJobTest {
             listOf(endringer[1]),
             emptyList(),
         )
-        every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
+        every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
         // En ugyldig forretningsendring isolerer batchlogikken fra publisering.
         every {
             deltakerEndringService.behandleLagretDeltakelsesmengde(any(), deltaker)
@@ -46,7 +44,6 @@ class DeltakelsesmengdeUpdateJobTest {
             attributes = mockk<Attributes>(),
             deltakerEndringRepository = deltakerEndringRepository,
             deltakerEndringService = deltakerEndringService,
-            deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
         )
 
