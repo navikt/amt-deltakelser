@@ -43,11 +43,10 @@ class DeltakerService(
         visning av deltakere i alle flater.
         Brukes i tilfeller hvor det er en forventning at deltakeren skal finnes
      */
-    fun getOrThrow(deltakerId: UUID): Deltaker = get(deltakerId)
-        ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
+    fun getOrThrow(deltakerId: UUID): Deltaker {
+        val deltaker = deltakerRepository.get(deltakerId)
+            ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
-    fun get(deltakerId: UUID): Deltaker? {
-        val deltaker = deltakerRepository.get(deltakerId) ?: return null
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
             gjennomforing = deltaker.deltakerliste,
         )

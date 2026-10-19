@@ -44,6 +44,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class DeltakerServiceTest : IntegrationTestWithDbBase() {
     private val navEnhetInTest = TestData.lagNavEnhet(enhetsnummer = "0326")
@@ -56,7 +57,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `get - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
+    fun `getOrThrow - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
             navn = "Underenhet Oslo",
@@ -80,6 +81,15 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         deltakerArrangor.id shouldBe underordnetArrangor.id
         deltakerArrangor.navn shouldBe "Overordnet Arrangør"
         deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
+    }
+
+    @Test
+    fun `getOrThrow - ukjent deltaker - kaster NoSuchElementException`() {
+        val deltakerId = UUID.randomUUID()
+
+        assertThrows<NoSuchElementException> {
+            deltakerService.getOrThrow(deltakerId)
+        }.message shouldBe "Fant ikke deltaker med id $deltakerId"
     }
 
     @Test
@@ -609,7 +619,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `upsertDeltaker - oppretter kladd - oppdaterer i db`() = runTest {
             // Arrange
-            val arrangor = TestData.lagArrangor()
+            val arrangor = lagArrangor()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor)
             TestRepository.insert(deltakerliste)
 
