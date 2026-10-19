@@ -303,7 +303,7 @@ class AktivitetskortService(
         return OppgaveWrapper(
             ekstern = Oppgave(
                 tekst = "Du har mottatt et utkast til påmelding",
-                subtekst = "Vi vil at du leser gjennom og godkjenner utkastet, slik at vi kan melde deg på aktiviteten.",
+                subtekst = "Les gjennom utkastet før du godkjenner det. Når du godkjenner, blir du meldt på aktiviteten.",
                 url = deltaker.deltakerUrl(),
             ),
             intern = null,
