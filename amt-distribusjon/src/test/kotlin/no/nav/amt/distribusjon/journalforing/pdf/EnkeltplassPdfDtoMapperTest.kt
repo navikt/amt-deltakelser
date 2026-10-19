@@ -17,7 +17,6 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
@@ -369,40 +368,16 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toPrisinformasjon skal returnere IngenKostnader når aarsak er OPPLAERINGEN_ER_KOSTNADSFRI`() {
+        fun `toPrisinformasjon skal returnere IngenKostnader`() {
             val prisinfoInTest = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "Detaljer om kostnadsfri opplæring",
             )
 
             val resultat = prisinfoInTest.toPrisinformasjon()
 
-            resultat shouldBe EnkeltplassPdfDto.Prisinformasjon.IngenKostnader
-        }
-
-        @Test
-        fun `toPrisinformasjon skal returnere Innbyggerfinansiert når aarsak er OPPLAERINGEN_ER_EGENFINANSIERT`() {
-            val prisinfoInTest = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = "Deltaker finansierer kurset selv",
+            resultat shouldBe EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
+                tilleggsopplysninger = "Detaljer om kostnadsfri opplæring",
             )
-
-            val resultat = prisinfoInTest.toPrisinformasjon()
-
-            resultat.shouldBeInstanceOf<EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert>()
-            resultat.tilleggsopplysninger shouldBe "Deltaker finansierer kurset selv"
-        }
-
-        @Test
-        fun `toPrisinformasjon skal kaste IllegalStateException når tilleggsopplysninger mangler for egenfinansiert`() {
-            val prisinfoInTest = IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = null,
-            )
-
-            shouldThrow<IllegalStateException> {
-                prisinfoInTest.toPrisinformasjon()
-            }
         }
 
         @Test

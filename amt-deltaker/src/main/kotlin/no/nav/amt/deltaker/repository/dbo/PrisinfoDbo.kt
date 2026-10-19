@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.repository.dbo
 
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import java.util.UUID
 
 data class PrisinfoDbo(
@@ -12,6 +11,11 @@ data class PrisinfoDbo(
     val tilleggsopplysninger: String? = null,
     val ingenkostnaderAarsak: Aarsak? = null,
 ) {
+    enum class Aarsak {
+        OPPLAERINGEN_ER_KOSTNADSFRI,
+        OPPLAERINGEN_ER_EGENFINANSIERT,
+    }
+
     enum class PrisinfoStatus {
         KLADD_UTKAST,
         SENDT,

@@ -122,7 +122,7 @@ class GjennomforingRequestPayloadTest {
             val original = GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
                 gjennomforingId = UUID.randomUUID(),
                 payload = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader(
-                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
+                    aarsak = GjennomforingRequestPayload.Prisinformasjon.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                     tilleggsopplysninger = "Forklaring",
                 ),
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(

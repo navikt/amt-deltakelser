@@ -1,7 +1,9 @@
 package no.nav.amt.lib.models.deltaker
 
+import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.Nulls
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
@@ -77,21 +79,17 @@ sealed interface PrisinformasjonDto {
     }
 
     data class IngenKostnader(
-        val aarsak: Aarsak,
-        val tilleggsopplysninger: String?,
-        override val begrunnelse: String? = null,
+        @param:JsonSetter(nulls = Nulls.AS_EMPTY)
+        val tilleggsopplysninger: String = "",
+        @param:JsonSetter(nulls = Nulls.AS_EMPTY)
+        override val begrunnelse: String = "",
     ) : PrisinformasjonDto {
-        enum class Aarsak {
-            OPPLAERINGEN_ER_KOSTNADSFRI,
-            OPPLAERINGEN_ER_EGENFINANSIERT,
-        }
-
         override fun validate(): List<String> = emptyList()
 
         override fun sanitize(): PrisinformasjonDto = copy(
             tilleggsopplysninger = tilleggsopplysninger
-                ?.trim()
-                ?.take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
+                .trim()
+                .take(MAX_LENGTH_TILLEGGSOPPLYSNINGER),
         )
     }
 

@@ -16,7 +16,6 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -100,20 +99,10 @@ object EnkeltplassPdfDtoMapper {
             tilleggsopplysninger = tilleggsopplysninger,
         )
 
-        is IngenKostnader -> {
-            when (aarsak) {
-                Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI -> Prisinformasjon.IngenKostnader
-                Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT -> Prisinformasjon.Innbyggerfinansiert(
-                    tilleggsopplysninger = tilleggsopplysninger ?: throw IllegalStateException(
-                        "tilleggsopplysninger må være satt for innbyggerfinansiert prisinformasjon",
-                    ),
-                )
-            }
-        }
+        is IngenKostnader -> Prisinformasjon.IngenKostnader(
+            tilleggsopplysninger = tilleggsopplysninger.takeIf { it.isNotEmpty() },
+        )
     }
-
-    internal fun HendelseDeltaker.Deltakerliste.toInnhold(): EnkeltplassInnhold = opplaringKategoriseringValg?.toEnkeltplassInnhold()
-        ?: throw IllegalStateException("Deltakerliste ${this.id} må ha opplæring kategorisering for å lage enkeltplass innsøkingsbrev")
 
     internal fun HendelseDeltaker.Deltakerliste.tiltakskodenavn(): String = when (tiltak.tiltakskode) {
         Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> {

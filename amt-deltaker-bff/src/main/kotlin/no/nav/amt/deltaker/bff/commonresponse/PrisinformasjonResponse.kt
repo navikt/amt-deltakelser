@@ -28,9 +28,8 @@ sealed interface PrisinformasjonResponse {
     }
 
     data class IngenKostnader(
-        val aarsak: PrisinformasjonDto.IngenKostnader.Aarsak,
-        val tilleggsopplysninger: String?,
-        val begrunnelse: String?,
+        val tilleggsopplysninger: String,
+        val begrunnelse: String,
     ) : PrisinformasjonResponse
 
     companion object {
@@ -39,6 +38,7 @@ sealed interface PrisinformasjonResponse {
                 pris = model.pris,
                 begrunnelse = model.begrunnelse,
             )
+
             is PrisinformasjonDto.Tilskudd -> Tilskudd(
                 tilskudd = model.tilskudd.map(::TilskuddInfo),
                 tilleggsopplysninger = model.tilleggsopplysninger,
@@ -46,7 +46,6 @@ sealed interface PrisinformasjonResponse {
             )
 
             is PrisinformasjonDto.IngenKostnader -> IngenKostnader(
-                aarsak = model.aarsak,
                 tilleggsopplysninger = model.tilleggsopplysninger,
                 begrunnelse = model.begrunnelse,
             )
