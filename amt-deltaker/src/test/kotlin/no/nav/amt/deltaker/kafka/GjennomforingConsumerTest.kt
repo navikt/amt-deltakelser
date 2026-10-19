@@ -82,7 +82,7 @@ class GjennomforingConsumerTest {
         }
 
         every { tiltakRepository.get(any<Tiltakskode>()) } answers {
-            Result.success(lagTiltakstype(tiltakskode = firstArg()))
+            lagTiltakstype(tiltakskode = firstArg())
         }
 
         every { deltakerlisteRepository.upsert(any<Deltakerliste>()) } just runs
@@ -103,7 +103,7 @@ class GjennomforingConsumerTest {
         deltakerliste.arrangor?.let { arrangor ->
             coEvery { arrangorService.hentArrangor(arrangor.organisasjonsnummer) } returns arrangor
         }
-        every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
+        every { deltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
     }
 
     private suspend fun consumePayloadFor(deltakerliste: Deltakerliste) {
@@ -181,7 +181,7 @@ class GjennomforingConsumerTest {
                 tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             )
 
-            every { tiltakRepository.get(any()) } returns Result.success(arenaEnkeltplassTiltakstype)
+            every { tiltakRepository.get(any()) } returns arenaEnkeltplassTiltakstype
             stubEksisterendeDeltakerliste(gruppeDeltakerliste)
 
             // Act
@@ -201,7 +201,7 @@ class GjennomforingConsumerTest {
             val deltaker = lagDeltaker(deltakerliste = aktivGruppeDeltakerliste)
 
             every { tiltakRepository.get(any()) } returns
-                Result.success(lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING))
+                lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
             stubEksisterendeDeltakerliste(aktivGruppeDeltakerliste)
             every { deltakerRepository.getDeltakereForAvsluttetDeltakerliste(aktivGruppeDeltakerliste.id) } returns listOf(deltaker)
 
@@ -221,7 +221,7 @@ class GjennomforingConsumerTest {
             ).copy(id = aktivGruppeDeltakerliste.id)
             val deltaker = lagDeltaker(deltakerliste = aktivGruppeDeltakerliste)
 
-            every { tiltakRepository.get(any()) } returns Result.success(lagTiltakstype())
+            every { tiltakRepository.get(any()) } returns lagTiltakstype()
             stubEksisterendeDeltakerliste(aktivGruppeDeltakerliste)
             every { deltakerRepository.getDeltakereForAvsluttetDeltakerliste(aktivGruppeDeltakerliste.id) } returns listOf(deltaker)
 
@@ -328,9 +328,8 @@ class GjennomforingConsumerTest {
             // Mock the repository calls
             every { deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(originalDeltakerliste.id) } returns listOf(deltaker)
             every { deltakerRepository.upsert(any<Deltaker>()) } just runs
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(
-                deltaker.copy(sluttdato = nySluttDato),
-            )
+            every { deltakerRepository.getOrThrow(deltaker.id) } returns
+                deltaker.copy(sluttdato = nySluttDato)
             every { deltakerService.lagreDeltakerStatus(any(), any(), any()) } returns lagDeltakerStatus()
 
             // Act
@@ -399,7 +398,7 @@ class GjennomforingConsumerTest {
         fun `produserer riktig payload for ny gruppegjennomforing`() = runTest {
             // Arrange
             val gjennomforing = lagGruppeDeltakerliste()
-            every { deltakerlisteRepository.get(gjennomforing.id) } returns Result.failure(NoSuchElementException())
+            every { deltakerlisteRepository.get(gjennomforing.id) } returns null
 
             val payloadSlot = slot<AmtGjennomforingPayload>()
             every { amtGjennomforingProducer.produce(capture(payloadSlot)) } just runs

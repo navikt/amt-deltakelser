@@ -42,7 +42,7 @@ class TiltakConsumer(
         val tiltakstypePayload = objectMapper.readValue<TiltakstypePayload>(value)
         val nyTiltakstype = tiltakstypePayload.toModel()
 
-        val eksisterendeTiltakstype = repository.get(nyTiltakstype.tiltakskode).getOrNull()
+        val eksisterendeTiltakstype = repository.get(nyTiltakstype.tiltakskode)
 
         Database.transaction {
             repository.upsert(nyTiltakstype)

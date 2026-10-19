@@ -50,7 +50,7 @@ class DeltakelsesmengdeUpdateJob(
             val endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
 
             endringer.forEach { deltakerEndring ->
-                val opprinneligDeltaker = deltakerRepository.get(deltakerEndring.deltakerId).getOrThrow()
+                val opprinneligDeltaker = deltakerRepository.getOrThrow(deltakerEndring.deltakerId)
 
                 deltakerEndringService
                     .behandleLagretDeltakelsesmengde(

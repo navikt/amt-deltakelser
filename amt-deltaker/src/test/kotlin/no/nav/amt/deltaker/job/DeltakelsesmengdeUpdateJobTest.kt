@@ -35,7 +35,7 @@ class DeltakelsesmengdeUpdateJobTest {
             listOf(endringer[1]),
             emptyList(),
         )
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
         // En ugyldig forretningsendring isolerer batchlogikken fra publisering.
         every {
             deltakerEndringService.behandleLagretDeltakelsesmengde(any(), deltaker)

@@ -68,7 +68,8 @@ class ArrangorMeldingConsumer(
     }
 
     private fun handleVurdering(vurdering: Vurdering) {
-        val deltaker = deltakerRepository.get(vurdering.deltakerId).getOrNull()
+        val deltaker = deltakerRepository.get(vurdering.deltakerId)
+
         if (deltaker == null) {
             log.warn("Fant ikke deltaker ${vurdering.deltakerId} for vurdering ${vurdering.id}, ignorerer")
             return

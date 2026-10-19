@@ -78,7 +78,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
                 visningsnavn = VisningsnavnResponse("Tittel"),
             )
 
-            every { deltakerlisteRepository.get(deltakerliste.id) } returns Result.success(deltakerliste)
+            every { deltakerlisteRepository.getOrThrow(deltakerliste.id) } returns deltakerliste
             every {
                 deltakerResponseBuilder.buildGjennomforingResponse(
                     deltakerliste = deltakerliste,
@@ -97,8 +97,8 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         @Test
         fun `get gjennomforing - gjennomforing finnes ikke - returnerer 404`() {
             every {
-                deltakerlisteRepository.get(any())
-            } returns Result.failure(NoSuchElementException("Fant ikke deltakerliste"))
+                deltakerlisteRepository.getOrThrow(any())
+            } throws NoSuchElementException("Fant ikke deltakerliste")
 
             withTestApplicationContext { client ->
                 client.get("/gjennomforing/${UUID.randomUUID()}") { noBodyRequest() }.apply {

@@ -97,7 +97,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     private fun stubDeltaker(deltaker: Deltaker) {
-        every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
         every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
     }
 

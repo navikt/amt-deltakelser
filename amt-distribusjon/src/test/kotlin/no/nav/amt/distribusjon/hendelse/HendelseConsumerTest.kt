@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.hendelse
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
@@ -62,7 +61,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 .getSisteVarsel(
                     deltakerId = hendelse.deltaker.id,
                     type = Varsel.Type.OPPGAVE,
-                ).shouldBeSuccess()
+                ).shouldNotBeNull()
 
             assertSoftly(varsel) {
                 aktivTil shouldBe null
@@ -98,7 +97,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 .getSisteVarsel(
                     deltakerId = hendelse.deltaker.id,
                     type = Varsel.Type.OPPGAVE,
-                ).shouldBeSuccess()
+                ).shouldNotBeNull()
 
             varsel.erAktiv shouldBe false
 
@@ -144,7 +143,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             // Assert
             assertNyBeskjed(hendelse, nowUTC())
 
-            val inaktivertVarsel = varselRepository.get(forrigeVarsel.id).shouldBeSuccess()
+            val inaktivertVarsel = varselRepository.get(forrigeVarsel.id).shouldNotBeNull()
             assertSoftly(inaktivertVarsel) {
                 aktivTil.shouldNotBeNull()
                 aktivTil shouldBeCloseTo nowUTC()
@@ -177,7 +176,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             .getSisteVarsel(
                 deltakerId = hendelse.deltaker.id,
                 type = Varsel.Type.OPPGAVE,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(varsel) {
             id shouldBe forrigeVarsel.id
@@ -212,7 +211,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             .getSisteVarsel(
                 deltakerId = hendelse.deltaker.id,
                 type = Varsel.Type.OPPGAVE,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(varsel) {
             id shouldBe forrigeVarsel.id
@@ -278,7 +277,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             )
 
             // Assert
-            val oppdatertVarsel = varselRepository.get(varsel.id).shouldBeSuccess()
+            val oppdatertVarsel = varselRepository.get(varsel.id).shouldNotBeNull()
             assertSoftly(oppdatertVarsel) {
                 aktivTil.shouldNotBeNull()
                 aktivTil shouldBeCloseTo nowUTC()
@@ -306,7 +305,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             )
 
             // Assert
-            val oppdatertVarsel = varselRepository.get(varsel.id).shouldBeSuccess()
+            val oppdatertVarsel = varselRepository.get(varsel.id).shouldNotBeNull()
             assertSoftly(oppdatertVarsel) {
                 status shouldBe Varsel.Status.UTFORT
                 aktivFra shouldBeCloseTo nowUTC()
@@ -343,7 +342,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             )
 
             // Assert
-            assertSoftly(varselRepository.get(aktivtVarsel.id).shouldBeSuccess()) {
+            assertSoftly(varselRepository.get(aktivtVarsel.id).shouldNotBeNull()) {
                 status shouldBe Varsel.Status.UTFORT
                 aktivFra shouldBeCloseTo aktivtVarsel.aktivFra
 
@@ -351,7 +350,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
                 aktivTil shouldBeCloseTo nowUTC()
             }
 
-            assertSoftly(varselRepository.get(ventendeVarsel.id).shouldBeSuccess()) {
+            assertSoftly(varselRepository.get(ventendeVarsel.id).shouldNotBeNull()) {
                 status shouldBe Varsel.Status.UTFORT
                 aktivFra shouldBeCloseTo nowUTC()
 
@@ -371,7 +370,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             .getSisteVarsel(
                 deltakerId = hendelse.deltaker.id,
                 type = Varsel.Type.BESKJED,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(varsel) {
             aktivTil.shouldNotBeNull()

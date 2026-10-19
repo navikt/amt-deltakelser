@@ -418,7 +418,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
         coEvery {
             tiltakskoordinatorTilgangRepository.hentAktivTilgang(any(), any())
-        } returns Result.success(lagTiltakskoordinatorTilgang())
+        } returns lagTiltakskoordinatorTilgang()
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til") {

@@ -63,7 +63,6 @@ class DeltakerHistorikkService(
         { deltakerId ->
             innsokRepository
                 .getForDeltaker(deltakerId)
-                .getOrNull()
                 ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
         },
         // EndringFraArrangor er en del av kjernehistorikken fordi

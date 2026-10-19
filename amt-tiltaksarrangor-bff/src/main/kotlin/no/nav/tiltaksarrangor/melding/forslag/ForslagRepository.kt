@@ -99,7 +99,7 @@ class ForslagRepository(
         return template.update(sql, params)
     }
 
-    fun getVentende(forslag: Forslag): Result<Forslag> {
+    fun getVentende(forslag: Forslag): Forslag? {
         val sql =
             """
             select *
@@ -114,16 +114,6 @@ class ForslagRepository(
             "type" to forslag.endring.javaClass.simpleName,
             "status" to Forslag.Status.VenterPaSvar.javaClass.simpleName,
         )
-        return template
-            .query(sql, params, rowMapper)
-            .firstOrNull()
-            ?.let { Result.success(it) }
-            ?: Result.failure(
-                NoSuchElementException(
-                    "Fant ikke forslag for deltaker ${forslag.deltakerId} " +
-                        "av type ${forslag.endring.javaClass.simpleName} " +
-                        "og status ${Forslag.Status.VenterPaSvar.javaClass.simpleName}",
-                ),
-            )
+        return template.query(sql, params, rowMapper).firstOrNull()
     }
 }

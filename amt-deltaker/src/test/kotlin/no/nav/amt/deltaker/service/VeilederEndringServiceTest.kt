@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -105,7 +104,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             veilederEndringService.upsertEndretDeltaker(deltaker.id, request)
 
             // Assert
-            deltakerRepository.get(deltaker.id).shouldBeSuccess().sistEndret shouldBeCloseTo deltaker.sistEndret
+            deltakerRepository.get(deltaker.id).shouldNotBeNull().sistEndret shouldBeCloseTo deltaker.sistEndret
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
             assertSoftly(forslagRepository.get(forslag.id).shouldBeSuccess()) {
                 it.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()
@@ -164,7 +163,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 prisinfo = prisinfo,
                 begrunnelse = "Oppdatert prisgrunnlag",
             )
-            val lagretDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val lagretDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
             // Act
             val resultat = veilederEndringService.upsertEndretDeltaker(
@@ -426,7 +425,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 sertifiseringValg = sertifiseringer,
                 pavirkerPris = false,
             )
-            val lagretDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val lagretDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
             // Act
             val resultat = veilederEndringService.upsertEndretDeltaker(
@@ -735,7 +734,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             assertSoftly(TestRepository.getDeltakerStatus(oppdatertDeltaker.status.id)) {
                 gyldigTil.shouldBeNull()
                 type shouldBe DeltakerStatus.Type.DELTAR
@@ -787,7 +786,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             resultat.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             resultat.startdato shouldBe null
             resultat.sluttdato shouldBe null
-            deltakerRepository.get(kladd.id).shouldBeFailure()
+            deltakerRepository.get(kladd.id).shouldBeNull()
         }
 
         @Test
@@ -875,7 +874,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             resultat.deltakelsesprosent shouldBe request.deltakelsesprosent?.toFloat()
             resultat.dagerPerUke shouldBe null
 
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 deltakelsesprosent shouldBe request.deltakelsesprosent?.toFloat()
                 dagerPerUke shouldBe null
             }
@@ -993,7 +992,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 status.type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 startdato shouldBe request.startdato
                 sluttdato shouldBe request.sluttdato
             }
@@ -1047,7 +1046,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 status.type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.DELTAR
                 startdato shouldBe request.startdato
                 sluttdato shouldBe deltakersSluttdato
@@ -1097,7 +1096,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             resultat.bakgrunnsinformasjon shouldBe "Ny informasjon"
-            deltakerRepository.get(deltaker.id).shouldBeSuccess().bakgrunnsinformasjon shouldBe "Ny informasjon"
+            deltakerRepository.get(deltaker.id).shouldNotBeNull().bakgrunnsinformasjon shouldBe "Ny informasjon"
             deltakerEndringRepository
                 .getForDeltaker(deltaker.id)
                 .first()
@@ -1141,7 +1140,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             }.message shouldBe
                 "Kan ikke utføre endring BakgrunnsinformasjonRequest på deltaker ${deltaker.id} uten aktiv oppfølgingsperiode"
 
-            deltakerRepository.get(deltaker.id).shouldBeSuccess().bakgrunnsinformasjon shouldBe "Gammel informasjon"
+            deltakerRepository.get(deltaker.id).shouldNotBeNull().bakgrunnsinformasjon shouldBe "Gammel informasjon"
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
         }
 
@@ -1184,7 +1183,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             resultat.sluttdato shouldBe request.sluttdato
-            deltakerRepository.get(deltaker.id).shouldBeSuccess().sluttdato shouldBe request.sluttdato
+            deltakerRepository.get(deltaker.id).shouldNotBeNull().sluttdato shouldBe request.sluttdato
             deltakerEndringRepository
                 .getForDeltaker(deltaker.id)
                 .first()

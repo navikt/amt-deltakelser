@@ -47,6 +47,6 @@ class NavBrukerRepositoryTest {
             etternavn = "Nytt Etternavn",
         )
         navBrukerRepository.upsert(oppdatertBruker).getOrNull() shouldBe oppdatertBruker
-        navBrukerRepository.get(bruker.personId).getOrNull() shouldBe oppdatertBruker
+        navBrukerRepository.get(bruker.personId) shouldBe oppdatertBruker
     }
 }

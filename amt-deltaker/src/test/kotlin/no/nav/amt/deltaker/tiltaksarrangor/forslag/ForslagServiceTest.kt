@@ -96,7 +96,7 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
 
             val begrunnelse = "Avslatt fordi det er ikke relevant"
 
@@ -125,7 +125,7 @@ class ForslagServiceTest {
                 status = Forslag.Status.VenterPaSvar,
             )
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
 
             // Act
             forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
@@ -142,7 +142,7 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.getOrThrow(deltaker.id) } returns deltaker
             val tidFor = LocalDateTime.now()
 
             // Act

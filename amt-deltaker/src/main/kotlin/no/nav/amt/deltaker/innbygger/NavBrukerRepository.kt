@@ -88,34 +88,32 @@ class NavBrukerRepository {
         }
     }
 
-    fun get(personId: UUID): Result<NavBruker> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    statement =
-                        """
-                        SELECT 
-                            person_id, 
-                            personident, 
-                            fornavn, 
-                            mellomnavn, 
-                            etternavn, 
-                            nav_veileder_id, 
-                            nav_enhet_id, 
-                            telefonnummer, 
-                            epost, 
-                            er_skjermet, 
-                            adresse, 
-                            adressebeskyttelse, 
-                            oppfolgingsperioder, 
-                            innsatsgruppe 
-                        FROM nav_bruker 
-                        WHERE person_id = :person_id
-                        """.trimIndent(),
-                    paramMap = mapOf("person_id" to personId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke bruker $personId")
-        }
+    fun get(personId: UUID): NavBruker? = Database.query { session ->
+        session.run(
+            queryOf(
+                statement =
+                    """
+                    SELECT
+                        person_id,
+                        personident,
+                        fornavn,
+                        mellomnavn,
+                        etternavn,
+                        nav_veileder_id,
+                        nav_enhet_id,
+                        telefonnummer,
+                        epost,
+                        er_skjermet,
+                        adresse,
+                        adressebeskyttelse,
+                        oppfolgingsperioder,
+                        innsatsgruppe
+                    FROM nav_bruker
+                    WHERE person_id = :person_id
+                    """.trimIndent(),
+                paramMap = mapOf("person_id" to personId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
     fun get(personident: String): Result<NavBruker> = runCatching {

@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.navtiltakskoordinator.auth
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.gjennomforing.DeltakerlisteRepository
 import no.nav.amt.deltaker.bff.model.Deltakerliste
@@ -51,31 +52,28 @@ class TiltakskoordinatorTilgangRepositoryTest {
     }
 
     @Test
-    fun `hentAktivTilgang - aktiv tilgang finnes ikke - returnerer failure`() {
+    fun `hentAktivTilgang - aktiv tilgang finnes ikke - returnerer null`() {
         with(TiltakskoordinatorTilgangContext()) {
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
-            resultat.isFailure shouldBe true
-            resultat.exceptionOrNull()!!::class shouldBe NoSuchElementException::class
+            resultat shouldBe null
         }
     }
 
     @Test
-    fun `hentAktivTilgang - inaktiv tilgang finnes - returnerer failure`() {
+    fun `hentAktivTilgang - inaktiv tilgang finnes - returnerer null`() {
         with(TiltakskoordinatorTilgangContext()) {
             medInaktivTilgang()
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
-            resultat.isFailure shouldBe true
-            resultat.exceptionOrNull()!!::class shouldBe NoSuchElementException::class
+            resultat shouldBe null
         }
     }
 
     @Test
-    fun `hentAktivTilgang - aktiv tilgang finnes - returnerer succses`() {
+    fun `hentAktivTilgang - aktiv tilgang finnes - returnerer tilgang`() {
         with(TiltakskoordinatorTilgangContext()) {
             medAktivTilgang()
             val resultat = tiltakskoordinatorTilgangRepository.hentAktivTilgang(navAnsatt.id, deltakerliste.id)
-            resultat.isSuccess shouldBe true
-            sammenlignTilganger(resultat.getOrThrow(), tilgang)
+            sammenlignTilganger(resultat.shouldNotBeNull(), tilgang)
         }
     }
 

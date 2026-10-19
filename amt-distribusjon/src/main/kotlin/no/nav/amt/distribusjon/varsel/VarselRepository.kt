@@ -73,7 +73,7 @@ class VarselRepository {
     fun getSisteVarsel(
         deltakerId: UUID,
         type: Varsel.Type,
-    ): Result<Varsel> = runCatching {
+    ): Varsel? {
         val sql =
             """
             SELECT * 
@@ -85,7 +85,7 @@ class VarselRepository {
             LIMIT 1
             """.trimIndent()
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,
@@ -94,7 +94,7 @@ class VarselRepository {
                         "type" to type.name,
                     ),
                 ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ingen varsel av type $type for deltaker $deltakerId")
+            )
         }
     }
 
@@ -122,48 +122,40 @@ class VarselRepository {
         }
     }
 
-    fun getAktivt(deltakerId: UUID): Result<Varsel> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'AKTIV'",
-                    mapOf("deltaker_id" to deltakerId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke varsel for deltakerId: $deltakerId")
-        }
+    fun getAktivt(deltakerId: UUID): Varsel? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'AKTIV'",
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun get(id: UUID): Result<Varsel> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM varsel WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke varsel $id")
-        }
+    fun get(id: UUID): Varsel? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM varsel WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun getByHendelseId(hendelseId: UUID): Result<Varsel> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM varsel WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
-                    mapOf("hendelse_id" to hendelseId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke varsel for hendelse $hendelseId")
-        }
+    fun getByHendelseId(hendelseId: UUID): Varsel? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM varsel WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
+                mapOf("hendelse_id" to hendelseId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun getVentendeVarsel(deltakerId: UUID): Result<Varsel> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'VENTER_PA_UTSENDELSE'",
-                    mapOf("deltaker_id" to deltakerId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke ventende varsel for deltaker $deltakerId")
-        }
+    fun getVentendeVarsel(deltakerId: UUID): Varsel? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM varsel WHERE deltaker_id = :deltaker_id AND status = 'VENTER_PA_UTSENDELSE'",
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
     fun getVarslerSomSkalSendes(): List<Varsel> = Database.query { session ->

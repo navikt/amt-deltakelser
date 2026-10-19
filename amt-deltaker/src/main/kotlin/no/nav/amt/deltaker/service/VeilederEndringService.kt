@@ -227,10 +227,10 @@ class VeilederEndringService(
     }
 
     private fun slettKladdIfExists(deltaker: Deltaker) {
-        deltakerRepository
-            .getKladdForDeltakerliste(
-                deltakerlisteId = deltaker.deltakerliste.id,
-                personident = deltaker.navBruker.personident,
-            ).onSuccess { deltaker -> deltakerService.deleteDeltaker(deltaker.id) }
+        val kladd = deltakerRepository.getKladdForDeltakerliste(
+            deltakerlisteId = deltaker.deltakerliste.id,
+            personident = deltaker.navBruker.personident,
+        ) ?: return
+        deltakerService.deleteDeltaker(kladd.id)
     }
 }

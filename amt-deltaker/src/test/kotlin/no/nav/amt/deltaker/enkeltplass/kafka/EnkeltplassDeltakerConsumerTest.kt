@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -122,7 +121,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         // Assert - når unleash-toggle er false returnerer consumer tidlig og ingenting skal skje
         // Sjekk at deltaker IKKE ble lagret
-        deltakerRepository.get(deltaker.id).shouldBeFailure()
+        deltakerRepository.get(deltaker.id).shouldBeNull()
 
         // Verifiser at ingen service-kall ble gjort
         coVerify(exactly = 0) { navBrukerService.get(any()) }
@@ -149,7 +148,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer faktisk behandlet deltakeren
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
         assertSoftly(deltakerFromDb) {
             id shouldBe deltaker.id
             deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -189,6 +188,39 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
+    fun `consumeDeltaker - databasefeil ved oppslag av deltaker - kaster videre`() = runTest {
+        // Arrange
+        val deltakerliste = lagEnkeltplassDeltakerliste()
+        val deltaker = lagArenaDeltaker(deltakerliste = deltakerliste)
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        val mockDeltakerRepository = mockk<DeltakerRepository>()
+        val mockDeltakerlisteRepository = mockk<DeltakerlisteRepository>()
+        val mockNavBrukerService = mockk<NavBrukerService>()
+        val mockToggle = mockk<CommonUnleashToggle>()
+        every { mockDeltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
+        every { mockToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
+        every { mockDeltakerRepository.get(deltaker.id) } throws databaseFeil
+        val consumerWithMockedRepositories = EnkeltplassDeltakerConsumer(
+            deltakerRepository = mockDeltakerRepository,
+            deltakerService = mockk(),
+            deltakerlisteRepository = mockDeltakerlisteRepository,
+            navBrukerService = mockNavBrukerService,
+            importertFraArenaRepository = mockk(),
+            unleashToggle = mockToggle,
+            deltakerProducerService = mockk(),
+        )
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            consumerWithMockedRepositories.consumeDeltaker(toPayload(deltaker))
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        coVerify(exactly = 0) { mockNavBrukerService.get(any()) }
+    }
+
+    @Test
     fun `consumeDeltaker - eksisterende deltaker - status endres fra DELTAR til FULLFORT - oppdaterer og produserer`() {
         // Arrange
         val deltakerListe = lagEnkeltplassDeltakerliste()
@@ -219,7 +251,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer behandlet statusendringen
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
 
         val expectedDeltaker = deltakerMedEndringer.copy(
             status = deltakerMedEndringer.status.copy(
@@ -265,7 +297,7 @@ class EnkeltplassDeltakerConsumerTest {
         // Assert - at consumer behandlet endringene
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
-        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.getOrThrow(deltaker.id)
 
         val expectedDeltaker = deltakerMedEndringer.copy(
             status = deltakerMedEndringer.status.copy(

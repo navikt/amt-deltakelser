@@ -97,7 +97,7 @@ class NavBrukerConsumerTest {
             objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+        navBrukerRepository.get(navBruker.personId) shouldBe navBruker
         coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
     }
 
@@ -123,7 +123,7 @@ class NavBrukerConsumerTest {
             objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
         )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        navBrukerRepository.get(navBruker.personId) shouldBe oppdatertNavBruker
         coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, true) }
     }
 
@@ -149,7 +149,7 @@ class NavBrukerConsumerTest {
             objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
         )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        navBrukerRepository.get(navBruker.personId) shouldBe oppdatertNavBruker
 
         verify {
             deltakerService.produserDeltakereForPerson(
@@ -178,7 +178,7 @@ class NavBrukerConsumerTest {
             objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+        navBrukerRepository.get(navBruker.personId) shouldBe navBruker
         coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
     }
 
@@ -202,7 +202,7 @@ class NavBrukerConsumerTest {
             objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
-        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
+        navBrukerRepository.get(navBruker.personId) shouldBe navBruker
         coVerify(exactly = 0) { deltakerService.produserDeltakereForPerson(navBruker.personident) }
     }
 

@@ -53,7 +53,7 @@ class TiltakskoordinatorTilgangRepository {
     fun hentAktivTilgang(
         navAnsattId: UUID,
         deltakerlisteId: UUID,
-    ): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
+    ): TiltakskoordinatorDeltakerlisteTilgang? {
         val sql =
             """
             SELECT *
@@ -69,9 +69,8 @@ class TiltakskoordinatorTilgangRepository {
             "deltakerliste_id" to deltakerlisteId,
         )
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(queryOf(sql, params).map(::rowMapper).asSingle)
-                ?: throw NoSuchElementException("Fant ikke aktiv tilgang for Nav-ansatt: $navAnsattId og deltakerliste: $deltakerlisteId")
         }
     }
 

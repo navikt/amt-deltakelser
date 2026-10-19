@@ -1,7 +1,7 @@
 package no.nav.amt.distribusjon.tiltakshendelse
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
@@ -42,7 +42,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(hendelse.id).shouldBeSuccess()
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(hendelse.id).shouldNotBeNull()
             assertSoftly(tiltakshendelse) {
                 aktiv shouldBe true
                 deltakerId shouldBe hendelse.deltaker.id
@@ -96,7 +96,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             tiltakshendelseService.handleHendelse(opprettHendelse)
 
             // Assert
-            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldBeSuccess()
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettHendelse.id).shouldNotBeNull()
             tiltakshendelse.aktiv shouldBe false
 
             verify(exactly = 0) { outboxService.insertRecord(tiltakshendelse.id, any(), any(), any()) }
@@ -134,8 +134,8 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettPrisendring1.id).shouldBeSuccess()
-            val tiltakshendelseEtterNyPrisendring = tiltakshendelseRepository.getByHendelseId(opprettPrisendring2.id).shouldBeSuccess()
+            val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(opprettPrisendring1.id).shouldNotBeNull()
+            val tiltakshendelseEtterNyPrisendring = tiltakshendelseRepository.getByHendelseId(opprettPrisendring2.id).shouldNotBeNull()
 
             assertSoftly(tiltakshendelseEtterNyPrisendring) {
                 id shouldBe tiltakshendelse.id
@@ -160,7 +160,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
 
             // Assert
             val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(prisendring.id)
-            tiltakshendelse.isFailure shouldBe true
+            tiltakshendelse shouldBe null
         }
 
         @Test
@@ -176,7 +176,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
             }
 
             // Assert
-            assertSoftly(tiltakshendelseRepository.getByHendelseId(prisendring.id).shouldBeSuccess()) {
+            assertSoftly(tiltakshendelseRepository.getByHendelseId(prisendring.id).shouldNotBeNull()) {
                 type shouldBe Tiltakshendelse.Type.PRISENDRING
                 tekst shouldBe PRISINFO_TIL_GODKJENNING_TEKST
                 aktiv shouldBe true
@@ -224,7 +224,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 tiltakshendelseService.handleForslag(forslag)
 
                 // Assert
-                assertSoftly(tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()) {
+                assertSoftly(tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldNotBeNull()) {
                     hendelser shouldBe emptyList()
                     tekst shouldBe "Forslag: Forleng deltakelse"
                     tiltakskode shouldBe Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
@@ -248,10 +248,10 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 coEvery { amtDeltakerClient.getDeltaker(deltakerResponse.id) } returns deltakerResponse
 
                 tiltakshendelseService.handleForslag(forslag)
-                val lagretTiltakshendelse = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                val lagretTiltakshendelse = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldNotBeNull()
 
                 tiltakshendelseService.handleForslag(forslag)
-                val lagretTiltakshendelseEtterReprosessering = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                val lagretTiltakshendelseEtterReprosessering = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldNotBeNull()
 
                 lagretTiltakshendelseEtterReprosessering.id shouldBe lagretTiltakshendelse.id
 
@@ -292,7 +292,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 tiltakshendelseService.handleForslag(godkjentForslag)
 
                 // Assert
-                val tiltakhendelseFerdig = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldBeSuccess()
+                val tiltakhendelseFerdig = tiltakshendelseRepository.getForslagHendelse(forslag.id).shouldNotBeNull()
                 tiltakhendelseFerdig.aktiv shouldBe false
             }
 
@@ -327,10 +327,10 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 tiltakshendelseService.handleForslag(forslag2)
 
                 // Assert
-                val tiltakshendelse1 = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
+                val tiltakshendelse1 = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldNotBeNull()
                 tiltakshendelse1.forslagId shouldBe forslag1.id
 
-                val tiltakshendelse2 = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                val tiltakshendelse2 = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldNotBeNull()
                 tiltakshendelse2.forslagId shouldBe forslag2.id
 
                 // Arrange
@@ -345,10 +345,10 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
                 tiltakshendelseService.handleForslag(forslag1Godkjent)
 
                 // Assert
-                val tiltakshendelse1Godkjent = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldBeSuccess()
+                val tiltakshendelse1Godkjent = tiltakshendelseRepository.getForslagHendelse(forslag1.id).shouldNotBeNull()
                 tiltakshendelse1Godkjent.aktiv shouldBe false
 
-                val tiltakshendelse2IkkeGodkjent = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldBeSuccess()
+                val tiltakshendelse2IkkeGodkjent = tiltakshendelseRepository.getForslagHendelse(forslag2.id).shouldNotBeNull()
                 tiltakshendelse2IkkeGodkjent.aktiv shouldBe true
             }
         }
@@ -372,7 +372,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         // Assert
-        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldBeSuccess()
+        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(godkjennHendelse.id).shouldNotBeNull()
         tiltakshendelse.aktiv shouldBe false
 
         verify {
@@ -411,7 +411,7 @@ class TiltakshendelseServiceTest : IntegrationTestBase() {
         }
 
         // Assert
-        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(stoppHendelse.id).shouldBeSuccess()
+        val tiltakshendelse = tiltakshendelseRepository.getByHendelseId(stoppHendelse.id).shouldNotBeNull()
         assertSoftly(tiltakshendelse) {
             aktiv shouldBe false
             type shouldBe Tiltakshendelse.Type.PRISENDRING

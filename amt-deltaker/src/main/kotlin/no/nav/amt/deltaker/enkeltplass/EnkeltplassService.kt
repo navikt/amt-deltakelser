@@ -63,14 +63,18 @@ class EnkeltplassService(
         tiltakskode: Tiltakskode,
         personident: String,
     ): Deltaker {
-        deltakerRepository
-            .getKladd(personident, tiltakskode)
-            .getOrNull()
+        val eksisterendeKladd = deltakerRepository.getKladd(
+            personident = personident,
+            tiltakskode = tiltakskode,
+        )
+
+        eksisterendeKladd
             ?.takeIf { it.erEnkeltplass }
             ?.let { return it }
 
         val navBruker = navBrukerService.get(personident).getOrThrow()
-        val tiltakstype = tiltakRepository.get(tiltakskode).getOrThrow()
+        val tiltakstype = tiltakRepository.get(tiltakskode)
+            ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
 
         val gjennomforing = GjennomforingInsertDbo(
             id = UUID.randomUUID(),
@@ -264,7 +268,7 @@ class EnkeltplassService(
         decoratedRequest: EnkeltplassPameldingDecoratedRequest,
         nyStatus: DeltakerStatus.Type,
     ): Deltaker {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.getOrThrow(deltakerId)
         val gjennomforing = deltaker.deltakerliste
         val request = decoratedRequest.wrappedRequest
 

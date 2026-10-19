@@ -149,7 +149,7 @@ class PameldingService(
         deltakerId: UUID,
         avbrytUtkastRequest: AvbrytUtkastRequest,
     ) {
-        val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val opprinneligDeltaker = deltakerRepository.getOrThrow(deltakerId)
 
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
             log.warn(

@@ -202,7 +202,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             every {
                 innsokRepository.getForDeltaker(deltakerInTest.id)
-            } returns Result.success(TestData.lagInnsok(deltakerInTest))
+            } returns TestData.lagInnsok(deltakerInTest)
 
             every {
                 deltakerRepository.getDeltakelserForLaaseSjekk(
@@ -380,7 +380,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             every { navAnsattRepository.get(any<String>()) } returns navAnsattInTest
             every { navEnhetRepository.get(navEnhetInTest.id) } returns navEnhetInTest
-            every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+            every { deltakerRepository.get(deltakerInTest.id) } returns deltakerInTest
             every {
                 gjennomforingProducerService.produserTilbakekallPrisendring(
                     deltakerId = deltakerInTest.id,

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.job
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import kotlinx.coroutines.test.runTest
@@ -67,7 +66,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
             status.aarsak shouldBe null
             sluttdato shouldBe deltaker.sluttdato
@@ -99,7 +98,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+        val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
     }
 
@@ -128,7 +127,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak shouldBe null
             sluttdato shouldBe deltaker.sluttdato
@@ -169,7 +168,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             deltakerService.oppdaterDeltakerStatuser()
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
                 status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
                 sluttdato shouldBe deltaker.sluttdato
@@ -201,7 +200,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.FULLFORT
             sluttdato shouldBe deltaker.sluttdato
         }
@@ -232,7 +231,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.FULLFORT
             sluttdato shouldBe deltaker.sluttdato
         }
@@ -264,7 +263,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak shouldBe null
             sluttdato shouldBe deltaker.deltakerliste.sluttDato
@@ -297,7 +296,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
             status.aarsak shouldBe null
             sluttdato shouldBe null
@@ -330,7 +329,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
             sluttdato shouldBe deltaker.deltakerliste.sluttDato
@@ -364,7 +363,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             deltakerService.oppdaterDeltakerStatuser()
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
                 status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
                 sluttdato shouldBe null
@@ -396,7 +395,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         deltakerService.oppdaterDeltakerStatuser()
 
         // Assert
-        assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+        assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
             status.aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
             sluttdato shouldBe null
@@ -474,12 +473,12 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         // Assert
         deltakerRepository
             .get(deltaker2.id)
-            .shouldBeSuccess()
+            .shouldNotBeNull()
             .status.type shouldBe DeltakerStatus.Type.DELTAR
 
         deltakerRepository
             .get(deltaker1.id)
-            .shouldBeSuccess()
+            .shouldNotBeNull()
             .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
     }
 
@@ -513,7 +512,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         // Assert
         deltakerRepository
             .get(deltaker.id)
-            .shouldBeSuccess()
+            .shouldNotBeNull()
             .status.type shouldBe DeltakerStatus.Type.DELTAR
     }
 
@@ -547,7 +546,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         // Assert
         deltakerRepository
             .get(deltaker.id)
-            .shouldBeSuccess()
+            .shouldNotBeNull()
             .status.type shouldBe DeltakerStatus.Type.DELTAR
     }
 
@@ -582,7 +581,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             // Assert
             deltakerRepository
                 .get(deltaker.id)
-                .shouldBeSuccess()
+                .shouldNotBeNull()
                 .status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
 }

@@ -2,8 +2,7 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
@@ -164,7 +163,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             gjennomforingConsumer.avgrensSluttdatoerTil(deltakerliste)
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.sluttdato shouldBe deltakerliste.sluttDato
         }
 
@@ -187,7 +186,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             gjennomforingConsumer.avgrensSluttdatoerTil(deltakerliste)
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
         }
     }
@@ -214,7 +213,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         val thrown = shouldThrow<NoSuchElementException> {
-            deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
+            deltakerlisteRepository.getOrThrow(expectedDeltakerliste.id)
         }
 
         thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
@@ -246,7 +245,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
     }
 
     @Test
@@ -275,7 +274,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste.copy(
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste.copy(
             navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
             status = deltakerliste.status,
             startDato = null,
@@ -310,7 +309,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe deltakerliste
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
     }
 
     @Test
@@ -332,7 +331,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Test
@@ -357,7 +356,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Test
@@ -373,7 +372,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeFailure()
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe null
     }
 
     @Test
@@ -395,7 +394,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeSuccess() shouldBe oppdatertDeltakerliste
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Nested
@@ -454,13 +453,13 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             gjennomforingConsumer.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
                 status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
                 sluttdato shouldBe deltakerliste.sluttDato
             }
 
-            assertSoftly(deltakerRepository.get(deltaker2.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker2.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
                 status.aarsak?.type shouldBe null
                 sluttdato shouldBe deltaker2.sluttdato

@@ -50,21 +50,14 @@ class EnkeltplassDeltakerConsumer(
     }
 
     suspend fun consumeDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
-        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrElse { throwable ->
-            if (throwable is NoSuchElementException) {
-                throw IllegalStateException(
-                    "Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå",
-                    throwable,
-                )
-            } else {
-                throw throwable
-            }
-        }
+        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId)
+            ?: throw IllegalStateException("Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå")
 
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val eksisterendeDeltaker = deltakerRepository.get(deltakerPayload.id).getOrNull()
+        val eksisterendeDeltaker = deltakerRepository.get(deltakerPayload.id)
+
         val navBruker = navBrukerService.get(deltakerPayload.personIdent)
 
         // Work-around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere

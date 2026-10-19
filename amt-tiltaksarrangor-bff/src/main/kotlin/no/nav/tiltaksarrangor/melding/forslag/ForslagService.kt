@@ -72,7 +72,7 @@ class ForslagService(
     }
 
     private fun erstattVentendeForslagAvSammeType(forslag: Forslag) {
-        val ventende = repository.getVentende(forslag).getOrElse { return }
+        val ventende = repository.getVentende(forslag) ?: return
 
         val erstattet = ventende.copy(
             status = Forslag.Status.Erstattet(

@@ -165,7 +165,7 @@ class DeltakerRepositoryTest {
         val deltakerliste = lagDeltakerliste()
 
         @Test
-        fun `getKladdForDeltakerliste - skal returnere failure hvis ingen kladd`() {
+        fun `getKladdForDeltakerliste - skal returnere null hvis ingen kladd`() {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
@@ -173,7 +173,7 @@ class DeltakerRepositoryTest {
                 personident = "~personident~",
             )
 
-            kladdResult.shouldBeFailure()
+            kladdResult shouldBe null
         }
 
         @Test
@@ -189,7 +189,7 @@ class DeltakerRepositoryTest {
                 personident = deltaker.navBruker.personident,
             )
 
-            kladdResult.shouldBeSuccess()
+            kladdResult.shouldNotBeNull()
         }
 
         @Test
@@ -212,7 +212,7 @@ class DeltakerRepositoryTest {
 
             val kladdResult = deltakerRepository
                 .get(deltaker.id)
-                .getOrThrow()
+                .shouldNotBeNull()
 
             assertSoftly(kladdResult) {
                 id shouldBe deltaker.id
@@ -246,7 +246,7 @@ class DeltakerRepositoryTest {
             deltakerRepository.updateEnkeltplass(oppdatertDeltaker)
             val kladdResult = deltakerRepository
                 .get(deltaker.id)
-                .getOrThrow()
+                .shouldNotBeNull()
 
             assertSoftly(kladdResult) {
                 id shouldBe deltaker.id
@@ -263,7 +263,7 @@ class DeltakerRepositoryTest {
         val deltakerliste = lagDeltakerliste()
 
         @Test
-        fun `skal returnere failure hvis ingen deltakere`() {
+        fun `skal returnere null hvis ingen kladd`() {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
@@ -271,11 +271,11 @@ class DeltakerRepositoryTest {
                 personident = "~personident~",
             )
 
-            kladdResult.shouldBeFailure()
+            kladdResult shouldBe null
         }
 
         @Test
-        fun `skal returnere success hvis kladd finnes`() {
+        fun `skal returnere kladd hvis den finnes`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 deltakerliste = deltakerliste,
@@ -287,7 +287,7 @@ class DeltakerRepositoryTest {
                 personident = deltaker.navBruker.personident,
             )
 
-            kladdResult.shouldBeSuccess()
+            kladdResult.shouldNotBeNull()
         }
     }
 
@@ -456,7 +456,7 @@ class DeltakerRepositoryTest {
             deltakerRepository.upsert(expectedDeltaker)
             DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
 
-            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
+            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldNotBeNull()
             assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
@@ -475,7 +475,7 @@ class DeltakerRepositoryTest {
             deltakerRepository.upsert(oppdatertDeltaker)
 
             assertDeltakereAreEqual(
-                deltakerRepository.get(deltaker.id).shouldBeSuccess(),
+                deltakerRepository.get(deltaker.id).shouldNotBeNull(),
                 oppdatertDeltaker,
             )
         }
@@ -614,11 +614,16 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetTests {
         @Test
+        fun `get - deltaker finnes ikke - returnerer null`() {
+            deltakerRepository.get(UUID.randomUUID()) shouldBe null
+        }
+
+        @Test
         fun `skal returnere eksisterende deltaker`() {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
             deltakerFraDb.shouldNotBeNull()
             deltakerFraDb.id shouldBe deltaker.id
@@ -629,7 +634,7 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             assertSoftly(deltakerFraDb) {
                 startdato shouldBe null
                 sluttdato shouldBe null

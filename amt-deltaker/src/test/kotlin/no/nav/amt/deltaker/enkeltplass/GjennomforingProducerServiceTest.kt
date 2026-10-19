@@ -122,7 +122,7 @@ class GjennomforingProducerServiceTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any())
         } returns totrinnsIdInTest
 
-        every { deltakerlisteRepository.get(any()) } returns Result.success(createBaseDeltaker().deltakerliste)
+        every { deltakerlisteRepository.getOrThrow(any()) } returns createBaseDeltaker().deltakerliste
     }
 
     @Nested

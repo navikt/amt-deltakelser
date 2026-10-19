@@ -48,7 +48,7 @@ class GjennomforingProducerService(
     private fun produserRequest(payload: GjennomforingRequestPayload) {
         gjennomforingRequestProducer.produce(payload)
 
-        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId).getOrThrow()
+        val gjennomforing = deltakerlisteRepository.getOrThrow(payload.gjennomforingId)
         amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
     }
 
@@ -165,8 +165,7 @@ class GjennomforingProducerService(
         endretAvNavIdent: String,
     ): UUID {
         val gjennomforingId = deltakerRepository
-            .get(deltakerId)
-            .getOrThrow()
+            .getOrThrow(deltakerId)
             .deltakerliste.id
 
         val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)

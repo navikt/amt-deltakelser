@@ -47,12 +47,7 @@ class DeltakerService(
         ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
     fun get(deltakerId: UUID): Deltaker? {
-        val deltaker = deltakerRepository
-            .get(deltakerId)
-            .getOrElse { cause ->
-                if (cause is NoSuchElementException) return null
-                throw cause
-            }
+        val deltaker = deltakerRepository.get(deltakerId) ?: return null
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
             gjennomforing = deltaker.deltakerliste,
         )
@@ -143,7 +138,7 @@ class DeltakerService(
     }
 
     fun feilregistrerDeltaker(deltakerId: UUID) {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.getOrThrow(deltakerId)
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
             throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
@@ -206,7 +201,7 @@ class DeltakerService(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
     ) {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.getOrThrow(deltakerId)
         distribuerEndringService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 

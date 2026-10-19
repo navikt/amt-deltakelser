@@ -39,7 +39,7 @@ class TiltakskoordinatorResponseBuilder(
      * Henter gjennomføring og deltakere for en gjennomføring-id.
      */
     suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> {
-        val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId).getOrNull()
+        val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId)
             ?: return PaginatedResult(
                 pageSize = 0,
                 data = emptyList(),

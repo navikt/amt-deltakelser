@@ -28,8 +28,7 @@ fun Routing.registerTiltakskoordinatorApi(
         get("/gjennomforing/{gjennomforingId}") {
             val gjennomforingId = call.getGjennomforingId()
             val gjennomforingResponse = deltakerlisteRepository
-                .get(gjennomforingId)
-                .getOrThrow()
+                .getOrThrow(gjennomforingId)
                 .let {
                     deltakerResponseBuilder.buildGjennomforingResponse(
                         deltakerliste = it,
