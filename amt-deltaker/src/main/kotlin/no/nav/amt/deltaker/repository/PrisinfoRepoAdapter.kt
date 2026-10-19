@@ -32,9 +32,6 @@ object PrisinfoRepoAdapter {
         .hentPrisinfo(prisinformasjonId)
         ?.hentBelopOgKonverterTilDto()
 
-    fun hentPrisinformasjonIdForEndring(gjennomforingId: UUID): UUID? =
-        Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingId)
-
     fun hentBegrunnelse(prisinformasjonId: UUID): String? = PrisinfoRepository.hentPrisinfo(prisinformasjonId)?.begrunnelse
 
     /**

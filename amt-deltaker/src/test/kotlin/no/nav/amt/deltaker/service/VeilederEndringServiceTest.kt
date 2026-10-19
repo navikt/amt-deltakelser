@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.Deltakerliste2PrisinfoRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
@@ -268,7 +269,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 endringRequest = request,
             )
 
-            PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id).shouldBeNull()
+            Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id).shouldBeNull()
 
             val endring = deltakerEndringRepository
                 .getForDeltaker(deltaker.id)
