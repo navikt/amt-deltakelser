@@ -272,7 +272,7 @@ object PrisinfoRepoAdapter {
 
         INGENKOSTNADER_SUB_TYPE -> IngenKostnader(
             tilleggsopplysninger = this.tilleggsopplysninger.orEmpty(),
-            begrunnelse = this.begrunnelse,
+            begrunnelse = this.begrunnelse.orEmpty(),
         )
 
         else -> throw IllegalStateException("Ukjent prisinfoJsonSubtype: ${this.prisinfoJsonSubtype}")
@@ -369,6 +369,6 @@ object PrisinfoRepoAdapter {
     private fun PrisinformasjonDto.utenBegrunnelse(): PrisinformasjonDto = when (this) {
         is Anskaffelse -> copy(begrunnelse = null)
         is Tilskudd -> copy(begrunnelse = null)
-        is IngenKostnader -> copy(begrunnelse = null)
+        is IngenKostnader -> copy(begrunnelse = "")
     }
 }

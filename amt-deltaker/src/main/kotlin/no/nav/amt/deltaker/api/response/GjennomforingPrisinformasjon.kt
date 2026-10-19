@@ -83,12 +83,12 @@ object GjennomforingPrisinformasjon {
 
         val begrunnelse = prisinformasjon.begrunnelse?.takeIf { it.isNotBlank() }
             ?: historikk
-            .sortedByDescending { it.sistEndret }
-            .filterIsInstance<Endring>()
-            .map { it.endring.endring }
-            .filterIsInstance<EndrePrisinfo>()
-            .firstOrNull { it.prisinformasjonId == prisinformasjonId }
-            ?.begrunnelse
+                .sortedByDescending { it.sistEndret }
+                .filterIsInstance<Endring>()
+                .map { it.endring.endring }
+                .filterIsInstance<EndrePrisinfo>()
+                .firstOrNull { it.prisinformasjonId == prisinformasjonId }
+                ?.begrunnelse
 
         return when (prisinformasjon) {
             is PrisinformasjonDto.Anskaffelse -> prisinformasjon.copy(begrunnelse = begrunnelse)

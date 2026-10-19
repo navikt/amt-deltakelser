@@ -572,6 +572,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     godkjentAvEnhet = any(),
                 )
             } returns true
+            every { PrisinfoRepoAdapter.hentBegrunnelse(any()) } returns "Testbegrunnelse"
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),
@@ -655,86 +656,85 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
     }
 
+    fun godkjentEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
+        """
+        {
+          "id": "${UUID.randomUUID()}",
+          "entityId": "$gjennomforingId",
+          "type": "ENKELTPLASS_OKONOMI",
+          "status": "GODKJENT",
+          "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+          "behandletTidspunkt": "2026-06-01T10:00:00Z",
+          "behandletBegrunnelse": null,
+          "behandletAarsaker": [],
+          "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+          "besluttetTidspunkt": "2026-06-01T10:01:00Z",
+          "besluttetBegrunnelse": null,
+          "besluttetAarsaker": []
+        }
+        """.trimIndent()
 
-        fun godkjentEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
+    fun avvistEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
+        """
+        {
+          "id": "${UUID.randomUUID()}",
+          "entityId": "$gjennomforingId",
+          "type": "ENKELTPLASS_OKONOMI",
+          "status": "RETURNERT",
+          "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+          "behandletTidspunkt": "2026-06-01T10:00:00Z",
+          "behandletBegrunnelse": null,
+          "behandletAarsaker": [],
+          "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+          "besluttetTidspunkt": "2026-06-01T10:01:00Z",
+          "besluttetBegrunnelse": "Ikke godkjent",
+          "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
+        }
+        """.trimIndent()
+
+    fun avvistEnkeltplassPrisinformasjonPayload(gjennomforingId: UUID): String =
+        """
+        {
+          "id": "${UUID.randomUUID()}",
+          "entityId": "$gjennomforingId",
+          "type": "ENKELTPLASS_PRISENDRING",
+          "status": "RETURNERT",
+          "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+          "behandletTidspunkt": "2026-06-01T10:00:00Z",
+          "behandletBegrunnelse": null,
+          "behandletAarsaker": [],
+          "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
+          "besluttetTidspunkt": "2026-06-01T10:01:00Z",
+          "besluttetBegrunnelse": "Ikke godkjent",
+          "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
+        }
+        """.trimIndent()
+
+    fun godkjentEnkeltplassPrisinformasjonPayload(
+        gjennomforingId: UUID,
+        totrinnskontrollId: UUID,
+        besluttetAv: String =
             """
             {
-              "id": "${UUID.randomUUID()}",
-              "entityId": "$gjennomforingId",
-              "type": "ENKELTPLASS_OKONOMI",
-              "status": "GODKJENT",
-              "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
-              "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "behandletBegrunnelse": null,
-              "behandletAarsaker": [],
-              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
-              "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttetBegrunnelse": null,
-              "besluttetAarsaker": []
+              "type": "NAV_ANSATT",
+              "navIdent": "Z654321"
             }
-            """.trimIndent()
-
-        fun avvistEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
-            """
-            {
-              "id": "${UUID.randomUUID()}",
-              "entityId": "$gjennomforingId",
-              "type": "ENKELTPLASS_OKONOMI",
-              "status": "RETURNERT",
-              "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
-              "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "behandletBegrunnelse": null,
-              "behandletAarsaker": [],
-              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
-              "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttetBegrunnelse": "Ikke godkjent",
-              "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
-            }
-            """.trimIndent()
-
-        fun avvistEnkeltplassPrisinformasjonPayload(gjennomforingId: UUID): String =
-            """
-            {
-              "id": "${UUID.randomUUID()}",
-              "entityId": "$gjennomforingId",
-              "type": "ENKELTPLASS_PRISENDRING",
-              "status": "RETURNERT",
-              "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
-              "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "behandletBegrunnelse": null,
-              "behandletAarsaker": [],
-              "besluttetAv": { "type": "NAV_ANSATT", "navIdent": "Z654321" },
-              "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttetBegrunnelse": "Ikke godkjent",
-              "besluttetAarsaker": ["MANGLER_DOKUMENTASJON"]
-            }
-            """.trimIndent()
-
-        fun godkjentEnkeltplassPrisinformasjonPayload(
-            gjennomforingId: UUID,
-            totrinnskontrollId: UUID,
-            besluttetAv: String =
-                """
-                {
-                  "type": "NAV_ANSATT",
-                  "navIdent": "Z654321"
-                }
-                """.trimIndent(),
-        ): String =
-            """
-            {
-              "id": "$totrinnskontrollId",
-              "entityId": "$gjennomforingId",
-              "type": "ENKELTPLASS_PRISENDRING",
-              "status": "GODKJENT",
-              "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
-              "behandletTidspunkt": "2026-06-01T10:00:00Z",
-              "behandletBegrunnelse": null,
-              "behandletAarsaker": [],
-              "besluttetAv": $besluttetAv,
-              "besluttetTidspunkt": "2026-06-01T10:01:00Z",
-              "besluttetBegrunnelse": null,
-              "besluttetAarsaker": []
-            }
-            """.trimIndent()
+            """.trimIndent(),
+    ): String =
+        """
+        {
+          "id": "$totrinnskontrollId",
+          "entityId": "$gjennomforingId",
+          "type": "ENKELTPLASS_PRISENDRING",
+          "status": "GODKJENT",
+          "behandletAv": { "type": "NAV_ANSATT", "navIdent": "Z123456" },
+          "behandletTidspunkt": "2026-06-01T10:00:00Z",
+          "behandletBegrunnelse": null,
+          "behandletAarsaker": [],
+          "besluttetAv": $besluttetAv,
+          "besluttetTidspunkt": "2026-06-01T10:01:00Z",
+          "besluttetBegrunnelse": null,
+          "besluttetAarsaker": []
+        }
+        """.trimIndent()
 }
