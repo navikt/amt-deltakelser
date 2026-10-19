@@ -99,9 +99,7 @@ class TotrinnskontrollConsumer(
             return
         }
 
-        val deltaker = deltakerRepository
-            .getEnkeltplassdeltaker(totrinnskontrollHendelse.entityId)
-            .getOrThrow()
+        val deltaker = deltakerRepository.getEnkeltplassdeltaker(totrinnskontrollHendelse.entityId)
 
         val prisinfoStatus = PrisinfoRepository.hentPrisinfoStatus(
             gjennomforingId = deltaker.deltakerliste.id,

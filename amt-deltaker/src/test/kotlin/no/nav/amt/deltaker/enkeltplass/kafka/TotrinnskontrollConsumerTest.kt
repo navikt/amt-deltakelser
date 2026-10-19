@@ -117,7 +117,7 @@ class TotrinnskontrollConsumerTest {
             deltaker: Deltaker,
             prisinfoStatus: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING,
         ) {
-            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns Result.success(deltaker)
+            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns deltaker
             every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns prisinfoStatus
         }
 

@@ -36,15 +36,13 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
-        }
+    fun get(id: UUID): Tiltakshendelse = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakshendelse WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
     }
 
     fun getAktivHendelse(

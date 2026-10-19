@@ -122,15 +122,13 @@ class TiltakskoordinatorTilgangRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun get(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakskoordinator_deltakerliste_tilgang WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tilgang med id $id")
-        }
+    fun get(id: UUID): TiltakskoordinatorDeltakerlisteTilgang = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakskoordinator_deltakerliste_tilgang WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke tilgang med id $id")
     }
 
     fun hentUtdaterteTilganger(today: LocalDate = LocalDate.now()): List<TiltakskoordinatorDeltakerlisteTilgang> {

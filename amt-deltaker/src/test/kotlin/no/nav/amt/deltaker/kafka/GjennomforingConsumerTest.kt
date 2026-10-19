@@ -135,7 +135,7 @@ class GjennomforingConsumerTest {
             val deltaker = lagDeltaker(
                 deltakerliste = enkeltplassDeltakerliste,
             )
-            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
+            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns deltaker
 
             // Act
             consumer.publiserEnkeltplassDeltaker(enkeltplassDeltakerliste)
@@ -291,7 +291,7 @@ class GjennomforingConsumerTest {
             )
 
             stubEksisterendeDeltakerliste(enkeltplassDeltakerliste)
-            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns Result.success(deltaker)
+            every { deltakerRepository.getEnkeltplassdeltaker(enkeltplassDeltakerliste.id) } returns deltaker
 
             // Act
             consumePayloadFor(enkeltplassDeltakerliste)

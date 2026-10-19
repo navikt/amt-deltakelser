@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
-import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.bff.tiltak.TiltakRepository
@@ -37,7 +37,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -55,7 +55,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(oppdatertListe, tiltakstype.id)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe oppdatertListe
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertListe
         }
     }
 
@@ -71,7 +71,9 @@ class DeltakerlisteRepositoryTest {
 
         deltakerlisteRepository.delete(deltakerliste.id)
 
-        deltakerlisteRepository.get(deltakerliste.id).shouldBeFailure<NoSuchElementException>()
+        shouldThrow<NoSuchElementException> {
+            deltakerlisteRepository.get(deltakerliste.id)
+        }
     }
 
     @Test
@@ -87,7 +89,7 @@ class DeltakerlisteRepositoryTest {
         tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
         deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
-        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id)
 
         deltakerlisteMedArrangor shouldNotBe null
         deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn

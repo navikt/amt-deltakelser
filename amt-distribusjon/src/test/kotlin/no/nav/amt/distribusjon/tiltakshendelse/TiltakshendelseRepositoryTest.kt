@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.tiltakshendelse
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
@@ -40,7 +39,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
 
             // Assert
             lagret.id shouldBe id
-            val fraDb = tiltakshendelseRepository.get(id).shouldBeSuccess()
+            val fraDb = tiltakshendelseRepository.get(id)
             fraDb.hendelser shouldBe oppdatert.hendelser
             fraDb.aktiv shouldBe false
             fraDb.tekst shouldBe "Utkast stoppet"

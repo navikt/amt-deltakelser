@@ -168,7 +168,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
             }
         }
 
-        val forslagFraDb = forslagRepository.get(forslag.id).shouldBeSuccess()
+        val forslagFraDb = forslagRepository.get(forslag.id)
         assertSoftly(forslagFraDb.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()) {
             godkjentAv shouldBe Forslag.NavAnsatt(
                 id = navAnsattInTest.id,
@@ -218,7 +218,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
             }
         }
 
-        val forslagFraDb = forslagRepository.get(forslag.id).shouldBeSuccess()
+        val forslagFraDb = forslagRepository.get(forslag.id)
         assertSoftly(forslagFraDb.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()) {
             godkjentAv shouldBe Forslag.NavAnsatt(
                 id = navAnsattInTest.id,

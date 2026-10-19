@@ -1,12 +1,11 @@
 package no.nav.amt.deltaker.repository
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.model.Deltaker
@@ -113,14 +112,11 @@ class DeltakerRepositoryTest {
     @Nested
     inner class GetEnkeltplassdeltakerTests {
         @Test
-        fun `skal returnere failure hvis ingen deltaker`() {
+        fun `kaster unntak hvis ingen deltaker`() {
             // Act
-            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
-                deltakerlisteId = UUID.randomUUID(),
-            )
-
-            // Assert
-            deltaker.shouldBeFailure()
+            shouldThrow<NoSuchElementException> {
+                deltakerRepository.getEnkeltplassdeltaker(UUID.randomUUID())
+            }
         }
 
         @Test
@@ -133,16 +129,14 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltakerInTest)
 
             // Act
-            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
-                deltakerlisteId = deltakerInTest.deltakerliste.id,
-            )
+            val deltaker = deltakerRepository.getEnkeltplassdeltaker(deltakerInTest.deltakerliste.id)
 
             // Assert
-            deltaker.shouldBeSuccess()
+            deltaker.id shouldBe deltakerInTest.id
         }
 
         @Test
-        fun `skal returnere failure for deltaker som ikke er enkeltplass`() {
+        fun `kaster unntak for deltakerliste som ikke er enkeltplass`() {
             // Arrange
             val deltakerInTest = lagDeltaker(
                 deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
@@ -151,12 +145,9 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltakerInTest)
 
             // Act
-            val deltaker = deltakerRepository.getEnkeltplassdeltaker(
-                deltakerlisteId = deltakerInTest.deltakerliste.id,
-            )
-
-            // Assert
-            deltaker.shouldBeFailure()
+            shouldThrow<NoSuchElementException> {
+                deltakerRepository.getEnkeltplassdeltaker(deltakerInTest.deltakerliste.id)
+            }
         }
     }
 

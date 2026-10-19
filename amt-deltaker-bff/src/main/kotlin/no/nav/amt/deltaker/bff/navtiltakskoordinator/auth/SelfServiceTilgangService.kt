@@ -110,7 +110,7 @@ class SelfServiceTilgangService(
     }
 
     fun stengTiltakskoordinatorTilgang(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = Database.transaction {
-        val tilgang = tiltakskoordinatorTilgangRepository.get(id).getOrThrow()
+        val tilgang = tiltakskoordinatorTilgangRepository.get(id)
         stengTiltakskoordinatorTilgang(tilgang)
     }
 

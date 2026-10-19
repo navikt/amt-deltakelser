@@ -53,7 +53,7 @@ class ForslagService(
     ) {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsattIdent)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(avvistAvEnhet)
-        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
+        val opprinneligForslag = forslagRepository.get(forslagId)
 
         val avvistForslag = opprinneligForslag.copy(
             status = Forslag.Status.Avvist(
@@ -78,7 +78,7 @@ class ForslagService(
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,
     ): Forslag {
-        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
+        val opprinneligForslag = forslagRepository.get(forslagId)
         val godkjentForslag = opprinneligForslag.copy(
             status = Forslag.Status.Godkjent(
                 godkjentAv = Forslag.NavAnsatt(

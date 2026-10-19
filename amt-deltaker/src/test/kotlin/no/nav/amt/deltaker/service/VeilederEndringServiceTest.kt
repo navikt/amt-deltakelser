@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -106,7 +105,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             // Assert
             deltakerRepository.get(deltaker.id).shouldNotBeNull().sistEndret shouldBeCloseTo deltaker.sistEndret
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
-            assertSoftly(forslagRepository.get(forslag.id).shouldBeSuccess()) {
+            assertSoftly(forslagRepository.get(forslag.id)) {
                 it.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()
             }
         }

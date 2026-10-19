@@ -16,7 +16,7 @@ class DeltakerlisteService(
         id: UUID,
         today: LocalDate = LocalDate.now(),
     ): Deltakerliste {
-        val deltakerliste = deltakerlisteRepository.get(id).getOrThrow()
+        val deltakerliste = deltakerlisteRepository.get(id)
 
         // Hvorfor trengs denne sjekken når vi også stenger alle self service tilgangene i consumeren?
         // Skal denne egentlig brukes for andre brukergrupper

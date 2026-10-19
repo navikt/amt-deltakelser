@@ -58,7 +58,7 @@ fun Routing.registerVeilederApi(
              */
             val forslagId = call.getForslagId()
             val request = call.receive<AvvisForslagRequest>()
-            val deltakerId = forslagRepository.get(forslagId).getOrThrow().deltakerId
+            val deltakerId = forslagRepository.get(forslagId).deltakerId
 
             forslagService.avvisForslag(
                 forslagId = forslagId,
