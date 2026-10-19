@@ -317,11 +317,11 @@ class DeltakerRepository {
         )
     }
 
-    fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Deltaker = Database.query { session ->
+    fun getEnkeltplassdeltakerOrThrow(deltakerlisteId: UUID): Deltaker = Database.query { session ->
         session.run(
             queryOf(
                 buildDeltakerSql(
-                    methodName = "getEnkeltplassdeltaker",
+                    methodName = "getEnkeltplassdeltakerOrThrow",
                     whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
                     limit = 1,
                 ),

@@ -266,7 +266,7 @@ fun Routing.registerInternalApi(
                     "opprett-gjennomforinger-for-enkeltplass: Starter opprettelse av ${request.gjennomforingIder.size} gjennomføringer",
                 )
                 request.gjennomforingIder.forEach { gjennomforingId ->
-                    val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforingId)
+                    val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId)
 
                     if (deltaker.startdato == null || deltaker.sluttdato == null) {
                         log.warn("deltaker ${deltaker.id} mangler start- eller sluttdato")

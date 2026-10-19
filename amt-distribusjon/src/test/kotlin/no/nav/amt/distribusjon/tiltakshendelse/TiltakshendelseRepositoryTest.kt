@@ -39,7 +39,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
 
             // Assert
             lagret.id shouldBe id
-            val fraDb = tiltakshendelseRepository.get(id)
+            val fraDb = tiltakshendelseRepository.getOrThrow(id)
             fraDb.hendelser shouldBe oppdatert.hendelser
             fraDb.aktiv shouldBe false
             fraDb.tekst shouldBe "Utkast stoppet"

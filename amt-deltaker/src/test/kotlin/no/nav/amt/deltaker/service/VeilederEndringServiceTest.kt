@@ -105,7 +105,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             // Assert
             deltakerRepository.get(deltaker.id).shouldNotBeNull().sistEndret shouldBeCloseTo deltaker.sistEndret
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
-            assertSoftly(forslagRepository.get(forslag.id)) {
+            assertSoftly(forslagRepository.getOrThrow(forslag.id)) {
                 it.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()
             }
         }

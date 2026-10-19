@@ -115,7 +115,7 @@ class DeltakerRepositoryTest {
         fun `kaster unntak hvis ingen deltaker`() {
             // Act
             shouldThrow<NoSuchElementException> {
-                deltakerRepository.getEnkeltplassdeltaker(UUID.randomUUID())
+                deltakerRepository.getEnkeltplassdeltakerOrThrow(UUID.randomUUID())
             }
         }
 
@@ -129,7 +129,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltakerInTest)
 
             // Act
-            val deltaker = deltakerRepository.getEnkeltplassdeltaker(deltakerInTest.deltakerliste.id)
+            val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.deltakerliste.id)
 
             // Assert
             deltaker.id shouldBe deltakerInTest.id
@@ -146,7 +146,7 @@ class DeltakerRepositoryTest {
 
             // Act
             shouldThrow<NoSuchElementException> {
-                deltakerRepository.getEnkeltplassdeltaker(deltakerInTest.deltakerliste.id)
+                deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.deltakerliste.id)
             }
         }
     }

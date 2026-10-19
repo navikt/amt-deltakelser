@@ -74,7 +74,7 @@ class ForslagRepositoryTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id, begrunnelse = "Opprinnelig")
             forslagRepository.upsert(forslag)
-            val lagretForslagFraDb = forslagRepository.get(forslag.id)
+            val lagretForslagFraDb = forslagRepository.getOrThrow(forslag.id)
 
             val duplikat = forslag.copy(begrunnelse = "Duplikatlevering med annen tekst")
 
@@ -83,7 +83,7 @@ class ForslagRepositoryTest {
 
             // Assert
             erOppdatert shouldBe false
-            forslagRepository.get(forslag.id) shouldBe lagretForslagFraDb
+            forslagRepository.getOrThrow(forslag.id) shouldBe lagretForslagFraDb
         }
 
         @Test
@@ -113,7 +113,7 @@ class ForslagRepositoryTest {
                 TestRepository.insert(deltaker)
                 val lagretForslag = TestData.lagForslag(deltakerId = deltaker.id, status = status)
                 forslagRepository.upsert(lagretForslag)
-                val lagretForslagFraDb = forslagRepository.get(lagretForslag.id)
+                val lagretForslagFraDb = forslagRepository.getOrThrow(lagretForslag.id)
 
                 val foreldetForslag = lagretForslag.copy(
                     begrunnelse = "Foreldet melding",
@@ -122,7 +122,7 @@ class ForslagRepositoryTest {
 
                 forslagRepository.upsert(foreldetForslag)
 
-                forslagRepository.get(lagretForslag.id) shouldBe lagretForslagFraDb
+                forslagRepository.getOrThrow(lagretForslag.id) shouldBe lagretForslagFraDb
             }
         }
 
@@ -132,7 +132,7 @@ class ForslagRepositoryTest {
             TestRepository.insert(deltaker)
             val ventendeForslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(ventendeForslag)
-            val ventendeForslagFraDb = forslagRepository.get(ventendeForslag.id)
+            val ventendeForslagFraDb = forslagRepository.getOrThrow(ventendeForslag.id)
 
             val godkjentForslag = ventendeForslag.copy(
                 status = Forslag.Status.Godkjent(
@@ -143,7 +143,7 @@ class ForslagRepositoryTest {
 
             forslagRepository.upsert(godkjentForslag)
 
-            forslagRepository.get(ventendeForslag.id) shouldBe
+            forslagRepository.getOrThrow(ventendeForslag.id) shouldBe
                 ventendeForslagFraDb.copy(status = godkjentForslag.status)
         }
     }
@@ -159,7 +159,7 @@ class ForslagRepositoryTest {
             forslagRepository.upsert(forslag)
 
             // Act
-            val resultat = forslagRepository.get(forslag.id)
+            val resultat = forslagRepository.getOrThrow(forslag.id)
 
             // Assert
             resultat.id shouldBe forslag.id
@@ -169,7 +169,7 @@ class ForslagRepositoryTest {
         fun `get - finnes ikke - kaster exception`() {
             // Arrange / Act
             shouldThrow<NoSuchElementException> {
-                forslagRepository.get(UUID.randomUUID())
+                forslagRepository.getOrThrow(UUID.randomUUID())
             }
         }
     }

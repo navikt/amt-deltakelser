@@ -36,7 +36,7 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun get(id: UUID): Tiltakshendelse = Database.query { session ->
+    fun getOrThrow(id: UUID): Tiltakshendelse = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM tiltakshendelse WHERE id = :id",

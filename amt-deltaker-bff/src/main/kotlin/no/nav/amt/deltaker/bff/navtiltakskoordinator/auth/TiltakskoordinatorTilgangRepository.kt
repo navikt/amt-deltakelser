@@ -122,7 +122,7 @@ class TiltakskoordinatorTilgangRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun get(id: UUID): TiltakskoordinatorDeltakerlisteTilgang = Database.query { session ->
+    fun getOrThrow(id: UUID): TiltakskoordinatorDeltakerlisteTilgang = Database.query { session ->
         session.run(
             queryOf(
                 "SELECT * FROM tiltakskoordinator_deltakerliste_tilgang WHERE id = :id",

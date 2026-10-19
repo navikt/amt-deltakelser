@@ -37,7 +37,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+            deltakerlisteRepository.getOrThrow(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -55,7 +55,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(oppdatertListe, tiltakstype.id)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertListe
+            deltakerlisteRepository.getOrThrow(deltakerliste.id) shouldBe oppdatertListe
         }
     }
 
@@ -72,7 +72,7 @@ class DeltakerlisteRepositoryTest {
         deltakerlisteRepository.delete(deltakerliste.id)
 
         shouldThrow<NoSuchElementException> {
-            deltakerlisteRepository.get(deltakerliste.id)
+            deltakerlisteRepository.getOrThrow(deltakerliste.id)
         }
     }
 
@@ -89,7 +89,7 @@ class DeltakerlisteRepositoryTest {
         tiltakRepository.upsert(TestData.tiltakAv(tiltakstype))
         deltakerlisteRepository.upsert(deltakerliste, tiltakstype.id)
 
-        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id)
+        val deltakerlisteMedArrangor = deltakerlisteRepository.getOrThrow(deltakerliste.id)
 
         deltakerlisteMedArrangor shouldNotBe null
         deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn

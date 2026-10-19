@@ -170,7 +170,7 @@ class GjennomforingConsumer(
             return
         }
 
-        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforing.id)
+        val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforing.id)
         deltakerProducerService.produce(deltaker)
     }
 

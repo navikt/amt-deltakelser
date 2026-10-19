@@ -98,13 +98,13 @@ class TiltakshendelseService(
     }
 
     fun reproduser(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id)
+        val tiltakshendelse = tiltakshendelseRepository.getOrThrow(id)
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
     }
 
     fun reproduserOgSettAktivFalse(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id)
+        val tiltakshendelse = tiltakshendelseRepository.getOrThrow(id)
         tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }

@@ -36,7 +36,7 @@ class ForslagRepository {
         }
     }
 
-    fun get(id: UUID): Forslag {
+    fun getOrThrow(id: UUID): Forslag {
         val sql =
             """
             SELECT 

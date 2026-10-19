@@ -138,7 +138,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         every { deltakerRepository.get(deltaker.id) } returns deltaker
         every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
-        every { forslagRepository.get(forslagId) } returns lagForslag(id = forslagId, deltakerId = deltaker.id)
+        every { forslagRepository.getOrThrow(forslagId) } returns lagForslag(id = forslagId, deltakerId = deltaker.id)
 
         coEvery {
             forslagService.avvisForslag(

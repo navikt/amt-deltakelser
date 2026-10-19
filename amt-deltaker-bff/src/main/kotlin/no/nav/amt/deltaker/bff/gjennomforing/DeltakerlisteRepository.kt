@@ -74,7 +74,7 @@ class DeltakerlisteRepository {
     }
 
     // verifiserTilgjengeligDeltakerliste
-    fun get(id: UUID): Deltakerliste {
+    fun getOrThrow(id: UUID): Deltakerliste {
         val query = queryOf(
             """
             SELECT 

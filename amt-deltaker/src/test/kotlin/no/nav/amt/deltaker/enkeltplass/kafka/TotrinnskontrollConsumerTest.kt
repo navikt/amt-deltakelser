@@ -117,7 +117,7 @@ class TotrinnskontrollConsumerTest {
             deltaker: Deltaker,
             prisinfoStatus: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING,
         ) {
-            every { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) } returns deltaker
+            every { deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId) } returns deltaker
             every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns prisinfoStatus
         }
 
@@ -173,7 +173,7 @@ class TotrinnskontrollConsumerTest {
             consumer.consume(totrinnskontrollId, rawJson)
 
             // Assert
-            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
         }
 
         @Test
@@ -193,7 +193,7 @@ class TotrinnskontrollConsumerTest {
             consumer.consume(totrinnskontrollId, rawJson)
 
             // Assert
-            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
         }
 
         @Test
@@ -232,7 +232,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
+            verify { deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId) }
 
             val updated = beforeUpsertSlot.captured(deltakerInTest)
             updated.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -257,7 +257,7 @@ class TotrinnskontrollConsumerTest {
                     status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
                 )
             }
-            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
         }
 
         @Test
@@ -284,7 +284,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
+            verify { deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId) }
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify { distribuerEndringService.produceHendelse(deltakerInTest, navAnsattInTest, navEnhetInTest, any()) }
             hendelseSlot.captured shouldBe HendelseType.EnkeltplassGodkjennPrisendring(
@@ -430,7 +430,7 @@ class TotrinnskontrollConsumerTest {
             )
 
             // Assert
-            verify { deltakerRepository.getEnkeltplassdeltaker(gjennomforingId) }
+            verify { deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId) }
             verify { PrisinfoRepoAdapter.godkjennOkonomi(gjennomforingId, totrinnskontrollId, navAnsattInTest.id, navEnhetInTest.id) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
@@ -500,7 +500,7 @@ class TotrinnskontrollConsumerTest {
 
             // Assert
             verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
-            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltaker(any()) }
+            verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
         }
     }
 
