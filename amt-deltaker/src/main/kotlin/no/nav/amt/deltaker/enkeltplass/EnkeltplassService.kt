@@ -341,7 +341,14 @@ class EnkeltplassService(
                 }
             }
 
-            deltakerProducerService.produce(deltakerMedVedtak)
+            // Vi kan ikke dele deltakelser med eksterne før valp kjenner til den.
+            // Vi må dog dele internt for å opprette aktivitetskort
+            deltakerProducerService.produce(
+                deltaker = deltakerMedVedtak,
+                publiserTilDeltakerV1 = false,
+                publiserTilDeltakerEksternV1 = false,
+                publiserTilDeltakerV2 = true,
+            )
             deltakerMedVedtak
         }
     }
