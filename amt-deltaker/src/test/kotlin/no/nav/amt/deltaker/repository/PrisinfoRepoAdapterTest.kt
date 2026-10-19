@@ -118,40 +118,16 @@ class PrisinfoRepoAdapterTest {
                 tilleggsopplysninger = "Gratis opplaering",
             )
 
-            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = ingenKostnader,
             )
 
             // Act
             val result = PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id)
-            val stored = PrisinfoRepository.hentPrisinfo(prisinfoId)
 
             // Assert
             result shouldBe ingenKostnader
-            stored?.ingenkostnaderAarsak shouldBe PrisinfoDbo.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI
-        }
-
-        @Test
-        fun `henter legacy IngenKostnader prisinfo med egenfinansiert aarsak`() {
-            TestRepository.insert(gjennomforingInTest)
-
-            val ingenKostnader = IngenKostnader(tilleggsopplysninger = "Eldre prisinfo")
-            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = gjennomforingInTest.id,
-                prisinformasjon = ingenKostnader,
-            )
-            Database.query { session ->
-                session.update(
-                    queryOf(
-                        "UPDATE enkeltplass_prisinformasjon SET ingenkostnader_aarsak = ? WHERE id = ?",
-                        "OPPLAERINGEN_ER_EGENFINANSIERT",
-                        prisinfoId,
-                    ),
-                )
-            }
-
-            PrisinfoRepoAdapter.hentPrisinfo(gjennomforingInTest.id) shouldBe ingenKostnader
         }
 
         @Test

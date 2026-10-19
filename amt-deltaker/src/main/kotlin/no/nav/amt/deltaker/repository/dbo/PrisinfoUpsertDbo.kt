@@ -9,5 +9,4 @@ data class PrisinfoUpsertDbo(
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
-    val ingenkostnaderAarsak: PrisinfoDbo.Aarsak? = null,
 )

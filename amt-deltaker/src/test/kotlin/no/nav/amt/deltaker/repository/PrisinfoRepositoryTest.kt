@@ -48,7 +48,6 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
-                ingenkostnaderAarsak = null,
             )
 
             // Act
@@ -74,7 +73,6 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
-                ingenkostnaderAarsak shouldBe null
             }
         }
 
@@ -108,7 +106,6 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe null
-                ingenkostnaderAarsak shouldBe null
             }
         }
     }

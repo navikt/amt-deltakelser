@@ -30,7 +30,6 @@ class PrisinfoBelopRepositoryTest {
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 15000,
             tilleggsopplysninger = "Standard opplysning",
-            ingenkostnaderAarsak = null,
         )
     }
 
