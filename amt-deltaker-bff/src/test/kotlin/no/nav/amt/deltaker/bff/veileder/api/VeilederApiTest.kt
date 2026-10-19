@@ -404,6 +404,47 @@ class VeilederApiTest : IntegrationTestBase() {
             fun `oppdater prisinfo - har tilgang - returnerer deltaker`() {
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
                 val expected = setupMocksLocal(deltaker, deltaker)
+                // samme type som gjeldende prisinfo (Anskaffelse) - kun verdiendring er alltid tillatt
+                val gyldigRequest = EndrePrisinfoRequest(
+                    prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 12345),
+                    begrunnelse = "begrunnelse",
+                )
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-prisinfo") {
+                            createPostRequest(gyldigRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.OK
+                            bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater prisinfo - endrer type etter at okonomi er godkjent - returnerer 400`() {
+                // gjeldende prisinfo er Anskaffelse, request er IngenKostnader (typeendring)
+                // status VENTER_PA_OPPSTART er for sent til å endre type
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                setupMocks(deltaker)
+                coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns lagDeltakerResponse(deltaker)
+
+                withTestApplicationContext { httpClient ->
+                    httpClient
+                        .post("/deltaker/${deltaker.id}/endre-prisinfo") {
+                            createPostRequest(endrePrisinfoRequest)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            bodyAsText().contains("Kan ikke endre type prisinformasjon") shouldBe true
+                        }
+                }
+            }
+
+            @Test
+            fun `oppdater prisinfo - endrer type ved status sokt inn - returnerer deltaker`() {
+                // typeendring (Anskaffelse -> IngenKostnader) er lov ved status SOKT_INN
+                val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+                val expected = setupMocksLocal(deltaker, deltaker)
 
                 withTestApplicationContext { httpClient ->
                     httpClient
