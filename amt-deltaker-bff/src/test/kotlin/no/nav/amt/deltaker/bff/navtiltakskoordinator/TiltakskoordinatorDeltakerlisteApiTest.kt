@@ -416,7 +416,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             )
         } returns Result.failure(IllegalArgumentException())
 
-        coEvery {
+        every {
             tiltakskoordinatorTilgangRepository.hentAktivTilgang(any(), any())
         } returns lagTiltakskoordinatorTilgang()
 

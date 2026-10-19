@@ -87,7 +87,7 @@ class DeltakerlisteRepositoryTest {
             tiltakRepository.upsert(tiltakstype)
             deltakerlisteRepository.upsert(deltakerliste)
 
-            val lagret = deltakerlisteRepository.getOrThrow(deltakerliste.id)
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-42"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
         }
@@ -111,7 +111,7 @@ class DeltakerlisteRepositoryTest {
             val oppdatert = deltakerliste.copy(lopenummer = "2027-99", tilgjengeligForArrangorFraOgMedDato = nyDato)
             deltakerlisteRepository.upsert(oppdatert)
 
-            val lagret = deltakerlisteRepository.getOrThrow(deltakerliste.id)
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-99"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe nyDato
         }
@@ -234,7 +234,7 @@ class DeltakerlisteRepositoryTest {
         tiltakRepository.upsert(tiltakstype)
         deltakerlisteRepository.upsert(deltakerliste)
 
-        val deltakerlisteMedArrangor = deltakerlisteRepository.getOrThrow(deltakerliste.id)
+        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn

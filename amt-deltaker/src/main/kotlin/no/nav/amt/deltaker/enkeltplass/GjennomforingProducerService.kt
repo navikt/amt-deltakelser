@@ -48,7 +48,8 @@ class GjennomforingProducerService(
     private fun produserRequest(payload: GjennomforingRequestPayload) {
         gjennomforingRequestProducer.produce(payload)
 
-        val gjennomforing = deltakerlisteRepository.getOrThrow(payload.gjennomforingId)
+        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId)
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${payload.gjennomforingId}")
         amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
     }
 

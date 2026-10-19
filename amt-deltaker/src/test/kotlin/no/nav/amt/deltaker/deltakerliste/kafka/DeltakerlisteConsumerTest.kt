@@ -212,11 +212,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
-        val thrown = shouldThrow<NoSuchElementException> {
-            deltakerlisteRepository.getOrThrow(expectedDeltakerliste.id)
-        }
-
-        thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+        deltakerlisteRepository.get(expectedDeltakerliste.id) shouldBe null
     }
 
     @Test

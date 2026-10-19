@@ -43,7 +43,8 @@ class KladdService(
             .upsertAndProduceDeltaker(
                 deltaker = lagKladd(
                     navBrukerService.get(personIdent).getOrThrow(),
-                    deltakerlisteRepository.getOrThrow(deltakerListeId),
+                    deltakerlisteRepository.get(deltakerListeId)
+                        ?: throw NoSuchElementException("Fant ikke deltakerliste med id $deltakerListeId"),
                 ),
                 erDeltakerSluttdatoEndret = false,
             ).also { deltaker ->

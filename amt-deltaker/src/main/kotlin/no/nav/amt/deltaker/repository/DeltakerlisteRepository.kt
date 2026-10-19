@@ -192,9 +192,6 @@ class DeltakerlisteRepository {
         }
     }
 
-    fun getOrThrow(id: UUID): Deltakerliste = get(id)
-        ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
-
     fun getManyForTiltakstype(tiltakstypeId: UUID): List<Deltakerliste> {
         val sql = "$BASE_SELECT WHERE dl.tiltakstype_id = :tiltakstype_id"
 

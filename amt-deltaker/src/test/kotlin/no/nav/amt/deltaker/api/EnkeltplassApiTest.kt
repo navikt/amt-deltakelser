@@ -193,10 +193,10 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             } returns deltakerInTest
 
             // responseBuilder mocks
-            coEvery {
+            every {
                 navAnsattRepository.getManyById(setOf(deltakerInTest.navBruker.navVeilederId.shouldNotBeNull()))
             } returns listOf(lagNavAnsatt(id = deltakerInTest.navBruker.navVeilederId.shouldNotBeNull()))
-            coEvery {
+            every {
                 navEnhetRepository.getMany(setOf(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
             } returns listOf(lagNavEnhet(id = deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
 
@@ -222,7 +222,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 ),
             )
 
-            coEvery { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            every { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
             every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             every { vedtakRepository.getForDeltaker(deltakerInTest.id) } returns null
