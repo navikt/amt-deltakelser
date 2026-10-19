@@ -16,7 +16,7 @@ class EnkeltplassHovedvedtakTest :
             it("skal rendre med alle obligatoriske felter") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-hovedvedtak", brev)
 
@@ -30,7 +30,7 @@ class EnkeltplassHovedvedtakTest :
             it("skal vise vedtak- og klageseksjoner") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-hovedvedtak", brev)
 
@@ -54,18 +54,6 @@ class EnkeltplassHovedvedtakTest :
                     doc.text() shouldContain "Nav har kjøpt en plass hos opplæringsstedet"
                 }
 
-                it("skal vise Innbyggerfinansiert tekst med tilleggsopplysninger") {
-                    val brev = enkeltplassPdfDto(
-                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
-                            tilleggsopplysninger = "Du må betale for gjennomføring av kurset",
-                        ),
-                    )
-                    val doc = render("enkeltplass-hovedvedtak", brev)
-
-                    doc.text() shouldContain "Du må selv betale for opplæringen"
-                    doc.text() shouldContain "Du må betale for gjennomføring av kurset"
-                }
             }
 
             describe("Innholdstyper") {
@@ -76,7 +64,7 @@ class EnkeltplassHovedvedtakTest :
                             bransje = "Helse og omsorg",
                             forerkortOgSertifiseringer = listOf("D1 - Minibuss", "Førstehjelpskurs"),
                         ),
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-hovedvedtak", brev)
 
@@ -89,7 +77,7 @@ class EnkeltplassHovedvedtakTest :
                 it("UtenInnhold - skal ikke vise innholdsdetaljer") {
                     val brev = enkeltplassPdfDto(
                         innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-hovedvedtak", brev)
 
@@ -102,7 +90,7 @@ class EnkeltplassHovedvedtakTest :
             it("skal vise deltakelsesmengde") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     deltakelsesmengdeAntallDager = 5,
                 )
                 val doc = render("enkeltplass-hovedvedtak", brev)
@@ -114,7 +102,7 @@ class EnkeltplassHovedvedtakTest :
             it("skal ha korrekt metadata i head") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-hovedvedtak", brev)
 

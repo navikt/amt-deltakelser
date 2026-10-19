@@ -16,7 +16,7 @@ class EnkeltplassInnsokingsbrevTest :
             it("skal rendre med alle obligatoriske felter") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -68,25 +68,16 @@ class EnkeltplassInnsokingsbrevTest :
                 it("skal vise IngenKostnader tekst") {
                     val brev = enkeltplassPdfDto(
                         innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
-                    )
-                    val doc = render("enkeltplass-innsokingsbrev", brev)
-
-                    doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen"
-                }
-
-                it("skal vise Innbyggerfinansiert tekst med tilleggsopplysninger") {
-                    val brev = enkeltplassPdfDto(
-                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
-                            tilleggsopplysninger = "Du må betale for gjennomføring av kurset",
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
+                            tilleggsopplysninger = "Opplæringen er kostnadsfri ved oppmøte",
                         ),
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
-                    doc.text() shouldContain "Du må selv betale for opplæringen"
-                    doc.text() shouldContain "Du må betale for gjennomføring av kurset"
+                    doc.text() shouldContain "Nav skal ikke betale for opplæringen."
+                    doc.text() shouldContain "Opplæringen er kostnadsfri ved oppmøte"
                 }
+
             }
 
             describe("Innholdstyper") {
@@ -101,7 +92,7 @@ class EnkeltplassInnsokingsbrevTest :
                                 "Beskrivelse av sårbehandling",
                             ),
                         ),
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -118,7 +109,7 @@ class EnkeltplassInnsokingsbrevTest :
                             bransje = "Helse og omsorg",
                             forerkortOgSertifiseringer = emptyList(),
                         ),
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -135,7 +126,7 @@ class EnkeltplassInnsokingsbrevTest :
                                 "Droneoperatør",
                             ),
                         ),
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -148,7 +139,7 @@ class EnkeltplassInnsokingsbrevTest :
                 it("UtenInnhold - skal ikke vise innholdsdetaljer") {
                     val brev = enkeltplassPdfDto(
                         innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -209,7 +200,7 @@ class EnkeltplassInnsokingsbrevTest :
             it("skal vise deltakelsesmengde") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                     deltakelsesmengdeAntallDager = 5,
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
@@ -221,7 +212,7 @@ class EnkeltplassInnsokingsbrevTest :
             it("skal vise startdato og sluttdato") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -232,7 +223,7 @@ class EnkeltplassInnsokingsbrevTest :
             it("skal vise link til tilleggsstønader") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 
@@ -243,7 +234,7 @@ class EnkeltplassInnsokingsbrevTest :
             it("skal ha korrekt metadata i head") {
                 val brev = enkeltplassPdfDto(
                     innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                 )
                 val doc = render("enkeltplass-innsokingsbrev", brev)
 

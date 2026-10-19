@@ -259,8 +259,7 @@ object HendelseTypeData {
     fun enkeltplassEndrePrisinfo(
         kreverGodkjenning: Boolean,
         prisinfo: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
+            tilleggsopplysninger = "",
         ),
     ) = HendelseType.EnkeltplassEndrePrisinfo(
         kreverGodkjenning = kreverGodkjenning,
@@ -269,8 +268,7 @@ object HendelseTypeData {
 
     fun enkeltplassGodkjennPrisendring(
         prisinfo: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
-            aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
+            tilleggsopplysninger = "",
         ),
     ) = HendelseType.EnkeltplassGodkjennPrisendring(
         prisinfo = prisinfo,

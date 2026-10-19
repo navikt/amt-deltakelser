@@ -21,7 +21,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
@@ -35,12 +34,10 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
     @BeforeEach
     fun setup() {
         every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns true
-        every {
-            PrisinfoRepoAdapter.hentPrisinfo(
-                any<UUID>(),
-                any<PrisinfoDbo.Rolle>(),
-            )
-        } returns lagIngenKostnader()
+        every { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), any<PrisinfoDbo.Rolle>()) } returns PrisinformasjonDto.IngenKostnader(
+            tilleggsopplysninger = "",
+        )
+
         coEvery {
             navAnsattService.hentNavAnsattOgEnhet(any<String>())
         } returns Pair(navAnsattInTest, navEnhetInTest)
@@ -187,8 +184,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                 gjennomforingId,
             )
             val godkjentPrisinfo = PrisinformasjonDto.IngenKostnader(
-                aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
             val hendelseSlot = slot<HendelseType>()
 
@@ -232,8 +228,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             stubGjeldendePrisinfo(
                 gjennomforingId,
                 PrisinformasjonDto.IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             )
             stubBegrunnelse(totrinnskontrollId)
@@ -265,8 +260,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             stubGjeldendePrisinfo(
                 gjennomforingId,
                 PrisinformasjonDto.IngenKostnader(
-                    aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                    tilleggsopplysninger = null,
+                    tilleggsopplysninger = "",
                 ),
             )
 
@@ -540,27 +534,127 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         fun stubGodkjennOkonomi(result: Boolean) {
             every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns result
         }
+    }
 
-        fun stubGjeldendePrisinfo(
-            gjennomforingId: UUID,
-            prisinfo: PrisinformasjonDto,
-        ) {
+    private fun stubGjeldendePrisinfo(
+        gjennomforingId: UUID,
+        prisinfo: PrisinformasjonDto,
+    ) {
+        every {
+            PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = gjennomforingId,
+                rolle = PrisinfoDbo.Rolle.GJELDENDE,
+            )
+        } returns prisinfo
+    }
+
+    private fun stubBegrunnelse(prisinfoId: UUID) {
+        every { PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId) } returns "Testbegrunnelse"
+    }
+
+    @Nested
+    inner class ProcessGodkjentPrisEndringTest {
+        val navEnhet = lagNavEnhet()
+        val navAnsatt = lagNavAnsatt(navIdent = "Z999999", navEnhetId = navEnhet.id)
+
+        val gjennomforingId: UUID = UUID.randomUUID()
+        val deltakerInTest = lagDeltaker(
+            deltakerliste = lagDeltakerliste(id = gjennomforingId),
+        )
+
+        @BeforeEach
+        fun setup() {
+            every {
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = any(),
+                    prisinformasjonId = any(),
+                    godkjentAv = any(),
+                    godkjentAvEnhet = any(),
+                )
+            } returns true
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(
+                    gjennomforingId = any(),
+                    rolle = PrisinfoDbo.Rolle.ENDRING,
+                )
+            } returns PrisinformasjonDto.IngenKostnader(
+                tilleggsopplysninger = "",
+            )
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = gjennomforingId,
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 )
-            } returns prisinfo
+            } returns PrisinformasjonDto.IngenKostnader(
+                tilleggsopplysninger = "",
+            )
+            every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
         }
 
-        fun stubBegrunnelse(prisinfoId: UUID) {
-            every { PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId) } returns "Testbegrunnelse"
+        @Test
+        fun `kaller godkjennOkonomi med gjennomforingId`() = runTest {
+            // Act
+            consumer.processGodkjentPrisEndring(
+                deltaker = deltakerInTest,
+                prisinfoId = totrinnskontrollId,
+                behandletAvNavAnsatt = navAnsatt,
+                behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
+            )
+
+            // Assert
+            verify {
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = gjennomforingId,
+                    prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
+                )
+            }
         }
 
-        fun lagIngenKostnader() = PrisinformasjonDto.IngenKostnader(
-            aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
-        )
+        @Test
+        fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() = runTest {
+            // Arrange
+            val exception = RuntimeException("Database error")
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws exception
+
+            // Act & Assert
+            shouldThrow<RuntimeException> {
+                consumer.processGodkjentPrisEndring(
+                    deltaker = deltakerInTest,
+                    prisinfoId = totrinnskontrollId,
+                    behandletAvNavAnsatt = navAnsatt,
+                    behandletAvNavEnhet = navEnhet,
+                    godkjentAvNavAnsatt = navAnsatt,
+                    godkjentAvNavEnhet = navEnhet,
+                )
+            }
+        }
+
+        @Test
+        fun `processGodkjentPrisEndring - publiserer ikke når godkjennOkonomi returnerer false`() = runTest {
+            // Arrange
+            every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
+
+            // Act
+            consumer.processGodkjentPrisEndring(
+                deltaker = deltakerInTest,
+                prisinfoId = totrinnskontrollId,
+                behandletAvNavAnsatt = navAnsatt,
+                behandletAvNavEnhet = navEnhet,
+                godkjentAvNavAnsatt = navAnsatt,
+                godkjentAvNavEnhet = navEnhet,
+            )
+
+            // Assert
+            verify { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
+            verify(exactly = 0) { PrisinfoRepoAdapter.hentPrisinfo(any<UUID>(), PrisinfoDbo.Rolle.GJELDENDE) }
+            verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
+        }
+    }
+
 
         fun godkjentEnkeltplassOkonomiPayload(gjennomforingId: UUID): String =
             """
@@ -643,5 +737,4 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
               "besluttetAarsaker": []
             }
             """.trimIndent()
-    }
 }

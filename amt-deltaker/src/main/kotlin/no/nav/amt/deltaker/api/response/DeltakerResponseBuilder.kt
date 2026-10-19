@@ -66,6 +66,7 @@ class DeltakerResponseBuilder(
             gjennomforing = buildGjennomforingResponse(
                 deltakerliste = deltaker.deltakerliste,
                 includeOpplaringKategorisering = includeOpplaringKategorisering,
+                historikk = historikk,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -115,10 +116,12 @@ class DeltakerResponseBuilder(
     internal fun buildGjennomforingResponse(
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
+        historikk: List<DeltakerHistorikk> = emptyList(),
     ): GjennomforingResponse {
         val prisinformasjon = GjennomforingPrisinformasjon.hent(
             deltakerliste = deltakerliste,
             includeOpplaringKategorisering = includeOpplaringKategorisering,
+            historikk = historikk,
         )
 
         return SharedResponseMappers.buildGjennomforingResponse(

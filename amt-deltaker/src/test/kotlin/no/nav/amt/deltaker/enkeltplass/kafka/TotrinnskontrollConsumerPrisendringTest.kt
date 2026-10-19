@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -147,8 +146,7 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
 
     private companion object {
         fun lagIngenKostnader() = PrisinformasjonDto.IngenKostnader(
-            aarsak = Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-            tilleggsopplysninger = null,
+            tilleggsopplysninger = "",
         )
 
         fun processGodkjentPrisEndring(

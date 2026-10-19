@@ -271,9 +271,7 @@ object PrisinfoRepoAdapter {
         )
 
         INGENKOSTNADER_SUB_TYPE -> IngenKostnader(
-            tilleggsopplysninger = this.tilleggsopplysninger,
-            aarsak = this.ingenkostnaderAarsak
-                ?: throw IllegalStateException("Årsak for ingen kostnader kan ikke være null"),
+            tilleggsopplysninger = this.tilleggsopplysninger.orEmpty(),
             begrunnelse = this.begrunnelse,
         )
 
@@ -336,7 +334,7 @@ object PrisinfoRepoAdapter {
             begrunnelse = begrunnelse,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
-            ingenkostnaderAarsak = this.aarsak,
+            ingenkostnaderAarsak = PrisinfoDbo.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
         )
     }
 

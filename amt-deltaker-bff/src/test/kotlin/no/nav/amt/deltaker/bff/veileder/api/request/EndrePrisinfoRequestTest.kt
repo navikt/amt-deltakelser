@@ -101,8 +101,7 @@ class EndrePrisinfoRequestTest {
         private fun lagRequest(
             begrunnelse: String? = "begrunnelse",
             prisinformasjon: PrisinformasjonDto = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             ),
         ) = EndrePrisinfoRequest(
             prisinformasjon = prisinformasjon,
