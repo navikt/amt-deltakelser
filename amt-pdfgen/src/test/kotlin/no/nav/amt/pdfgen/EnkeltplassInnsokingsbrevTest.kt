@@ -74,7 +74,7 @@ class EnkeltplassInnsokingsbrevTest :
                     )
                     val doc = render("enkeltplass-innsokingsbrev", brev)
 
-                    doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen"
+                    doc.text() shouldContain "Nav skal ikke betale for opplæringen."
                     doc.text() shouldContain "Opplæringen er kostnadsfri ved oppmøte"
                 }
 
