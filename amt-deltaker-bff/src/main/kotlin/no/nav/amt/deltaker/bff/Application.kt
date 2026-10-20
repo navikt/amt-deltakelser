@@ -14,9 +14,7 @@ import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.log
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.netty.EngineMain
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.bff.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
@@ -68,24 +66,11 @@ import no.nav.amt.lib.utils.leaderelection.LeaderProvider
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import kotlin.time.Duration.Companion.seconds
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response.ResponseBuilder as TiltakskoordinatorResponseBuilder
 
 val env = Environment()
 
-fun main() {
-    embeddedServer(
-        factory = Netty,
-        configure = {
-            connector {
-                port = env.port
-            }
-            shutdownGracePeriod = 10.seconds.inWholeMilliseconds
-            shutdownTimeout = 20.seconds.inWholeMilliseconds
-        },
-        module = Application::module,
-    ).start(wait = true)
-}
+fun main(args: Array<String>) = EngineMain.main(args)
 
 fun Application.module() {
     configureSerialization()
