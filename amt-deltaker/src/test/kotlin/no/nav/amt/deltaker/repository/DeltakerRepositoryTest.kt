@@ -64,8 +64,26 @@ class DeltakerRepositoryTest {
             val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
 
             // Assert
-            utdaterteKladder.size shouldBe 1
-            utdaterteKladder.first() shouldBe utdatertKladd.id
+            utdaterteKladder shouldBe setOf(utdatertKladd.id)
+        }
+
+        @Test
+        fun `getUtdaterteKladder - fremtidig aktiv KLADD status - returneres ikke`() {
+            // Arrange
+            val fremtidigKladd = lagDeltaker(
+                status = lagDeltakerStatus(
+                    statusType = DeltakerStatus.Type.KLADD,
+                    gyldigFra = LocalDateTime.now().plusDays(1),
+                ),
+                sistEndret = LocalDateTime.now().minusWeeks(3),
+            )
+            TestRepository.insert(fremtidigKladd)
+
+            // Act
+            val utdaterteKladder = deltakerRepository.getUtdaterteKladder(LocalDateTime.now().minusWeeks(2))
+
+            // Assert
+            utdaterteKladder.shouldBeEmpty()
         }
 
         @Test

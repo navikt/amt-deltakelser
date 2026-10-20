@@ -28,27 +28,46 @@ import java.util.UUID
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getUtdaterteKladder(sistEndret: LocalDateTime): List<UUID> = Database.query { session ->
-        session.run(
-            queryOf(
-                """
-                    SELECT DISTINCT d.id
-                    FROM
-                        deltaker d
-                        JOIN deltaker_status ds ON
-                            d.id = ds.deltaker_id
-                            AND ds.gyldig_til IS NULL
-                            AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+    /**
+     * Henter ID-ene til deltakere med aktiv KLADD-status som ble endret før [sistEndret].
+     *
+     * Resultatet brukes som kandidater for sletting av utdaterte kladder.
+     */
+    fun getUtdaterteKladder(sistEndret: LocalDateTime): Set<UUID> = Database.query { session ->
+        val aktiveKladdIder = session
+            .run(
+                queryOf(
+                    """
+                    SELECT deltaker_id
+                    FROM deltaker_status
                     WHERE
-                        ds.type = :status_type
-                        AND d.modified_at < :sist_endret
+                        deltaker_id IS NOT NULL
+                        AND gyldig_til IS NULL
+                        AND gyldig_fra <= CURRENT_TIMESTAMP
+                        AND type = ?
                 """,
-                mapOf(
-                    "status_type" to DeltakerStatus.Type.KLADD.name,
-                    "sist_endret" to sistEndret,
-                ),
-            ).map { it.uuid("id") }.asList,
-        )
+                    DeltakerStatus.Type.KLADD.name,
+                ).map { it.uuid("deltaker_id") }.asList,
+            ).toSet()
+
+        if (aktiveKladdIder.isEmpty()) return@query emptySet()
+
+        session
+            .run(
+                queryOf(
+                    """
+                    SELECT id
+                    FROM deltaker
+                    WHERE 
+                        modified_at < :sist_endret
+                        AND id = ANY(:aktive_kladd_ider)
+                """,
+                    mapOf(
+                        "sist_endret" to sistEndret,
+                        "aktive_kladd_ider" to aktiveKladdIder.toTypedArray(),
+                    ),
+                ).map { it.uuid("id") }.asList,
+            ).toSet()
     }
 
     fun getKladdForDeltakerliste(
