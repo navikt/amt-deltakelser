@@ -26,7 +26,10 @@ data class PrisinfoDbo(
     }
 
     enum class Rolle {
+        // En foreslått prisendring som avventer godkjenning
         ENDRING,
+
+        // Den faktiske, gjeldende prisen
         GJELDENDE,
     }
 }
