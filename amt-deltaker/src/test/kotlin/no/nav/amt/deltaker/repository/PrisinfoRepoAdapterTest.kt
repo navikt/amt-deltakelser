@@ -790,7 +790,7 @@ class PrisinfoRepoAdapterTest {
             )
 
             // Assert
-            PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId) shouldBe "Prisen har økt"
+            PrisinfoRepoAdapter.hentPrisinfoById(prisinfoId)?.begrunnelse shouldBe "Prisen har økt"
         }
 
         @Test

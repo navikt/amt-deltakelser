@@ -53,9 +53,8 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
                 gjennomforingId = any(),
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
-        } returns lagIngenKostnader()
+        } returns lagIngenKostnader("Prisendringens begrunnelse")
         every { distribuerEndringService.produceHendelse(any(), any(), any(), any()) } just Runs
-        every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns "Prisendringens begrunnelse"
     }
 
     @Nested
@@ -116,7 +115,9 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
         fun `inkluderer begrunnelse fra prisinfo i hendelsen`() = runTest {
             // Arrange
             val forventetBegrunnelse = "Begrunnelse for godkjent prisendring"
-            every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns forventetBegrunnelse
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(testGjennomforingId, PrisinfoDbo.Rolle.GJELDENDE)
+            } returns lagIngenKostnader(forventetBegrunnelse)
             val hendelseSlot = slot<HendelseType>()
             every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
 
@@ -130,7 +131,10 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
         @Test
         fun `kaster unntak og publiserer ikke når begrunnelse mangler`() = runTest {
             // Arrange
-            every { PrisinfoRepoAdapter.hentBegrunnelse(totrinnskontrollId) } returns null
+            val prisinfoUtenBegrunnelse = PrisinformasjonDto.Anskaffelse(pris = 100)
+            every {
+                PrisinfoRepoAdapter.hentPrisinfo(testGjennomforingId, PrisinfoDbo.Rolle.GJELDENDE)
+            } returns prisinfoUtenBegrunnelse
 
             // Act
             val exception = shouldThrow<IllegalStateException> {
@@ -139,14 +143,15 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
 
             // Assert
             exception.message shouldBe "Fant ikke begrunnelse for prisinfo $totrinnskontrollId"
-            verify(exactly = 0) { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
+            verify(exactly = 1) { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) }
             verify(exactly = 0) { distribuerEndringService.produceHendelse(any(), any(), any(), any()) }
         }
     }
 
     private companion object {
-        fun lagIngenKostnader() = PrisinformasjonDto.IngenKostnader(
+        fun lagIngenKostnader(begrunnelse: String = "") = PrisinformasjonDto.IngenKostnader(
             tilleggsopplysninger = "",
+            begrunnelse = begrunnelse,
         )
 
         fun processGodkjentPrisEndring(

@@ -185,12 +185,12 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             )
             val godkjentPrisinfo = PrisinformasjonDto.IngenKostnader(
                 tilleggsopplysninger = "",
+                begrunnelse = "Testbegrunnelse",
             )
             val hendelseSlot = slot<HendelseType>()
 
             stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
             stubGjeldendePrisinfo(gjennomforingId, godkjentPrisinfo)
-            stubBegrunnelse(totrinnskontrollId)
             every { distribuerEndringService.produceHendelse(any(), any(), any(), capture(hendelseSlot)) } just Runs
 
             // Act
@@ -231,7 +231,6 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     tilleggsopplysninger = "",
                 ),
             )
-            stubBegrunnelse(totrinnskontrollId)
 
             // Act
             consumer.consume(
@@ -352,7 +351,6 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                 gjennomforingId,
             )
             stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
-            stubBegrunnelse(totrinnskontrollId)
             stubGodkjennOkonomi(false)
 
             // Act
@@ -548,10 +546,6 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         } returns prisinfo
     }
 
-    private fun stubBegrunnelse(prisinfoId: UUID) {
-        every { PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId) } returns "Testbegrunnelse"
-    }
-
     @Nested
     inner class ProcessGodkjentPrisEndringTest {
         val navEnhet = lagNavEnhet()
@@ -572,7 +566,6 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     godkjentAvEnhet = any(),
                 )
             } returns true
-            every { PrisinfoRepoAdapter.hentBegrunnelse(any()) } returns "Testbegrunnelse"
             every {
                 PrisinfoRepoAdapter.hentPrisinfo(
                     gjennomforingId = any(),

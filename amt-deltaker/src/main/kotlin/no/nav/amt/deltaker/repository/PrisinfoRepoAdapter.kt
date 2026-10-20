@@ -32,8 +32,6 @@ object PrisinfoRepoAdapter {
         .hentPrisinfo(prisinformasjonId)
         ?.hentBelopOgKonverterTilDto()
 
-    fun hentBegrunnelse(prisinformasjonId: UUID): String? = PrisinfoRepository.hentPrisinfo(prisinformasjonId)?.begrunnelse
-
     /**
      * Godkjenner prisinfo for økonomi.
      *
@@ -89,7 +87,8 @@ object PrisinfoRepoAdapter {
             .map { it.prisinfo }
             .filter { it.prisinfoJsonSubtype == TILSKUDD_SUB_TYPE }
             .map { it.id }
-        val belopPerPrisinfo = PrisinfoBelopRepository.hentPrisinfoBelop(tilskuddIder)
+
+        val belopPerPrisinfo: Map<UUID, List<Priskomponent>> = PrisinfoBelopRepository.hentPrisinfoBelop(tilskuddIder)
 
         return godkjente.map {
             OkonomiGodkjentForHistorikk(
@@ -97,7 +96,8 @@ object PrisinfoRepoAdapter {
                 sistEndretAvNavAnsattId = it.godkjentAvNavAnsattId,
                 sistEndretAvNavEnhetId = it.godkjentAvNavEnhetId,
                 erForsteGodkjenning = it.erForsteGodkjenning,
-                prisinformasjon = it.prisinfo.toPrisinformasjonDto(belopPerPrisinfo[it.prisinfo.id].orEmpty()),
+                prisinformasjon = it.prisinfo
+                    .toPrisinformasjonDto(belopPerPrisinfo[it.prisinfo.id].orEmpty()),
             )
         }
     }

@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
@@ -189,10 +190,6 @@ class TotrinnskontrollConsumer(
         godkjentAvNavAnsatt: NavAnsatt,
         godkjentAvNavEnhet: NavEnhet,
     ) {
-        // henter begrunnelse først for å holde transaksjonen kort
-        val begrunnelse = PrisinfoRepoAdapter.hentBegrunnelse(prisinfoId)
-            ?: error("Fant ikke begrunnelse for prisinfo $prisinfoId")
-
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltaker.deltakerliste.id,
@@ -203,10 +200,12 @@ class TotrinnskontrollConsumer(
 
             if (!skalPublisereHendelse) return@transaction
 
-            val godkjentPrisinfo = PrisinfoRepoAdapter.hentPrisinfo(
+            val godkjentPrisinfo: PrisinformasjonDto = PrisinfoRepoAdapter.hentPrisinfo(
                 gjennomforingId = deltaker.deltakerliste.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) ?: error("Fant ikke gjeldende prisinfo for deltaker ${deltaker.id}")
+            val begrunnelse = godkjentPrisinfo.begrunnelse
+                ?: error("Fant ikke begrunnelse for prisinfo $prisinfoId")
 
             distribuerEndringService.produceHendelse(
                 deltaker = deltaker,
