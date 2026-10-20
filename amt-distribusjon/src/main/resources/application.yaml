@@ -1,0 +1,8 @@
+ktor:
+  deployment:
+    port: "$PORT:8080"
+    shutdownGracePeriod: 10000
+    shutdownTimeout: 20000
+  application:
+    modules:
+      - no.nav.amt.distribusjon.ApplicationKt.module
