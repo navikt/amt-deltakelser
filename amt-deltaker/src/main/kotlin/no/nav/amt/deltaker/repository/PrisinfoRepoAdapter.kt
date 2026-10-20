@@ -296,7 +296,7 @@ object PrisinfoRepoAdapter {
      * Håndterer tre typer prisinfo:
      * - **Anskaffelse:** Lagrer `anskaffelsePris`
      * - **Tilskudd:** Lagrer `tilleggsopplysninger` (beløpene lagres separat via `lagrePrisinfoBelop`)
-     * - **IngenKostnader:** Lagrer årsak og tilleggsopplysninger
+     * - **IngenKostnader:** Lagrer tilleggsopplysninger
      *
      * @return [PrisinfoDbo]
      */
@@ -331,7 +331,6 @@ object PrisinfoRepoAdapter {
             begrunnelse = begrunnelse,
             prisinfoJsonSubtype = INGENKOSTNADER_SUB_TYPE,
             tilleggsopplysninger = this.tilleggsopplysninger,
-            ingenkostnaderAarsak = PrisinfoDbo.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
         )
     }
 

@@ -6,7 +6,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -40,7 +39,7 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
                 anskaffelsePris = 15000,
                 tilleggsopplysninger = "Standard opplysning",
-                ingenkostnaderAarsak = null,
+                begrunnelse = "~begrunnelse~",
             )
 
             // Act
@@ -58,15 +57,13 @@ class PrisinfoRepositoryTest {
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
-            result shouldNotBe null
-
             assertSoftly(result.shouldNotBeNull()) {
                 gjennomforingId shouldBe gjennomforingInTest.id
                 status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
-                ingenkostnaderAarsak shouldBe null
+                begrunnelse shouldBe "~begrunnelse~"
             }
         }
 
@@ -100,7 +97,7 @@ class PrisinfoRepositoryTest {
                 prisinfoJsonSubtype shouldBe INGENKOSTNADER_SUB_TYPE
                 anskaffelsePris shouldBe null
                 tilleggsopplysninger shouldBe null
-                ingenkostnaderAarsak shouldBe null
+                begrunnelse shouldBe null
             }
         }
     }

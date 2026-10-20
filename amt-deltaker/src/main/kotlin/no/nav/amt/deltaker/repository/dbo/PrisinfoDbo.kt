@@ -9,14 +9,8 @@ data class PrisinfoDbo(
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
-    val ingenkostnaderAarsak: Aarsak? = null,
     val begrunnelse: String? = null, // har verdi kun ved endringer
 ) {
-    enum class Aarsak {
-        OPPLAERINGEN_ER_KOSTNADSFRI,
-        OPPLAERINGEN_ER_EGENFINANSIERT,
-    }
-
     enum class PrisinfoStatus {
         KLADD_UTKAST,
         SENDT,

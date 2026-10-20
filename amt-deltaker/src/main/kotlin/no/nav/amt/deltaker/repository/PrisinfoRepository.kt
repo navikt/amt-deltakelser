@@ -19,7 +19,6 @@ object PrisinfoRepository {
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
-                ingenkostnader_aarsak,
                 begrunnelse
             FROM enkeltplass_prisinformasjon
             WHERE id = ?
@@ -70,7 +69,6 @@ object PrisinfoRepository {
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
-                prisinfo.ingenkostnader_aarsak,
                 prisinfo.begrunnelse
             FROM
                 deltakerliste_2_prisinformasjon d2p
@@ -100,7 +98,6 @@ object PrisinfoRepository {
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
-                prisinfo.ingenkostnader_aarsak,
                 prisinfo.begrunnelse
             FROM
                 deltakerliste_2_prisinformasjon d2p
@@ -128,7 +125,6 @@ object PrisinfoRepository {
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
-                ingenkostnader_aarsak,
                 begrunnelse
             )
             VALUES (
@@ -138,7 +134,6 @@ object PrisinfoRepository {
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
                 :tilleggsopplysninger,
-                :ingenkostnader_aarsak,
                 :begrunnelse
             )
             ON CONFLICT (id) DO UPDATE SET
@@ -146,7 +141,6 @@ object PrisinfoRepository {
                 prisinformasjon_json_type = EXCLUDED.prisinformasjon_json_type,
                 anskaffelse_pris = EXCLUDED.anskaffelse_pris,
                 tilleggsopplysninger = EXCLUDED.tilleggsopplysninger,
-                ingenkostnader_aarsak = EXCLUDED.ingenkostnader_aarsak,
                 begrunnelse = EXCLUDED.begrunnelse,
                 modified_at = now()
             """.trimIndent()
@@ -158,7 +152,6 @@ object PrisinfoRepository {
             "prisinformasjon_json_type" to prisinfoDbo.prisinfoJsonSubtype,
             "anskaffelse_pris" to prisinfoDbo.anskaffelsePris,
             "tilleggsopplysninger" to prisinfoDbo.tilleggsopplysninger,
-            "ingenkostnader_aarsak" to prisinfoDbo.ingenkostnaderAarsak?.name,
             "begrunnelse" to prisinfoDbo.begrunnelse,
         )
 
@@ -249,7 +242,6 @@ object PrisinfoRepository {
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
-                prisinfo.ingenkostnader_aarsak,
                 prisinfo.begrunnelse,
                 prisinfo.modified_at,
                 godkjenning.godkjent_av,
@@ -289,9 +281,6 @@ object PrisinfoRepository {
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),
-        ingenkostnaderAarsak = row.stringOrNull("ingenkostnader_aarsak")?.let {
-            PrisinfoDbo.Aarsak.valueOf(it)
-        },
         begrunnelse = row.stringOrNull("begrunnelse"),
     )
 }
