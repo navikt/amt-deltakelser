@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.repository.dbo
 
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import java.util.UUID
 
 data class PrisinfoDbo(
@@ -10,7 +9,7 @@ data class PrisinfoDbo(
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
-    val ingenkostnaderAarsak: Aarsak? = null,
+    val begrunnelse: String? = null, // har verdi kun ved endringer
 ) {
     enum class PrisinfoStatus {
         KLADD_UTKAST,
@@ -22,7 +21,10 @@ data class PrisinfoDbo(
     }
 
     enum class Rolle {
+        // En foreslått prisendring som avventer godkjenning
         ENDRING,
+
+        // Den faktiske, gjeldende prisen
         GJELDENDE,
     }
 }

@@ -5,7 +5,6 @@ import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
-import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader.Aarsak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
 
@@ -14,8 +13,7 @@ class PdfDtoMappingUtilsTest {
     fun `mapper EnkeltplassGodkjennPrisendring til GodkjennPrisendring`() {
         val hendelseType = HendelseType.EnkeltplassGodkjennPrisendring(
             prisinfo = PrisinformasjonDto.IngenKostnader(
-                Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             ),
         )
 
@@ -28,7 +26,30 @@ class PdfDtoMappingUtilsTest {
 
         resultat shouldBe EndringDto.GodkjennPrisendring(
             tittel = "Pris og betalingsbetingelser er endret",
-            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+        )
+    }
+
+    @Test
+    fun `beholder tilleggsopplysninger for IngenKostnader i prisendring`() {
+        val hendelseType = HendelseType.EnkeltplassGodkjennPrisendring(
+            prisinfo = PrisinformasjonDto.IngenKostnader(
+                tilleggsopplysninger = "Detaljer om kostnadsfri opplæring",
+            ),
+        )
+
+        val resultat = tilEndringDto(
+            hendelseType = hendelseType,
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            erEnkeltplass = true,
+            harFellesAvslutning = false,
+        )
+
+        resultat shouldBe EndringDto.GodkjennPrisendring(
+            tittel = "Pris og betalingsbetingelser er endret",
+            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
+                tilleggsopplysninger = "Detaljer om kostnadsfri opplæring",
+            ),
         )
     }
 }

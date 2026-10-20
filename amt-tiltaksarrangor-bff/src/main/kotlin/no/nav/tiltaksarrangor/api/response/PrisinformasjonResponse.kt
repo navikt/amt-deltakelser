@@ -27,8 +27,7 @@ sealed interface PrisinformasjonResponse {
     }
 
     data class IngenKostnader(
-        val aarsak: PrisinformasjonDto.IngenKostnader.Aarsak,
-        val tilleggsopplysninger: String?,
+        val tilleggsopplysninger: String,
     ) : PrisinformasjonResponse
 
     companion object {
@@ -40,7 +39,6 @@ sealed interface PrisinformasjonResponse {
             )
 
             is PrisinformasjonDto.IngenKostnader -> IngenKostnader(
-                aarsak = model.aarsak,
                 tilleggsopplysninger = model.tilleggsopplysninger,
             )
         }

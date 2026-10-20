@@ -2,8 +2,7 @@ package no.nav.amt.deltaker.veileder.endring.extensions
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -29,7 +28,7 @@ class DeltakerEndringExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -50,7 +49,7 @@ class DeltakerEndringExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.SOKT_INN
@@ -73,7 +72,7 @@ class DeltakerEndringExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
@@ -96,7 +95,7 @@ class DeltakerEndringExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeFailure()
+            ).shouldBeNull()
     }
 
     companion object {

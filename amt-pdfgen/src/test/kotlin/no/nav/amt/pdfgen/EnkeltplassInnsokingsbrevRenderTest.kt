@@ -43,7 +43,7 @@ class EnkeltplassInnsokingsbrevRenderTest :
                             "Droneoperatør",
                         ),
                     ),
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
                         tilleggsopplysninger = "Dette er en tilleggsopplysning",
                     ),
                 )
@@ -62,7 +62,7 @@ class EnkeltplassInnsokingsbrevRenderTest :
                             "HP QuickTest Professional (QTP)",
                         ),
                     ),
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.Innbyggerfinansiert(
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
                         tilleggsopplysninger = "Dette er en tilleggsopplysning",
                     ),
                 )

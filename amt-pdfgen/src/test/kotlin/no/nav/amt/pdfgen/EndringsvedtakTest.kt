@@ -105,7 +105,7 @@ class EndringsvedtakTest :
                         ),
                         EndringDto.GodkjennPrisendring(
                             tittel = "Pris og betalingsbetingelser er endret",
-                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                         ),
                     )
 
@@ -157,7 +157,7 @@ class EndringsvedtakTest :
                                 listOf(
                                     EndringDto.GodkjennPrisendring(
                                         tittel = "Pris og betalingsbetingelser er endret",
-                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader,
+                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
                                     ),
                                 ),
                         ),
@@ -165,7 +165,7 @@ class EndringsvedtakTest :
 
                     doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
                     doc.text() shouldContain "Pris og betalingsbetingelser er endret"
-                    doc.text() shouldContain "Du eller Nav skal ikke betale for opplæringen."
+                    doc.text() shouldContain "Nav skal ikke betale for opplæringen."
 
                 }
 

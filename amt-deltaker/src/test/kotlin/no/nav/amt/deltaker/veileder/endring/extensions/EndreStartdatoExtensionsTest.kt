@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -45,7 +45,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             startdato shouldBe endringsrequest.startdato
@@ -82,7 +82,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             startdato shouldBe endringsrequest.startdato
@@ -110,7 +110,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -138,7 +138,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
@@ -165,7 +165,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -196,7 +196,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -224,7 +224,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -259,7 +259,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         // Assert
         assertSoftly(resultat.deltaker) {
@@ -293,7 +293,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -326,7 +326,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -358,7 +358,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -394,7 +394,7 @@ class EndreStartdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             startdato shouldBe endringsrequest.startdato

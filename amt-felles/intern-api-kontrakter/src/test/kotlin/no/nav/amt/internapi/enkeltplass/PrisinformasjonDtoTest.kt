@@ -4,10 +4,24 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 
 class PrisinformasjonDtoTest {
+    @Test
+    fun `legacy IngenKostnader med null felt normaliseres til tomme strenger`() {
+        val json = """{"type":"IngenKostnader","tilleggsopplysninger":null,"begrunnelse":null}"""
+
+        val result = objectMapper.readValue<PrisinformasjonDto>(json)
+
+        result shouldBe PrisinformasjonDto.IngenKostnader(
+            tilleggsopplysninger = "",
+            begrunnelse = "",
+        )
+    }
+
     @Nested
     inner class AnskaffelseTest {
         @Test
@@ -161,11 +175,10 @@ class PrisinformasjonDtoTest {
     @Nested
     inner class IngenKostnaderTest {
         @Test
-        fun `skal returnere samme instans med null tilleggsopplysninger ved sanitize()`() {
+        fun `skal returnere samme instans med tomme tilleggsopplysninger ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
 
             // Act
@@ -179,7 +192,6 @@ class PrisinformasjonDtoTest {
         fun `skal returnere samme instans med ren tilleggsopplysninger ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "Ren tekst",
             )
 
@@ -194,7 +206,6 @@ class PrisinformasjonDtoTest {
         fun `skal trimme whitespace fra tilleggsopplysninger ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  Tekst med mellomrom  ",
             )
 
@@ -209,7 +220,6 @@ class PrisinformasjonDtoTest {
         fun `skal begrense tilleggsopplysninger til 600 tegn ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "D".repeat(700),
             )
 
@@ -224,7 +234,6 @@ class PrisinformasjonDtoTest {
         fun `skal trimme og begrense tilleggsopplysninger ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  ${"E".repeat(700)}  ",
             )
 
@@ -239,7 +248,6 @@ class PrisinformasjonDtoTest {
         fun `skal ikke trunkere med nøyaktig 600 tegn ved sanitize()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "F".repeat(600),
             )
 
@@ -251,10 +259,9 @@ class PrisinformasjonDtoTest {
         }
 
         @Test
-        fun `skal fungere korrekt med begge aarsakstyper ved sanitize()`() {
-            // Arrange - test med OPPLAERINGEN_ER_EGENFINANSIERT
+        fun `skal fungere korrekt med tilleggsopplysninger ved sanitize()`() {
+            // Arrange
             val ingenKostnader1 = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "  Tekst  ",
             )
 
@@ -264,9 +271,7 @@ class PrisinformasjonDtoTest {
             // Assert
             sanitized1 shouldBe ingenKostnader1.copy(tilleggsopplysninger = "Tekst")
 
-            // Arrange - test med OPPLAERINGEN_ER_KOSTNADSFRI
             val ingenKostnader2 = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "  Annen tekst  ",
             )
 
@@ -494,8 +499,7 @@ class PrisinformasjonDtoTest {
         fun `skal returnere tom liste for IngenKostnadsfri ved validate()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
 
             // Act
@@ -506,11 +510,10 @@ class PrisinformasjonDtoTest {
         }
 
         @Test
-        fun `skal returnere tom liste for IngenKostnaderEgenfinansiert ved validate()`() {
+        fun `skal returnere tom liste for IngenKostnader ved validate`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
-                tilleggsopplysninger = null,
+                tilleggsopplysninger = "",
             )
 
             // Act
@@ -524,7 +527,6 @@ class PrisinformasjonDtoTest {
         fun `skal returnere tom liste med tilleggsopplysninger ved validate()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_KOSTNADSFRI,
                 tilleggsopplysninger = "Noen tilleggsopplysninger",
             )
 
@@ -539,7 +541,6 @@ class PrisinformasjonDtoTest {
         fun `skal returnere tom liste med lang tekst ved validate()`() {
             // Arrange
             val ingenKostnader = PrisinformasjonDto.IngenKostnader(
-                aarsak = PrisinformasjonDto.IngenKostnader.Aarsak.OPPLAERINGEN_ER_EGENFINANSIERT,
                 tilleggsopplysninger = "A".repeat(1000),
             )
 
