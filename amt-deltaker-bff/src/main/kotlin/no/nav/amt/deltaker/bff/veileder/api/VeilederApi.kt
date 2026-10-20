@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getForslagId
+import no.nav.amt.deltaker.bff.extensions.handleEndringRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.AvvisForslagRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.DeltakerRequest
@@ -68,27 +69,7 @@ fun Routing.registerVeilederApi(
     suspend fun ApplicationCall.handleEndring(
         frontendRequest: EndringRequestFromFrontend,
         amtDeltakerRequest: EndringRequest,
-    ) {
-        val deltakerId = this.getDeltakerId()
-
-        val deltaker = amtDeltakerClient
-            .getDeltaker(deltakerId)
-            .let { ModelMapper.toDeltaker(it) }
-
-        tilgangskontrollService.verifiserSkrivetilgang(
-            navAnsattAzureId = this.getNavAnsattAzureId(),
-            norskIdent = deltaker.navBruker.personident,
-        )
-        frontendRequest.valider(deltaker)
-
-        amtDeltakerClient
-            .postEndreDeltaker(
-                deltakerId = deltaker.id,
-                requestBody = amtDeltakerRequest,
-            ).let { ModelMapper.toDeltaker(it) }
-            .let { DeltakerResponse.fromDeltakerModel(it) }
-            .also { this.respond(it) }
-    }
+    ) = this.handleEndringRequest(frontendRequest, amtDeltakerRequest, amtDeltakerClient, tilgangskontrollService)
 
     authenticate(AuthLevel.VEILEDER.name) {
         route("/deltaker/{deltakerId}") {
@@ -176,6 +157,7 @@ fun Routing.registerVeilederApi(
                 )
             }
 
+            // TODO: fjern når frontend kjører mot endepunkt i EnkeltplassApi
             post("/tilbakekall-prisendring") {
                 val request = TilbakekallPrisendringRequest()
                 call.handleEndring(

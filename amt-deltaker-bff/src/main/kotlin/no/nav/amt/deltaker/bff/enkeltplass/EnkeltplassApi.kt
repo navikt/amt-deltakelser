@@ -18,8 +18,11 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.extensions.getTerm
+import no.nav.amt.deltaker.bff.extensions.handleEndringRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
+import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingDecoratedRequest
 import no.nav.amt.internapi.enkeltplass.EnkeltplassPameldingRequest
 import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
@@ -191,6 +194,20 @@ fun Routing.registerEnkeltplassApi(
                     )
 
                     call.respond(HttpStatusCode.OK)
+                }
+
+                post("/tilbakekall-prisendring") {
+                    val request = TilbakekallPrisendringRequest()
+                    call.handleEndringRequest(
+                        frontendRequest = request,
+                        amtDeltakerRequest =
+                            TilbakekaltPrisendringRequest(
+                                endretAv = call.getNavIdent(),
+                                endretAvEnhet = call.getEnhetsnummer(),
+                            ),
+                        tilgangskontrollService = tilgangskontrollService,
+                        amtDeltakerClient = amtDeltakerClient,
+                    )
                 }
             }
         }
