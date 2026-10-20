@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.veileder.endring.extensions
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -35,7 +34,7 @@ class AvsluttDeltakelseExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltakerSomDeltar,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -61,7 +60,7 @@ class AvsluttDeltakelseExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltakerSomDeltar,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -87,7 +86,7 @@ class AvsluttDeltakelseExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltakerSomHarSluttet,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -120,7 +119,7 @@ class AvsluttDeltakelseExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltakerSomHarSluttet,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -132,7 +131,7 @@ class AvsluttDeltakelseExtensionsTest {
         resultat.nesteStatus.shouldBeNull()
     }
 
-    companion object {
+    private companion object {
         val deltakerSomDeltar = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),

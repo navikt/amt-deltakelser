@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -14,6 +15,32 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class EndreDeltakelsesmengdeExtensionsTest {
+    @Test
+    fun `oppdaterDeltaker - feil ved henting av historikk kastes videre`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusMonths(3),
+        )
+        val request = DeltakelsesmengdeRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            begrunnelse = null,
+            gyldigFra = LocalDate.now(),
+            pavirkerPris = false,
+        )
+
+        shouldThrow<IllegalStateException> {
+            request.toEndring().anvendPaaDeltaker(
+                deltaker = deltaker,
+                getDeltakelsemengder = { throw IllegalStateException("Historikk er utilgjengelig") },
+            )
+        }
+    }
+
     @Test
     fun `oppdaterDeltaker - gyldigFra er lik startdato - returnerer success`() {
         val startdato = LocalDate.now().plusDays(5)
@@ -38,7 +65,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
     }
 
     @Test
@@ -65,7 +92,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
     }
 
     @Test
@@ -91,7 +118,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
     }
 
     @Test
@@ -118,7 +145,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
     }
 
     @Test
@@ -145,7 +172,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         resultat.deltaker.deltakelsesprosent shouldBe 50F
         resultat.deltaker.dagerPerUke shouldBe 3F
@@ -174,7 +201,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         resultat.erFremtidigEndring shouldBe true
     }
@@ -205,7 +232,7 @@ class EndreDeltakelsesmengdeExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         resultat.deltaker.deltakelsesprosent shouldBe 50F
         resultat.deltaker.dagerPerUke shouldBe 3F

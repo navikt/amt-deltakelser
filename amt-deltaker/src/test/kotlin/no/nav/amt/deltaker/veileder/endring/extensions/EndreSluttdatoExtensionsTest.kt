@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -33,7 +33,7 @@ class EndreSluttdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             sluttdato shouldBe endringsrequest.sluttdato
@@ -57,7 +57,7 @@ class EndreSluttdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             sluttdato shouldBe endringsrequest.sluttdato
@@ -107,7 +107,7 @@ class EndreSluttdatoExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = { _ -> deltakelsesmengderMedFremtidig },
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         // Sluttdato oppdateres
         resultat.deltaker.sluttdato shouldBe nySluttdato
