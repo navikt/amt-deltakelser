@@ -9,6 +9,7 @@ data class PrisinfoDbo(
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
+    val begrunnelse: String? = null, // har verdi kun ved endringer
 ) {
     enum class PrisinfoStatus {
         KLADD_UTKAST,
@@ -20,7 +21,10 @@ data class PrisinfoDbo(
     }
 
     enum class Rolle {
+        // En foreslått prisendring som avventer godkjenning
         ENDRING,
+
+        // Den faktiske, gjeldende prisen
         GJELDENDE,
     }
 }

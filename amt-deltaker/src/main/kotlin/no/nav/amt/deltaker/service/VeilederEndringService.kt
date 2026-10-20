@@ -105,7 +105,9 @@ class VeilederEndringService(
                         val prisinformasjonId = gjennomforingProducerService.lagreOgProduserPrisinfoEndring(
                             gjennomforingId = deltaker.deltakerliste.id,
                             prisinfo = endringRequest.prisinfo,
-                            begrunnelse = endringRequest.begrunnelse,
+                            begrunnelse = requireNotNull(endringRequest.begrunnelse) {
+                                "${endringRequest::class.simpleName} krever begrunnelse for deltaker ${deltaker.id}"
+                            },
                             endretAvNavIdent = endringRequest.endretAv,
                         )
 
@@ -204,26 +206,24 @@ class VeilederEndringService(
             endring.validerGyldigFra(eksisterendeDeltaker)
         }
 
-        return endring
-            .anvendPaaDeltaker(
-                deltaker = eksisterendeDeltaker,
-                getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-            ).getOrElse {
-                log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
-                )
+        val updateResult = endring.anvendPaaDeltaker(
+            deltaker = eksisterendeDeltaker,
+            getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
+        ) ?: run {
+            log.warn(
+                "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
+            )
 
-                // hvis forslag er godkjent og deltaker er uendret
-                endringRequest.getForslagId()?.let {
-                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
-                }
-
-                null
-            }.also {
-                if (it != null) {
-                    log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
-                }
+            // hvis forslag er godkjent og deltaker er uendret
+            endringRequest.getForslagId()?.let {
+                deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
             }
+
+            return null
+        }
+
+        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
+        return updateResult
     }
 
     private fun slettKladdIfExists(deltaker: Deltaker) {

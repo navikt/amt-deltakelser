@@ -1,9 +1,8 @@
 package no.nav.amt.deltaker.veileder.endring.extensions
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.veileder.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -50,7 +49,7 @@ class EndreAvslutningExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.FULLFORT
@@ -87,7 +86,7 @@ class EndreAvslutningExtensionsTest {
             .anvendPaaDeltaker(
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
-            ).shouldBeSuccess()
+            ).shouldNotBeNull()
 
         assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.AVBRUTT
@@ -124,6 +123,6 @@ class EndreAvslutningExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             )
 
-        resultat.shouldBeFailure()
+        resultat.shouldBeNull()
     }
 }

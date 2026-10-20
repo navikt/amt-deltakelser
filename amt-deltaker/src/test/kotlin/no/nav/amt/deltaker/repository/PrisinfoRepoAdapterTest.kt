@@ -438,6 +438,30 @@ class PrisinfoRepoAdapterTest {
                 endringRequest = request,
             ) shouldBe true
         }
+
+        @Test
+        fun `ignorerer begrunnelse på lagret ENDRING når prisinfo sammenlignes`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+            val prisinfo = Anskaffelse(pris = 20000)
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = prisinfo,
+                begrunnelse = "Lagret begrunnelse",
+            )
+            val request = EndretPrisinfoRequest(
+                endretAv = "Z123456",
+                endretAvEnhet = "1234",
+                prisinfo = prisinfo,
+                begrunnelse = "Ny begrunnelse",
+            )
+
+            // Act + Assert
+            PrisinfoRepoAdapter.erUendretPrisinfo(
+                gjennomforingId = gjennomforingInTest.id,
+                endringRequest = request,
+            ) shouldBe true
+        }
     }
 
     @Nested
@@ -502,6 +526,7 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = endringPrisinfo,
+                begrunnelse = "Begrunnelse",
             )
             val aktivEndringId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
             val stalePrisinfoId = UUID.randomUUID()
@@ -636,11 +661,12 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = anskaffelse,
+                begrunnelse = "Begrunnelse",
             )
 
             // Assert
             val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-            result shouldBe anskaffelse
+            result shouldBe anskaffelse.copy(begrunnelse = "Begrunnelse")
         }
 
         @Test
@@ -671,11 +697,12 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = tilskudd,
+                begrunnelse = "Begrunnelse",
             )
 
             // Assert
             val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-            result shouldBe tilskudd
+            result shouldBe tilskudd.copy(begrunnelse = "Begrunnelse")
         }
 
         @Test
@@ -692,11 +719,54 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = ingenKostnader,
+                begrunnelse = "Begrunnelse",
             )
 
             // Assert
             val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-            result shouldBe ingenKostnader
+            result shouldBe ingenKostnader.copy(begrunnelse = "Begrunnelse")
+        }
+
+        @Test
+        fun `hentPrisinfoMap setter begrunnelse på ENDRING og ikke på GJELDENDE fra kladd`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            val gjeldendeId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+            godkjennMedTestGodkjenner(gjennomforingId = deltakerliste.id, prisinformasjonId = gjeldendeId)
+            PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 20000),
+                begrunnelse = "Ny begrunnelse",
+            )
+
+            // Act
+            val result = PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
+
+            // Assert
+            result[PrisinfoDbo.Rolle.GJELDENDE] shouldBe Anskaffelse(pris = 10000)
+            result[PrisinfoDbo.Rolle.ENDRING] shouldBe Anskaffelse(pris = 20000, begrunnelse = "Ny begrunnelse")
+        }
+
+        @Test
+        fun `lagrer og henter begrunnelse for ENDRING`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act
+            val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjon = Anskaffelse(pris = 10000),
+                begrunnelse = "Prisen har økt",
+            )
+
+            // Assert
+            PrisinfoRepoAdapter.hentPrisinfoById(prisinfoId)?.begrunnelse shouldBe "Prisen har økt"
         }
 
         @Test
@@ -709,6 +779,7 @@ class PrisinfoRepoAdapterTest {
             val forsteId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = forste,
+                begrunnelse = "Begrunnelse",
             )
 
             val andre = Anskaffelse(pris = 20000)
@@ -717,12 +788,13 @@ class PrisinfoRepoAdapterTest {
             val andreId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = andre,
+                begrunnelse = "Begrunnelse",
             )
 
             // Assert — ny ID, og ny data er aktiv
             andreId shouldNotBe forsteId
             val result = PrisinfoRepoAdapter.hentPrisinfo(deltakerliste.id)
-            result shouldBe andre
+            result shouldBe andre.copy(begrunnelse = "Begrunnelse")
         }
 
         @Test
@@ -747,6 +819,7 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = endring,
+                begrunnelse = "Begrunnelse",
             )
 
             // Assert — hentPrisinfo (brukEndring=false) prioriterer GJELDENDE
@@ -767,6 +840,7 @@ class PrisinfoRepoAdapterTest {
             val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = endring,
+                begrunnelse = "Begrunnelse",
             )
 
             // Act
@@ -811,6 +885,7 @@ class PrisinfoRepoAdapterTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 15000),
+                begrunnelse = "Begrunnelse",
             )
 
             // Act
@@ -979,6 +1054,7 @@ class PrisinfoRepoAdapterTest {
             val andreId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = andreTilskudd,
+                begrunnelse = "Begrunnelse",
             )
             PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, andreId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(andreId, vedtakFattet.plusMinutes(1))
@@ -989,7 +1065,7 @@ class PrisinfoRepoAdapterTest {
             // Assert - hvert innslag beholder sine egne komponenter
             result.size shouldBe 2
             result[0].prisinformasjon shouldBe forsteTilskudd
-            result[1].prisinformasjon shouldBe andreTilskudd
+            result[1].prisinformasjon shouldBe andreTilskudd.copy(begrunnelse = "Begrunnelse")
         }
 
         @Test
@@ -1006,6 +1082,7 @@ class PrisinfoRepoAdapterTest {
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
+                begrunnelse = "Begrunnelse",
             )
             PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(endringId, vedtakFattet.plusMinutes(1))
@@ -1018,7 +1095,7 @@ class PrisinfoRepoAdapterTest {
             result[0].erForsteGodkjenning shouldBe true
             result[0].prisinformasjon shouldBe Anskaffelse(pris = 10000)
             result[1].erForsteGodkjenning shouldBe false
-            result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000)
+            result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000, begrunnelse = "Begrunnelse")
         }
 
         @Test
@@ -1032,6 +1109,7 @@ class PrisinfoRepoAdapterTest {
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
+                begrunnelse = "Begrunnelse",
             )
             PrisinfoRepoAdapter.godkjennOkonomi(
                 gjennomforingId = deltakerliste.id,
@@ -1059,6 +1137,7 @@ class PrisinfoRepoAdapterTest {
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjon = Anskaffelse(pris = 20000),
+                begrunnelse = "Begrunnelse",
             )
             PrisinfoRepoAdapter.godkjennOkonomi(deltakerliste.id, endringId, navAnsatt.id, navEnhet.id)
             settGodkjenningstidspunkt(endringId, vedtakFattet.minusMinutes(1))

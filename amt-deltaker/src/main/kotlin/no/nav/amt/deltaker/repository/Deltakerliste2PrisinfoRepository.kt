@@ -35,7 +35,8 @@ object Deltakerliste2PrisinfoRepository {
         session.run(
             queryOf(
                 """
-                SELECT prisinformasjon_id FROM deltakerliste_2_prisinformasjon
+                SELECT prisinformasjon_id 
+                FROM deltakerliste_2_prisinformasjon
                 WHERE deltakerliste_id = ? AND rolle = ?
                 """.trimIndent(),
                 gjennomforingId,

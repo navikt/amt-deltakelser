@@ -11,6 +11,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.skalKunHaAnnetBeskrivelse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -169,6 +170,31 @@ fun validerForslagEllerBegrunnelse(
 fun validerBegrunnelse(begrunnelse: String?) {
     require(begrunnelse === null || begrunnelse.length <= MAX_BEGRUNNELSE_LENGDE) {
         "Begrunnelse kan ikke være lengre enn $MAX_BEGRUNNELSE_LENGDE"
+    }
+}
+
+/**
+ * Det er kun lov å endre type prisinformasjon (Anskaffelse/Tilskudd/IngenKostnader) så lenge
+ * økonomi ikke er godkjent enda. Etter at økonomien er godkjent
+ * (deltakelsen har passert SOKT_INN og har en gjeldende prisinformasjon) kan kun verdiene innenfor samme
+ * type endres, ikke selve typen. En typeendring etter dette kan skje ved manglende refresh i frontend.
+ */
+fun validerPrisinfoTypeKanEndres(
+    nyPrisinformasjon: PrisinformasjonDto,
+    opprinneligDeltaker: DeltakerModel,
+) {
+    val gjeldendePrisinformasjon = opprinneligDeltaker.gjennomforing.prisinformasjon ?: return
+
+    val endrerType = gjeldendePrisinformasjon::class != nyPrisinformasjon::class
+    if (!endrerType) return
+
+    require(
+        opprinneligDeltaker.status.type in setOf(
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            DeltakerStatus.Type.SOKT_INN,
+        ),
+    ) {
+        "Kan ikke endre type prisinformasjon når deltakelsen har status ${opprinneligDeltaker.status.type}"
     }
 }
 

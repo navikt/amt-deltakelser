@@ -4,7 +4,6 @@ package no.nav.amt.deltaker.repository
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.deltaker.repository.dbo.PrisinfoUpsertDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
@@ -26,7 +25,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
         private fun lagPrisinfoInsertDbo(
             prisinfoId: UUID = UUID.randomUUID(),
             gjennomforingId: UUID = gjennomforingInTest.id,
-        ) = PrisinfoUpsertDbo(
+        ) = PrisinfoDbo(
             id = prisinfoId,
             gjennomforingId = gjennomforingId,
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,

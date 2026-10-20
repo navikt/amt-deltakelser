@@ -3,9 +3,6 @@ package no.nav.amt.deltaker.api.response
 import no.nav.amt.deltaker.model.Deltakerliste
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.lib.models.deltaker.DeltakerEndring.Endring.EndrePrisinfo
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk.Endring
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import java.util.UUID
 
@@ -18,24 +15,12 @@ object GjennomforingPrisinformasjon {
     fun hent(
         deltakerliste: Deltakerliste,
         includeOpplaringKategorisering: Boolean,
-        historikk: List<DeltakerHistorikk>,
     ): PrisinformasjonData? {
         val skalHenteEnkeltplassValg = includeOpplaringKategorisering && deltakerliste.erNyForskriftOpplaring
 
         if (!skalHenteEnkeltplassValg) return null
 
-        val funnetPrisinfo = finnPrisInfo(deltakerliste.id) ?: return null
-
-        val prisinformasjonTilGodkjenningMedBegrunnelse = leggTilPrisinformasjonBegrunnelse(
-            prisinformasjon = funnetPrisinfo.tilGodkjenning,
-            prisinformasjonId = PrisinfoRepoAdapter.hentPrisinformasjonIdForEndring(deltakerliste.id),
-            historikk = historikk,
-        )
-
-        return PrisinformasjonData(
-            aktiv = funnetPrisinfo.aktiv,
-            tilGodkjenning = prisinformasjonTilGodkjenningMedBegrunnelse,
-        )
+        return finnPrisInfo(deltakerliste.id)
     }
 
     /**
@@ -70,29 +55,6 @@ object GjennomforingPrisinformasjon {
                 aktiv = gjeldendePrisinfo,
                 tilGodkjenning = prisinfoTilGodkjenning,
             )
-        }
-    }
-
-    private fun leggTilPrisinformasjonBegrunnelse(
-        prisinformasjon: PrisinformasjonDto?,
-        prisinformasjonId: UUID?,
-        historikk: List<DeltakerHistorikk>,
-    ): PrisinformasjonDto? {
-        if (prisinformasjon == null || prisinformasjonId == null) {
-            return null
-        }
-        val begrunnelse = historikk
-            .sortedByDescending { it.sistEndret }
-            .filterIsInstance<Endring>()
-            .map { it.endring.endring }
-            .filterIsInstance<EndrePrisinfo>()
-            .firstOrNull { it.prisinformasjonId == prisinformasjonId }
-            ?.begrunnelse
-
-        return when (prisinformasjon) {
-            is PrisinformasjonDto.Anskaffelse -> prisinformasjon.copy(begrunnelse = begrunnelse)
-            is PrisinformasjonDto.Tilskudd -> prisinformasjon.copy(begrunnelse = begrunnelse)
-            is PrisinformasjonDto.IngenKostnader -> prisinformasjon.copy(begrunnelse = begrunnelse.orEmpty())
         }
     }
 }

@@ -10,10 +10,10 @@ jackson2-version = "2.22.3"
 nav-common-version = "4.2026.09.24_06.17-80dfc0eacb29"
 poao-tilgang-version = "2026.05.05_13.02-76cbce4f654a"
 kotest-version = "6.2.5"
-flyway-version = "13.9.0"
+flyway-version = "13.10.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
-postgres-version = "42.7.13"
+postgres-version = "42.7.14"
 caffeine-version = "3.3.0"
 mockk-version = "1.14.11"
 nimbus-version = "10.10"
@@ -89,6 +89,7 @@ ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson3-jvm
 ktor-server-call-id = { module = "io.ktor:ktor-server-call-id-jvm" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging-jvm" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth" }
+ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml" }
 ktor-server-metrics = { module = "io.ktor:ktor-server-metrics-micrometer-jvm" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages-jvm" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt" }
@@ -165,6 +166,7 @@ ktor-server = [
     "ktor-server-call-id",
     "ktor-server-call-logging",
     "ktor-server-auth",
+    "ktor-server-config-yaml",
     "ktor-server-metrics",
     "ktor-server-status-pages",
     "ktor-server-auth-jwt",
