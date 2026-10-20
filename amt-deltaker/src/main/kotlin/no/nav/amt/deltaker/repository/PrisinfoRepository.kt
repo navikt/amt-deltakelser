@@ -146,12 +146,12 @@ object PrisinfoRepository {
             """.trimIndent()
 
         val params = mapOf(
-            "id" to upsertDbo.id,
-            "deltakerliste_id" to upsertDbo.gjennomforingId,
-            "status" to upsertDbo.status.name,
-            "prisinformasjon_json_type" to upsertDbo.prisinfoJsonSubtype,
-            "anskaffelse_pris" to upsertDbo.anskaffelsePris,
-            "tilleggsopplysninger" to upsertDbo.tilleggsopplysninger,
+            "id" to prisinfoDbo.id,
+            "deltakerliste_id" to prisinfoDbo.gjennomforingId,
+            "status" to prisinfoDbo.status.name,
+            "prisinformasjon_json_type" to prisinfoDbo.prisinfoJsonSubtype,
+            "anskaffelse_pris" to prisinfoDbo.anskaffelsePris,
+            "tilleggsopplysninger" to prisinfoDbo.tilleggsopplysninger,
             "begrunnelse" to prisinfoDbo.begrunnelse,
         )
 

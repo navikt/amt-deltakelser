@@ -18,13 +18,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class PrisinfoBelopRepositoryTest {
-    private companion object {
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-
-        val gjennomforingInTest = lagDeltakerliste()
-    }
-
     @Nested
     inner class LagrePrisinfoliste {
         @Test
@@ -184,7 +177,7 @@ class PrisinfoBelopRepositoryTest {
             prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
             anskaffelsePris = 15000,
             tilleggsopplysninger = "Standard opplysning",
-            ingenkostnaderAarsak = null,
+            begrunnelse = null,
         )
     }
 }
