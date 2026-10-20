@@ -27,15 +27,12 @@ fun Routing.registerTiltakskoordinatorApi(
     authenticate("SYSTEM") {
         get("/gjennomforing/{gjennomforingId}") {
             val gjennomforingId = call.getGjennomforingId()
-            val gjennomforingResponse = deltakerlisteRepository
-                .get(gjennomforingId)
-                .getOrThrow()
-                .let {
-                    deltakerResponseBuilder.buildGjennomforingResponse(
-                        deltakerliste = it,
-                        includeOpplaringKategorisering = false,
-                    )
-                }
+            val deltakerliste = deltakerlisteRepository.get(gjennomforingId)
+                ?: throw NoSuchElementException("Fant ikke deltakerliste med id $gjennomforingId")
+            val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(
+                deltakerliste = deltakerliste,
+                includeOpplaringKategorisering = false,
+            )
 
             call.respond(gjennomforingResponse)
         }

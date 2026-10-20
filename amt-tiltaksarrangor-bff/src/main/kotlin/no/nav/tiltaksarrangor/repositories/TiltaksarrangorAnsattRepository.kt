@@ -192,20 +192,16 @@ class TiltaksarrangorAnsattRepository(
             		etternavn			= :etternavn
             """.trimIndent()
 
-        runCatching {
-            template.update(
-                sql,
-                sqlParameters(
-                    "id" to ansattDbo.id,
-                    "personident" to ansattDbo.personIdent,
-                    "fornavn" to ansattDbo.fornavn,
-                    "mellomnavn" to ansattDbo.mellomnavn,
-                    "etternavn" to ansattDbo.etternavn,
-                ),
-            )
-        }.getOrElse {
-            throw RuntimeException("Kunne ikke lagre ansatt med id ${ansattDbo.id}")
-        }
+        template.update(
+            sql,
+            sqlParameters(
+                "id" to ansattDbo.id,
+                "personident" to ansattDbo.personIdent,
+                "fornavn" to ansattDbo.fornavn,
+                "mellomnavn" to ansattDbo.mellomnavn,
+                "etternavn" to ansattDbo.etternavn,
+            ),
+        )
 
         insertOrUpdateAnsattRolle(ansattDbo.id, ansattDbo.roller)
         insertOrUpdateKoordinatorDeltakerliste(ansattDbo.id, ansattDbo.deltakerlister)

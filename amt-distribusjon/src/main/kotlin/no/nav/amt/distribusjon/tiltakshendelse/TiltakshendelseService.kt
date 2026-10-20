@@ -23,10 +23,13 @@ class TiltakshendelseService(
     }
 
     fun handleHendelse(hendelse: Hendelse) {
-        if (tiltakshendelseRepository.getByHendelseId(hendelse.id).isSuccess) {
+        val alleredeHandtert = tiltakshendelseRepository.getByHendelseId(hendelse.id) != null
+
+        if (alleredeHandtert) {
             log.info("Tiltakshendelse for hendelse ${hendelse.id} er allerede håndtert.")
             return
         }
+
         log.info("Håndterer ${hendelse.payload.javaClass} hendelse ${hendelse.id} for deltaker ${hendelse.deltaker.id}.")
 
         when (hendelse.payload) {
@@ -64,7 +67,9 @@ class TiltakshendelseService(
     suspend fun handleForslag(forslag: Forslag) {
         when (forslag.status) {
             is Forslag.Status.VenterPaSvar -> {
-                if (tiltakshendelseRepository.getForslagHendelse(forslag.id).isSuccess) {
+                val finnesAllerede = tiltakshendelseRepository.getForslagHendelse(forslag.id) != null
+
+                if (finnesAllerede) {
                     log.info("Tiltakshendelse for forslag ${forslag.id} finnes allerede. Ignorerer duplikat VenterPaSvar.")
                     return
                 }
@@ -81,24 +86,25 @@ class TiltakshendelseService(
     }
 
     fun stoppForslagHendelse(forslagId: UUID) {
-        tiltakshendelseRepository.getForslagHendelse(forslagId).onSuccess {
-            val inaktivertHendelse = it.copy(
-                aktiv = false,
-            )
-            Database.transaction {
-                lagreOgDistribuer(inaktivertHendelse)
-            }
+        val forslagHendelse = tiltakshendelseRepository.getForslagHendelse(forslagId) ?: return
+
+        val inaktivertHendelse = forslagHendelse.copy(
+            aktiv = false,
+        )
+
+        Database.transaction {
+            lagreOgDistribuer(inaktivertHendelse)
         }
     }
 
     fun reproduser(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        val tiltakshendelse = tiltakshendelseRepository.getOrThrow(id)
         tiltakshendelseProducer.produce(tiltakshendelse)
         log.info("Reproduserte tiltakshendelse $id")
     }
 
     fun reproduserOgSettAktivFalse(id: UUID) {
-        val tiltakshendelse = tiltakshendelseRepository.get(id).getOrThrow()
+        val tiltakshendelse = tiltakshendelseRepository.getOrThrow(id)
         tiltakshendelseProducer.produce(tiltakshendelse.copy(aktiv = false))
         log.info("Reproduserte tiltakshendelse med $id og aktiv=false for deltakerId ${tiltakshendelse.deltakerId}")
     }
@@ -113,11 +119,10 @@ class TiltakshendelseService(
     }
 
     private fun opprettEllerOppdaterPrisendringStartHendelse(hendelse: Hendelse) {
-        val aktivHendelse = tiltakshendelseRepository
-            .getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = Tiltakshendelse.Type.PRISENDRING,
-            ).getOrNull()
+        val aktivHendelse = tiltakshendelseRepository.getAktivHendelse(
+            deltakerId = hendelse.deltaker.id,
+            hendelseType = Tiltakshendelse.Type.PRISENDRING,
+        )
 
         val tiltakshendelse = aktivHendelse
             ?.copy(hendelser = aktivHendelse.hendelser.plus(hendelse.id))
@@ -147,17 +152,16 @@ class TiltakshendelseService(
         hendelse: Hendelse,
         hendelseType: Tiltakshendelse.Type,
     ) {
-        tiltakshendelseRepository
-            .getAktivHendelse(
-                deltakerId = hendelse.deltaker.id,
-                hendelseType = hendelseType,
-            ).onSuccess { hendelseFraDb ->
-                val inaktivertHendelse = hendelseFraDb.copy(
-                    aktiv = false,
-                    hendelser = hendelseFraDb.hendelser.plus(hendelse.id),
-                )
-                lagreOgDistribuer(inaktivertHendelse)
-            }
+        val aktivHendelse = tiltakshendelseRepository.getAktivHendelse(
+            deltakerId = hendelse.deltaker.id,
+            hendelseType = hendelseType,
+        ) ?: return
+
+        val inaktivertHendelse = aktivHendelse.copy(
+            aktiv = false,
+            hendelser = aktivHendelse.hendelser.plus(hendelse.id),
+        )
+        lagreOgDistribuer(inaktivertHendelse)
     }
 
     private fun lagreOgDistribuer(tiltakshendelse: Tiltakshendelse) {

@@ -5,8 +5,6 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
@@ -46,6 +44,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class DeltakerServiceTest : IntegrationTestWithDbBase() {
     private val navEnhetInTest = TestData.lagNavEnhet(enhetsnummer = "0326")
@@ -58,7 +57,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `get - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
+    fun `getOrThrow - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
             navn = "Underenhet Oslo",
@@ -82,6 +81,15 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         deltakerArrangor.id shouldBe underordnetArrangor.id
         deltakerArrangor.navn shouldBe "Overordnet Arrangør"
         deltakerArrangor.organisasjonsnummer shouldBe underordnetArrangor.organisasjonsnummer
+    }
+
+    @Test
+    fun `getOrThrow - ukjent deltaker - kaster NoSuchElementException`() {
+        val deltakerId = UUID.randomUUID()
+
+        assertThrows<NoSuchElementException> {
+            deltakerService.getOrThrow(deltakerId)
+        }.message shouldBe "Fant ikke deltaker med id $deltakerId"
     }
 
     @Test
@@ -173,7 +181,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             DeltakerRepositoryTest.assertDeltakereAreEqual(
-                deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
+                deltakerRepository.get(opprinneligDeltaker.id).shouldNotBeNull(),
                 oppdatertDeltaker,
             )
 
@@ -209,7 +217,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             DeltakerRepositoryTest.assertDeltakereAreEqual(
-                deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
+                deltakerRepository.get(opprinneligDeltaker.id).shouldNotBeNull(),
                 opprinneligDeltaker,
             )
 
@@ -260,7 +268,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             DeltakerRepositoryTest.assertDeltakereAreEqual(
-                first = deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
+                first = deltakerRepository.get(opprinneligDeltaker.id).shouldNotBeNull(),
                 // status er uendret pga dedup — bruk opprinnelig status, men oppdatert sluttdato
                 second = oppdatertDeltakerForlenget.copy(status = opprinneligDeltaker.status),
             )
@@ -315,7 +323,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             DeltakerRepositoryTest.assertDeltakereAreEqual(
-                first = deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
+                first = deltakerRepository.get(opprinneligDeltaker.id).shouldNotBeNull(),
                 second = opprinneligDeltaker.copy(sluttdato = oppdatertDeltakerHarSluttetNyArsak.sluttdato),
             )
 
@@ -369,7 +377,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             DeltakerRepositoryTest.assertDeltakereAreEqual(
-                deltakerRepository.get(opprinneligDeltaker.id).shouldBeSuccess(),
+                deltakerRepository.get(opprinneligDeltaker.id).shouldNotBeNull(),
                 oppdatertDeltakerDeltar,
             )
 
@@ -611,7 +619,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `upsertDeltaker - oppretter kladd - oppdaterer i db`() = runTest {
             // Arrange
-            val arrangor = TestData.lagArrangor()
+            val arrangor = lagArrangor()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor)
             TestRepository.insert(deltakerliste)
 
@@ -656,7 +664,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             // Assert
             result.isSuccess.shouldBeTrue()
 
-            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
+            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldNotBeNull()
             DeltakerRepositoryTest.assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
@@ -691,7 +699,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             throwable.shouldNotBeNull()
             throwable.message shouldBe "Feiler"
 
-            deltakerRepository.get(expectedDeltaker.id).shouldBeFailure()
+            deltakerRepository.get(expectedDeltaker.id).shouldBeNull()
         }
 
         @Test
@@ -733,7 +741,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 message shouldBe "Feiler"
             }
 
-            val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerFromDb.status.type shouldBe deltaker.status.type
 
             val insertedEndring = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
@@ -814,7 +822,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.feilregistrerDeltaker(deltakerId = deltaker.id)
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -870,7 +878,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.deleteDeltaker(deltaker.id)
 
             // Assert
-            deltakerRepository.get(deltaker.id).shouldBeFailure()
+            deltakerRepository.get(deltaker.id).shouldBeNull()
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
             forslagRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
             endringFraArrangorRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
@@ -899,7 +907,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.avsluttDeltakere(listOf(deltaker))
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             oppdatertDeltaker.sluttdato shouldBe deltaker.sluttdato
         }
@@ -924,7 +932,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.avsluttDeltakere(listOf(deltaker))
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
             oppdatertDeltaker.startdato shouldBe null
             oppdatertDeltaker.sluttdato shouldBe null
@@ -954,7 +962,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.avsluttDeltakere(listOf(deltaker))
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
             outboxService.assertProducedHendelse<HendelseType.AvbrytUtkast>(deltaker.id)
         }
@@ -991,7 +999,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
             deltakerService.oppdaterDeltakerStatuser()
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             outboxService.assertProduced<DeltakerKafkaPayload>(deltaker.id, Environment.DELTAKER_V2_TOPIC)
         }

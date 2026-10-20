@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.veileder
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.service.DeltakerContext
@@ -32,7 +33,7 @@ class InnsokRepositoryTest {
             medVedtak()
             val innsok = TestData.lagInnsok(deltaker)
             innsokRepository.insert(innsok)
-            innsokRepository.get(innsok.id).isSuccess shouldBe true
+            innsokRepository.getForDeltaker(innsok.deltakerId)?.id shouldBe innsok.id
         }
     }
 
@@ -85,7 +86,7 @@ class InnsokRepositoryTest {
 
             innsokRepository.insert(innsok)
 
-            val lagret = innsokRepository.get(innsok.id).getOrThrow()
+            val lagret = innsokRepository.getForDeltaker(innsok.deltakerId).shouldNotBeNull()
 
             assertSoftly(lagret) {
                 id shouldBe innsok.id

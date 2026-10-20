@@ -405,10 +405,11 @@ class KafkaConsumerTest(
         @Test
         fun `listen - melding pa endringsmelding-topic - lagres i database`() {
             val endringsmeldingId = UUID.randomUUID()
+            val deltakerId = UUID.randomUUID()
             val endringsmeldingDto =
                 EndringsmeldingDto(
                     id = endringsmeldingId,
-                    deltakerId = UUID.randomUUID(),
+                    deltakerId = deltakerId,
                     utfortAvNavAnsattId = null,
                     opprettetAvArrangorAnsattId = UUID.randomUUID(),
                     utfortTidspunkt = null,
@@ -426,16 +427,19 @@ class KafkaConsumerTest(
                 ack,
             )
 
-            endringsmeldingRepository.getEndringsmelding(endringsmeldingId) shouldNotBe null
+            val endringsmeldinger = endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltakerId)
+            endringsmeldinger.size shouldBe 1
+            endringsmeldinger.single().status shouldBe Endringsmelding.Status.AKTIV
         }
 
         @Test
         fun `listen - tombstonemelding pa endringsmelding-topic - slettes i database`() {
             val endringsmeldingId = UUID.randomUUID()
+            val deltakerId = UUID.randomUUID()
             val endringsmeldingDto =
                 EndringsmeldingDto(
                     id = endringsmeldingId,
-                    deltakerId = UUID.randomUUID(),
+                    deltakerId = deltakerId,
                     utfortAvNavAnsattId = null,
                     opprettetAvArrangorAnsattId = UUID.randomUUID(),
                     utfortTidspunkt = null,
@@ -454,7 +458,7 @@ class KafkaConsumerTest(
                 ack,
             )
 
-            endringsmeldingRepository.getEndringsmelding(endringsmeldingId) shouldBe null
+            endringsmeldingRepository.getEndringsmeldingerForDeltaker(deltakerId).isEmpty() shouldBe true
         }
 
         @Test
@@ -494,7 +498,10 @@ class KafkaConsumerTest(
                 ack,
             )
 
-            endringsmeldingRepository.getEndringsmelding(endringsmeldingId)?.status shouldBe Endringsmelding.Status.UTFORT
+            endringsmeldingRepository
+                .getEndringsmeldingerForDeltaker(utfortEndringsmeldingDto.deltakerId)
+                .single()
+                .status shouldBe Endringsmelding.Status.UTFORT
         }
     }
 }

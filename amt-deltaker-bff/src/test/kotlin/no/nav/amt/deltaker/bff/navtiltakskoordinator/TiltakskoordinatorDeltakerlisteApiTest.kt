@@ -50,9 +50,6 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     @BeforeEach
     fun setupTiltakskoordinatorClientDefaults() {
         coEvery { tiltakskoordinatorClient.getUlesteHendelserForDeltakere(any()) } returns emptyMap()
-        coEvery { tiltakskoordinatorClient.getUlestHendelseTypeCountsForDeltakere(any()) } returns
-            no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model
-                .UlestHendelseTypeCounts()
     }
 
     @Test
@@ -75,7 +72,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
 
     @Test
     fun `skal teste autentisering - mangler AD rolle - returnerer 401`() {
-        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        every { deltakerlisteRepository.getOrThrow(deltakerlisteInTest.id) } returns deltakerlisteInTest
 
         withTestApplicationContext { client ->
             client
@@ -127,7 +124,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
         val gjennomforing = lagGjennomforingResponse()
         val expected = ResponseMapper.buildGjennomforing(gjennomforing, listOf(tiltakskoordinatorInTest))
         coEvery { navAnsattService.hentEllerOpprettNavAnsatt(any<String>()) } returns lagNavAnsatt()
-        every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns Result.success(deltakerlisteInTest)
+        every { deltakerlisteRepository.getOrThrow(deltakerlisteInTest.id) } returns deltakerlisteInTest
         coEvery { tiltakskoordinatorClient.getGjennomforing(deltakerlisteInTest.id) } returns gjennomforing
 
         every {
@@ -416,9 +413,9 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
             )
         } returns Result.failure(IllegalArgumentException())
 
-        coEvery {
+        every {
             tiltakskoordinatorTilgangRepository.hentAktivTilgang(any(), any())
-        } returns Result.success(lagTiltakskoordinatorTilgang())
+        } returns lagTiltakskoordinatorTilgang()
 
         val response = withTestApplicationContext { client ->
             client.post("/tiltakskoordinator/deltakerliste/${UUID.randomUUID()}/tilgang/legg-til") {

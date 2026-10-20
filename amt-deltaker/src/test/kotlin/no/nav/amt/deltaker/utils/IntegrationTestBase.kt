@@ -154,7 +154,7 @@ abstract class IntegrationTestBase {
             navEnhetRepository = navEnhetRepository,
             vedtakService = vedtakService,
             gjennomforingRequestProducer = gjennomforingRequestProducer,
-            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
             deltakerlisteRepository = deltakerlisteRepository,
             amtGjennomforingProducer = amtGjennomforingProducer,
         )
@@ -162,7 +162,6 @@ abstract class IntegrationTestBase {
 
     protected open val pameldingService: PameldingService by lazy {
         PameldingService(
-            deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             navEnhetService = navEnhetService,
             navAnsattService = navAnsattService,
@@ -273,7 +272,7 @@ abstract class IntegrationTestBase {
         ForslagService(
             forslagRepository = forslagRepository,
             arrangorMeldingProducer = arrangorMeldingProducer,
-            deltakerRepository = deltakerRepository,
+            deltakerService = deltakerService,
             deltakerProducerService = deltakerProducerService,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,

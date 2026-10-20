@@ -53,7 +53,7 @@ class TiltakskoordinatorTilgangRepository {
     fun hentAktivTilgang(
         navAnsattId: UUID,
         deltakerlisteId: UUID,
-    ): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
+    ): TiltakskoordinatorDeltakerlisteTilgang? {
         val sql =
             """
             SELECT *
@@ -69,9 +69,8 @@ class TiltakskoordinatorTilgangRepository {
             "deltakerliste_id" to deltakerlisteId,
         )
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(queryOf(sql, params).map(::rowMapper).asSingle)
-                ?: throw NoSuchElementException("Fant ikke aktiv tilgang for Nav-ansatt: $navAnsattId og deltakerliste: $deltakerlisteId")
         }
     }
 
@@ -123,15 +122,13 @@ class TiltakskoordinatorTilgangRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun get(id: UUID): Result<TiltakskoordinatorDeltakerlisteTilgang> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakskoordinator_deltakerliste_tilgang WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tilgang med id $id")
-        }
+    fun getOrThrow(id: UUID): TiltakskoordinatorDeltakerlisteTilgang = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakskoordinator_deltakerliste_tilgang WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke tilgang med id $id")
     }
 
     fun hentUtdaterteTilganger(today: LocalDate = LocalDate.now()): List<TiltakskoordinatorDeltakerlisteTilgang> {

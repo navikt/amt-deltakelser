@@ -27,8 +27,12 @@ class PartitionBackoffManagerTest {
         sut.incrementRetryCount(topicPartition2)
         sut.incrementRetryCount(topicPartition2)
 
-        sut.getRetryCount(topicPartition1) shouldBe 1
-        sut.getRetryCount(topicPartition2) shouldBe 2
+        sut.isInBackoff(topicPartition1) shouldBe true
+        sut.isInBackoff(topicPartition2) shouldBe true
+
+        sut.resetRetryCount(topicPartition1)
+        sut.isInBackoff(topicPartition1) shouldBe false
+        sut.isInBackoff(topicPartition2) shouldBe true
     }
 
     @Test

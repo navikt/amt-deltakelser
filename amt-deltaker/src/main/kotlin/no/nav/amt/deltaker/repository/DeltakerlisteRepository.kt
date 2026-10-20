@@ -179,16 +179,16 @@ class DeltakerlisteRepository {
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID): Result<Deltakerliste> = runCatching {
+    fun get(id: UUID): Deltakerliste? {
         val sql = "$BASE_SELECT WHERE dl.id = :id"
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,
                     mapOf("id" to id),
                 ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
+            )
         }
     }
 

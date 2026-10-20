@@ -1,7 +1,7 @@
 package no.nav.amt.distribusjon.tiltakshendelse
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.tiltakshendelse.model.Tiltakshendelse
@@ -39,7 +39,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
 
             // Assert
             lagret.id shouldBe id
-            val fraDb = tiltakshendelseRepository.get(id).shouldBeSuccess()
+            val fraDb = tiltakshendelseRepository.getOrThrow(id)
             fraDb.hendelser shouldBe oppdatert.hendelser
             fraDb.aktiv shouldBe false
             fraDb.tekst shouldBe "Utkast stoppet"
@@ -72,7 +72,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
             // Assert
             secondPersisted.id shouldBe firstPersisted.id
 
-            val fraDb = tiltakshendelseRepository.getForslagHendelse(forslagId).shouldBeSuccess()
+            val fraDb = tiltakshendelseRepository.getForslagHendelse(forslagId).shouldNotBeNull()
             assertSoftly(fraDb) {
                 id shouldBe firstPersisted.id
                 aktiv shouldBe false
@@ -96,7 +96,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
         tiltakshendelseRepository.upsert(tiltakshendelse)
 
         // Act
-        val funnet = tiltakshendelseRepository.getByHendelseId(hendelseId).shouldBeSuccess()
+        val funnet = tiltakshendelseRepository.getByHendelseId(hendelseId).shouldNotBeNull()
 
         // Assert
         funnet.id shouldBe tiltakshendelse.id
@@ -133,7 +133,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
             // Act
             val funnet = tiltakshendelseRepository
                 .getAktivHendelse(deltakerId, Tiltakshendelse.Type.PRISENDRING)
-                .shouldBeSuccess()
+                .shouldNotBeNull()
 
             // Assert
             funnet.id shouldBe aktivHendelse.id
@@ -141,7 +141,7 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `getAktivHendelse - returnerer failure når kun inaktive finnes`() {
+        fun `getAktivHendelse - returnerer null når kun inaktive finnes`() {
             // Arrange
             val deltakerId = UUID.randomUUID()
             val inaktivHendelse = tiltakshendelse(
@@ -156,13 +156,13 @@ class TiltakshendelseRepositoryTest : IntegrationTestBase() {
             tiltakshendelseRepository.upsert(inaktivHendelse)
 
             // Act
-            val result = tiltakshendelseRepository.getAktivHendelse(
+            val resultat = tiltakshendelseRepository.getAktivHendelse(
                 deltakerId = deltakerId,
                 hendelseType = Tiltakshendelse.Type.PRISENDRING,
             )
 
             // Assert
-            result.isFailure shouldBe true
+            resultat shouldBe null
         }
     }
 

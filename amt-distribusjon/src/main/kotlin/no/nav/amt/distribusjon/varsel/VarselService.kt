@@ -81,21 +81,22 @@ class VarselService(
         }
     }
 
-    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean = if (varselRepository.getByHendelseId(hendelse.id).isSuccess) {
-        log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
-        true
-    } else {
-        !DigitalBrukerService.skalDistribueresDigitalt(hendelse.distribusjonskanal, hendelse.manuellOppfolging)
+    private fun skalIkkeVarsles(hendelse: Hendelse): Boolean {
+        val alleredeVarslet = varselRepository.getByHendelseId(hendelse.id) != null
+
+        return if (alleredeVarslet) {
+            log.info("Varsel for hendelse ${hendelse.id} er allerede opprettet. Oppretter ikke nytt varsel.")
+            true
+        } else {
+            !DigitalBrukerService.skalDistribueresDigitalt(
+                distribusjonskanal = hendelse.distribusjonskanal,
+                erUnderManuellOppfolging = hendelse.manuellOppfolging,
+            )
+        }
     }
 
-    private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel {
-        val varsel = varselRepository.getVentendeVarsel(nyttVarsel.deltakerId).fold(
-            onSuccess = { it.merge(nyttVarsel) },
-            onFailure = { nyttVarsel },
-        )
-
-        return varsel
-    }
+    private fun slaSammenMedVentendeVarsel(nyttVarsel: Varsel): Varsel =
+        varselRepository.getVentendeVarsel(nyttVarsel.deltakerId)?.merge(nyttVarsel) ?: nyttVarsel
 
     private fun handleNyttVarsel(
         varsel: Varsel,
@@ -145,7 +146,8 @@ class VarselService(
     }
 
     private fun inaktiverTidligereBeskjed(deltakerId: UUID) {
-        val varsel = varselRepository.getAktivt(deltakerId).getOrNull()
+        val varsel = varselRepository.getAktivt(deltakerId)
+
         require(varsel?.type != Varsel.Type.OPPGAVE) {
             "deltaker-id $deltakerId: Kan ikke inaktivere oppgave ${varsel?.id} som om den var en beskjed"
         }
@@ -156,9 +158,8 @@ class VarselService(
     }
 
     private fun inaktiverOppgave(deltaker: HendelseDeltaker) {
-        varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
-            ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
-        }
+        val varsel = varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE) ?: return
+        ferdigstillSendtVarsel(varsel, Varsel.Status.INAKTIVERT)
     }
 
     /**
@@ -166,13 +167,12 @@ class VarselService(
      * Oppgaven må fornyes ved endret arrangør fordi varselet ikke kan redigeres.
      */
     private fun oppdaterOppgave(hendelse: Hendelse) {
-        val varsel = varselRepository
-            .getSisteVarsel(
-                deltakerId = hendelse.deltaker.id,
-                type = Varsel.Type.OPPGAVE,
-            ).getOrNull()
-            ?.takeIf { it.erAktiv }
-            ?: return
+        val varsel = varselRepository.getSisteVarsel(
+            deltakerId = hendelse.deltaker.id,
+            type = Varsel.Type.OPPGAVE,
+        ) ?: return
+
+        if (!varsel.erAktiv) return
 
         val nyOppgave = Varsel.nyOppgave(hendelse)
 
@@ -191,9 +191,8 @@ class VarselService(
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {
-        varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE).onSuccess { varsel ->
-            ferdigstillSendtVarsel(varsel, Varsel.Status.UTFORT)
-        }
+        val varsel = varselRepository.getSisteVarsel(deltaker.id, Varsel.Type.OPPGAVE) ?: return
+        ferdigstillSendtVarsel(varsel, Varsel.Status.UTFORT)
     }
 
     private fun utforBeskjed(

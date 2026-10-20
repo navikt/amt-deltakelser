@@ -70,13 +70,6 @@ class EndringsmeldingRepository(
         sqlParameters("id" to endringsmeldingId),
     )
 
-    fun getEndringsmelding(endringsmeldingId: UUID): EndringsmeldingDbo? = template
-        .query(
-            "SELECT * FROM endringsmelding WHERE id = :id",
-            sqlParameters("id" to endringsmeldingId),
-            endringsmeldingRowMapper,
-        ).firstOrNull()
-
     fun getEndringsmeldingerForDeltakere(deltakerIder: List<UUID>): List<EndringsmeldingDbo> {
         if (deltakerIder.isEmpty()) {
             return emptyList()

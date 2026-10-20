@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.api
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -46,7 +47,7 @@ class TiltakskoordinatorResponseBuilderTest {
     private fun mockGjennomforing(paameldingstype: GjennomforingPameldingType) {
         every {
             deltakerlisteRepository.get(gjennomforingId)
-        } returns Result.success(defaultDeltakerliste.copy(pameldingstype = paameldingstype))
+        } returns defaultDeltakerliste.copy(pameldingstype = paameldingstype)
     }
 
     private fun mockDeltakere(rows: List<TiltakskoordinatorDeltakerRow>) {
@@ -60,14 +61,35 @@ class TiltakskoordinatorResponseBuilderTest {
 
     @Test
     fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
+        // Arrange
         every {
             deltakerlisteRepository.get(gjennomforingId)
-        } returns Result.failure(NoSuchElementException())
+        } returns null
 
+        // Act
         val response = builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
 
+        // Assert
         response.data shouldBe emptyList()
         coVerify(exactly = 0) { digitalBrukerService.hentErDigitalForPersonidenter(any()) }
+    }
+
+    @Test
+    fun `buildResponse - feil ved henting av gjennomforing kastes videre`() = runTest {
+        // Arrange
+        val databaseFeil = IllegalStateException("Database er utilgjengelig")
+        every {
+            deltakerlisteRepository.get(gjennomforingId)
+        } throws databaseFeil
+
+        // Act
+        val kastetFeil = shouldThrow<IllegalStateException> {
+            builder.buildResponse(TiltaksKoordinatorDeltakerlisteRequest(gjennomforingId = gjennomforingId))
+        }
+
+        // Assert
+        kastetFeil.message shouldBe databaseFeil.message
+        verify(exactly = 0) { viewRepository.getDeltakere(any<TiltaksKoordinatorDeltakerlisteRequest>()) }
     }
 
     @Test

@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -30,7 +30,7 @@ import java.util.UUID
 class ForslagServiceTest {
     private val forslagRepository = ForslagRepository()
     private val arrangorMeldingProducer = mockk<ArrangorMeldingProducer>(relaxed = true)
-    private val deltakerRepository = mockk<DeltakerRepository>(relaxed = true)
+    private val deltakerService = mockk<DeltakerService>(relaxed = true)
     private val deltakerProducerService = mockk<DeltakerProducerService>(relaxed = true)
     private val navAnsattService = mockk<NavAnsattService>(relaxed = true)
     private val navEnhetService = mockk<NavEnhetService>(relaxed = true)
@@ -38,7 +38,7 @@ class ForslagServiceTest {
     private val forslagService = ForslagService(
         forslagRepository = forslagRepository,
         arrangorMeldingProducer = arrangorMeldingProducer,
-        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -72,7 +72,7 @@ class ForslagServiceTest {
                 ),
             )
             forslagRepository.upsert(lagretForslag)
-            val lagretForslagFraDb = forslagRepository.get(lagretForslag.id).getOrThrow()
+            val lagretForslagFraDb = forslagRepository.getOrThrow(lagretForslag.id)
             val foreldetForslag = lagretForslag.copy(status = Forslag.Status.VenterPaSvar)
 
             // Act & Assert
@@ -83,7 +83,7 @@ class ForslagServiceTest {
                     listOf("Oppdaterte ikke forslag ${foreldetForslag.id} med status VenterPaSvar")
             }
 
-            forslagRepository.get(lagretForslag.id).getOrThrow() shouldBe lagretForslagFraDb
+            forslagRepository.getOrThrow(lagretForslag.id) shouldBe lagretForslagFraDb
         }
     }
 
@@ -96,7 +96,7 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
 
             val begrunnelse = "Avslatt fordi det er ikke relevant"
 
@@ -104,7 +104,7 @@ class ForslagServiceTest {
             forslagService.avvisForslag(forslag.id, begrunnelse, "Z123", "ENHET")
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             assertSoftly {
                 lagredeForslag.id shouldBe forslag.id
                 lagredeForslag.status shouldNotBe forslag.status
@@ -125,13 +125,13 @@ class ForslagServiceTest {
                 status = Forslag.Status.VenterPaSvar,
             )
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
 
             // Act
             forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             lagredeForslag.status as? Forslag.Status.Avvist shouldNotBe null
         }
 
@@ -142,14 +142,14 @@ class ForslagServiceTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(forslag)
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             val tidFor = LocalDateTime.now()
 
             // Act
             forslagService.avvisForslag(forslag.id, "Begrunnelse", "Z123", "ENHET")
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             val avvistForslag = lagredeForslag.status as Forslag.Status.Avvist
             avvistForslag.avvist.isBefore(LocalDateTime.now().plusSeconds(1)) shouldBe true
             avvistForslag.avvist.isAfter(tidFor.minusSeconds(1)) shouldBe true
@@ -173,7 +173,7 @@ class ForslagServiceTest {
             forslagService.godkjennForslag(forslag.id, ansattId, enhetId)
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             assertSoftly {
                 lagredeForslag.id shouldBe forslag.id
                 lagredeForslag.status shouldNotBe forslag.status
@@ -200,7 +200,7 @@ class ForslagServiceTest {
             forslagService.godkjennForslag(forslag.id, UUID.randomUUID(), UUID.randomUUID())
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             lagredeForslag.status as? Forslag.Status.Godkjent shouldNotBe null
         }
 
@@ -217,7 +217,7 @@ class ForslagServiceTest {
             forslagService.godkjennForslag(forslag.id, UUID.randomUUID(), UUID.randomUUID())
 
             // Assert
-            val lagredeForslag = forslagRepository.get(forslag.id).getOrThrow()
+            val lagredeForslag = forslagRepository.getOrThrow(forslag.id)
             val godkjentForslag = lagredeForslag.status as Forslag.Status.Godkjent
             godkjentForslag.godkjent.isBefore(LocalDateTime.now().plusSeconds(1)) shouldBe true
             godkjentForslag.godkjent.isAfter(tidFor.minusSeconds(1)) shouldBe true

@@ -43,16 +43,10 @@ class DeltakerService(
         visning av deltakere i alle flater.
         Brukes i tilfeller hvor det er en forventning at deltakeren skal finnes
      */
-    fun getOrThrow(deltakerId: UUID): Deltaker = get(deltakerId)
-        ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
+    fun getOrThrow(deltakerId: UUID): Deltaker {
+        val deltaker = deltakerRepository.get(deltakerId)
+            ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
-    fun get(deltakerId: UUID): Deltaker? {
-        val deltaker = deltakerRepository
-            .get(deltakerId)
-            .getOrElse { cause ->
-                if (cause is NoSuchElementException) return null
-                throw cause
-            }
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
             gjennomforing = deltaker.deltakerliste,
         )
@@ -143,7 +137,7 @@ class DeltakerService(
     }
 
     fun feilregistrerDeltaker(deltakerId: UUID) {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = getOrThrow(deltakerId)
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
             throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
@@ -206,7 +200,7 @@ class DeltakerService(
         deltakerId: UUID,
         sistBesokt: ZonedDateTime,
     ) {
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
+        val deltaker = getOrThrow(deltakerId)
         distribuerEndringService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 

@@ -135,10 +135,10 @@ class DeltakerApiTest : IntegrationTestBase() {
         val deltaker = lagDeltaker()
 
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
-        coEvery { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+        every { deltakerRepository.get(deltaker.id) } returns deltaker
         every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
-        every { forslagRepository.get(forslagId) } returns Result.success(lagForslag(id = forslagId, deltakerId = deltaker.id))
+        every { forslagRepository.getOrThrow(forslagId) } returns lagForslag(id = forslagId, deltakerId = deltaker.id)
 
         coEvery {
             forslagService.avvisForslag(
@@ -426,7 +426,7 @@ class DeltakerApiTest : IntegrationTestBase() {
             val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
@@ -464,7 +464,7 @@ class DeltakerApiTest : IntegrationTestBase() {
             val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
@@ -498,7 +498,7 @@ class DeltakerApiTest : IntegrationTestBase() {
             val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
 
-            every { deltakerRepository.get(deltaker.id) } returns Result.success(deltaker)
+            every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
             every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte

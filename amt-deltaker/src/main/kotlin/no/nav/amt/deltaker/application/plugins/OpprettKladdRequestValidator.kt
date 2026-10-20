@@ -18,7 +18,8 @@ class OpprettKladdRequestValidator(
     private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient,
 ) {
     suspend fun validateRequest(request: OpprettKladdRequest): ValidationResult {
-        val deltakerListe = deltakerlisteRepository.get(request.deltakerlisteId).getOrThrow()
+        val deltakerListe = deltakerlisteRepository.get(request.deltakerlisteId)
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${request.deltakerlisteId}")
 
         if (deltakerListe.erAvsluttet()) {
             return ValidationResult.Invalid("Deltakerliste er avsluttet")

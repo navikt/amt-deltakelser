@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.bff.gjennomforing
 
-import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -64,7 +64,7 @@ class AmtGjennomforingConsumerTest {
 
             tiltakRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe TestData.tiltakAv(tiltakstype)
 
-            val lagret = deltakerlisteRepository.get(payload.id).shouldBeSuccess()
+            val lagret = deltakerlisteRepository.getOrThrow(payload.id)
             lagret.id shouldBe payload.id
             lagret.status shouldBe payload.status
             lagret.sluttDato shouldBe payload.sluttDato
@@ -93,7 +93,7 @@ class AmtGjennomforingConsumerTest {
             val oppdatert = payload.copy(status = GjennomforingStatusType.AVSLUTTET)
             sut.consume(id, objectMapper.writeValueAsString(oppdatert))
 
-            deltakerlisteRepository.get(id).shouldBeSuccess().status shouldBe GjennomforingStatusType.AVSLUTTET
+            deltakerlisteRepository.getOrThrow(id).status shouldBe GjennomforingStatusType.AVSLUTTET
         }
     }
 
@@ -157,11 +157,13 @@ class AmtGjennomforingConsumerTest {
 
         runTest {
             sut.consume(payload.id, objectMapper.writeValueAsString(payload))
-            deltakerlisteRepository.get(payload.id).shouldBeSuccess()
+            deltakerlisteRepository.getOrThrow(payload.id)
 
             sut.consume(payload.id, null)
 
-            deltakerlisteRepository.get(payload.id).shouldBeFailure<NoSuchElementException>()
+            shouldThrow<NoSuchElementException> {
+                deltakerlisteRepository.getOrThrow(payload.id)
+            }
         }
     }
 }

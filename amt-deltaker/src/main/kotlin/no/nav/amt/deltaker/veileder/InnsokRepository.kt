@@ -64,60 +64,30 @@ class InnsokRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun get(id: UUID): Result<Innsok> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT 
-                        id, 
-                        deltaker_id, 
-                        innsokt, 
-                        innsokt_av, 
-                        innsokt_av_enhet, 
-                        utkast_godkjent_av_nav, 
-                        utkast_delt, 
-                        startdato,
-                        sluttdato,
-                        dager_per_uke_ved_innsok,
-                        deltakelsesinnhold_ved_innsok,
-                        prisinformasjon_ved_innsok,
-                        kategorisering_ved_innsok
-                    FROM innsok 
-                    WHERE id = :id
-                    """.trimIndent(),
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke innsok med id $id")
-        }
-    }
-
-    fun getForDeltaker(deltakerId: UUID): Result<Innsok> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT 
-                        id, 
-                        deltaker_id, 
-                        innsokt, 
-                        innsokt_av, 
-                        innsokt_av_enhet, 
-                        utkast_godkjent_av_nav, 
-                        utkast_delt, 
-                        startdato,
-                        sluttdato,
-                        dager_per_uke_ved_innsok,
-                        deltakelsesinnhold_ved_innsok,
-                        prisinformasjon_ved_innsok,
-                        kategorisering_ved_innsok
-                    FROM innsok 
-                    WHERE deltaker_id = :deltaker_id
-                    """.trimIndent(),
-                    mapOf("deltaker_id" to deltakerId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke innsok for deltaker med id $deltakerId")
-        }
+    fun getForDeltaker(deltakerId: UUID): Innsok? = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT
+                    id,
+                    deltaker_id,
+                    innsokt,
+                    innsokt_av,
+                    innsokt_av_enhet,
+                    utkast_godkjent_av_nav,
+                    utkast_delt,
+                    startdato,
+                    sluttdato,
+                    dager_per_uke_ved_innsok,
+                    deltakelsesinnhold_ved_innsok,
+                    prisinformasjon_ved_innsok,
+                    kategorisering_ved_innsok
+                FROM innsok
+                WHERE deltaker_id = :deltaker_id
+                """.trimIndent(),
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
     fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->

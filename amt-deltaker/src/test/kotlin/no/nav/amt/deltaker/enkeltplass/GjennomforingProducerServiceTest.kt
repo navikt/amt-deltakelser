@@ -17,12 +17,12 @@ import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -53,7 +53,7 @@ class GjennomforingProducerServiceTest {
     private val navAnsattRepository = mockk<NavAnsattRepository>()
     private val vedtakService = mockk<VedtakService>()
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>()
-    private val deltakerRepository = mockk<DeltakerRepository>()
+    private val deltakerService = mockk<DeltakerService>()
     private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
     private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>(relaxed = true)
 
@@ -62,7 +62,7 @@ class GjennomforingProducerServiceTest {
         navAnsattRepository = navAnsattRepository,
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
-        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerlisteRepository = deltakerlisteRepository,
         amtGjennomforingProducer = amtGjennomforingProducer,
     )
@@ -122,7 +122,7 @@ class GjennomforingProducerServiceTest {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any(), any())
         } returns totrinnsIdInTest
 
-        every { deltakerlisteRepository.get(any()) } returns Result.success(createBaseDeltaker().deltakerliste)
+        every { deltakerlisteRepository.get(any()) } returns createBaseDeltaker().deltakerliste
     }
 
     @Nested

@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.enkeltplass
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.slot
@@ -187,7 +186,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            val deltakerUpdated = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
+            val deltakerUpdated = deltakerRepository.get(expectedDeltaker.id).shouldNotBeNull()
 
             assertSoftly(deltakerUpdated) {
                 id shouldBe expectedDeltaker.id
@@ -222,7 +221,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 oppdaterKladdRequest,
             )
 
-            val deltakerUpdated = deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
+            val deltakerUpdated = deltakerRepository.get(deltakerInserted.id).shouldNotBeNull()
             assertSoftly(deltakerUpdated) {
                 deltakelsesinnhold.shouldNotBeNull().innhold shouldBe emptyList()
                 startdato shouldBe oppdaterKladdRequest.startdato
@@ -350,7 +349,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             assertSoftly(oppdatertDeltaker) {
                 id shouldBe deltakerInTest.id
                 startdato shouldBe pameldingRequestInTest.startdato
@@ -616,7 +615,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert - verify no event was published to DELTAKER_V2 since gjennomforing is KLADD
-            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
 
@@ -653,7 +652,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert - verify deltaker was published since gjennomforing is now not KLADD
-            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
     }
@@ -696,7 +695,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             assertSoftly(oppdatertDeltaker) {
                 id shouldBe deltakerInTest.id
                 startdato shouldBe pameldingRequest.startdato
@@ -737,7 +736,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         }
     }
@@ -753,8 +752,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
                 pameldingService.slettKladd(deltakerInserted.id)
 
-                deltakerRepository.get(deltakerInserted.id).shouldBeFailure()
-                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeFailure()
+                deltakerRepository.get(deltakerInserted.id).shouldBeNull()
+                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id) shouldBe null
             }
             @Test
             fun `slettKladd - deltaker er KLADD men deltakerliste er syncet med valp - sletter ikke`() = runTest {
@@ -767,8 +766,8 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 shouldThrowAny {
                     pameldingService.slettKladd(deltakerInserted.id)
                 }
-                deltakerRepository.get(deltakerInserted.id).shouldBeSuccess()
-                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldBeSuccess()
+                deltakerRepository.get(deltakerInserted.id).shouldNotBeNull()
+                deltakerlisteRepository.get(deltakerInserted.deltakerliste.id).shouldNotBeNull()
             }
      */
 }

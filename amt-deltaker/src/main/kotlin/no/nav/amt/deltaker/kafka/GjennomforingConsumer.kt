@@ -81,20 +81,23 @@ class GjennomforingConsumer(
         gjennomforingPayload.assertPameldingstypeIsValid()
 
         val arrangor = arrangorService.hentArrangor(gjennomforingPayload.arrangor.organisasjonsnummer)
-        val tiltakstype = tiltakRepository.get(gjennomforingPayload.tiltakskode).getOrThrow()
+        val tiltakstype = tiltakRepository.get(gjennomforingPayload.tiltakskode)
+            ?: throw NoSuchElementException("Fant ikke tiltakstype ${gjennomforingPayload.tiltakskode.name}")
 
         val gjennomforing = gjennomforingPayload.toModel(
             { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id).getOrNull()
+        val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id)
+
         if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
             kladderSomSkalSlettes.forEach { deltaker -> kladdService.slettKladd(deltaker.id) }
 
             log.info("Slettet ${kladderSomSkalSlettes.size} for deltakerliste ${gjennomforing.id} med status ${gjennomforing.status.name}")
         }
+
         if (eksisterendeGjennomforing != null) {
             if (eksisterendeGjennomforing == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
@@ -167,7 +170,7 @@ class GjennomforingConsumer(
             return
         }
 
-        val deltaker = deltakerRepository.getEnkeltplassdeltaker(gjennomforing.id).getOrThrow()
+        val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforing.id)
         deltakerProducerService.produce(deltaker)
     }
 
@@ -195,7 +198,7 @@ class GjennomforingConsumer(
                     erDeltakerSluttdatoEndret = true,
                 )
                 deltakerProducerService.produce(
-                    deltaker = deltakerRepository.get(deltaker.id).getOrThrow(),
+                    deltaker = deltakerService.getOrThrow(deltaker.id),
                     forcedUpdate = true,
                 )
 

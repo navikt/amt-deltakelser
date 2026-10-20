@@ -41,9 +41,8 @@ class OpprettKladdRequestValidatorTest {
     fun setup() {
         clearAllMocks()
 
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)),
-        )
+        every { deltakerListeRepository.get(any()) } returns
+            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING))
 
         coEvery { brukerService.get(any()) } returns Result.success(
             no.nav.amt.lib.testing.utils.TestData
@@ -65,9 +64,7 @@ class OpprettKladdRequestValidatorTest {
     @ParameterizedTest
     @EnumSource(value = GjennomforingStatusType::class, names = ["AVBRUTT", "AVLYST", "AVSLUTTET"])
     fun `validateRequest - deltakerListe er avsluttet - skal returnere Invalid`(status: GjennomforingStatusType) = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(status = status),
-        )
+        every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste(status = status)
 
         val validationResult = sut.validateRequest(requestInTest)
 
@@ -77,9 +74,7 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - deltakerliste ikke apen for pamelding - skal returnere Invalid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(apentForPamelding = false),
-        )
+        every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste(apentForPamelding = false)
 
         val validationResult = sut.validateRequest(requestInTest)
 
@@ -104,9 +99,7 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - ikke ARBEIDSRETTET_REHABILITERING - skal returnere Invalid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(),
-        )
+        every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste()
 
         coEvery { brukerService.get(any()) } returns
             Result.success(
@@ -122,9 +115,8 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og ikke SITUASJONSBESTEMT_INNSATS - skal returnere Invalid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
-        )
+        every { deltakerListeRepository.get(any()) } returns
+            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING))
 
         coEvery { brukerService.get(any()) } returns
             Result.success(
@@ -140,9 +132,8 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS ikke sykmeldt - skal returnere Invalid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
-        )
+        every { deltakerListeRepository.get(any()) } returns
+            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING))
 
         coEvery { isOppfolgingsTilfelleClient.erSykmeldtMedArbeidsgiver(any()) } returns false
 
@@ -160,9 +151,8 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS sykmeldt - skal returnere Valid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
-        )
+        every { deltakerListeRepository.get(any()) } returns
+            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING))
 
         coEvery { brukerService.get(any()) } returns
             Result.success(
@@ -179,12 +169,11 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - deltakerliste GRUPPE_ARBEIDSMARKEDSOPPLAERING mangler startdato - skal returnere invalid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
+        every { deltakerListeRepository.get(any()) } returns
             TestData
                 .lagDeltakerliste(
                     tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-                ).copy(startDato = null),
-        )
+                ).copy(startDato = null)
 
         val validationResult = sut.validateRequest(requestInTest)
 
@@ -207,9 +196,7 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - deltaker 18 ar - skal returnere Valid`() = runTest {
-        every { deltakerListeRepository.get(any()) } returns Result.success(
-            TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype()),
-        )
+        every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype())
         coEvery {
             personServiceClient.hentNavBrukerFodselsar(any())
         } returns Year.now().minusYears(17).value

@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
@@ -52,7 +51,7 @@ class TiltakstypeConsumerTest {
 
         consumer.consume(tiltakstype.id, objectMapper.writeValueAsString(lagTiltakstypePayload(tiltakstype)))
 
-        tiltakRepository.get(tiltakstype.tiltakskode).shouldBeSuccess() shouldBe tiltakstype
+        tiltakRepository.get(tiltakstype.tiltakskode) shouldBe tiltakstype
     }
 
     @Test

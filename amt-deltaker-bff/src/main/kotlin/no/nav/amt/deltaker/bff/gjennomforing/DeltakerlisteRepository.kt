@@ -74,7 +74,7 @@ class DeltakerlisteRepository {
     }
 
     // verifiserTilgjengeligDeltakerliste
-    fun get(id: UUID): Result<Deltakerliste> = runCatching {
+    fun getOrThrow(id: UUID): Deltakerliste {
         val query = queryOf(
             """
             SELECT 
@@ -95,7 +95,7 @@ class DeltakerlisteRepository {
             mapOf("id" to id),
         ).map(::rowMapper).asSingle
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(query) ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
         }
     }

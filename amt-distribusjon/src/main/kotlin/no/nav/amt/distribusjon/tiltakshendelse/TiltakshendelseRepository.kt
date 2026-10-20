@@ -36,63 +36,55 @@ class TiltakshendelseRepository {
         }
     }
 
-    fun get(id: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE id = :id",
-                    mapOf("id" to id),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
-        }
+    fun getOrThrow(id: UUID): Tiltakshendelse = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakshendelse WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse $id")
     }
 
     fun getAktivHendelse(
         deltakerId: UUID,
         hendelseType: Tiltakshendelse.Type,
-    ): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    """
-                    SELECT *
-                    FROM tiltakshendelse
-                    WHERE 
-                        deltaker_id = :deltaker_id
-                        AND type = :type
-                        AND aktiv = true
-                    ORDER BY modified_at DESC
-                    LIMIT 1
-                    """.trimIndent(),
-                    mapOf(
-                        "deltaker_id" to deltakerId,
-                        "type" to hendelseType.name,
-                    ),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke aktiv tiltakshendelse for deltaker $deltakerId og type $hendelseType")
-        }
+    ): Tiltakshendelse? = Database.query { session ->
+        session.run(
+            queryOf(
+                """
+                SELECT *
+                FROM tiltakshendelse
+                WHERE 
+                    deltaker_id = :deltaker_id
+                    AND type = :type
+                    AND aktiv = true
+                ORDER BY modified_at DESC
+                LIMIT 1
+                """.trimIndent(),
+                mapOf(
+                    "deltaker_id" to deltakerId,
+                    "type" to hendelseType.name,
+                ),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun getForslagHendelse(forslagId: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE forslag_id = :forslag_id",
-                    mapOf("forslag_id" to forslagId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for med forslagId $forslagId")
-        }
+    fun getForslagHendelse(forslagId: UUID): Tiltakshendelse? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakshendelse WHERE forslag_id = :forslag_id",
+                mapOf("forslag_id" to forslagId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun getByHendelseId(hendelseId: UUID): Result<Tiltakshendelse> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    "SELECT * FROM tiltakshendelse WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
-                    mapOf("hendelse_id" to hendelseId),
-                ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakshendelse for hendelse $hendelseId")
-        }
+    fun getByHendelseId(hendelseId: UUID): Tiltakshendelse? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM tiltakshendelse WHERE hendelser @> ARRAY[:hendelse_id]::uuid[]",
+                mapOf("hendelse_id" to hendelseId),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
     companion object {

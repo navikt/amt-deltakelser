@@ -54,7 +54,7 @@ class DeltakerRepository {
     fun getKladdForDeltakerliste(
         deltakerlisteId: UUID,
         personident: String,
-    ): Result<Deltaker> = runCatching {
+    ): Deltaker? {
         val sql = buildDeltakerSql(
             "getKladdForDeltakerliste",
             """
@@ -64,7 +64,7 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,
@@ -73,7 +73,7 @@ class DeltakerRepository {
                         "personident" to personident,
                     ),
                 ).map(::deltakerRowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen deltaker med deltakerlisteId $deltakerlisteId og personident")
+            )
         }
     }
 
@@ -100,7 +100,7 @@ class DeltakerRepository {
     fun getKladd(
         personident: String,
         tiltakskode: Tiltakskode,
-    ): Result<Deltaker> = runCatching {
+    ): Deltaker? {
         val sql = buildDeltakerSql(
             "getEnkeltplassKladd",
             """
@@ -110,13 +110,13 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,
                     mapOf("personident" to personident, "tiltakskode" to tiltakskode.name),
                 ).map(::deltakerRowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen kladd deltaker med på tiltakskode $tiltakskode")
+            )
         }
     }
 
@@ -304,34 +304,30 @@ class DeltakerRepository {
         Bruk DeltakerService.get for å få riktig arrangør underenhet/hovedenhet
         for alle visningsformål
      */
-    fun get(id: UUID): Result<Deltaker> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    buildDeltakerSql(
-                        methodName = "get",
-                        whereClause = "d.id = :id",
-                        limit = null,
-                    ),
-                    mapOf("id" to id),
-                ).map(::deltakerRowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
-        }
+    fun get(id: UUID): Deltaker? = Database.query { session ->
+        session.run(
+            queryOf(
+                buildDeltakerSql(
+                    methodName = "get",
+                    whereClause = "d.id = :id",
+                    limit = null,
+                ),
+                mapOf("id" to id),
+            ).map(::deltakerRowMapper).asSingle,
+        )
     }
 
-    fun getEnkeltplassdeltaker(deltakerlisteId: UUID): Result<Deltaker> = runCatching {
-        Database.query { session ->
-            session.run(
-                queryOf(
-                    buildDeltakerSql(
-                        methodName = "getEnkeltplassdeltaker",
-                        whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
-                        limit = 1,
-                    ),
-                    mapOf("deltakerliste_id" to deltakerlisteId),
-                ).map(::deltakerRowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Ingen enkeltplassdeltaker for deltakerliste $deltakerlisteId")
-        }
+    fun getEnkeltplassdeltakerOrThrow(deltakerlisteId: UUID): Deltaker = Database.query { session ->
+        session.run(
+            queryOf(
+                buildDeltakerSql(
+                    methodName = "getEnkeltplassdeltakerOrThrow",
+                    whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
+                    limit = 1,
+                ),
+                mapOf("deltakerliste_id" to deltakerlisteId),
+            ).map(::deltakerRowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Ingen enkeltplassdeltaker for deltakerliste $deltakerlisteId")
     }
 
     /*

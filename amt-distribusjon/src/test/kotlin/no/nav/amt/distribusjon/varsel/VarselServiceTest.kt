@@ -3,8 +3,6 @@ package no.nav.amt.distribusjon.varsel
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
@@ -57,7 +55,7 @@ class VarselServiceTest : IntegrationTestBase() {
                 .getSisteVarsel(
                     deltakerId = hendelse.deltaker.id,
                     type = Varsel.Type.BESKJED,
-                ).shouldBeFailure()
+                ) shouldBe null
         }
 
         @Test
@@ -79,7 +77,7 @@ class VarselServiceTest : IntegrationTestBase() {
                 .getSisteVarsel(
                     deltakerId = hendelse.deltaker.id,
                     type = Varsel.Type.BESKJED,
-                ).shouldBeFailure()
+                ) shouldBe null
         }
 
         //  stopper revarsling av tidligere varsel
@@ -109,7 +107,7 @@ class VarselServiceTest : IntegrationTestBase() {
             // Assert
             varselRepository
                 .get(forrigeVarsel.id)
-                .shouldBeSuccess()
+                .shouldNotBeNull()
                 .revarsles shouldBe null
         }
 
@@ -135,11 +133,11 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.handleHendelse(hendelse)
 
             // Assert
-            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.OPPGAVE).shouldBeSuccess()) {
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.OPPGAVE).shouldNotBeNull()) {
                 status shouldBe Varsel.Status.AKTIV
             }
 
-            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldBeSuccess()) {
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldNotBeNull()) {
                 type shouldBe Varsel.Type.BESKJED
                 status shouldBe Varsel.Status.VENTER_PA_UTSENDELSE
                 erEksterntVarsel shouldBe false
@@ -162,7 +160,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.handleHendelse(hendelse)
 
             // Assert
-            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldBeSuccess()) {
+            assertSoftly(varselRepository.getSisteVarsel(deltakerId, Varsel.Type.BESKJED).shouldNotBeNull()) {
                 type shouldBe Varsel.Type.BESKJED
             }
         }
@@ -186,7 +184,7 @@ class VarselServiceTest : IntegrationTestBase() {
                 .getSisteVarsel(
                     deltakerId = deltakerId,
                     type = Varsel.Type.BESKJED,
-                ).shouldBeFailure()
+                ) shouldBe null
         }
 
         private fun kurstypeValg(kurstype: String) = OpplaringKategoriseringValg(
@@ -235,7 +233,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.handleHendelse(hendelse)
 
             // Assert
-            val oppdatertBeskjed = varselRepository.get(ventendeBeskjed.id).shouldBeSuccess()
+            val oppdatertBeskjed = varselRepository.get(ventendeBeskjed.id).shouldNotBeNull()
             assertSoftly(oppdatertBeskjed) {
                 tekst shouldBe beskjedTekst(hendelse)
                 tekst shouldBe "Ny endring på arbeidsmarkedstiltaket: Almenn norsk hos Arrangornavn."
@@ -323,9 +321,9 @@ class VarselServiceTest : IntegrationTestBase() {
             hendelse: Hendelse,
             forventetTekst: String,
         ) {
-            varselRepository.get(gammelOppgave.id).shouldBeSuccess().status shouldBe Varsel.Status.INAKTIVERT
+            varselRepository.get(gammelOppgave.id).shouldNotBeNull().status shouldBe Varsel.Status.INAKTIVERT
 
-            val nyOppgave = varselRepository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE).shouldBeSuccess()
+            val nyOppgave = varselRepository.getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE).shouldNotBeNull()
             assertSoftly(nyOppgave) {
                 status shouldBe Varsel.Status.AKTIV
                 tekst shouldBe oppgaveTekst(hendelse)
@@ -352,7 +350,7 @@ class VarselServiceTest : IntegrationTestBase() {
 
             varselService.handleHendelse(endretUtkast)
 
-            varselRepository.get(aktivOppgave.id).shouldBeSuccess().status shouldBe Varsel.Status.AKTIV
+            varselRepository.get(aktivOppgave.id).shouldNotBeNull().status shouldBe Varsel.Status.AKTIV
             verify(exactly = 0) { outboxService.insertRecord(any(), any(), any(), any()) }
         }
 
@@ -377,7 +375,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.handleHendelse(hendelse)
 
             // Assert
-            assertSoftly(varselRepository.get(varsel.id).shouldBeSuccess()) {
+            assertSoftly(varselRepository.get(varsel.id).shouldNotBeNull()) {
                 status shouldBe Varsel.Status.AKTIV
                 aktivFra shouldBeCloseTo varsel.aktivFra
 
@@ -411,7 +409,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.sendVentendeVarsler()
 
             // Assert
-            val oppdatertVarsel = varselRepository.get(varsel.id).shouldBeSuccess()
+            val oppdatertVarsel = varselRepository.get(varsel.id).shouldNotBeNull()
             oppdatertVarsel.aktivFra shouldBeCloseTo nowUTC()
 
             verify { outboxService.insertRecord(varsel.id, any(), any(), any()) }
@@ -431,7 +429,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.sendVentendeVarsler()
 
             // Assert
-            val oppdatertVarsel = varselRepository.get(varsel.id).shouldBeSuccess()
+            val oppdatertVarsel = varselRepository.get(varsel.id).shouldNotBeNull()
             oppdatertVarsel.aktivFra shouldBeCloseTo varsel.aktivFra
         }
 
@@ -470,10 +468,10 @@ class VarselServiceTest : IntegrationTestBase() {
                 // Assert
                 varselRepository
                     .get(aktivtVarsel.id)
-                    .shouldBeSuccess()
+                    .shouldNotBeNull()
                     .erAktiv shouldBe false
 
-                val oppdatertVarsel = varselRepository.get(nyttVarsel.id).shouldBeSuccess()
+                val oppdatertVarsel = varselRepository.get(nyttVarsel.id).shouldNotBeNull()
                 oppdatertVarsel.aktivFra shouldBeCloseTo nowUTC()
 
                 verify { outboxService.insertRecord(aktivtVarsel.id, any(), any(), any()) }
@@ -507,7 +505,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.sendRevarsler()
 
             // Assert
-            val revarsel = varselRepository.getAktivt(deltakerId).shouldBeSuccess()
+            val revarsel = varselRepository.getAktivt(deltakerId).shouldNotBeNull()
             assertSoftly(revarsel) {
                 tekst shouldBe ventendeBeskjed.tekst
                 hendelser shouldBe ventendeBeskjed.hendelser + skalRevarsles.hendelser
@@ -538,10 +536,10 @@ class VarselServiceTest : IntegrationTestBase() {
             // Assert
             varselRepository
                 .get(skalRevarsles.id)
-                .shouldBeSuccess()
+                .shouldNotBeNull()
                 .revarsles shouldBe null
 
-            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldNotBeNull()
             assertSoftly(revarsel) {
                 erRevarsel shouldBe true
                 kanRevarsles shouldBe false
@@ -574,7 +572,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.sendRevarsler()
 
             // Assert
-            val oppdatertVarsel = varselRepository.get(skalRevarsles.id).shouldBeSuccess()
+            val oppdatertVarsel = varselRepository.get(skalRevarsles.id).shouldNotBeNull()
             assertSoftly(oppdatertVarsel) {
                 revarsles shouldBe null
                 status shouldBe Varsel.Status.INAKTIVERT
@@ -583,7 +581,7 @@ class VarselServiceTest : IntegrationTestBase() {
 
             verify { outboxService.insertRecord(oppdatertVarsel.id, any(), any()) }
 
-            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldBeSuccess()
+            val revarsel = varselRepository.getAktivt(skalRevarsles.deltakerId).shouldNotBeNull()
             assertSoftly(revarsel) {
                 erRevarsel shouldBe true
                 kanRevarsles shouldBe false
@@ -608,7 +606,7 @@ class VarselServiceTest : IntegrationTestBase() {
             varselService.sendRevarsler()
 
             // Assert
-            val ikkeOppdatertVarsel = varselRepository.get(skalIkkeRevarsles.id).shouldBeSuccess()
+            val ikkeOppdatertVarsel = varselRepository.get(skalIkkeRevarsles.id).shouldNotBeNull()
             assertSoftly(ikkeOppdatertVarsel) {
                 revarsles.shouldNotBeNull() shouldBeCloseTo skalIkkeRevarsles.revarsles.shouldNotBeNull()
                 status shouldBe skalIkkeRevarsles.status
@@ -651,7 +649,7 @@ class VarselServiceTest : IntegrationTestBase() {
             // Assert
             varselRepository
                 .get(utloptBeskjed.id)
-                .shouldBeSuccess()
+                .shouldNotBeNull()
                 .status shouldBe Varsel.Status.UTLOPT
         }
     }

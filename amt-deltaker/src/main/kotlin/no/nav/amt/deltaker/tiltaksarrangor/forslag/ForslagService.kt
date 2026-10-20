@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.tiltaksarrangor.forslag
 import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.repository.DeltakerRepository
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorMeldingProducer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
@@ -14,7 +14,7 @@ import java.util.UUID
 class ForslagService(
     private val forslagRepository: ForslagRepository,
     private val arrangorMeldingProducer: ArrangorMeldingProducer,
-    private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
     private val deltakerProducerService: DeltakerProducerService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
@@ -38,7 +38,7 @@ class ForslagService(
             is Forslag.Status.Erstattet,
             is Forslag.Status.Tilbakekalt,
             -> {
-                val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
+                val deltaker = deltakerService.getOrThrow(forslag.deltakerId)
                 deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false, publiserTilDeltakerEksternV1 = false)
             }
         }
@@ -53,7 +53,7 @@ class ForslagService(
     ) {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(avvistAvAnsattIdent)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(avvistAvEnhet)
-        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
+        val opprinneligForslag = forslagRepository.getOrThrow(forslagId)
 
         val avvistForslag = opprinneligForslag.copy(
             status = Forslag.Status.Avvist(
@@ -78,7 +78,7 @@ class ForslagService(
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,
     ): Forslag {
-        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
+        val opprinneligForslag = forslagRepository.getOrThrow(forslagId)
         val godkjentForslag = opprinneligForslag.copy(
             status = Forslag.Status.Godkjent(
                 godkjentAv = Forslag.NavAnsatt(

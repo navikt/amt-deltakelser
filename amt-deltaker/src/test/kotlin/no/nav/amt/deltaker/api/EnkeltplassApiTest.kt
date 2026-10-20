@@ -193,16 +193,16 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             } returns deltakerInTest
 
             // responseBuilder mocks
-            coEvery {
+            every {
                 navAnsattRepository.getManyById(setOf(deltakerInTest.navBruker.navVeilederId.shouldNotBeNull()))
             } returns listOf(lagNavAnsatt(id = deltakerInTest.navBruker.navVeilederId.shouldNotBeNull()))
-            coEvery {
+            every {
                 navEnhetRepository.getMany(setOf(deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
             } returns listOf(lagNavEnhet(id = deltakerInTest.navBruker.navEnhetId.shouldNotBeNull()))
 
             every {
                 innsokRepository.getForDeltaker(deltakerInTest.id)
-            } returns Result.success(TestData.lagInnsok(deltakerInTest))
+            } returns TestData.lagInnsok(deltakerInTest)
 
             every {
                 deltakerRepository.getDeltakelserForLaaseSjekk(
@@ -222,7 +222,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
                 ),
             )
 
-            coEvery { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
+            every { forslagRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
             every { deltakerEndringRepository.getForDeltaker(deltakerInTest.id) } returns emptyList()
             every { vedtakRepository.getForDeltaker(deltakerInTest.id) } returns null
@@ -380,7 +380,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
 
             every { navAnsattRepository.get(any<String>()) } returns navAnsattInTest
             every { navEnhetRepository.get(navEnhetInTest.id) } returns navEnhetInTest
-            every { deltakerRepository.get(deltakerInTest.id) } returns Result.success(deltakerInTest)
+            every { deltakerRepository.get(deltakerInTest.id) } returns deltakerInTest
             every {
                 gjennomforingProducerService.produserTilbakekallPrisendring(
                     deltakerId = deltakerInTest.id,

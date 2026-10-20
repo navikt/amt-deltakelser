@@ -52,7 +52,7 @@ class TiltakRepository {
         log.info("Upsertet tiltakstype med id ${tiltakstype.id}")
     }
 
-    fun get(tiltakskode: Tiltakskode): Result<Tiltakstype> = runCatching {
+    fun get(tiltakskode: Tiltakskode): Tiltakstype? {
         val sql =
             """
             SELECT 
@@ -65,13 +65,13 @@ class TiltakRepository {
             WHERE tiltakskode = :tiltakskode
             """.trimIndent()
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,
                     mapOf("tiltakskode" to tiltakskode.name),
                 ).map(::rowMapper).asSingle,
-            ) ?: throw NoSuchElementException("Fant ikke tiltakstype ${tiltakskode.name}")
+            )
         }
     }
 

@@ -36,7 +36,7 @@ class ForslagRepository {
         }
     }
 
-    fun get(id: UUID): Result<Forslag> = runCatching {
+    fun getOrThrow(id: UUID): Forslag {
         val sql =
             """
             SELECT 
@@ -51,7 +51,7 @@ class ForslagRepository {
             WHERE f.id = :id
             """.trimIndent()
 
-        Database.query { session ->
+        return Database.query { session ->
             session.run(
                 queryOf(
                     sql,

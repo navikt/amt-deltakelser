@@ -8,12 +8,12 @@ import no.nav.amt.deltaker.kafka.toAmtGjennomforingPayload
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerlisteRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.service.VedtakService
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -32,7 +32,7 @@ class GjennomforingProducerService(
     private val navAnsattRepository: NavAnsattRepository,
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
-    private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
@@ -48,7 +48,8 @@ class GjennomforingProducerService(
     private fun produserRequest(payload: GjennomforingRequestPayload) {
         gjennomforingRequestProducer.produce(payload)
 
-        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId).getOrThrow()
+        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId)
+            ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${payload.gjennomforingId}")
         amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
     }
 
@@ -165,10 +166,7 @@ class GjennomforingProducerService(
         deltakerId: UUID,
         endretAvNavIdent: String,
     ): UUID {
-        val gjennomforingId = deltakerRepository
-            .get(deltakerId)
-            .getOrThrow()
-            .deltakerliste.id
+        val gjennomforingId = deltakerService.getOrThrow(deltakerId).deltakerliste.id
 
         val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
 

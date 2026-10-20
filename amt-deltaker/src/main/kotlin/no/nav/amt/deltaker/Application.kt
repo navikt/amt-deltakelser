@@ -327,10 +327,24 @@ fun Application.module() {
 
     val vedtakService = VedtakService(vedtakRepository)
 
+    val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerProducerService = deltakerProducerService,
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        distribuerEndringService = distribuerEndringService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        arrangorService = arrangorService,
+        importertFraArenaRepository = importertFraArenaRepository,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+        forslagRepository = forslagRepository,
+    )
+
     val forslagService = ForslagService(
         forslagRepository = forslagRepository,
         arrangorMeldingProducer = ArrangorMeldingProducer(outboxService),
-        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerProducerService = deltakerProducerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -354,23 +368,9 @@ fun Application.module() {
         navEnhetRepository = navEnhetRepository,
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
-        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         deltakerlisteRepository = deltakerlisteRepository,
         amtGjennomforingProducer = amtGjennomforingProducer,
-    )
-
-    val deltakerService = DeltakerService(
-        deltakerRepository = deltakerRepository,
-        deltakerEndringRepository = deltakerEndringRepository,
-        deltakerProducerService = deltakerProducerService,
-        vedtakRepository = vedtakRepository,
-        vedtakService = vedtakService,
-        distribuerEndringService = distribuerEndringService,
-        endringFraArrangorRepository = endringFraArrangorRepository,
-        arrangorService = arrangorService,
-        importertFraArenaRepository = importertFraArenaRepository,
-        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-        forslagRepository = forslagRepository,
     )
 
     val veilederEndringService = VeilederEndringService(
@@ -424,7 +424,6 @@ fun Application.module() {
     )
 
     val pameldingService = PameldingService(
-        deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -576,7 +575,6 @@ fun Application.module() {
         attributes = attributes,
         deltakerEndringRepository = deltakerEndringRepository,
         deltakerEndringService = deltakerEndringService,
-        deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
     )
     deltakelsesmengdeUpdateJob.startJob()

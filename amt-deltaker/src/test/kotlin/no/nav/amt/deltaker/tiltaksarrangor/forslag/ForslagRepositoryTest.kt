@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.tiltaksarrangor.forslag
 
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -75,7 +74,7 @@ class ForslagRepositoryTest {
             TestRepository.insert(deltaker)
             val forslag = TestData.lagForslag(deltakerId = deltaker.id, begrunnelse = "Opprinnelig")
             forslagRepository.upsert(forslag)
-            val lagretForslagFraDb = forslagRepository.get(forslag.id).getOrThrow()
+            val lagretForslagFraDb = forslagRepository.getOrThrow(forslag.id)
 
             val duplikat = forslag.copy(begrunnelse = "Duplikatlevering med annen tekst")
 
@@ -84,7 +83,7 @@ class ForslagRepositoryTest {
 
             // Assert
             erOppdatert shouldBe false
-            forslagRepository.get(forslag.id).getOrThrow() shouldBe lagretForslagFraDb
+            forslagRepository.getOrThrow(forslag.id) shouldBe lagretForslagFraDb
         }
 
         @Test
@@ -114,7 +113,7 @@ class ForslagRepositoryTest {
                 TestRepository.insert(deltaker)
                 val lagretForslag = TestData.lagForslag(deltakerId = deltaker.id, status = status)
                 forslagRepository.upsert(lagretForslag)
-                val lagretForslagFraDb = forslagRepository.get(lagretForslag.id).getOrThrow()
+                val lagretForslagFraDb = forslagRepository.getOrThrow(lagretForslag.id)
 
                 val foreldetForslag = lagretForslag.copy(
                     begrunnelse = "Foreldet melding",
@@ -123,7 +122,7 @@ class ForslagRepositoryTest {
 
                 forslagRepository.upsert(foreldetForslag)
 
-                forslagRepository.get(lagretForslag.id).getOrThrow() shouldBe lagretForslagFraDb
+                forslagRepository.getOrThrow(lagretForslag.id) shouldBe lagretForslagFraDb
             }
         }
 
@@ -133,7 +132,7 @@ class ForslagRepositoryTest {
             TestRepository.insert(deltaker)
             val ventendeForslag = TestData.lagForslag(deltakerId = deltaker.id)
             forslagRepository.upsert(ventendeForslag)
-            val ventendeForslagFraDb = forslagRepository.get(ventendeForslag.id).getOrThrow()
+            val ventendeForslagFraDb = forslagRepository.getOrThrow(ventendeForslag.id)
 
             val godkjentForslag = ventendeForslag.copy(
                 status = Forslag.Status.Godkjent(
@@ -144,7 +143,7 @@ class ForslagRepositoryTest {
 
             forslagRepository.upsert(godkjentForslag)
 
-            forslagRepository.get(ventendeForslag.id).getOrThrow() shouldBe
+            forslagRepository.getOrThrow(ventendeForslag.id) shouldBe
                 ventendeForslagFraDb.copy(status = godkjentForslag.status)
         }
     }
@@ -152,7 +151,7 @@ class ForslagRepositoryTest {
     @Nested
     inner class Get {
         @Test
-        fun `get - finnes - returnerer success`() {
+        fun `get - finnes - returnerer forslag`() {
             // Arrange
             val deltaker = TestData.lagDeltaker()
             TestRepository.insert(deltaker)
@@ -160,20 +159,18 @@ class ForslagRepositoryTest {
             forslagRepository.upsert(forslag)
 
             // Act
-            val resultat = forslagRepository.get(forslag.id)
+            val resultat = forslagRepository.getOrThrow(forslag.id)
 
             // Assert
-            resultat.shouldBeSuccess()
-            resultat.getOrThrow().id shouldBe forslag.id
+            resultat.id shouldBe forslag.id
         }
 
         @Test
-        fun `get - finnes ikke - returnerer failure`() {
+        fun `get - finnes ikke - kaster exception`() {
             // Arrange / Act
-            val resultat = forslagRepository.get(UUID.randomUUID())
-
-            // Assert
-            resultat.shouldBeFailure<NoSuchElementException>()
+            shouldThrow<NoSuchElementException> {
+                forslagRepository.getOrThrow(UUID.randomUUID())
+            }
         }
     }
 

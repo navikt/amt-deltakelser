@@ -54,7 +54,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(deltakerliste)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -68,7 +68,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(deltakerliste)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -87,7 +87,7 @@ class DeltakerlisteRepositoryTest {
             tiltakRepository.upsert(tiltakstype)
             deltakerlisteRepository.upsert(deltakerliste)
 
-            val lagret = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-42"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
         }
@@ -111,7 +111,7 @@ class DeltakerlisteRepositoryTest {
             val oppdatert = deltakerliste.copy(lopenummer = "2027-99", tilgjengeligForArrangorFraOgMedDato = nyDato)
             deltakerlisteRepository.upsert(oppdatert)
 
-            val lagret = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-99"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe nyDato
         }
@@ -152,7 +152,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(gjennomforingdbo)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -188,7 +188,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(gjennomforingdbo)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -205,7 +205,7 @@ class DeltakerlisteRepositoryTest {
 
             deltakerlisteRepository.upsert(oppdatertListe)
 
-            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe oppdatertListe
+            deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertListe
         }
     }
 
@@ -221,7 +221,7 @@ class DeltakerlisteRepositoryTest {
 
         deltakerlisteRepository.delete(deltakerliste.id)
 
-        deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
+        deltakerlisteRepository.get(deltakerliste.id) shouldBe null
     }
 
     @Test
@@ -234,7 +234,7 @@ class DeltakerlisteRepositoryTest {
         tiltakRepository.upsert(tiltakstype)
         deltakerlisteRepository.upsert(deltakerliste)
 
-        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
+        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn

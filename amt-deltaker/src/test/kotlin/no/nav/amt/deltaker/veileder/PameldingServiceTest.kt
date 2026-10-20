@@ -3,8 +3,6 @@ package no.nav.amt.deltaker.veileder
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -251,7 +249,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             )
 
             // Assert
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
             deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -291,7 +289,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
             // Assert
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -302,7 +300,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 it.sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
             }
 
-            innsokRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+            innsokRepository.getForDeltaker(deltaker.id) shouldBe null
 
             outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltaker.id)
         }
@@ -336,7 +334,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             pameldingService.upsertUtkast(deltakerId = deltaker.id, utkast = utkastRequest)
 
             // Assert
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.SOKT_INN
             deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -344,7 +342,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             vedtak.fattet shouldBe null
             vedtak.fattetAvNav shouldBe false
 
-            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
             assertSoftly(innsok) {
                 utkastGodkjentAvNav shouldBe true
                 utkastDelt shouldBe null
@@ -390,7 +388,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
                 vedtaksinformasjon shouldBe null
             }
@@ -466,13 +464,13 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 vedtaksinformasjon.shouldNotBeNull()
                 vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
             }
 
-            innsokRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+            innsokRepository.getForDeltaker(deltaker.id) shouldBe null
 
             assertProduced(deltaker.id)
         }
@@ -492,13 +490,13 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             // Act
             pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 vedtaksinformasjon.shouldNotBeNull()
                 vedtaksinformasjon.fattet shouldBe null
             }
 
-            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            val innsok = innsokRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
             assertSoftly(innsok) {
                 utkastGodkjentAvNav shouldBe false
                 utkastDelt shouldNotBe null
@@ -534,7 +532,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
             // Assert
-            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
                 status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 vedtaksinformasjon.shouldNotBeNull()
                 vedtaksinformasjon.fattetAvNav shouldBe false
@@ -566,7 +564,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
 
-            val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldNotBeNull()
             ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
     }
