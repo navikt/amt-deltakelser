@@ -52,7 +52,6 @@ import no.nav.amt.internapi.deltaker.request.EndringRequest
 import no.nav.amt.internapi.deltaker.request.SluttarsakRequest
 import no.nav.amt.internapi.deltaker.request.SluttdatoRequest
 import no.nav.amt.internapi.deltaker.request.StartdatoRequest
-import no.nav.amt.internapi.deltaker.request.TilbakekaltPrisendringRequest
 import no.nav.amt.internapi.enkeltplass.sanitizeBeskrivelse
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
@@ -157,18 +156,6 @@ fun Routing.registerVeilederApi(
                 )
             }
 
-            // TODO: fjern når frontend kjører mot endepunkt i EnkeltplassApi
-            post("/tilbakekall-prisendring") {
-                val request = TilbakekallPrisendringRequest()
-                call.handleEndring(
-                    frontendRequest = request,
-                    amtDeltakerRequest =
-                        TilbakekaltPrisendringRequest(
-                            endretAv = call.getNavIdent(),
-                            endretAvEnhet = call.getEnhetsnummer(),
-                        ),
-                )
-            }
 
             post("/bakgrunnsinformasjon") {
                 val request = call.receive<EndreBakgrunnsinformasjonRequest>()
