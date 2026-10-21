@@ -14,7 +14,7 @@ on:
       - "amt-lib/**"
       - "amt-pdfgen/**"
       - "amt-tiltaksarrangor-bff/**"
-      - "gradle/libs.versions.toml"
+      - "gradle/**"
 
 permissions:
   contents: write    # Required for dependency-graph submit in reusable workflow
