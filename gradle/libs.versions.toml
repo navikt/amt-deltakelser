@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "2.4.10"
+kotlin-version = "2.4.21"
 ktor-version = "3.5.2"
 logback-version = "1.6.5"
 logstash-encoder-version = "9.0"
@@ -14,14 +14,14 @@ flyway-version = "13.10.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.14"
-caffeine-version = "3.3.0"
+caffeine-version = "3.3.1"
 mockk-version = "1.14.11"
 nimbus-version = "10.10"
 unleash-version = "12.3.0"
 tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
-kafka-clients-version = "4.3.1"
+kafka-clients-version = "4.3.2"
 kotlinx-version = "1.11.0"
 prometheus-metrics-version = "1.9.0"
 okhttp-version = "5.5.0"
