@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
@@ -213,6 +214,39 @@ object PrisinfoRepoAdapter {
         }
 
         return nyPrisinfoId
+    }
+
+    /**
+     * Håndhever at selve *typen* prisinformasjon kun kan endres så lenge deltakelsen
+     * ikke har passert søknadsfasen (status UTKAST_TIL_PAMELDING eller SOKT_INN).
+     *
+     * Dette speiler valideringen i amt-deltaker-bff ([validerPrisinfoTypeKanEndres]), men
+     * utføres her innenfor skrivetransaksjonen slik at en samtidig økonomigodkjenning —
+     * som kan endre både status og gjeldende prisinfo mellom BFF-sjekken og skrivingen —
+     * ikke kan omgå regelen (TOCTOU).
+     *
+     * Rene verdiendringer innenfor samme type er alltid tillatt.
+     *
+     * @throws IllegalArgumentException hvis typen endres og status ikke tillater det
+     */
+    fun validerPrisinfoTypeKanEndres(
+        gjennomforingId: UUID,
+        nyPrisinformasjon: PrisinformasjonDto,
+        deltakerStatus: DeltakerStatus.Type,
+    ) {
+        val gjeldendePrisinfo = hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) ?: return
+
+        val endrerType = gjeldendePrisinfo::class != nyPrisinformasjon::class
+        if (!endrerType) return
+
+        require(
+            deltakerStatus in setOf(
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+                DeltakerStatus.Type.SOKT_INN,
+            ),
+        ) {
+            "Kan ikke endre type prisinformasjon når deltakelsen har status $deltakerStatus"
+        }
     }
 
     /**

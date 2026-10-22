@@ -121,6 +121,9 @@ class GjennomforingProducerServiceTest {
         every {
             PrisinfoRepoAdapter.lagrePrisinfoEndring(any(), any(), any())
         } returns totrinnsIdInTest
+        every {
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(any(), any(), any())
+        } just Runs
 
         every { deltakerlisteRepository.get(any()) } returns createBaseDeltaker().deltakerliste
     }
@@ -142,6 +145,7 @@ class GjennomforingProducerServiceTest {
                 prisinfo = nyPrisinfo,
                 begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = "Z123456",
+                deltakerStatus = deltaker.status.type,
             )
 
             // Assert
@@ -178,6 +182,7 @@ class GjennomforingProducerServiceTest {
                     prisinfo = nyPrisinfo,
                     begrunnelse = "~begrunnelse~",
                     endretAvNavIdent = "Z123456",
+                    deltakerStatus = deltaker.status.type,
                 )
             }
         }
@@ -197,6 +202,7 @@ class GjennomforingProducerServiceTest {
                 prisinfo = nyPrisinfo,
                 begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = endretAv,
+                deltakerStatus = deltaker.status.type,
             )
 
             // Assert
@@ -398,7 +404,7 @@ class GjennomforingProducerServiceTest {
                     behandletAv = navIdent,
                 ),
             )
-            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.TotrinnskontrollStatus.SENDT) }
         }
 
         @Test
