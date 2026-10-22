@@ -135,6 +135,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
     val endret: LocalDateTime,
     val erForsteGodkjenning: Boolean,
     val prisinformasjon: PrisinformasjonResponse?,
+    val begrunnelse: String? = null,
 ) : DeltakerHistorikkResponse {
     companion object {
         private val log = LoggerFactory.getLogger(javaClass)
@@ -155,6 +156,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
                 endret = model.sistEndret,
                 erForsteGodkjenning = model.erForsteGodkjenning,
                 prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
+                begrunnelse = model.prisinformasjon?.begrunnelse,
             )
         }
     }
