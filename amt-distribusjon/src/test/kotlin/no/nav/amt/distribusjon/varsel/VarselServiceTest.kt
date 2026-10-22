@@ -198,6 +198,24 @@ class VarselServiceTest : IntegrationTestBase() {
         )
 
         @Test
+        fun `opprettUtkast - oppretter oppgave med ekstern varsling`() {
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+            setupMocks(hendelse)
+
+            varselService.handleHendelse(hendelse)
+
+            val oppgave = varselRepository
+                .getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE)
+                .shouldNotBeNull()
+
+            assertSoftly(oppgave) {
+                status shouldBe Varsel.Status.AKTIV
+                erEksterntVarsel shouldBe true
+            }
+            oppgave.toOppgaveDto().has("eksternVarsling") shouldBe true
+        }
+
+        @Test
         fun `enkeltplassEndreOpplaringKategorisering - oppdaterer teksten på ventende beskjed ved ny kurstype`() {
             // Arrange
             val deltaker = Hendelsesdata.lagDeltaker(
@@ -281,7 +299,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `endreUtkast - arrangor er endret - inaktiverer gammel oppgave og oppretter ny`() {
+        fun `endreUtkast - arrangor er endret - oppretter ny oppgave uten ekstern varsling`() {
             // Arrange
             val gammelHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
             val oppdatertDeltaker = gammelHendelse.deltaker.copy(
@@ -304,6 +322,7 @@ class VarselServiceTest : IntegrationTestBase() {
                 hendelse = hendelse,
                 forventetTekst =
                     "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Tiltaksnavn hos Ny arrangør. Svar på spørsmålet her.",
+                forventetEksterntVarsel = false,
             )
         }
 
@@ -312,6 +331,7 @@ class VarselServiceTest : IntegrationTestBase() {
                 status = Varsel.Status.AKTIV,
                 aktivFra = nowUTC().minusDays(1),
             )
+            hendelseRepository.insert(gammelHendelse)
             varselRepository.upsert(gammelOppgave)
             return gammelOppgave
         }
@@ -320,6 +340,7 @@ class VarselServiceTest : IntegrationTestBase() {
             gammelOppgave: Varsel,
             hendelse: Hendelse,
             forventetTekst: String,
+            forventetEksterntVarsel: Boolean = true,
         ) {
             varselRepository.get(gammelOppgave.id).shouldNotBeNull().status shouldBe Varsel.Status.INAKTIVERT
 
@@ -328,8 +349,10 @@ class VarselServiceTest : IntegrationTestBase() {
                 status shouldBe Varsel.Status.AKTIV
                 tekst shouldBe oppgaveTekst(hendelse)
                 tekst shouldBe forventetTekst
+                erEksterntVarsel shouldBe forventetEksterntVarsel
             }
 
+            nyOppgave.toOppgaveDto().has("eksternVarsling") shouldBe forventetEksterntVarsel
             verify { outboxService.insertRecord(gammelOppgave.id, any(), any(), any()) }
             verify { outboxService.insertRecord(nyOppgave.id, any(), any(), any()) }
         }
