@@ -19,7 +19,9 @@ import no.nav.amt.deltaker.bff.auth.TilgangskontrollService
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.bff.veileder.api.request.OpprettEnkeltplassKladdRequest
+import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.utils.createPostRequest
 import no.nav.amt.internapi.DeltakerIdResponse
 import no.nav.amt.internapi.PersonIdentResponse
@@ -28,6 +30,7 @@ import no.nav.amt.internapi.enkeltplass.OppdaterEnkeltplassKladdRequest
 import no.nav.amt.internapi.enkeltplass.OpplaringKategoriseringResponse
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.clients.kodeverk.SertifiseringResponse
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
@@ -431,6 +434,53 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             // Assert
             response.status shouldBe HttpStatusCode.BadRequest
             coVerify(exactly = 0) { enkeltplassClient.meldPaaDirekte(any(), any()) }
+        }
+    }
+
+    @Nested
+    inner class TilbakekallPrisendringTests {
+        val url = "/enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}"
+
+        @Test
+        fun `skal returnere Unauthorized nar tilgang mangler`() {
+            val response = withTestApplicationContext { client ->
+                client.post(url)
+            }
+
+            response.status shouldBe HttpStatusCode.Unauthorized
+        }
+
+        @Test
+        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
+
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    createPostRequest(TilbakekallPrisendringRequest())
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+
+        @Test
+        fun `skal returnere OK nar prisendring er tilbakekalt`() {
+            val deltaker = lagDeltakerOld(
+                id = deltakerInTest.id,
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            val deltakerResponse = lagDeltakerResponse(deltaker)
+            coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns deltakerResponse
+            coEvery { amtDeltakerClient.postEndreDeltaker(deltaker.id, any()) } returns deltakerResponse
+
+            val response = withTestApplicationContext { client ->
+                client.post(url) {
+                    createPostRequest(TilbakekallPrisendringRequest())
+                }
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            coVerify(exactly = 1) { amtDeltakerClient.postEndreDeltaker(deltaker.id, any()) }
         }
     }
 
