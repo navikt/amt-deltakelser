@@ -198,6 +198,24 @@ class VarselServiceTest : IntegrationTestBase() {
         )
 
         @Test
+        fun `opprettUtkast - oppretter oppgave med ekstern varsling`() {
+            val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
+            setupMocks(hendelse)
+
+            varselService.handleHendelse(hendelse)
+
+            val oppgave = varselRepository
+                .getSisteVarsel(hendelse.deltaker.id, Varsel.Type.OPPGAVE)
+                .shouldNotBeNull()
+
+            assertSoftly(oppgave) {
+                status shouldBe Varsel.Status.AKTIV
+                erEksterntVarsel shouldBe true
+            }
+            oppgave.toOppgaveDto().has("eksternVarsling") shouldBe true
+        }
+
+        @Test
         fun `enkeltplassEndreOpplaringKategorisering - oppdaterer teksten på ventende beskjed ved ny kurstype`() {
             // Arrange
             val deltaker = Hendelsesdata.lagDeltaker(
