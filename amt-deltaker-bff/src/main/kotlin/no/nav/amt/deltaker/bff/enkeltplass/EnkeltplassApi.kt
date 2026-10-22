@@ -195,20 +195,20 @@ fun Routing.registerEnkeltplassApi(
 
                     call.respond(HttpStatusCode.OK)
                 }
+            }
 
-                post("/tilbakekall-prisendring") {
-                    val request = TilbakekallPrisendringRequest()
-                    call.handleEndringRequest(
-                        frontendRequest = request,
-                        amtDeltakerRequest =
-                            TilbakekaltPrisendringRequest(
-                                endretAv = call.getNavIdent(),
-                                endretAvEnhet = call.getEnhetsnummer(),
-                            ),
-                        tilgangskontrollService = tilgangskontrollService,
-                        amtDeltakerClient = amtDeltakerClient,
-                    )
-                }
+            post("/tilbakekall-prisendring/{deltakerId}") {
+                val request = TilbakekallPrisendringRequest()
+                call.handleEndringRequest(
+                    frontendRequest = request,
+                    amtDeltakerRequest =
+                        TilbakekaltPrisendringRequest(
+                            endretAv = call.getNavIdent(),
+                            endretAvEnhet = call.getEnhetsnummer(),
+                        ),
+                    tilgangskontrollService = tilgangskontrollService,
+                    amtDeltakerClient = amtDeltakerClient,
+                )
             }
         }
     }
