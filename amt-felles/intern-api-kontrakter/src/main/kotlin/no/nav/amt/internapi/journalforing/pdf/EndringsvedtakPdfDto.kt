@@ -52,6 +52,7 @@ sealed interface EndringDto {
     data class GodkjennPrisendring(
         override val tittel: String,
         val prisinformasjon: Prisinformasjon,
+        val begrunnelseFraNav: String? = null,
     ) : EndringDto
 
     data class EndreDeltakelsesmengde(
