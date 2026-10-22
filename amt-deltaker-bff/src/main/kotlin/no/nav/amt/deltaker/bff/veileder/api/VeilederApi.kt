@@ -39,7 +39,6 @@ import no.nav.amt.deltaker.bff.veileder.api.request.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.IkkeAktuellRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.bff.veileder.api.request.TilbakekallPrisendringRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerHistorikkResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.request.AvbrytDeltakelseRequest
@@ -155,7 +154,6 @@ fun Routing.registerVeilederApi(
                     ),
                 )
             }
-
 
             post("/bakgrunnsinformasjon") {
                 val request = call.receive<EndreBakgrunnsinformasjonRequest>()
