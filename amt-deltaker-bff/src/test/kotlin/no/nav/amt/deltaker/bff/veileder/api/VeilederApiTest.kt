@@ -726,7 +726,6 @@ class VeilederApiTest : IntegrationTestBase() {
     )
 
     private val endreOpplaringKategoriseringRequest = EndreOpplaringKategoriseringRequest(
-
         opplaringKategoriseringValg = setOf(
             OpplaringKategoriseringValgRequest(
                 representerer = OpplaringKategoriseringType.BRANSJE_ID,
