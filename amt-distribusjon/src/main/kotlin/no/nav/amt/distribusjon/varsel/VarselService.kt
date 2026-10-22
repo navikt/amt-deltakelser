@@ -178,18 +178,6 @@ class VarselService(
 
         if (varsel.tekst == nyOppgave.tekst) return
 
-        val arrangorErEndret = erArrangorEndret(
-            varsel = varsel,
-            hendelse = hendelse,
-        )
-
-        val oppdatertOppgave = if (arrangorErEndret) {
-            // skru av varsling for endring av arrangør på utkast
-            nyOppgave.copy(erEksterntVarsel = false)
-        } else {
-            nyOppgave
-        }
-
         ferdigstillSendtVarsel(
             varsel = varsel,
             nyStatus = Varsel.Status.INAKTIVERT,
@@ -197,22 +185,9 @@ class VarselService(
 
         // som ved første deling opprettes oppgaven med en gang, slik at brukeren raskt ser riktig arrangør.
         handleNyttVarsel(
-            varsel = oppdatertOppgave,
+            varsel = nyOppgave,
             sendUmiddelbart = true,
         )
-    }
-
-    private fun erArrangorEndret(
-        varsel: Varsel,
-        hendelse: Hendelse,
-    ): Boolean {
-        val forrigeHendelse = hendelseRepository
-            .getHendelser(varsel.hendelser)
-            .firstOrNull()
-            ?: return false
-
-        return forrigeHendelse.deltaker.deltakerliste.arrangor.id !=
-            hendelse.deltaker.deltakerliste.arrangor.id
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {
