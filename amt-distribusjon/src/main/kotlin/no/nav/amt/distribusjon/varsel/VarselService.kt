@@ -6,6 +6,8 @@ import no.nav.amt.distribusjon.hendelse.model.Hendelse
 import no.nav.amt.distribusjon.varsel.model.Varsel
 import no.nav.amt.internapi.hendelse.HendelseDeltaker
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.ZoneId
@@ -178,7 +180,7 @@ class VarselService(
 
         if (varsel.tekst == nyOppgave.tekst) return
 
-        val arrangorErEndret = erArrangorEndret(
+        val arrangorErEndret = erEndringsvarsel(
             varsel = varsel,
             hendelse = hendelse,
         )
@@ -202,7 +204,10 @@ class VarselService(
         )
     }
 
-    private fun erArrangorEndret(
+    /**
+     * Returnerer true når arrangøren eller kurstypen for FOV er endret siden forrige hendelse.
+     */
+    private fun erEndringsvarsel(
         varsel: Varsel,
         hendelse: Hendelse,
     ): Boolean {
@@ -211,8 +216,31 @@ class VarselService(
             .firstOrNull()
             ?: return false
 
-        return forrigeHendelse.deltaker.deltakerliste.arrangor.id !=
+        val arrangorErEndret = forrigeHendelse.deltaker.deltakerliste.arrangor.id !=
             hendelse.deltaker.deltakerliste.arrangor.id
+
+        val kurstypeErEndret = hendelse.deltaker.deltakerliste.tiltak.tiltakskode ==
+            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV &&
+            forrigeHendelse.kurstype() != hendelse.kurstype()
+
+        return arrangorErEndret || kurstypeErEndret
+    }
+
+    /**
+     * Henter valgt kurstype for FOV, eller null hvis tiltakskoden er en annen eller kurstype mangler.
+     */
+    private fun Hendelse.kurstype(): String? {
+        val deltakerliste = deltaker.deltakerliste
+
+        if (deltakerliste.tiltak.tiltakskode != Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV) {
+            return null
+        }
+
+        return deltakerliste.opplaringKategoriseringValg
+            ?.hentVerdier(
+                representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                throwIfEmpty = false,
+            )?.minOrNull()
     }
 
     private fun utforOppgave(deltaker: HendelseDeltaker) {

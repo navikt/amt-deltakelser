@@ -295,6 +295,47 @@ class VarselServiceTest : IntegrationTestBase() {
                 hendelse = hendelse,
                 forventetTekst =
                     "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Almenn norsk hos Arrangornavn. Svar på spørsmålet her.",
+                forventetEksterntVarsel = false,
+            )
+        }
+
+        @Test
+        fun `endreUtkast - kurstype er uendret - beholder ekstern varsling`() {
+            // Arrange
+            val gammelHendelse = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.opprettUtkast(),
+                deltaker = Hendelsesdata.lagDeltaker(
+                    deltakerliste = Hendelsesdata.lagDeltakerliste(
+                        tiltak = Hendelsesdata.tiltak(
+                            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                        ),
+                        opplaringKategoriseringValg = kurstypeValg("Yrkesnorsk"),
+                    ),
+                ),
+            )
+            val oppdatertDeltaker = gammelHendelse.deltaker.copy(
+                deltakerliste = gammelHendelse.deltaker.deltakerliste.copy(
+                    arrangor = gammelHendelse.deltaker.deltakerliste.arrangor
+                        .copy(navn = "Ny arrangør"),
+                    // Ny ID, samme visningsverdi.
+                    opplaringKategoriseringValg = kurstypeValg("Yrkesnorsk"),
+                ),
+            )
+            val hendelse = Hendelsesdata.hendelse(
+                payload = HendelseType.EndreUtkast(HendelseTypeData.utkast()),
+                deltaker = oppdatertDeltaker,
+            )
+            val gammelOppgave = opprettAktivOppgave(gammelHendelse)
+
+            // Act
+            varselService.handleHendelse(hendelse)
+
+            // Assert
+            verifiserEndretUtkast(
+                gammelOppgave = gammelOppgave,
+                hendelse = hendelse,
+                forventetTekst =
+                    "Du har mottatt et utkast til påmelding på arbeidsmarkedstiltaket: Yrkesnorsk hos Ny arrangør. Svar på spørsmålet her.",
             )
         }
 
