@@ -15,6 +15,7 @@ class PdfDtoMappingUtilsTest {
             prisinfo = PrisinformasjonDto.IngenKostnader(
                 tilleggsopplysninger = "",
             ),
+            begrunnelse = "Prisendringen er godkjent",
         )
 
         val resultat = tilEndringDto(
@@ -27,6 +28,7 @@ class PdfDtoMappingUtilsTest {
         resultat shouldBe EndringDto.GodkjennPrisendring(
             tittel = "Pris og betalingsbetingelser er endret",
             prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+            begrunnelseFraNav = "Prisendringen er godkjent",
         )
     }
 

@@ -150,7 +150,7 @@ class EndringsvedtakTest :
                     }
                 }
 
-                it("viser prisinformasjon for GodkjennPrisendring") {
+                it("viser begrunnelse og prisinformasjon for GodkjennPrisendring") {
                     val doc = renderEndringsvedtak(
                         endringsvedtak(
                             endringer =
@@ -158,6 +158,7 @@ class EndringsvedtakTest :
                                     EndringDto.GodkjennPrisendring(
                                         tittel = "Pris og betalingsbetingelser er endret",
                                         prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                                        begrunnelseFraNav = "Prisendringen er godkjent",
                                     ),
                                 ),
                         ),
@@ -166,7 +167,7 @@ class EndringsvedtakTest :
                     doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
                     doc.text() shouldContain "Pris og betalingsbetingelser er endret"
                     doc.text() shouldContain "Nav skal ikke betale for opplæringen."
-
+                    doc.text() shouldContain "Nav sin begrunnelse: Prisendringen er godkjent"
                 }
 
                 describe("erEnkeltplassinnhold") {
