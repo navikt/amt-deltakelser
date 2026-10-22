@@ -404,7 +404,7 @@ class GjennomforingProducerServiceTest {
                     behandletAv = navIdent,
                 ),
             )
-            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.TotrinnskontrollStatus.SENDT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
         }
 
         @Test
