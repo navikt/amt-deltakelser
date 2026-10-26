@@ -8,6 +8,7 @@ import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.TestRepository
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
+import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
@@ -248,6 +249,131 @@ class HendelseRepositoryTest {
             // Assert
             ikkeDistribuerteHendelser.size shouldBe 0
         }
+    }
+
+    @Nested
+    inner class HentDistribuerteEnkeltplassHovedvedtakTests {
+        @Test
+        fun `hentDistribuerteEnkeltplassHovedvedtak - returnerer kun faktisk distribuerte hovedvedtak`() {
+            // Arrange
+            val deltakerId = UUID.randomUUID()
+            val fattetDato = LocalDateTime.now().minusMinutes(45)
+            val hovedvedtakForPapir = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                    utkast = HendelseTypeData.utkast(),
+                    hovedvedtakFattetDato = fattetDato,
+                ),
+                deltaker = Hendelsesdata.lagDeltaker(id = deltakerId),
+                distribusjonskanal = Distribusjonskanal.PRINT,
+            )
+            val hovedvedtakDigitalt = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                    utkast = HendelseTypeData.utkast(),
+                    hovedvedtakFattetDato = fattetDato,
+                ),
+                deltaker = Hendelsesdata.lagDeltaker(id = deltakerId),
+                distribusjonskanal = Distribusjonskanal.DITT_NAV,
+            )
+            val ikkeSendtHovedvedtak = Hendelsesdata.hendelse(
+                payload = HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                    utkast = HendelseTypeData.utkast(),
+                    hovedvedtakFattetDato = fattetDato,
+                ),
+                deltaker = Hendelsesdata.lagDeltaker(id = deltakerId),
+                distribusjonskanal = Distribusjonskanal.PRINT,
+            )
+            val annetHovedvedtak = Hendelsesdata.hendelse(
+                payload = HendelseTypeData.navGodkjennUtkast(),
+                deltaker = Hendelsesdata.lagDeltaker(id = deltakerId),
+                distribusjonskanal = Distribusjonskanal.PRINT,
+            )
+
+            listOf(
+                hovedvedtakForPapir,
+                hovedvedtakDigitalt,
+                ikkeSendtHovedvedtak,
+                annetHovedvedtak,
+            ).forEach {
+                TestRepository.insertHendelse(it)
+            }
+            journalforingstatusRepository.upsert(
+                Journalforingstatus(hovedvedtakForPapir.id, "papir", UUID.randomUUID(), false, false),
+            )
+            journalforingstatusRepository.upsert(
+                Journalforingstatus(hovedvedtakDigitalt.id, "digitalt", null, false, false),
+            )
+            journalforingstatusRepository.upsert(
+                Journalforingstatus(ikkeSendtHovedvedtak.id, "ikke-sendt", null, false, false),
+            )
+            journalforingstatusRepository.upsert(
+                Journalforingstatus(annetHovedvedtak.id, "annet-hovedvedtak", UUID.randomUUID(), false, false),
+            )
+
+            // Act
+            val result = hendelseRepository.hentDistribuerteEnkeltplassHovedvedtak(setOf(deltakerId))
+
+            // Assert
+            val returnerteHovedvedtakIder = result.map { it.hendelse.id }.toSet()
+            val hovedvedtakForPapirPayload = result
+                .first { it.hendelse.id == hovedvedtakForPapir.id }
+                .hendelse.payload as HendelseType.EnkeltplassOkonomiGodkjennUtkast
+
+            returnerteHovedvedtakIder shouldBe setOf(
+                hovedvedtakForPapir.id,
+                hovedvedtakDigitalt.id,
+            )
+            hovedvedtakForPapirPayload.hovedvedtakFattetDato shouldBe fattetDato
+        }
+    }
+
+    @Test
+    fun `annuller - gjør hendelser utilgjengelige for journalføring og distribusjon`() {
+        // Arrange
+        val ikkeJournalfort = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
+        val ikkeDistribuert = Hendelsesdata.hendelse(
+            payload = HendelseTypeData.forlengDeltakelse(),
+            distribusjonskanal = Distribusjonskanal.PRINT,
+        )
+        TestRepository.insertHendelse(ikkeJournalfort)
+        TestRepository.insertHendelse(ikkeDistribuert)
+        val ikkeJournalfortStatus = Journalforingstatus(
+            hendelseId = ikkeJournalfort.id,
+            journalpostId = null,
+            bestillingsId = null,
+            kanIkkeDistribueres = false,
+            kanIkkeJournalfores = false,
+        )
+        val ikkeDistribuertStatus = Journalforingstatus(
+            hendelseId = ikkeDistribuert.id,
+            journalpostId = "journalpost",
+            bestillingsId = null,
+            kanIkkeDistribueres = false,
+            kanIkkeJournalfores = false,
+        )
+        journalforingstatusRepository.upsert(ikkeJournalfortStatus)
+        journalforingstatusRepository.upsert(ikkeDistribuertStatus)
+
+        // Act
+        val antallAnnullert = journalforingstatusRepository.annuller(listOf(ikkeJournalfort.id, ikkeDistribuert.id))
+        val statusIkkeJournalfort = journalforingstatusRepository.get(ikkeJournalfort.id)
+        val statusIkkeDistribuert = journalforingstatusRepository.get(ikkeDistribuert.id)
+        val ikkeJournalforteHendelseIder = hendelseRepository.hentIkkeJournalforteHendelser().map { it.hendelse.id }
+        val ikkeDistribuerteHendelseIder =
+            hendelseRepository.hentHendelserSomSkalDistribueresSomBrev().map { it.hendelse.id }
+
+        // Assert
+        antallAnnullert shouldBe 2
+        statusIkkeJournalfort?.annullert shouldBe true
+        statusIkkeDistribuert?.annullert shouldBe true
+        ikkeJournalforteHendelseIder.contains(ikkeJournalfort.id) shouldBe false
+        ikkeDistribuerteHendelseIder.contains(ikkeDistribuert.id) shouldBe false
+
+        // Act
+        journalforingstatusRepository.upsert(ikkeJournalfortStatus)
+        val statusEtterUpsert = journalforingstatusRepository.get(ikkeJournalfort.id)
+
+        // Assert
+        statusEtterUpsert?.annullert shouldBe true
     }
 
     @Test

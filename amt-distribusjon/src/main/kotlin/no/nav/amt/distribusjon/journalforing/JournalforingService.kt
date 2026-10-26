@@ -47,18 +47,24 @@ class JournalforingService(
 
     suspend fun handleHendelse(hendelse: Hendelse) {
         val journalforingstatus = journalforingstatusRepository.get(hendelse.id)
-        if (hendelseErBehandlet(journalforingstatus, hendelse.distribusjonskanal, hendelse.manuellOppfolging)) {
+        if (hendelseErBehandlet(
+                journalforingstatus = journalforingstatus,
+                distribusjonskanal = hendelse.distribusjonskanal,
+                manuellOppfolging = hendelse.manuellOppfolging,
+            )
+        ) {
             log.info("Hendelse med id ${hendelse.id} for deltaker ${hendelse.deltaker.id} er allerede behandlet")
             return
         }
+
         when (hendelse.payload) {
             is HendelseType.EnkeltplassOkonomiGodkjennUtkast -> journalforHovedvedtak(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,
                 journalforingstatus = journalforingstatus,
             )
-            is HendelseType.EnkeltplassEndrePrisinfo,
-            -> {
+
+            is HendelseType.EnkeltplassEndrePrisinfo -> {
                 if (!hendelse.payload.kreverGodkjenning) {
                     handleEndringsvedtak(
                         hendelse = hendelse,
@@ -66,6 +72,7 @@ class JournalforingService(
                     )
                 }
             }
+
             is HendelseType.NavGodkjennUtkast -> handleUtkastGodkjent(
                 hendelse = hendelse,
                 utkast = hendelse.payload.utkast,
@@ -554,16 +561,27 @@ class JournalforingService(
     }
 }
 
+/**
+ * Sjekker om hendelsen er annullert eller allerede behandlet.
+ *
+ * @param journalforingstatus Hendelsens journalføringsstatus, eller null hvis status mangler.
+ * @param distribusjonskanal Kanalen som hendelsen skal distribueres gjennom.
+ * @param manuellOppfolging Om hendelsen krever manuell oppfølging.
+ * @return `true` hvis hendelsen er annullert eller allerede behandlet.
+ */
 private fun hendelseErBehandlet(
     journalforingstatus: Journalforingstatus?,
     distribusjonskanal: Distribusjonskanal,
     manuellOppfolging: Boolean,
-): Boolean = journalforingstatus != null &&
-    journalforingstatus.erJournalfort() &&
-    journalforingstatus.erDistribuert(
-        distribusjonskanal,
-        manuellOppfolging,
+): Boolean {
+    if (journalforingstatus == null) return false
+    if (journalforingstatus.annullert) return true
+
+    return journalforingstatus.erJournalfort() && journalforingstatus.erDistribuert(
+        distribusjonskanal = distribusjonskanal,
+        erUnderManuellOppfolging = manuellOppfolging,
     )
+}
 
 private fun getAnsvarlig(
     nyesteHendelse: Hendelse,

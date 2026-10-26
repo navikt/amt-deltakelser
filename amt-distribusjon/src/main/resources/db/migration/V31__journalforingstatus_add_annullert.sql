@@ -1,0 +1,2 @@
+ALTER TABLE journalforingstatus
+    ADD COLUMN annullert BOOLEAN NOT NULL DEFAULT FALSE;

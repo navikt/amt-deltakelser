@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -63,6 +64,7 @@ sealed interface HendelseType {
      */
     data class EnkeltplassOkonomiGodkjennUtkast(
         val utkast: UtkastDto,
+        val hovedvedtakFattetDato: LocalDateTime? = null,
     ) : HendelseType
 
     /**

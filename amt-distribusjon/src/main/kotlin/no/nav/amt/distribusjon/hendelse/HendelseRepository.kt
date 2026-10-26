@@ -50,10 +50,16 @@ class HendelseRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
+    /**
+     * Henter hendelser som ikke er journalført eller annullert.
+     *
+     * @return Hendelser med journalføringsstatus som kan journalføres.
+     */
     fun hentIkkeJournalforteHendelser(): List<HendelseMedJournalforingstatus> {
         val where =
             """
-            js.journalpost_id IS NULL
+            js.annullert IS NOT TRUE
+            AND js.journalpost_id IS NULL
             AND js.kan_ikke_journalfores IS NOT TRUE
             """.trimIndent()
 
@@ -65,11 +71,14 @@ class HendelseRepository {
      *
      * Vi ekskluderer "digitale" distribusjonskanaler (DITT_NAV/SDP), og ekskluderer samtidig
      * rader som allerede blir plukket opp av [hentIkkeJournalforteHendelser].
+     *
+     * @return Journalførte hendelser som venter på distribusjon som brev.
      */
     fun hentHendelserSomSkalDistribueresSomBrev(): List<HendelseMedJournalforingstatus> {
         val where =
             """
-            js.bestillingsid IS NULL
+            js.annullert IS NOT TRUE
+            AND js.bestillingsid IS NULL
             AND js.kan_ikke_distribueres IS NOT TRUE
             AND h.distribusjonskanal NOT IN ('DITT_NAV','SDP')
             AND NOT (
@@ -79,6 +88,45 @@ class HendelseRepository {
             """.trimIndent()
 
         return queryIkkeJournalforteHendelser(where)
+    }
+
+    /**
+     * Henter hovedvedtak for enkeltplass som er journalført og sendt.
+     *
+     * @param deltakerIder ID-ene til deltakerne det skal hentes vedtak for.
+     * @return Hovedvedtak som er journalført og sendt.
+     */
+    fun hentDistribuerteEnkeltplassHovedvedtak(deltakerIder: Set<UUID>): List<HendelseMedJournalforingstatus> {
+        if (deltakerIder.isEmpty()) return emptyList()
+
+        val sql =
+            """
+            $ikkeJournalforteHendelserBaseSql
+            WHERE h.deltaker_id = ANY(:deltakerIder)
+                AND h.payload->>'type' = :hendelseType
+                AND js.annullert IS NOT TRUE
+                AND js.journalpost_id IS NOT NULL
+                AND js.kan_ikke_distribueres IS NOT TRUE
+                AND (
+                    js.bestillingsid IS NOT NULL
+                    OR (
+                        h.distribusjonskanal IN ('DITT_NAV','SDP')
+                        AND h.manuelloppfolging IS NOT TRUE
+                    )
+                )
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "deltakerIder" to deltakerIder.toTypedArray(),
+                        "hendelseType" to "EnkeltplassOkonomiGodkjennUtkast",
+                    ),
+                ).map(::hendelseMedJournalforingstatusRowMapper).asList,
+            )
+        }
     }
 
     private fun queryIkkeJournalforteHendelser(whereClause: String): List<HendelseMedJournalforingstatus> {
@@ -125,7 +173,8 @@ class HendelseRepository {
                 js.journalpost_id,
                 js.bestillingsid,
                 js.kan_ikke_distribueres,
-                js.kan_ikke_journalfores
+                js.kan_ikke_journalfores,
+                js.annullert
             FROM 
                 hendelse h
                 JOIN journalforingstatus js ON h.id = js.hendelse_id            
@@ -141,6 +190,12 @@ class HendelseRepository {
             manuellOppfolging = row.boolean("manuelloppfolging"),
         )
 
+        /**
+         * Bygger hendelse og journalføringsstatus fra en rad i databasen.
+         *
+         * @param row Raden som inneholder hendelsen og journalføringsstatusen.
+         * @return Hendelsen med tilhørende journalføringsstatus.
+         */
         private fun hendelseMedJournalforingstatusRowMapper(row: Row) = HendelseMedJournalforingstatus(
             hendelse = hendelseRowMapper(row),
             journalforingstatus = Journalforingstatus(
@@ -149,6 +204,7 @@ class HendelseRepository {
                 bestillingsId = row.uuidOrNull("bestillingsid"),
                 kanIkkeDistribueres = row.boolean("kan_ikke_distribueres"),
                 kanIkkeJournalfores = row.boolean("kan_ikke_journalfores"),
+                annullert = row.boolean("annullert"),
             ),
         )
     }

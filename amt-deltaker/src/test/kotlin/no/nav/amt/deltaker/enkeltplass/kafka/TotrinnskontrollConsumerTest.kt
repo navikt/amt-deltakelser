@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
@@ -125,6 +126,15 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             stubEnkeltplassDeltaker(deltakerRepository, gjennomforingId, deltakerInTest)
 
             val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
+            val afterUpsertSlot = slot<(Deltaker) -> Unit>()
+            val fattetDato = LocalDateTime.now()
+            var produsertHendelseType: HendelseType? = null
+            every {
+                distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any())
+            } answers {
+                val lagHendelseType = arg<(UtkastDto) -> HendelseType>(3)
+                produsertHendelseType = lagHendelseType(UtkastDto(null, null, null, null, null, null))
+            }
             every {
                 deltakerService.upsertAndProduceDeltaker(
                     deltaker = any(),
@@ -132,20 +142,24 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     forceProduce = any(),
                     nesteStatus = any(),
                     beforeUpsert = capture(beforeUpsertSlot),
-                    afterUpsert = any(),
+                    afterUpsert = capture(afterUpsertSlot),
                 )
-            } returns deltakerInTest.copy(
-                vedtaksinformasjon = Vedtaksinformasjon(
-                    fattet = null,
-                    fattetAvNav = false,
-                    opprettet = LocalDateTime.now(),
-                    opprettetAv = UUID.randomUUID(),
-                    opprettetAvEnhet = UUID.randomUUID(),
-                    sistEndret = LocalDateTime.now(),
-                    sistEndretAv = UUID.randomUUID(),
-                    sistEndretAvEnhet = UUID.randomUUID(),
-                ),
-            )
+            } answers {
+                val deltakerMedVedtak = beforeUpsertSlot.captured(firstArg<Deltaker>()).copy(
+                    vedtaksinformasjon = Vedtaksinformasjon(
+                        fattet = fattetDato,
+                        fattetAvNav = true,
+                        opprettet = LocalDateTime.now(),
+                        opprettetAv = UUID.randomUUID(),
+                        opprettetAvEnhet = UUID.randomUUID(),
+                        sistEndret = LocalDateTime.now(),
+                        sistEndretAv = UUID.randomUUID(),
+                        sistEndretAvEnhet = UUID.randomUUID(),
+                    ),
+                )
+                afterUpsertSlot.captured(deltakerMedVedtak)
+                deltakerMedVedtak
+            }
 
             // Act
             consumer.consume(
@@ -159,6 +173,10 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             val updated = beforeUpsertSlot.captured(deltakerInTest)
             updated.status.type shouldBe DeltakerStatus.Type.DELTAR
             verify { vedtakService.godkjentOkonomiFattVedtak(deltakerInTest, any(), any()) }
+            produsertHendelseType shouldBe HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                utkast = UtkastDto(null, null, null, null, null, null),
+                hovedvedtakFattetDato = fattetDato,
+            )
         }
 
         @Test
@@ -593,6 +611,8 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
 
         @Test
         fun `kaller godkjennOkonomi med gjennomforingId`() = runTest {
+            // Arrange
+
             // Act
             consumer.processGodkjentPrisEndring(
                 deltaker = deltakerInTest,
@@ -620,8 +640,8 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             val exception = RuntimeException("Database error")
             every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws exception
 
-            // Act & Assert
-            shouldThrow<RuntimeException> {
+            // Act
+            val thrownException = shouldThrow<RuntimeException> {
                 consumer.processGodkjentPrisEndring(
                     deltaker = deltakerInTest,
                     prisinfoId = totrinnskontrollId,
@@ -631,6 +651,9 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                     godkjentAvNavEnhet = navEnhet,
                 )
             }
+
+            // Assert
+            thrownException.message shouldBe exception.message
         }
 
         @Test

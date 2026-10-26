@@ -10,6 +10,7 @@ data class Journalforingstatus(
     val bestillingsId: UUID?,
     val kanIkkeDistribueres: Boolean?,
     val kanIkkeJournalfores: Boolean?,
+    val annullert: Boolean = false,
 ) {
     fun erJournalfort(): Boolean = journalpostId != null || kanIkkeJournalfores == true
 
