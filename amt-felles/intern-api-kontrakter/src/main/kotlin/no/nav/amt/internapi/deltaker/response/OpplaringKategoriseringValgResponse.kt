@@ -49,3 +49,4 @@ data class OpplaringKategoriseringValgResponse(
             OpplaringKategoriseringValgResponse(opplaringKategoriseringValg)
     }
 }
+
