@@ -109,6 +109,7 @@ class VeilederEndringService(
                                 "${endringRequest::class.simpleName} krever begrunnelse for deltaker ${deltaker.id}"
                             },
                             endretAvNavIdent = endringRequest.endretAv,
+                            deltakerStatus = deltaker.status.type,
                         )
 
                         endringRequest.copy(prisinformasjonId = prisinformasjonId)

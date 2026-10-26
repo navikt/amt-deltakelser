@@ -76,7 +76,7 @@ class GjennomforingProducerService(
     /**
      * Lagrer ny prisinformasjon og sender endringsforespørsel til totrinnskontroll.
      *
-     * Prisinfo lagres med status [no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus.SENDT]
+     * Prisinfo lagres med status [no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.TotrinnskontrollStatus.SENDT]
      * og kobles til gjennomføringen som ENDRING. Deretter produseres en Kafka-melding
      * med totrinnskontroll-ID slik at ekstern behandler kan godkjenne eller returnere endringen.
      *
@@ -84,13 +84,22 @@ class GjennomforingProducerService(
      * @param prisinfo Ny prisinformasjon som skal sendes til behandling.
      * @param begrunnelse Begrunnelsen for prisendringen.
      * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
+     * @param deltakerStatus Deltakerens status i skrivetransaksjonen, brukt for å håndheve
+     *   at prisinfo-typen kun kan endres i UTKAST_TIL_PAMELDING/SOKT_INN.
      */
     fun lagreOgProduserPrisinfoEndring(
         gjennomforingId: UUID,
         prisinfo: PrisinformasjonDto,
         begrunnelse: String,
         endretAvNavIdent: String,
+        deltakerStatus: DeltakerStatus.Type,
     ): UUID {
+        PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+            gjennomforingId = gjennomforingId,
+            nyPrisinformasjon = prisinfo,
+            deltakerStatus = deltakerStatus,
+        )
+
         val totrinnskontrollId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
             gjennomforingId = gjennomforingId,
             prisinformasjon = prisinfo,
