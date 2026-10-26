@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.repository
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.prefixColumn
@@ -17,14 +17,14 @@ import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class DeltakerlisteRepository {
+class GjennomforingRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // blir brukt av GjennomforingConsumer
-    fun upsert(deltakerliste: Deltakerliste) {
+    fun upsert(gjennomforing: Gjennomforing) {
         val sql =
             """
-            INSERT INTO deltakerliste(
+            INSERT INTO gjennomforing(
                 id, 
                 navn, 
                 gjennomforingstype,
@@ -77,32 +77,32 @@ class DeltakerlisteRepository {
             """.trimIndent()
 
         val params = mapOf(
-            "id" to deltakerliste.id,
-            "navn" to deltakerliste.navn,
-            "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
-            "status" to deltakerliste.status.name,
-            "arrangor_id" to deltakerliste.arrangor?.id,
-            "tiltakstype_id" to deltakerliste.tiltakstype.id,
-            "start_dato" to deltakerliste.startDato,
-            "slutt_dato" to deltakerliste.sluttDato,
-            "antall_plasser" to deltakerliste.antallPlasser,
-            "oppstart" to deltakerliste.oppstart.name,
-            "apent_for_pamelding" to deltakerliste.apentForPamelding,
-            "oppmote_sted" to deltakerliste.oppmoteSted,
-            "pameldingstype" to deltakerliste.pameldingstype.name,
-            "lopenummer" to deltakerliste.lopenummer,
-            "tilgjengelig_fom" to deltakerliste.tilgjengeligForArrangorFraOgMedDato,
+            "id" to gjennomforing.id,
+            "navn" to gjennomforing.navn,
+            "gjennomforingstype" to gjennomforing.gjennomforingstype.name,
+            "status" to gjennomforing.status.name,
+            "arrangor_id" to gjennomforing.arrangor?.id,
+            "tiltakstype_id" to gjennomforing.tiltakstype.id,
+            "start_dato" to gjennomforing.startDato,
+            "slutt_dato" to gjennomforing.sluttDato,
+            "antall_plasser" to gjennomforing.antallPlasser,
+            "oppstart" to gjennomforing.oppstart.name,
+            "apent_for_pamelding" to gjennomforing.apentForPamelding,
+            "oppmote_sted" to gjennomforing.oppmoteSted,
+            "pameldingstype" to gjennomforing.pameldingstype.name,
+            "lopenummer" to gjennomforing.lopenummer,
+            "tilgjengelig_fom" to gjennomforing.tilgjengeligForArrangorFraOgMedDato,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }
-        log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
+        log.info("Upsertet deltakerliste med id ${gjennomforing.id}")
     }
 
     // blir brukt av EnkeltplassService
     fun upsert(gjennomforing: GjennomforingInsertDbo) {
         val sql =
             """
-            INSERT INTO deltakerliste(
+            INSERT INTO gjennomforing(
                 id, 
                 navn, 
                 gjennomforingstype,
@@ -153,7 +153,7 @@ class DeltakerlisteRepository {
     fun update(gjennomforingUpdateDbo: EnkeltplassGjennomforingUpdateDbo) {
         val sql =
             """
-            UPDATE deltakerliste
+            UPDATE gjennomforing
             SET 
                 arrangor_id 			= :arrangor_id,
                 modified_at             = CURRENT_TIMESTAMP
@@ -172,14 +172,14 @@ class DeltakerlisteRepository {
     fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(
-                statement = "DELETE FROM deltakerliste WHERE id = :id",
+                statement = "DELETE FROM gjennomforing WHERE id = :id",
                 paramMap = mapOf("id" to id),
             ),
         )
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID): Deltakerliste? {
+    fun get(id: UUID): Gjennomforing? {
         val sql = "$BASE_SELECT WHERE dl.id = :id"
 
         return Database.query { session ->
@@ -192,7 +192,7 @@ class DeltakerlisteRepository {
         }
     }
 
-    fun getManyForTiltakstype(tiltakstypeId: UUID): List<Deltakerliste> {
+    fun getManyForTiltakstype(tiltakstypeId: UUID): List<Gjennomforing> {
         val sql = "$BASE_SELECT WHERE dl.tiltakstype_id = :tiltakstype_id"
 
         return Database.query { session ->
@@ -234,12 +234,12 @@ class DeltakerlisteRepository {
                t.innsatsgrupper AS "t.innsatsgrupper",
                t.innhold AS "t.innhold"
             FROM 
-                deltakerliste dl
+                gjennomforing dl
                 LEFT JOIN arrangor a ON a.id = dl.arrangor_id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             """.trimIndent()
 
-        fun rowMapper(row: Row): Deltakerliste {
+        fun rowMapper(row: Row): Gjennomforing {
             val id = row.uuid(col("id"))
             val gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype")))
 
@@ -260,16 +260,16 @@ class DeltakerlisteRepository {
          * N+1 ved reproduksjon av mange gjennomføringer. [toAmtGjennomforingPayload] bruker ikke
          * feltet, så det er trygt å hoppe over her.
          */
-        fun rowMapperUtenOpplaringKategorisering(row: Row): Deltakerliste = mapDeltakerliste(row, opplaringKategorisering = null)
+        fun rowMapperUtenOpplaringKategorisering(row: Row): Gjennomforing = mapDeltakerliste(row, opplaringKategorisering = null)
 
         private fun mapDeltakerliste(
             row: Row,
             opplaringKategorisering: OpplaringKategoriseringValg?,
-        ): Deltakerliste {
+        ): Gjennomforing {
             val id = row.uuid(col("id"))
             val gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype")))
 
-            return Deltakerliste(
+            return Gjennomforing(
                 id = id,
                 tiltakstype = TiltakRepository.rowMapper(row, "t"),
                 navn = row.string(col("navn")),

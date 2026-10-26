@@ -251,7 +251,7 @@ fun Routing.registerInternalApi(
         Brukes til å opprette manglende gjennomføringer hos valp for enkeltplasser.
         Finner de manglende gjennomføringene i db slik:
             SELECT dl.id from deltaker d
-            join deltakerliste dl on d.deltakerliste_id=dl.id
+            join gjennomforing dl on d.deltakerliste_id=dl.id
             join deltaker_status ds on d.id=ds.deltaker_id
             WHERE ds.type='UTKAST_TIL_PAMELDING'
             AND ds.gyldig_til IS NULL
@@ -278,7 +278,7 @@ fun Routing.registerInternalApi(
                         return@forEach
                     }
 
-                    val gjennomforing = deltaker.deltakerliste
+                    val gjennomforing = deltaker.gjennomforing
 
                     val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
                         ?: throw IllegalStateException(
@@ -293,7 +293,7 @@ fun Routing.registerInternalApi(
                             gjennomforingId = gjennomforing.id,
                             totrinnskontroll = (
                                 GjennomforingRequestPayload.Totrinnskontroll(
-                                    id = deltaker.id, // TODO: må endres til id fra tabell enkeltplass_prisinformasjon
+                                    id = deltaker.id, // TODO: må endres til id fra tabell prisinformasjon
                                     behandletAv = opprettetAv,
                                 )
                             ),

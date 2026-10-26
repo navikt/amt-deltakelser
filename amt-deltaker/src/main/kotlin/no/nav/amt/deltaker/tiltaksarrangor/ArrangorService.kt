@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.tiltaksarrangor
 
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
@@ -31,7 +31,7 @@ class ArrangorService(
      * Enkeltplasser skal bruke enheten som er koblet til gjennomføringen("underordnet arrangør")
      * Enkeltplasser kan i visse tilfeller mangle arrangør(i kladd status), da brukes null som fallback
      */
-    fun getFunksjonellArrangorForGjennomforing(gjennomforing: Deltakerliste): Arrangor? {
+    fun getFunksjonellArrangorForGjennomforing(gjennomforing: Gjennomforing): Arrangor? {
         val arrangor = if (gjennomforing.gjennomforingstype === GjennomforingType.Gruppe) {
             gjennomforing.arrangor
                 ?.overordnetArrangorId

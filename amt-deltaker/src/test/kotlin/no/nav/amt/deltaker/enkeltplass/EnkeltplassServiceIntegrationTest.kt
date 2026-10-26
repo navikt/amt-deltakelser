@@ -109,7 +109,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 type shouldBe DeltakerStatus.Type.KLADD
             }
 
-            assertSoftly(deltaker.deltakerliste) {
+            assertSoftly(deltaker.gjennomforing) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
@@ -157,7 +157,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 startdato = deltakerInserted.startdato,
                 sluttdato = deltakerInserted.sluttdato,
                 deltakelsesinnhold = Deltakelsesinnhold(
-                    ledetekst = deltakerInserted.deltakerliste.tiltakstype.innhold
+                    ledetekst = deltakerInserted.gjennomforing.tiltakstype.innhold
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Beskrivelse")),
                 ),
@@ -237,7 +237,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val deltaker = lagDeltaker(
                 navBruker = navBrukerInTest,
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = arrangorInTest,
                     tiltakstype = tiltakInTest,
                     gjennomforingstype = GjennomforingType.Enkeltplass,
@@ -245,7 +245,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 ),
             )
             arrangorRepository.upsert(arrangorInTest)
-            deltakerlisteRepository.upsert(deltaker.deltakerliste)
+            gjennomforingRepository.upsert(deltaker.gjennomforing)
             deltakerRepository.upsert(deltaker)
             DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
 
@@ -317,7 +317,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 opprettet shouldBeCloseTo LocalDateTime.now()
             }
 
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
+            assertSoftly(oppdatertDeltaker.gjennomforing) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
@@ -326,7 +326,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             outboxService.assertProducedHendelse<HendelseType.OpprettUtkast>(deltakerInTest.id)
             outboxService.assertProduced<AmtGjennomforingPayload>(
-                expectedKey = oppdatertDeltaker.deltakerliste.id,
+                expectedKey = oppdatertDeltaker.gjennomforing.id,
                 expectedTopic = Environment.AMT_GJENNOMFORING_TOPIC,
             )
         }
@@ -367,7 +367,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 opprettet shouldBeCloseTo LocalDateTime.now()
             }
 
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
+            assertSoftly(oppdatertDeltaker.gjennomforing) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
@@ -376,7 +376,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
 
             outboxService.assertProducedHendelse<HendelseType.NavGodkjennUtkast>(deltakerInTest.id)
             outboxService.assertProduced<AmtGjennomforingPayload>(
-                expectedKey = oppdatertDeltaker.deltakerliste.id,
+                expectedKey = oppdatertDeltaker.gjennomforing.id,
                 expectedTopic = Environment.AMT_GJENNOMFORING_TOPIC,
             )
         }
@@ -388,7 +388,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val deltaker = lagDeltaker(
                 navBruker = navBrukerInTest,
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = arrangorInTest,
                     tiltakstype = tiltakInTest,
                     gjennomforingstype = GjennomforingType.Enkeltplass,
@@ -397,7 +397,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 ),
             )
             arrangorRepository.upsert(arrangorInTest)
-            deltakerlisteRepository.upsert(deltaker.deltakerliste)
+            gjennomforingRepository.upsert(deltaker.gjennomforing)
             deltakerRepository.upsert(deltaker)
             DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
 
@@ -445,7 +445,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 sistEndret.isAfter(opprinneligVedtak.sistEndret) shouldBe true
             }
 
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
+            assertSoftly(oppdatertDeltaker.gjennomforing) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn
@@ -462,7 +462,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             val deltaker = lagDeltaker(
                 navBruker = navBrukerInTest,
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = arrangorInTest,
                     tiltakstype = tiltakInTest,
                     gjennomforingstype = GjennomforingType.Enkeltplass,
@@ -471,7 +471,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 ),
             )
             arrangorRepository.upsert(arrangorInTest)
-            deltakerlisteRepository.upsert(deltaker.deltakerliste)
+            gjennomforingRepository.upsert(deltaker.gjennomforing)
             deltakerRepository.upsert(deltaker)
             DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
 
@@ -575,7 +575,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 opprettet shouldBeCloseTo LocalDateTime.now()
             }
 
-            assertSoftly(oppdatertDeltaker.deltakerliste) {
+            assertSoftly(oppdatertDeltaker.gjennomforing) {
                 gjennomforingstype shouldBe GjennomforingType.Enkeltplass
                 tiltakstype shouldBe tiltakInTest
                 navn shouldBe tiltakInTest.navn

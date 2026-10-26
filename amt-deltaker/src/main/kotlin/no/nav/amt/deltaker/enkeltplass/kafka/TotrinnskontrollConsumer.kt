@@ -91,7 +91,7 @@ class TotrinnskontrollConsumer(
         if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) {
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = totrinnskontrollHendelse.id,
-                status = PrisinfoDbo.PrisinfoStatus.valueOf(totrinnskontrollHendelse.status.name),
+                status = PrisinfoDbo.TotrinnskontrollStatus.valueOf(totrinnskontrollHendelse.status.name),
             )
 
             log.info(
@@ -102,21 +102,15 @@ class TotrinnskontrollConsumer(
 
         val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(totrinnskontrollHendelse.entityId)
 
-        val prisinfoStatus = PrisinfoRepository.hentPrisinfoStatus(
-            gjennomforingId = deltaker.deltakerliste.id,
+        val totrinnskontrollStatus = PrisinfoRepository.hentPrisinfoStatus(
+            gjennomforingId = deltaker.gjennomforing.id,
             prisinformasjonId = totrinnskontrollHendelse.id,
         ) ?: run {
-            if (Environment.isDev()) {
-                // dette kan skje i dev i en overgangsfase grunnet ny db-struktur
-                log.warn("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
-                return
-            } else {
-                error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
-            }
+            error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
         }
 
         // Sjekk om prisinfo allerede er godkjent for å gjøre consumer idempotent.
-        if (prisinfoStatus == PrisinfoDbo.PrisinfoStatus.GODKJENT) {
+        if (totrinnskontrollStatus == PrisinfoDbo.TotrinnskontrollStatus.GODKJENT) {
             log.info("Totrinnskontroll ${totrinnskontrollHendelse.id} er allerede godkjent, skipper videre prosessering.")
             return
         }
@@ -190,7 +184,7 @@ class TotrinnskontrollConsumer(
     ) {
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinformasjonId = prisinfoId,
                 godkjentAv = godkjentAvNavAnsatt.id,
                 godkjentAvEnhet = godkjentAvNavEnhet.id,
@@ -199,7 +193,7 @@ class TotrinnskontrollConsumer(
             if (!skalPublisereHendelse) return@transaction
 
             val godkjentPrisinfo: PrisinformasjonDto = PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) ?: error("Fant ikke gjeldende prisinfo for deltaker ${deltaker.id}")
             val begrunnelse = godkjentPrisinfo.begrunnelse
@@ -248,7 +242,7 @@ class TotrinnskontrollConsumer(
                 beforeUpsert = { deltaker ->
                     // setter prisinformasjon til rolle = GJELDENDE og oppdaterer status til GODKJENT
                     val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
-                        gjennomforingId = deltaker.deltakerliste.id,
+                        gjennomforingId = deltaker.gjennomforing.id,
                         prisinformasjonId = prisinfoId,
                         godkjentAv = godkjentAvNavAnsatt.id,
                         godkjentAvEnhet = godkjentAvNavEnhet.id,

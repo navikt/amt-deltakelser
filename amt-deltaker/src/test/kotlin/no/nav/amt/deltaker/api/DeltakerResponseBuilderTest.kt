@@ -270,7 +270,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 includeOpplaringKategorisering = true,
             )
 

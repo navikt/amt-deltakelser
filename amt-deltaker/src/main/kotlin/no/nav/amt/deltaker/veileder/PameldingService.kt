@@ -56,7 +56,7 @@ class PameldingService(
         )
 
         val skalNavFatteVedtak = utkast.godkjentAvNav &&
-            oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
+            oppdatertDeltaker.gjennomforing.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
 
         val deltaker = deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
@@ -73,7 +73,7 @@ class PameldingService(
 
                 val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksInformasjon())
                 if (utkast.godkjentAvNav &&
-                    oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
+                    oppdatertDeltaker.gjennomforing.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
                 ) {
                     innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
                 }
@@ -102,7 +102,7 @@ class PameldingService(
             deltaker = deltaker,
             erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
-                if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
+                if (deltaker.gjennomforing.deltakelserMaaGodkjennes) {
                     innbyggerGodkjennInnsok(deltaker)
                 } else {
                     vedtakService.innbyggerFattVedtak(deltaker.id)
@@ -200,7 +200,7 @@ class PameldingService(
             opprinneligDeltaker: Deltaker,
             godkjentAvNav: Boolean,
         ): DeltakerStatus = if (godkjentAvNav) {
-            if (opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING) {
+            if (opprinneligDeltaker.gjennomforing.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING) {
                 DeltakerUtils.nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
             } else {
                 DeltakerUtils.nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)

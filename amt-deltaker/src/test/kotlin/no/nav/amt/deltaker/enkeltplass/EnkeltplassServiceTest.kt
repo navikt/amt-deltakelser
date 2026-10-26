@@ -79,7 +79,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     }
 
     private fun setupRepositoryMocks() {
-        every { deltakerlisteRepository.update(any()) } just Runs
+        every { gjennomforingRepository.update(any()) } just Runs
         every { deltakerRepository.updateEnkeltplass(any()) } just Runs
     }
 
@@ -158,7 +158,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(gjennomforingstype = GjennomforingType.Gruppe),
+                gjennomforing = kladdDeltakerInTest.gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
             )
             stubDeltaker(deltaker)
 
@@ -188,7 +188,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `sertifiseringValg med verdier - sletter eksisterende og lagrer nye`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val sertifiseringer = setOf(
@@ -206,7 +206,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify {
                 OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    gjennomforingId = kladdDeltakerInTest.gjennomforing.id,
                     valgteVerdier = null,
                     valgteSertifiseringer = sertifiseringer,
                 )
@@ -216,7 +216,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `sertifiseringValg tomt sett - sletter eksisterende uten aa lagre nye`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(sertifiseringValg = emptySet())
@@ -230,7 +230,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify {
                 OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    gjennomforingId = kladdDeltakerInTest.gjennomforing.id,
                     valgteVerdier = null,
                     valgteSertifiseringer = emptySet(),
                 )
@@ -240,7 +240,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `sertifiseringValg null - rører ikke sertifiseringer`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(sertifiseringValg = null)
@@ -254,7 +254,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             // Assert
             verify {
                 OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    gjennomforingId = kladdDeltakerInTest.gjennomforing.id,
                     valgteVerdier = null,
                     valgteSertifiseringer = null,
                 )
@@ -264,7 +264,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal ikke lagre prisinformasjon naar den er null`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val request = oppdaterKladdRequest.copy(prisinformasjon = null)
@@ -282,7 +282,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val nyPrisinformasjon = Anskaffelse(42)
@@ -296,9 +296,9 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             // Assert
             verify {
-                deltakerlisteRepository.update(any())
+                gjennomforingRepository.update(any())
                 PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                    gjennomforingId = kladdDeltakerInTest.deltakerliste.id,
+                    gjennomforingId = kladdDeltakerInTest.gjennomforing.id,
                     prisinformasjon = nyPrisinformasjon,
                 )
             }
@@ -307,7 +307,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         @Test
         fun `skal oppdatere dato-felter naar gitt`() = runTest {
             // Arrange
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             val startDato = LocalDate.now().plusDays(10)
@@ -338,7 +338,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             )
 
             stubDeltaker(deltaker)
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
 
             enkeltplassService.oppdaterKladd(
@@ -385,7 +385,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
+                gjennomforing = kladdDeltakerInTest.gjennomforing.copy(
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.KLADD,
                 ),
@@ -430,7 +430,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
 
             every { arrangorRepository.get(any<String>()) } returns arrangorInTest
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
-            every { deltakerlisteRepository.update(any()) } just Runs
+            every { gjennomforingRepository.update(any()) } just Runs
             val oppdatertVedtak = TestData.lagVedtak(
                 deltakerId = deltaker.id,
                 deltakerVedVedtak = deltaker,
@@ -451,7 +451,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             verify(exactly = 0) {
                 deltakerService.lagreDeltakerStatus(any(), any(), any())
             }
-            verify { deltakerlisteRepository.update(any()) }
+            verify { gjennomforingRepository.update(any()) }
             verify { deltakerRepository.updateEnkeltplass(any()) }
             verify(exactly = 1) { vedtakService.opprettEllerOppdaterVedtak(any(), any(), any(), any(), any()) }
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
@@ -463,7 +463,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(
+                gjennomforing = kladdDeltakerInTest.gjennomforing.copy(
                     gjennomforingstype = GjennomforingType.Gruppe,
                     status = GjennomforingStatusType.KLADD,
                 ),
@@ -480,7 +480,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         fun `skal kaste exception for gjennomforing som ikke er i KLADD status`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
-                deltakerliste = kladdDeltakerInTest.deltakerliste.copy(status = GjennomforingStatusType.GJENNOMFORES),
+                gjennomforing = kladdDeltakerInTest.gjennomforing.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
             stubDeltaker(deltaker)
 
@@ -525,7 +525,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
                 navEnhetId = navEnhetInTest.id,
                 navVeilederId = navAnsattInTest.id,
             ),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 status = GjennomforingStatusType.KLADD,
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),

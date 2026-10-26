@@ -67,7 +67,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         arrangorRepository.upsert(underordnetArrangor)
 
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 arrangor = underordnetArrangor,
                 gjennomforingstype = GjennomforingType.Gruppe,
             ),
@@ -76,7 +76,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
         val result = deltakerService.getOrThrow(deltaker.id)
 
-        val deltakerArrangor = result.shouldNotBeNull().deltakerliste.arrangor
+        val deltakerArrangor = result.shouldNotBeNull().gjennomforing.arrangor
         deltakerArrangor.shouldNotBeNull()
         deltakerArrangor.id shouldBe underordnetArrangor.id
         deltakerArrangor.navn shouldBe "Overordnet Arrangør"
@@ -105,7 +105,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
         val deltaker = lagDeltaker(
             navBruker = TestData.lagNavBruker(personident = personident),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 arrangor = underordnetArrangor,
                 gjennomforingstype = GjennomforingType.Gruppe,
             ),
@@ -115,7 +115,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         val result = deltakerService.getFlereForPerson(personident)
 
         result.size shouldBe 1
-        val deltakerArrangor = result.first().deltakerliste.arrangor
+        val deltakerArrangor = result.first().gjennomforing.arrangor
         deltakerArrangor.shouldNotBeNull()
         deltakerArrangor.id shouldBe underordnetArrangor.id
         deltakerArrangor.navn shouldBe "Overordnet Arrangør"
@@ -135,7 +135,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
         val deltaker = lagDeltaker(
             navBruker = TestData.lagNavBruker(personident = personident),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 arrangor = arrangor,
                 gjennomforingstype = GjennomforingType.Enkeltplass,
             ),
@@ -145,7 +145,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         val result = deltakerService.getFlereForPerson(personident)
 
         result.size shouldBe 1
-        val deltakerArrangor = result.first().deltakerliste.arrangor
+        val deltakerArrangor = result.first().gjennomforing.arrangor
         deltakerArrangor.shouldNotBeNull()
         deltakerArrangor.id shouldBe arrangor.id
         deltakerArrangor.navn shouldBe "Underenhet Oslo"
@@ -631,7 +631,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
 
             val deltaker = lagDeltaker(
                 navBruker = navBruker,
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
 
@@ -653,7 +653,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         fun `ny deltaker - returnerer deltaker`() = runTest {
             // Arrange
             val expectedDeltaker = lagDeltaker()
-            TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
+            TestRepository.insertAll(expectedDeltaker.gjennomforing, expectedDeltaker.navBruker)
 
             // Act
             val result = deltakerService.transactionalDeltakerUpsert(
@@ -679,11 +679,11 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 sluttDato = LocalDate.now().plusDays(30),
             )
             val expectedDeltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
-            TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
+            TestRepository.insertAll(expectedDeltaker.gjennomforing, expectedDeltaker.navBruker)
 
             // Act
             val upsertResult = deltakerService.transactionalDeltakerUpsert(
@@ -711,7 +711,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 sluttDato = LocalDate.now().plusDays(30),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
@@ -946,7 +946,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
                 status = GjennomforingStatusType.AVSLUTTET,
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
                 startdato = null,
                 sluttdato = null,

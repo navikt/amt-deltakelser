@@ -10,7 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.innbygger.NavBrukerService
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
@@ -25,13 +25,13 @@ import java.time.Year
 import java.util.UUID
 
 class OpprettKladdRequestValidatorTest {
-    private val deltakerListeRepository: DeltakerlisteRepository = mockk()
+    private val deltakerListeRepository: GjennomforingRepository = mockk()
     private val brukerService: NavBrukerService = mockk()
     private val personServiceClient: AmtPersonServiceClient = mockk()
     private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient = mockk()
 
     private val sut = OpprettKladdRequestValidator(
-        deltakerlisteRepository = deltakerListeRepository,
+        gjennomforingRepository = deltakerListeRepository,
         brukerService = brukerService,
         personServiceClient = personServiceClient,
         isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,

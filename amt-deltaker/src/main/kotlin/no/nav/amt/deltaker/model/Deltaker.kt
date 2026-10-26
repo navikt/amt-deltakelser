@@ -14,7 +14,7 @@ import java.util.UUID
 data class Deltaker(
     val id: UUID,
     val navBruker: NavBruker,
-    val deltakerliste: Deltakerliste,
+    val gjennomforing: Gjennomforing,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
@@ -30,10 +30,10 @@ data class Deltaker(
 ) {
     fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
 
-    fun deltarPaKurs(): Boolean = deltakerliste.erFellesOppstart
+    fun deltarPaKurs(): Boolean = gjennomforing.erFellesOppstart
 
-    val deltarPaOpplaeringstiltak get(): Boolean = deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()
-    val erEnkeltplass get(): Boolean = deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass
+    val deltarPaOpplaeringstiltak get(): Boolean = gjennomforing.tiltakstype.tiltakskode.erOpplaeringstiltak()
+    val erEnkeltplass get(): Boolean = gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass
 
     fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,
@@ -44,7 +44,7 @@ data class Deltaker(
         bakgrunnsinformasjon = bakgrunnsinformasjon,
         deltakelsesinnhold = deltakelsesinnhold,
         status = status,
-        opplaringKategorisering = deltakerliste.opplaringKategorisering,
+        opplaringKategorisering = gjennomforing.opplaringKategorisering,
     )
 
     fun toDeltakerVedImport(innsoktDato: LocalDate) = DeltakerVedImport(

@@ -59,8 +59,8 @@ fun Routing.registerExternalApi(
             val deltakelser = deltakerService
                 .getFlereForPerson(request.norskIdent)
                 .filter {
-                    unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
-                        unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode)
+                    unleashToggle.erKometMasterForTiltakstype(it.gjennomforing.tiltakstype.tiltakskode) ||
+                        unleashToggle.skalLeseArenaDataForTiltakstype(it.gjennomforing.tiltakstype.tiltakskode)
                 }
 
             val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)

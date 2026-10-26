@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.api.tiltakskoordinator.DeltakerOppdateringResult
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
@@ -46,7 +46,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
     override val tiltakskoordinatorResponseBuilder = mockk<TiltakskoordinatorResponseBuilder>()
     override val arrangorService: ArrangorService = mockk()
-    override val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    override val gjennomforingRepository: GjennomforingRepository = mockk()
 
     @Nested
     inner class GetGjennomforingTests {
@@ -78,10 +78,10 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
                 visningsnavn = VisningsnavnResponse("Tittel"),
             )
 
-            every { deltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
+            every { gjennomforingRepository.get(deltakerliste.id) } returns deltakerliste
             every {
                 deltakerResponseBuilder.buildGjennomforingResponse(
-                    deltakerliste = deltakerliste,
+                    gjennomforing = deltakerliste,
                     includeOpplaringKategorisering = false,
                 )
             } returns expectedResponse
@@ -96,7 +96,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
 
         @Test
         fun `get gjennomforing - gjennomforing finnes ikke - returnerer 404`() {
-            every { deltakerlisteRepository.get(any()) } returns null
+            every { gjennomforingRepository.get(any()) } returns null
 
             withTestApplicationContext { client ->
                 client.get("/gjennomforing/${UUID.randomUUID()}") { noBodyRequest() }.apply {
@@ -230,7 +230,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
     @Test
     fun `gi-avslag - har tilgang - returnerer 200 og mappet deltakeroppdatering`() {
         val request = GiAvslagRequest(
-            gjennomforingId = deltakerInTest.deltakerliste.id,
+            gjennomforingId = deltakerInTest.gjennomforing.id,
             deltakerId = deltakerInTest.id,
             avslag = EndringFraTiltakskoordinator.Avslag(
                 aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
@@ -299,7 +299,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             listOf(deltakerOppdateringResultInTest)
 
         val request = DeltakereRequest(
-            gjennomforingId = deltakerInTest.deltakerliste.id,
+            gjennomforingId = deltakerInTest.gjennomforing.id,
             deltakere = listOf(deltakerInTest.id),
             endretAv = "Nav Veiledersen",
         )
@@ -332,7 +332,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             listOf(deltakerOppdateringResultInTest)
 
         val request = DeltakereRequest(
-            gjennomforingId = deltakerInTest.deltakerliste.id,
+            gjennomforingId = deltakerInTest.gjennomforing.id,
             deltakere = listOf(deltakerInTest.id),
             endretAv = "Nav Veiledersen",
         )
@@ -364,7 +364,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         private val deltakerInTest = TestData.lagDeltaker()
 
         private val delMedArrangorRequest = DelMedArrangorRequest(
-            gjennomforingId = deltakerInTest.deltakerliste.id,
+            gjennomforingId = deltakerInTest.gjennomforing.id,
             endretAv = "koordinator",
             deltakerIder = listOf(UUID.randomUUID()),
         )

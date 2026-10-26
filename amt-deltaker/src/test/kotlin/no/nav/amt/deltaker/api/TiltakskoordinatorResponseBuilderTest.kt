@@ -13,7 +13,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -30,13 +30,13 @@ import java.util.UUID
 
 class TiltakskoordinatorResponseBuilderTest {
     private val viewRepository: TiltakskoordinatorViewRepository = mockk()
-    private val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    private val gjennomforingRepository: GjennomforingRepository = mockk()
     private val digitalBrukerService: DigitalBrukerService = mockk()
     private val deltakerLaaseService: DeltakerLaaseService = mockk()
 
     private val builder = TiltakskoordinatorResponseBuilder(
         viewRepository = viewRepository,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         digitalBrukerService = digitalBrukerService,
         deltakerLaaseService = deltakerLaaseService,
     )
@@ -46,7 +46,7 @@ class TiltakskoordinatorResponseBuilderTest {
 
     private fun mockGjennomforing(paameldingstype: GjennomforingPameldingType) {
         every {
-            deltakerlisteRepository.get(gjennomforingId)
+            gjennomforingRepository.get(gjennomforingId)
         } returns defaultDeltakerliste.copy(pameldingstype = paameldingstype)
     }
 
@@ -63,7 +63,7 @@ class TiltakskoordinatorResponseBuilderTest {
     fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
         // Arrange
         every {
-            deltakerlisteRepository.get(gjennomforingId)
+            gjennomforingRepository.get(gjennomforingId)
         } returns null
 
         // Act
@@ -79,7 +79,7 @@ class TiltakskoordinatorResponseBuilderTest {
         // Arrange
         val databaseFeil = IllegalStateException("Database er utilgjengelig")
         every {
-            deltakerlisteRepository.get(gjennomforingId)
+            gjennomforingRepository.get(gjennomforingId)
         } throws databaseFeil
 
         // Act
@@ -281,7 +281,7 @@ class TiltakskoordinatorResponseBuilderTest {
         // Arrange
         val builder = TiltakskoordinatorResponseBuilder(
             viewRepository = viewRepository,
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             digitalBrukerService = digitalBrukerService,
             deltakerLaaseService = deltakerLaaseService,
         )
@@ -317,7 +317,7 @@ class TiltakskoordinatorResponseBuilderTest {
         // Arrange
         val builder = TiltakskoordinatorResponseBuilder(
             viewRepository = viewRepository,
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             digitalBrukerService = digitalBrukerService,
             deltakerLaaseService = deltakerLaaseService,
         )

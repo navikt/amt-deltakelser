@@ -62,7 +62,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.DeltakerE
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseService
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -207,7 +207,7 @@ fun Application.module() {
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
     val tiltakRepository = TiltakRepository()
-    val deltakerlisteRepository = DeltakerlisteRepository()
+    val gjennomforingRepository = GjennomforingRepository()
     val deltakerRepository = DeltakerRepository()
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
@@ -369,7 +369,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerService = deltakerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         amtGjennomforingProducer = amtGjennomforingProducer,
     )
 
@@ -393,7 +393,7 @@ fun Application.module() {
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         brukerService = navBrukerService,
         personServiceClient = amtPersonServiceClient,
         isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,
@@ -403,13 +403,13 @@ fun Application.module() {
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         navBrukerService = navBrukerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
     )
 
     val enkeltplassService = EnkeltplassService(
         deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         navBrukerService = navBrukerService,
         tiltakRepository = tiltakRepository,
         navEnhetService = navEnhetService,
@@ -468,7 +468,7 @@ fun Application.module() {
 
     val tiltakskoordinatorResponseBuilder = TiltakskoordinatorResponseBuilder(
         viewRepository = tiltakskoordinatorViewRepository,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         digitalBrukerService = digitalBrukerService,
         deltakerLaaseService = deltakerLaaseService,
     )
@@ -477,9 +477,9 @@ fun Application.module() {
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattRepository, navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService, kladdService),
-        TiltakConsumer(tiltakRepository, deltakerlisteRepository, amtGjennomforingProducer),
+        TiltakConsumer(tiltakRepository, gjennomforingRepository, amtGjennomforingProducer),
         GjennomforingConsumer(
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             deltakerRepository = deltakerRepository,
             tiltakRepository = tiltakRepository,
             arrangorService = arrangorService,
@@ -492,7 +492,7 @@ fun Application.module() {
         EnkeltplassDeltakerConsumer(
             deltakerRepository,
             deltakerService,
-            deltakerlisteRepository,
+            gjennomforingRepository,
             navBrukerService,
             importertFraArenaRepository,
             unleashToggle,
@@ -528,7 +528,7 @@ fun Application.module() {
         pameldingService = pameldingService,
         deltakerService = deltakerService,
         deltakerRepository = deltakerRepository,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         tilgangskontrollService = tilgangskontrollService,
         deltakelserResponseMapper = deltakelserResponseMapper,

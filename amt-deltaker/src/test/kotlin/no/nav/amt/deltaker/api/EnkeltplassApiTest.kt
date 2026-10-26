@@ -207,7 +207,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             every {
                 deltakerRepository.getDeltakelserForLaaseSjekk(
                     personIdenter = setOf(deltakerInTest.navBruker.personident),
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                 )
             } returns mapOf(
                 deltakerInTest.navBruker.personident to listOf(

@@ -48,7 +48,7 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
 import no.nav.amt.deltaker.navtiltakskoordinator.ulestdeltakerhendelse.UlestHendelseRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -98,7 +98,7 @@ abstract class IntegrationTestBase {
     protected open val arrangorRepository: ArrangorRepository = mockk()
     protected open val deltakerEndringRepository: DeltakerEndringRepository = mockk()
     protected open val deltakerRepository: DeltakerRepository = mockk()
-    protected open val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    protected open val gjennomforingRepository: GjennomforingRepository = mockk()
     protected open val endringFraArrangorBehandletRepository: EndringFraArrangorBehandletRepository = mockk()
     protected open val endringFraArrangorRepository: EndringFraArrangorRepository = mockk()
     protected open val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk()
@@ -155,7 +155,7 @@ abstract class IntegrationTestBase {
             vedtakService = vedtakService,
             gjennomforingRequestProducer = gjennomforingRequestProducer,
             deltakerService = deltakerService,
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             amtGjennomforingProducer = amtGjennomforingProducer,
         )
     }
@@ -176,7 +176,7 @@ abstract class IntegrationTestBase {
         KladdService(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             navBrukerService = navBrukerService,
         )
     }
@@ -336,7 +336,7 @@ abstract class IntegrationTestBase {
         EnkeltplassService(
             deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             navBrukerService = navBrukerService,
             tiltakRepository = tiltakRepository,
             navEnhetService = navEnhetService,
@@ -365,7 +365,7 @@ abstract class IntegrationTestBase {
 
     protected open val opprettKladdRequestValidator: OpprettKladdRequestValidator by lazy {
         OpprettKladdRequestValidator(
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             brukerService = navBrukerService,
             personServiceClient = personServiceClient,
             isOppfolgingsTilfelleClient = isOppfolgingstilfelleClient,
@@ -374,7 +374,7 @@ abstract class IntegrationTestBase {
 
     protected open val gjennomforingConsumer: GjennomforingConsumer by lazy {
         GjennomforingConsumer(
-            deltakerlisteRepository = deltakerlisteRepository,
+            gjennomforingRepository = gjennomforingRepository,
             deltakerRepository = deltakerRepository,
             tiltakRepository = tiltakRepository,
             arrangorService = arrangorService,
@@ -420,7 +420,7 @@ abstract class IntegrationTestBase {
     protected open val tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder by lazy {
         TiltakskoordinatorResponseBuilder(
             viewRepository = tiltakskoordinatorViewRepository,
-            deltakerlisteRepository = mockk(),
+            gjennomforingRepository = mockk(),
             digitalBrukerService = digitalBrukerService,
             deltakerLaaseService = deltakerLaaseService,
         )
@@ -483,7 +483,7 @@ abstract class IntegrationTestBase {
                     navAnsattService = navAnsattService,
                     deltakerResponseBuilder = deltakerResponseBuilder,
                     tiltakskoordinatorResponseBuilder = tiltakskoordinatorResponseBuilder,
-                    deltakerlisteRepository = deltakerlisteRepository,
+                    gjennomforingRepository = gjennomforingRepository,
                     veilederEndringService = veilederEndringService,
                     gjennomforingRequestProducer = gjennomforingRequestProducer,
                     tiltakskoordinatorService = tiltakskoordinatorService,

@@ -80,7 +80,7 @@ class InnsokServiceTest {
         )
 
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(opplaringKategorisering = kategorisering),
+            gjennomforing = lagDeltakerliste(opplaringKategorisering = kategorisering),
             vedtaksinformasjon = vedtaksinformasjon,
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
@@ -118,7 +118,7 @@ class InnsokServiceTest {
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = pris)
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+            gjennomforing = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
             vedtaksinformasjon = vedtaksinformasjon,
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
@@ -138,7 +138,7 @@ class InnsokServiceTest {
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = 1000)
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
+            gjennomforing = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
             vedtaksinformasjon = vedtaksinformasjon,
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
@@ -160,7 +160,7 @@ class InnsokServiceTest {
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = 1000)
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+            gjennomforing = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
             dagerPerUke = 4F,
             vedtaksinformasjon = vedtaksinformasjon,
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),

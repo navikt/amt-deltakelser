@@ -1,0 +1,6 @@
+ALTER TABLE deltakerliste_2_prisinformasjon RENAME TO prisinformasjon_gjennomforing_link;
+ALTER TABLE prisinformasjon_gjennomforing_link RENAME COLUMN deltakerliste_id TO gjennomforing_id;
+ALTER TABLE deltakerliste RENAME TO gjennomforing;
+ALTER TABLE enkeltplass_prisinfo_godkjenning RENAME TO prisinformasjon_godkjenning;
+ALTER TABLE enkeltplass_prisinformasjon RENAME TO prisinformasjon;
+ALTER TABLE enkeltplass_prisinformasjon_belop RENAME TO prisinformasjon_belop;

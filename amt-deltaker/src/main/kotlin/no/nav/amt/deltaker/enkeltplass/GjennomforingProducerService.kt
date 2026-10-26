@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.kafka.toAmtGjennomforingPayload
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -33,7 +33,7 @@ class GjennomforingProducerService(
     private val vedtakService: VedtakService,
     private val gjennomforingRequestProducer: GjennomforingRequestProducer,
     private val deltakerService: DeltakerService,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) {
     /**
@@ -48,7 +48,7 @@ class GjennomforingProducerService(
     private fun produserRequest(payload: GjennomforingRequestPayload) {
         gjennomforingRequestProducer.produce(payload)
 
-        val gjennomforing = deltakerlisteRepository.get(payload.gjennomforingId)
+        val gjennomforing = gjennomforingRepository.get(payload.gjennomforingId)
             ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${payload.gjennomforingId}")
         amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
     }
@@ -175,7 +175,7 @@ class GjennomforingProducerService(
         deltakerId: UUID,
         endretAvNavIdent: String,
     ): UUID {
-        val gjennomforingId = deltakerService.getOrThrow(deltakerId).deltakerliste.id
+        val gjennomforingId = deltakerService.getOrThrow(deltakerId).gjennomforing.id
 
         val prisinformasjonId = PrisinfoRepoAdapter.tilbakekallPrisinfoEndring(gjennomforingId)
 
@@ -198,7 +198,7 @@ class GjennomforingProducerService(
      * Payload-typen bestemmes av deltakerens nåværende status:
      * - [DeltakerStatus.Type.UTKAST_TIL_PAMELDING] → [GjennomforingRequestPayload.EnkeltplassUtkast]
      * - [DeltakerStatus.Type.SOKT_INN] → [GjennomforingRequestPayload.EnkeltplassSoktInn] med totrinnskontroll.
-     *   Prisinfo-status oppdateres til [PrisinfoDbo.PrisinfoStatus.SENDT] etter vellykket publisering.
+     *   Prisinfo-status oppdateres til [PrisinfoDbo.TotrinnskontrollStatus.SENDT] etter vellykket publisering.
      *
      * @param deltaker Deltakeren som skal upsert-es.
      * @param endretAvNavIdent Nav-ident for saksbehandleren som utfører endringen.
@@ -226,7 +226,7 @@ class GjennomforingProducerService(
         if (gjennomforingRequestPayload is GjennomforingRequestPayload.EnkeltplassSoktInn) {
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = gjennomforingRequestPayload.totrinnskontroll.id,
-                status = PrisinfoDbo.PrisinfoStatus.SENDT,
+                status = PrisinfoDbo.TotrinnskontrollStatus.SENDT,
             )
         }
     }
@@ -246,8 +246,8 @@ class GjennomforingProducerService(
         opprettetAvNavIdent: String,
         ansvarligEnhet: String,
     ) = UpsertEnkeltplass(
-        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-        organisasjonsnummer = deltaker.deltakerliste.arrangor?.organisasjonsnummer
+        tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
+        organisasjonsnummer = deltaker.gjennomforing.arrangor?.organisasjonsnummer
             ?: error("Organisasjonsnummer kan ikke være null"),
         ansvarligEnhet = ansvarligEnhet,
         startDato = deltaker.startdato ?: error("Deltaker må ha startdato"),
@@ -255,12 +255,12 @@ class GjennomforingProducerService(
         opprettetAv = opprettetAvNavIdent,
         prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(
             PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
-            ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.deltakerliste.id}"),
+            ) ?: throw IllegalStateException("Prisinfo mangler for gjennomføring ${deltaker.gjennomforing.id}"),
         ),
         kategorisering = OpplaringKategoriseringRepoAdapter
-            .hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+            .hentOpplaringKategoriseringValg(deltaker.gjennomforing.id)
             .toMulighetsrommetKategorisering(),
     )
 
@@ -278,18 +278,18 @@ class GjennomforingProducerService(
         behandletAv: String,
     ) = when (val statusType = deltaker.status.type) {
         DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> GjennomforingRequestPayload.EnkeltplassUtkast(
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             payload = upsertPayload,
         )
 
         DeltakerStatus.Type.SOKT_INN -> {
             val prisinfo = PrisinfoRepository.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
-            ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.deltakerliste.id}")
+            ) ?: error("Fant ikke prisinformasjon for deltakerliste ${deltaker.gjennomforing.id}")
 
             GjennomforingRequestPayload.EnkeltplassSoktInn(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = upsertPayload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = prisinfo.id,

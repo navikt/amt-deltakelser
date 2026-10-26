@@ -98,7 +98,7 @@ class DeltakerEndringService(
         deltaker: Deltaker,
     ): DeltakerEndring.Endring {
         val opplaringKategoriseringValg = if (endringRequest is EndretOpplaringKategoriseringRequest) {
-            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+            OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id)
         } else {
             null
         }
@@ -111,7 +111,7 @@ class DeltakerEndringService(
 
         return EndringRequestMapper.toEndring(
             request = endringRequest,
-            tiltakstype = deltaker.deltakerliste.tiltakstype,
+            tiltakstype = deltaker.gjennomforing.tiltakstype,
             opplaringKategoriseringValg = opplaringKategoriseringValg,
             prisinfo = prisinfo,
             vedtakFattet = deltaker.vedtaksinformasjon?.fattet,

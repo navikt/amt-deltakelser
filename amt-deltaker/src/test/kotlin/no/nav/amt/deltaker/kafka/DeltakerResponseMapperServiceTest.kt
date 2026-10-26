@@ -107,8 +107,8 @@ class DeltakerResponseMapperServiceTest {
 
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
-            deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
+            deltakerliste.id shouldBe deltaker.gjennomforing.id
+            deltakerliste.tiltak.tiltakskode shouldBe deltaker.gjennomforing.tiltakstype.tiltakskode
             dagerPerUke shouldBe deltaker.dagerPerUke
             prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
             oppstartsdato shouldBe deltaker.startdato
@@ -181,8 +181,8 @@ class DeltakerResponseMapperServiceTest {
 
         deltakerV2Dto.id shouldBe deltaker.id
 
-        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
-        deltakerV2Dto.deltakerliste.gjennomforingstype shouldBe deltaker.deltakerliste.gjennomforingstype
+        deltakerV2Dto.deltakerliste.id shouldBe deltaker.gjennomforing.id
+        deltakerV2Dto.deltakerliste.gjennomforingstype shouldBe deltaker.gjennomforing.gjennomforingstype
 
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
@@ -254,7 +254,7 @@ class DeltakerResponseMapperServiceTest {
 
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            deltakerliste.id shouldBe deltaker.gjennomforing.id
             dagerPerUke shouldBe deltaker.dagerPerUke
             prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
             oppstartsdato shouldBe deltaker.startdato
@@ -317,7 +317,7 @@ class DeltakerResponseMapperServiceTest {
 
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            deltakerliste.id shouldBe deltaker.gjennomforing.id
             dagerPerUke shouldBe deltaker.dagerPerUke
             prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
             oppstartsdato shouldBe deltaker.startdato

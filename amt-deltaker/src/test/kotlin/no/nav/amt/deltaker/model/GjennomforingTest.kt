@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.readValue
 
-class DeltakerlisteTest {
+class GjennomforingTest {
     @Nested
     inner class ErAvlystEllerAvbrutt {
         @Test

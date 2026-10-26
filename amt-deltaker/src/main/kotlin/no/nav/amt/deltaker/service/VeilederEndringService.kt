@@ -56,8 +56,8 @@ class VeilederEndringService(
         val eksisterendeDeltaker = deltakerService.getOrThrow(deltakerId)
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        require(unleashToggle.erKometMasterForTiltakstype(eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode)) {
-            "Kan ikke utføre endring på deltaker $deltakerId på tiltakstype ${eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode} som komet ikke eier"
+        require(unleashToggle.erKometMasterForTiltakstype(eksisterendeDeltaker.gjennomforing.tiltakstype.tiltakskode)) {
+            "Kan ikke utføre endring på deltaker $deltakerId på tiltakstype ${eksisterendeDeltaker.gjennomforing.tiltakstype.tiltakskode} som komet ikke eier"
         }
 
         require(eksisterendeDeltaker.navBruker.harAktivOppfolgingsperiode || endringRequest.kanIverksettesUtenAktivOppfolging()) {
@@ -75,7 +75,7 @@ class VeilederEndringService(
         // hentOpplaringKategorisering er suspend og må kjøres før db-transaksjon
         val kategoriseringForTiltak = if (endringRequest is EndretOpplaringKategoriseringRequest) {
             opplaringKategoriseringClient.hentOpplaringKategorisering(
-                eksisterendeDeltaker.deltakerliste.tiltakstype.tiltakskode,
+                eksisterendeDeltaker.gjennomforing.tiltakstype.tiltakskode,
             )
         } else {
             null
@@ -91,7 +91,7 @@ class VeilederEndringService(
                 val endringsRequestForUpsert = when (endringRequest) {
                     is EndretOpplaringKategoriseringRequest -> {
                         gjennomforingProducerService.lagreOgProduserEnkeltplassEndreInnhold(
-                            gjennomforingId = deltaker.deltakerliste.id,
+                            gjennomforingId = deltaker.gjennomforing.id,
                             kodeverkValg = endringRequest.kodeverkValg(),
                             sertifiseringValg = endringRequest.sertifiseringValg,
                             kategoriseringForTiltak = kategoriseringForTiltak ?: error("Kodeverk mangler"),
@@ -103,7 +103,7 @@ class VeilederEndringService(
 
                     is EndretPrisinfoRequest -> {
                         val prisinformasjonId = gjennomforingProducerService.lagreOgProduserPrisinfoEndring(
-                            gjennomforingId = deltaker.deltakerliste.id,
+                            gjennomforingId = deltaker.gjennomforing.id,
                             prisinfo = endringRequest.prisinfo,
                             begrunnelse = requireNotNull(endringRequest.begrunnelse) {
                                 "${endringRequest::class.simpleName} krever begrunnelse for deltaker ${deltaker.id}"
@@ -168,7 +168,7 @@ class VeilederEndringService(
         when (endringRequest) {
             is EndretOpplaringKategoriseringRequest -> {
                 val valgErUendret = OpplaringKategoriseringRepoAdapter.erUendretValg(
-                    gjennomforingId = eksisterendeDeltaker.deltakerliste.id,
+                    gjennomforingId = eksisterendeDeltaker.gjennomforing.id,
                     endringRequest = endringRequest,
                 )
                 val beskrivelseErUendret =
@@ -185,7 +185,7 @@ class VeilederEndringService(
             }
 
             is EndretPrisinfoRequest -> if (PrisinfoRepoAdapter.erUendretPrisinfo(
-                    gjennomforingId = eksisterendeDeltaker.deltakerliste.id,
+                    gjennomforingId = eksisterendeDeltaker.gjennomforing.id,
                     endringRequest = endringRequest,
                 )
             ) {
@@ -229,7 +229,7 @@ class VeilederEndringService(
 
     private fun slettKladdIfExists(deltaker: Deltaker) {
         val kladd = deltakerRepository.getKladdForDeltakerliste(
-            deltakerlisteId = deltaker.deltakerliste.id,
+            deltakerlisteId = deltaker.gjennomforing.id,
             personident = deltaker.navBruker.personident,
         ) ?: return
         deltakerService.deleteDeltaker(kladd.id)

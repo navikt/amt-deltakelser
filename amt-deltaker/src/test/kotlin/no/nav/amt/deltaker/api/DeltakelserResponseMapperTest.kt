@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRep
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.service.DeltakerHistorikkService
-import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
@@ -53,8 +52,6 @@ class DeltakelserResponseMapperTest {
         EndringFraTiltakskoordinatorRepository(),
         VurderingRepository(),
     )
-
-    private val arrangorRepository = ArrangorRepository()
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService)
 
     companion object {
@@ -71,7 +68,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - kladd - returnerer riktig aktiv deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -88,11 +85,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.aktive.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.KLADD
             status.visningstekst shouldBe "Kladden er ikke delt"
@@ -106,7 +103,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -133,11 +130,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.aktive.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             status.visningstekst shouldBe "Venter på oppstart"
@@ -151,7 +148,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - jobbklubb - bruker jobbsøkerkurs i tittel`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.JOBBKLUBB,
                     navn = "Jobbklubb",
@@ -171,13 +168,13 @@ class DeltakelserResponseMapperTest {
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
 
-        deltakelserResponse.aktive.first().tittel shouldBe "Jobbsøkerkurs hos ${deltaker.deltakerliste.arrangor!!.navn}"
+        deltakelserResponse.aktive.first().tittel shouldBe "Jobbsøkerkurs hos ${deltaker.gjennomforing.arrangor!!.navn}"
     }
 
     @Test
     fun `toDeltakelserResponse - TAO - bruker tilrettelagt arbeid med oppfølging i tittel`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 arrangor = TestData.lagArrangor(),
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
@@ -199,13 +196,13 @@ class DeltakelserResponseMapperTest {
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
 
         deltakelserResponse.aktive.first().tittel shouldBe
-            "Tilrettelagt arbeid med oppfølging hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            "Tilrettelagt arbeid med oppfølging hos ${deltaker.gjennomforing.arrangor!!.navn}"
     }
 
     @Test
     fun `toDeltakelserResponse - norskopplæring med kurstype - bruker kurstype i tittel`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
                     navn = "Norskopplæring, grunnleggende ferdigheter og FOV",
@@ -237,13 +234,13 @@ class DeltakelserResponseMapperTest {
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
 
-        deltakelserResponse.aktive.first().tittel shouldBe "Almenn norsk hos ${deltaker.deltakerliste.arrangor!!.navn}"
+        deltakelserResponse.aktive.first().tittel shouldBe "Almenn norsk hos ${deltaker.gjennomforing.arrangor!!.navn}"
     }
 
     @Test
     fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -268,11 +265,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.aktive.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.DELTAR
             status.visningstekst shouldBe "Deltar"
@@ -286,7 +283,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -315,11 +312,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.historikk.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
             status.visningstekst shouldBe "Ikke aktuell"
@@ -333,7 +330,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -362,11 +359,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.historikk.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.visningstekst shouldBe "Har sluttet"
@@ -380,7 +377,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,
                     navn = "Oppfølging",
@@ -409,11 +406,11 @@ class DeltakelserResponseMapperTest {
 
         assertSoftly(deltakelserResponse.historikk.first()) {
             deltakerId shouldBe deltaker.id
-            deltakerlisteId shouldBe deltaker.deltakerliste.id
-            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos ${deltaker.deltakerliste.arrangor!!.navn}"
+            deltakerlisteId shouldBe deltaker.gjennomforing.id
+            tittel shouldBe "${deltaker.gjennomforing.tiltakstype.navn} hos ${deltaker.gjennomforing.arrangor!!.navn}"
             tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-                deltaker.deltakerliste.tiltakstype.navn,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.navn,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
             status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
             status.visningstekst shouldBe "Avbrutt utkast"
@@ -436,7 +433,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(deltakerliste)
 
         val deltakerHarSluttet = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
@@ -455,7 +452,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(vedtakHarSluttet)
 
         val deltakerIkkeAktuell = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,
                 aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
@@ -486,7 +483,7 @@ class DeltakelserResponseMapperTest {
     @Test
     fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
         val deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
                 tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.OPPFOLGING,

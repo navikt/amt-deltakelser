@@ -124,7 +124,7 @@ erDiagram
 | `deltaker`                                 | Hovedtabell for deltakere; `historikk` JSONB lagrer endringer | 1.67M rader / 2.2 GB |
 | `deltaker_status`                          | Gjeldende status per deltaker (maks 1, UNIQUE) | 1.66M rader / 446 MB |
 | `nav_bruker`                               | Persondata for brukere | 786k rader / 702 MB |
-| `deltakerliste`                            | Tiltaksgjennomføringer | 177k rader / 48 MB |
+| `gjennomforing`                            | Tiltaksgjennomføringer | 177k rader / 48 MB |
 | `ulest_hendelse`                           | Uleste hendelser for tiltakskoordinator | 14 737 rader |
 | `arrangor`                                 | Arrangører (underordnet/overordnet) | 20 767 rader |
 | `nav_ansatt`                               | Nav-ansatte | 13 262 rader |

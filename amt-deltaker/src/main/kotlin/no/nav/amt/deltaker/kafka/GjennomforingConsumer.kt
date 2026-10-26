@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.model.toModel
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -25,7 +25,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class GjennomforingConsumer(
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val deltakerRepository: DeltakerRepository,
     private val tiltakRepository: TiltakRepository,
     private val arrangorService: ArrangorService,
@@ -36,7 +36,7 @@ class GjennomforingConsumer(
     private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.DELTAKERLISTE_V2_TOPIC,
+        topic = Environment.GJENNOMFORING_V2_TOPIC,
         consumeFunc = ::consume,
     )
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -54,7 +54,7 @@ class GjennomforingConsumer(
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(key)
             if (key !in deltakerlisteTombstoneBlacklist && antallDeltakere == 0) {
                 Database.transaction {
-                    deltakerlisteRepository.delete(key)
+                    gjennomforingRepository.delete(key)
                     amtGjennomforingProducer.produceTombstone(key)
                 }
             } else {
@@ -64,11 +64,11 @@ class GjennomforingConsumer(
                 )
             }
         } else {
-            handterDeltakerliste(objectMapper.readValue(value))
+            handterGjennomforing(objectMapper.readValue(value))
         }
     }
 
-    private suspend fun handterDeltakerliste(gjennomforingPayload: GjennomforingV2KafkaPayload) {
+    private suspend fun handterGjennomforing(gjennomforingPayload: GjennomforingV2KafkaPayload) {
         if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
             return
         }
@@ -89,7 +89,7 @@ class GjennomforingConsumer(
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        val eksisterendeGjennomforing = deltakerlisteRepository.get(gjennomforingPayload.id)
+        val eksisterendeGjennomforing = gjennomforingRepository.get(gjennomforingPayload.id)
 
         if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
@@ -112,15 +112,15 @@ class GjennomforingConsumer(
             )
 
             Database.transaction {
-                deltakerlisteRepository.upsert(gjennomforing)
+                gjennomforingRepository.upsert(gjennomforing)
                 amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
 
                 // Fiks for Arena-data hvor deltakerliste er avsluttet mens deltaker er aktiv.
                 // Da skal deltakelsen fortsette å være aktiv
                 if (!tiltakstype.tiltakskode.erArenaEnkeltplass()) {
                     handterDeltakere(
-                        deltakerlisteFromPayload = gjennomforing,
-                        eksisterendeDeltakerliste = eksisterendeGjennomforing,
+                        gjennomforingFromPayload = gjennomforing,
+                        eksisterendeGjennomforing = eksisterendeGjennomforing,
                     )
                 }
 
@@ -128,25 +128,25 @@ class GjennomforingConsumer(
             }
         } else {
             Database.transaction {
-                deltakerlisteRepository.upsert(gjennomforing)
+                gjennomforingRepository.upsert(gjennomforing)
                 amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
             }
         }
     }
 
     private fun handterDeltakere(
-        deltakerlisteFromPayload: Deltakerliste,
-        eksisterendeDeltakerliste: Deltakerliste,
+        gjennomforingFromPayload: Gjennomforing,
+        eksisterendeGjennomforing: Gjennomforing,
     ) {
-        if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
-            avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
+        if (gjennomforingFromPayload.erAvlystEllerAvbrutt() && eksisterendeGjennomforing.status != gjennomforingFromPayload.status) {
+            avsluttDeltakelserPaaDeltakerliste(gjennomforingFromPayload)
         }
 
-        if (deltakerlisteFromPayload.sluttDato != null &&
-            eksisterendeDeltakerliste.sluttDato != null &&
-            deltakerlisteFromPayload.sluttDato < eksisterendeDeltakerliste.sluttDato
+        if (gjennomforingFromPayload.sluttDato != null &&
+            eksisterendeGjennomforing.sluttDato != null &&
+            gjennomforingFromPayload.sluttDato < eksisterendeGjennomforing.sluttDato
         ) {
-            avgrensSluttdatoerTil(deltakerlisteFromPayload)
+            avgrensSluttdatoerTil(gjennomforingFromPayload)
         }
     }
 
@@ -161,7 +161,7 @@ class GjennomforingConsumer(
      * - gjennomføringen ikke er av typen [GjennomforingType.Enkeltplass], eller
      * - gjennomføringen ikke har status [GjennomforingStatusType.KLADD].
      */
-    internal fun publiserEnkeltplassDeltaker(gjennomforing: Deltakerliste) {
+    internal fun publiserEnkeltplassDeltaker(gjennomforing: Gjennomforing) {
         if (!(
                 gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass &&
                     gjennomforing.status == GjennomforingStatusType.KLADD
@@ -174,21 +174,21 @@ class GjennomforingConsumer(
         deltakerProducerService.produce(deltaker)
     }
 
-    internal fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+    internal fun avsluttDeltakelserPaaDeltakerliste(gjennomforing: Gjennomforing) {
         val deltakerePaAvbruttDeltakerliste = deltakerRepository
-            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
-            .map { it.copy(deltakerliste = deltakerliste) }
+            .getDeltakereForAvsluttetDeltakerliste(gjennomforing.id)
+            .map { it.copy(gjennomforing = gjennomforing) }
 
         deltakerService.avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
     }
 
-    internal fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+    internal fun avgrensSluttdatoerTil(gjennomforing: Gjennomforing) {
         deltakerRepository
-            .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
+            .getDeltakerHvorSluttdatoSkalEndres(gjennomforing.id)
             .forEach { deltaker ->
                 deltakerRepository.upsert(
                     deltaker.copy(
-                        sluttdato = deltakerliste.sluttDato,
+                        sluttdato = gjennomforing.sluttDato,
                         sistEndret = LocalDateTime.now(),
                     ),
                 )
