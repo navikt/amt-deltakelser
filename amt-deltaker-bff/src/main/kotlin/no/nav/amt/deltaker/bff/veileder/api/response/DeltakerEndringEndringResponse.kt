@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.InnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
+import no.nav.amt.internapi.deltaker.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import java.time.LocalDate
