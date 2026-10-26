@@ -39,28 +39,6 @@ data class DeltakerStatusResponse(
 
 fun DeltakerStatus.toDeltakerStatusResponse() = DeltakerStatusResponse(this)
 
-data class DeltakelsesmengdeResponse(
-    val deltakelsesprosent: Float,
-    val dagerPerUke: Float?,
-    val gyldigFra: LocalDate,
-) {
-    constructor(model: no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse) : this(
-        deltakelsesprosent = model.deltakelsesprosent,
-        dagerPerUke = model.dagerPerUke,
-        gyldigFra = model.gyldigFra,
-    )
-}
-
-data class DeltakelsesmengderResponse(
-    val nesteDeltakelsesmengde: DeltakelsesmengdeResponse? = null,
-    val sisteDeltakelsesmengde: DeltakelsesmengdeResponse? = null,
-) {
-    constructor(model: no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse) : this(
-        nesteDeltakelsesmengde = model.nesteDeltakelsesmengde?.let(::DeltakelsesmengdeResponse),
-        sisteDeltakelsesmengde = model.sisteDeltakelsesmengde?.let(::DeltakelsesmengdeResponse),
-    )
-}
-
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface EndringFraTiltakskoordinatorEndringResponse {
     data object DelMedArrangor : EndringFraTiltakskoordinatorEndringResponse
