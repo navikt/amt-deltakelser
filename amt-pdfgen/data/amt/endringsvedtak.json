@@ -113,6 +113,14 @@
       "pavirkerPris": true
     },
     {
+      "type": "EndrePrisinfo",
+      "tittel": "Pris og betalingsbetingelser er endret",
+      "prisinformasjon": {
+        "type": "IngenKostnader"
+      },
+      "begrunnelseFraNav": "Prisendringen er foreslått"
+    },
+    {
       "tittel": "Søknaden er avslått",
       "aarsak": "Krav for deltakelse ikke oppfylt",
       "begrunnelseFraNav": "Kan ikke strikke",

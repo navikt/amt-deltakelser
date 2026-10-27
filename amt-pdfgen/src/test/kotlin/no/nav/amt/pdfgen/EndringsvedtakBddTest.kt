@@ -10,6 +10,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EndringsvedtakPdfDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.internapi.journalforing.pdf.ForslagDto
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -122,6 +123,29 @@ class EndringsvedtakBddTest :
                         doc.select("h2").any { it.text() == "Dette er et vedtak" } shouldBe visVedtakOgKlage
                         doc.select("h2").any { it.text() == "Du har rett til å klage" } shouldBe visVedtakOgKlage
                     }
+                }
+            }
+        }
+
+        Given("EndrePrisinfo uten vedtaks- og klageinformasjon") {
+            val endring =
+                EndringDto.EndrePrisinfo(
+                    tittel = "Pris og betalingsbetingelser er endret",
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                    begrunnelseFraNav = "Prisendringen er foreslått",
+                )
+
+            When("dokumentet rendres med visVedtakOgKlage=false") {
+                val doc = renderEndringsvedtak(
+                    endringsvedtak(endringer = listOf(endring)).copy(visVedtakOgKlage = false),
+                )
+
+                Then("skal prisinformasjon og Nav sin begrunnelse vises") {
+                    doc.text() shouldContain endring.tittel
+                    doc.text() shouldContain "Nav skal ikke betale for opplæringen."
+                    doc.sectionText().assertSectionText("Nav sin begrunnelse:", endring.begrunnelseFraNav)
+                    doc.select("h2").any { it.text() == "Dette er et vedtak" } shouldBe false
+                    doc.select("h2").any { it.text() == "Du har rett til å klage" } shouldBe false
                 }
             }
         }

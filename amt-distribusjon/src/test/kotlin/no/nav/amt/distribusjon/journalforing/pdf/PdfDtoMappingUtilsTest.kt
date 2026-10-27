@@ -10,6 +10,30 @@ import org.junit.jupiter.api.Test
 
 class PdfDtoMappingUtilsTest {
     @Test
+    fun `mapper EnkeltplassEndrePrisinfo til EndrePrisinfo`() {
+        val hendelseType = HendelseType.EnkeltplassEndrePrisinfo(
+            kreverGodkjenning = false,
+            prisinfo = PrisinformasjonDto.IngenKostnader(
+                tilleggsopplysninger = "",
+            ),
+            begrunnelse = "Prisendringen er foreslått",
+        )
+
+        val resultat = tilEndringDto(
+            hendelseType = hendelseType,
+            tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            erEnkeltplass = true,
+            harFellesAvslutning = false,
+        )
+
+        resultat shouldBe EndringDto.EndrePrisinfo(
+            tittel = "Pris og betalingsbetingelser er endret",
+            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+            begrunnelseFraNav = "Prisendringen er foreslått",
+        )
+    }
+
+    @Test
     fun `mapper EnkeltplassGodkjennPrisendring til GodkjennPrisendring`() {
         val hendelseType = HendelseType.EnkeltplassGodkjennPrisendring(
             prisinfo = PrisinformasjonDto.IngenKostnader(

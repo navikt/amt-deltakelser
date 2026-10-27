@@ -149,9 +149,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -165,9 +165,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Avslutning endret",
@@ -180,9 +180,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -195,9 +195,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Deltakelsen er endret til ${
@@ -215,17 +215,18 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Ny sluttdato er ${hendelseType.sluttdato.formatDateWithMonthName()}",
     )
 
     is HendelseType.EndreStartdato -> {
-        val tittel =
-            hendelseType.startdato?.let { "Oppstartsdato er endret til ${it.formatDateWithMonthName()}" } ?: "Oppstartsdato er fjernet"
+        val tittel = hendelseType.startdato
+            ?.let { "Oppstartsdato er endret til ${it.formatDateWithMonthName()}" }
+            ?: "Oppstartsdato er fjernet"
 
         val sluttdato = hendelseType.sluttdato
 
@@ -235,9 +236,9 @@ fun tilEndringDto(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
                 forslagFraArrangor = hendelseType.endringFraForslag?.let {
                     endringFraForslagToForslagDto(
-                        it,
-                        hendelseType.begrunnelseFraArrangor,
-                        erEnkeltplass,
+                        endring = it,
+                        begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                        erEnkeltplass = erEnkeltplass,
                     )
                 },
                 tittel = tittel,
@@ -248,9 +249,9 @@ fun tilEndringDto(
                 begrunnelseFraNav = hendelseType.begrunnelseFraNav,
                 forslagFraArrangor = hendelseType.endringFraForslag?.let {
                     endringFraForslagToForslagDto(
-                        it,
-                        hendelseType.begrunnelseFraArrangor,
-                        erEnkeltplass,
+                        endring = it,
+                        begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                        erEnkeltplass = erEnkeltplass,
                     )
                 },
                 tittel = tittel,
@@ -263,9 +264,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
         tittel = "Deltakelsen er forlenget til ${hendelseType.sluttdato.formatDateWithMonthName()}",
@@ -277,9 +278,9 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
     )
@@ -290,7 +291,9 @@ fun tilEndringDto(
             tiltakskode == Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER ||
             tiltakskode.erOpplaeringstiltak()
         ) {
-            hendelseType.innhold.firstOrNull { it.innholdskode == INNHOLDSKODE_ANNET }?.beskrivelse
+            hendelseType.innhold
+                .firstOrNull { it.innholdskode == INNHOLDSKODE_ANNET }
+                ?.beskrivelse
         } else {
             null
         },
@@ -320,24 +323,30 @@ fun tilEndringDto(
         begrunnelseFraNav = hendelseType.begrunnelseFraNav,
         forslagFraArrangor = hendelseType.endringFraForslag?.let {
             endringFraForslagToForslagDto(
-                it,
-                hendelseType.begrunnelseFraArrangor,
-                erEnkeltplass,
+                endring = it,
+                begrunnelseFraArrangor = hendelseType.begrunnelseFraArrangor,
+                erEnkeltplass = erEnkeltplass,
             )
         },
     )
 
     is HendelseType.Avslag -> EndringDto.Avslag(
-        hendelseType.aarsak.visningsnavn(),
-        hendelseType.begrunnelseFraNav,
-        hendelseType.vurderingFraArrangor?.let {
-            EndringDto.Avslag.Vurdering(it.vurderingstype.visningsnavn(), it.begrunnelse)
+        aarsak = hendelseType.aarsak.visningsnavn(),
+        begrunnelseFraNav = hendelseType.begrunnelseFraNav,
+        vurdering = hendelseType.vurderingFraArrangor?.let {
+            EndringDto.Avslag.Vurdering(
+                type = it.vurderingstype.visningsnavn(),
+                begrunnelse = it.begrunnelse,
+            )
         },
     )
-    is HendelseType.EnkeltplassEndrePrisinfo -> EndringDto.GodkjennPrisendring(
+
+    is HendelseType.EnkeltplassEndrePrisinfo -> EndringDto.EndrePrisinfo(
         tittel = "Pris og betalingsbetingelser er endret",
         prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
+        begrunnelseFraNav = hendelseType.begrunnelse,
     )
+
     is HendelseType.EnkeltplassGodkjennPrisendring -> EndringDto.GodkjennPrisendring(
         tittel = "Pris og betalingsbetingelser er endret",
         prisinformasjon = hendelseType.prisinfo.toPrisinformasjon(),
