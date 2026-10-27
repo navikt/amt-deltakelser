@@ -15,7 +15,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
 
-class Deltakerliste2PrisinfoRepositoryTest {
+class PrisinfoGjennomforingLinkRepositoryTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
@@ -42,7 +42,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
@@ -61,7 +61,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -80,14 +80,14 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             assertThrows<Exception> {
-                Deltakerliste2PrisinfoRepository.upsert(
+                PrisinfoGjennomforingLinkRepository.upsert(
                     gjennomforingId = gjennomforingInTest.id,
                     prisinformasjonId = prisinfoUpsertDbo.id,
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
@@ -105,13 +105,13 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo1)
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -138,13 +138,13 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo1)
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -168,14 +168,14 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo(gjennomforingId = deltakerliste.id)
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
             // Act
-            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+            val result = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
 
             // Assert
             result shouldBe prisinfoUpsertDbo.id
@@ -188,7 +188,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             // Act
-            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+            val result = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
 
             // Assert
             result shouldBe null
@@ -203,14 +203,14 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo(gjennomforingId = deltakerliste.id)
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
             // Act
-            val result = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
+            val result = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(deltakerliste.id)
 
             // Assert
             result shouldBe null
@@ -226,13 +226,13 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
-            Deltakerliste2PrisinfoRepository.delete(
+            PrisinfoGjennomforingLinkRepository.delete(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -254,19 +254,19 @@ class Deltakerliste2PrisinfoRepositoryTest {
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo1)
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo2)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo1.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             )
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
-            Deltakerliste2PrisinfoRepository.delete(
+            PrisinfoGjennomforingLinkRepository.delete(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo2.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -290,13 +290,13 @@ class Deltakerliste2PrisinfoRepositoryTest {
             val prisinfoUpsertDbo = lagPrisinfoInsertDbo()
             PrisinfoRepository.upsertPrisinfo(prisinfoUpsertDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoUpsertDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             )
 
-            DeltakerlisteRepository().delete(gjennomforingInTest.id)
+            GjennomforingRepository().delete(gjennomforingInTest.id)
 
             hentPrisinfoId(
                 gjennomforingId = gjennomforingInTest.id,
@@ -311,7 +311,7 @@ class Deltakerliste2PrisinfoRepositoryTest {
     ): UUID? = Database.query { session ->
         session.single(
             kotliquery.queryOf(
-                "SELECT prisinformasjon_id FROM deltakerliste_2_prisinformasjon WHERE deltakerliste_id = ? AND rolle = ?",
+                "SELECT prisinformasjon_id FROM prisinformasjon_gjennomforing_link WHERE gjennomforing_id = ? AND rolle = ?",
                 gjennomforingId,
                 rolle.name,
             ),

@@ -42,7 +42,7 @@ class DeltakerKafkaPayloadBuilder(
 
         return DeltakerV1Dto(
             id = deltaker.id,
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             personIdent = deltaker.navBruker.personident,
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,
@@ -77,7 +77,7 @@ class DeltakerKafkaPayloadBuilder(
 
         return DeltakerEksternV1Dto(
             id = deltaker.id,
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             personIdent = deltaker.navBruker.personident,
             navVeileder = deltaker.navBruker.navVeilederId?.let { navVeilederId ->
                 val navVeileder = navAnsattRepository.getOrThrow(navVeilederId)
@@ -143,18 +143,18 @@ class DeltakerKafkaPayloadBuilder(
 
         return DeltakerKafkaPayload(
             id = deltaker.id,
-            deltakerlisteId = deltaker.deltakerliste.id,
+            deltakerlisteId = deltaker.gjennomforing.id,
             deltakerliste = DeltakerlistePayload(
-                id = deltaker.deltakerliste.id,
-                navn = deltaker.deltakerliste.navn,
-                gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
+                id = deltaker.gjennomforing.id,
+                navn = deltaker.gjennomforing.navn,
+                gjennomforingstype = deltaker.gjennomforing.gjennomforingstype,
                 tiltak = Tiltak(
-                    navn = deltaker.deltakerliste.tiltakstype.navn,
-                    tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                    navn = deltaker.gjennomforing.tiltakstype.navn,
+                    tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
                 ),
-                startdato = deltaker.deltakerliste.startDato,
-                sluttdato = deltaker.deltakerliste.sluttDato,
-                oppstartstype = deltaker.deltakerliste.oppstart,
+                startdato = deltaker.gjennomforing.startDato,
+                sluttdato = deltaker.gjennomforing.sluttDato,
+                oppstartstype = deltaker.gjennomforing.oppstart,
             ),
             personalia = Personalia(
                 personId = deltaker.navBruker.personId,
@@ -295,7 +295,7 @@ class DeltakerKafkaPayloadBuilder(
         historikk: List<DeltakerHistorikk>,
         isForDeltakerExternalTopic: Boolean = false,
     ): List<Deltakelsesmengde> {
-        val skalBeregneDeltakelsesmengder = isForDeltakerExternalTopic || deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde
+        val skalBeregneDeltakelsesmengder = isForDeltakerExternalTopic || deltaker.gjennomforing.tiltakstype.harDeltakelsesmengde
 
         if (!skalBeregneDeltakelsesmengder) return emptyList()
 

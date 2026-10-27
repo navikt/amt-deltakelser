@@ -25,7 +25,7 @@ class EndreAvslutningExtensionsTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
@@ -62,7 +62,7 @@ class EndreAvslutningExtensionsTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),

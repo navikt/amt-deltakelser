@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepository
@@ -54,7 +54,7 @@ class GjennomforingProducerServiceTest {
     private val vedtakService = mockk<VedtakService>()
     private val gjennomforingRequestProducer = mockk<GjennomforingRequestProducer>()
     private val deltakerService = mockk<DeltakerService>()
-    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val gjennomforingRepository = mockk<GjennomforingRepository>()
     private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>(relaxed = true)
 
     private val sut = GjennomforingProducerService(
@@ -63,7 +63,7 @@ class GjennomforingProducerServiceTest {
         vedtakService = vedtakService,
         gjennomforingRequestProducer = gjennomforingRequestProducer,
         deltakerService = deltakerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         amtGjennomforingProducer = amtGjennomforingProducer,
     )
 
@@ -125,7 +125,7 @@ class GjennomforingProducerServiceTest {
             PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(any(), any(), any())
         } just Runs
 
-        every { deltakerlisteRepository.get(any()) } returns createBaseDeltaker().deltakerliste
+        every { gjennomforingRepository.get(any()) } returns createBaseDeltaker().gjennomforing
     }
 
     @Nested
@@ -141,7 +141,7 @@ class GjennomforingProducerServiceTest {
 
             // Act
             sut.lagreOgProduserPrisinfoEndring(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinfo = nyPrisinfo,
                 begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = "Z123456",
@@ -149,10 +149,10 @@ class GjennomforingProducerServiceTest {
             )
 
             // Assert
-            verify { PrisinfoRepoAdapter.lagrePrisinfoEndring(deltaker.deltakerliste.id, nyPrisinfo, "~begrunnelse~") }
+            verify { PrisinfoRepoAdapter.lagrePrisinfoEndring(deltaker.gjennomforing.id, nyPrisinfo, "~begrunnelse~") }
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
                     behandletAv = "Z123456",
@@ -178,7 +178,7 @@ class GjennomforingProducerServiceTest {
             // Act & Assert
             shouldThrow<IllegalStateException> {
                 sut.lagreOgProduserPrisinfoEndring(
-                    gjennomforingId = deltaker.deltakerliste.id,
+                    gjennomforingId = deltaker.gjennomforing.id,
                     prisinfo = nyPrisinfo,
                     begrunnelse = "~begrunnelse~",
                     endretAvNavIdent = "Z123456",
@@ -198,7 +198,7 @@ class GjennomforingProducerServiceTest {
 
             // Act
             sut.lagreOgProduserPrisinfoEndring(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinfo = nyPrisinfo,
                 begrunnelse = "~begrunnelse~",
                 endretAvNavIdent = endretAv,
@@ -208,7 +208,7 @@ class GjennomforingProducerServiceTest {
             // Assert
             val produced = slot.captured
             (produced as GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon).totrinnskontroll.behandletAv shouldBe endretAv
-            produced.gjennomforingId shouldBe deltaker.deltakerliste.id
+            produced.gjennomforingId shouldBe deltaker.gjennomforing.id
         }
     }
 
@@ -222,7 +222,7 @@ class GjennomforingProducerServiceTest {
             val sertifiseringer = setOf(SertifiseringValg(id = 1, navn = "Truckfører T1"))
 
             val kategoriseringForTiltak = OpplaringKategoriseringResponse(
-                tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                         id = UUID.randomUUID(),
@@ -258,13 +258,13 @@ class GjennomforingProducerServiceTest {
             val slot = slot<GjennomforingRequestPayload>()
 
             every {
-                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id)
             } returns lagretKategorisering
             every { gjennomforingRequestProducer.produce(capture(slot)) } just Runs
 
             // Act
             sut.lagreOgProduserEnkeltplassEndreInnhold(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 kodeverkValg = setOf(kodeverkId),
                 sertifiseringValg = sertifiseringer,
                 kategoriseringForTiltak = kategoriseringForTiltak,
@@ -273,19 +273,19 @@ class GjennomforingProducerServiceTest {
 
             // Assert
             verify {
-                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id)
             }
 
             verify {
                 OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                    gjennomforingId = deltaker.deltakerliste.id,
+                    gjennomforingId = deltaker.gjennomforing.id,
                     valgteVerdier = lagretKategorisering.valgteKategoriseringer,
                     valgteSertifiseringer = sertifiseringer,
                 )
             }
 
             slot.captured shouldBe GjennomforingRequestPayload.EnkeltplassEndreInnhold(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = lagretKategorisering.toMulighetsrommetKategorisering(),
                 behandletAv = "~endretAvNavIdent~",
             )
@@ -297,7 +297,7 @@ class GjennomforingProducerServiceTest {
             val deltaker = createUtkastDeltaker()
             val ugyldigKodeverkId = UUID.randomUUID()
             val kategoriseringForTiltak = OpplaringKategoriseringResponse(
-                tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
                 alternativer = listOf(
                     OpplaringKategoriseringResponse.Alternativ.Verdigruppe(
                         id = UUID.randomUUID(),
@@ -319,7 +319,7 @@ class GjennomforingProducerServiceTest {
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
                 sut.lagreOgProduserEnkeltplassEndreInnhold(
-                    gjennomforingId = deltaker.deltakerliste.id,
+                    gjennomforingId = deltaker.gjennomforing.id,
                     kodeverkValg = setOf(ugyldigKodeverkId),
                     sertifiseringValg = emptySet(),
                     kategoriseringForTiltak = kategoriseringForTiltak,
@@ -339,15 +339,15 @@ class GjennomforingProducerServiceTest {
     @Nested
     inner class ProduserGjennomforingUpsertTests {
         private fun Deltaker.toPayload(): GjennomforingRequestPayload.UpsertEnkeltplass = GjennomforingRequestPayload.UpsertEnkeltplass(
-            tiltakskode = deltakerliste.tiltakstype.tiltakskode,
+            tiltakskode = gjennomforing.tiltakstype.tiltakskode,
             prisinformasjon = GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000),
-            organisasjonsnummer = this.deltakerliste.arrangor!!.organisasjonsnummer,
+            organisasjonsnummer = this.gjennomforing.arrangor!!.organisasjonsnummer,
             ansvarligEnhet = "1234",
             startDato = requireNotNull(startdato),
             sluttDato = requireNotNull(sluttdato),
             opprettetAv = "Z123456",
             kategorisering = OpplaringKategoriseringRepoAdapter
-                .hentOpplaringKategoriseringValg(deltakerliste.id)
+                .hentOpplaringKategoriseringValg(gjennomforing.id)
                 .toMulighetsrommetKategorisering(),
         )
 
@@ -371,7 +371,7 @@ class GjennomforingProducerServiceTest {
             // Assert
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = payload,
             )
             verify(exactly = 0) { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), any()) }
@@ -397,14 +397,14 @@ class GjennomforingProducerServiceTest {
             // Assert
             val produced = slot.captured
             produced shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = payload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
                     behandletAv = navIdent,
                 ),
             )
-            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.PrisinfoStatus.SENDT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(totrinnsIdInTest, PrisinfoDbo.TotrinnskontrollStatus.SENDT) }
         }
 
         @Test
@@ -437,8 +437,8 @@ class GjennomforingProducerServiceTest {
             )
 
             // Assert
-            payload.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
-            payload.organisasjonsnummer shouldBe deltaker.deltakerliste.arrangor?.organisasjonsnummer
+            payload.tiltakskode shouldBe deltaker.gjennomforing.tiltakstype.tiltakskode
+            payload.organisasjonsnummer shouldBe deltaker.gjennomforing.arrangor?.organisasjonsnummer
             payload.ansvarligEnhet shouldBe enhet
             payload.opprettetAv shouldBe navIdent
             payload.prisinformasjon shouldBe GjennomforingRequestPayload.Prisinformasjon.Anskaffelse(1000)
@@ -469,7 +469,7 @@ class GjennomforingProducerServiceTest {
         fun `kaster error når organisasjonsnummer er null`() {
             // Arrange
             val deltaker = createUtkastDeltaker().copy(
-                deltakerliste = createUtkastDeltaker().deltakerliste.copy(
+                gjennomforing = createUtkastDeltaker().gjennomforing.copy(
                     arrangor = null,
                 ),
             )
@@ -534,7 +534,7 @@ class GjennomforingProducerServiceTest {
 
             // Assert
             request shouldBe GjennomforingRequestPayload.EnkeltplassUtkast(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = testPayload,
             )
         }
@@ -554,7 +554,7 @@ class GjennomforingProducerServiceTest {
 
             // Assert
             request shouldBe GjennomforingRequestPayload.EnkeltplassSoktInn(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 payload = testPayload,
                 totrinnskontroll = GjennomforingRequestPayload.Totrinnskontroll(
                     id = totrinnsIdInTest,
@@ -610,7 +610,7 @@ class GjennomforingProducerServiceTest {
                 navEnhetId = navEnhetInTest.id,
                 navVeilederId = navAnsattInTest.id,
             ),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 status = GjennomforingStatusType.KLADD,
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),

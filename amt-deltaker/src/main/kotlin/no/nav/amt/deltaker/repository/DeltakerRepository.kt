@@ -228,7 +228,7 @@ class DeltakerRepository {
         val parameters = mapOf(
             "id" to deltaker.id,
             "person_id" to deltaker.navBruker.personId,
-            "deltakerlisteId" to deltaker.deltakerliste.id,
+            "deltakerlisteId" to deltaker.gjennomforing.id,
             "startdato" to deltaker.startdato,
             "sluttdato" to deltaker.sluttdato,
             "dagerPerUke" to deltaker.dagerPerUke,
@@ -560,7 +560,7 @@ class DeltakerRepository {
             SELECT d.id
             FROM 
                 deltaker d
-                JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
+                JOIN gjennomforing dl ON d.deltakerliste_id = dl.id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE t.tiltakskode = :tiltakskode
             """.trimIndent()
@@ -654,7 +654,7 @@ class DeltakerRepository {
 
         private fun deltakerRowMapper(row: Row): Deltaker {
             val status = DeltakerStatus.Type.valueOf(row.string("ds.type"))
-            val deltakerliste = DeltakerlisteRepository.rowMapper(row)
+            val deltakerliste = GjennomforingRepository.rowMapper(row)
             val deltaker = Deltaker(
                 id = row.uuid("d.id"),
                 navBruker = NavBruker(
@@ -673,7 +673,7 @@ class DeltakerRepository {
                     oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
                     innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
                 ),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = row.localDateOrNull("d.startdato"),
                 sluttdato = row.localDateOrNull("d.sluttdato"),
                 dagerPerUke = row.floatOrNull("d.dager_per_uke"),
@@ -798,7 +798,7 @@ class DeltakerRepository {
                 d.id = ds.deltaker_id
                 AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra <= CURRENT_TIMESTAMP                
-            JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
+            JOIN gjennomforing dl ON d.deltakerliste_id = dl.id
             JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             LEFT JOIN arrangor a ON a.id = dl.arrangor_id
             LEFT JOIN vedtak v ON 

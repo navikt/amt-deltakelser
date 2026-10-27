@@ -3,8 +3,8 @@ package no.nav.amt.deltaker.application.plugins
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.deltaker.clients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.innbygger.NavBrukerService
-import no.nav.amt.deltaker.model.Deltakerliste
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.model.Gjennomforing
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -12,13 +12,13 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.Year
 
 class OpprettKladdRequestValidator(
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val brukerService: NavBrukerService,
     private val personServiceClient: AmtPersonServiceClient,
     private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient,
 ) {
     suspend fun validateRequest(request: OpprettKladdRequest): ValidationResult {
-        val deltakerListe = deltakerlisteRepository.get(request.deltakerlisteId)
+        val deltakerListe = gjennomforingRepository.get(request.deltakerlisteId)
             ?: throw NoSuchElementException("Fant ikke deltakerliste med id ${request.deltakerlisteId}")
 
         if (deltakerListe.erAvsluttet()) {
@@ -49,7 +49,7 @@ class OpprettKladdRequestValidator(
 
     private suspend fun harRiktigInnsatsGruppe(
         personIdent: String,
-        deltakerListe: Deltakerliste,
+        deltakerListe: Gjennomforing,
     ): Boolean {
         val navBruker = brukerService.get(personIdent).getOrThrow()
 
@@ -66,7 +66,7 @@ class OpprettKladdRequestValidator(
 
     private suspend fun deltakerForUng(
         personIdent: String,
-        deltakerListe: Deltakerliste,
+        deltakerListe: Gjennomforing,
     ): Boolean {
         fun alderVedKursStart(foedselAar: Int): Int {
             val startDato = deltakerListe.startDato

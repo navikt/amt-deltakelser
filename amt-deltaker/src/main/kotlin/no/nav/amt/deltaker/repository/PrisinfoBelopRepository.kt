@@ -15,7 +15,7 @@ object PrisinfoBelopRepository {
 
         val insertSql =
             """
-            INSERT INTO enkeltplass_prisinformasjon_belop (
+            INSERT INTO prisinformasjon_belop (
                 prisinfo_id,
                 pristype,
                 pris
@@ -43,7 +43,7 @@ object PrisinfoBelopRepository {
     fun deleteForPrisinfo(prisinfoId: UUID): Int = Database.query { session ->
         session.update(
             queryOf(
-                "DELETE FROM enkeltplass_prisinformasjon_belop WHERE prisinfo_id = ?",
+                "DELETE FROM prisinformasjon_belop WHERE prisinfo_id = ?",
                 prisinfoId,
             ),
         )
@@ -65,7 +65,7 @@ object PrisinfoBelopRepository {
                 prisinfo_id,
                 pristype, 
                 pris 
-            FROM enkeltplass_prisinformasjon_belop
+            FROM prisinformasjon_belop
             WHERE prisinfo_id = ANY(:prisinformasjonIder)
             """.trimIndent()
 

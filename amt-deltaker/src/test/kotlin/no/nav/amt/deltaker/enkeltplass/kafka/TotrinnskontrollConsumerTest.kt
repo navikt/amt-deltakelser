@@ -176,7 +176,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             verify {
                 PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                     prisinformasjonId = any(),
-                    status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
+                    status = PrisinfoDbo.TotrinnskontrollStatus.RETURNERT,
                 )
             }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
@@ -385,7 +385,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                 deltakerRepository,
                 gjennomforingId,
                 deltakerInTest,
-                PrisinfoDbo.PrisinfoStatus.GODKJENT,
+                PrisinfoDbo.TotrinnskontrollStatus.GODKJENT,
             )
 
             // Act
@@ -419,7 +419,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
                 deltakerRepository,
                 gjennomforingId,
                 deltakerInTest,
-                PrisinfoDbo.PrisinfoStatus.GODKJENT,
+                PrisinfoDbo.TotrinnskontrollStatus.GODKJENT,
             )
 
             // Act
@@ -454,7 +454,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             )
 
             // Assert
-            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), PrisinfoDbo.PrisinfoStatus.RETURNERT) }
+            verify { PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(any(), PrisinfoDbo.TotrinnskontrollStatus.RETURNERT) }
             verify(exactly = 0) { deltakerRepository.getEnkeltplassdeltakerOrThrow(any()) }
         }
     }
@@ -518,7 +518,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             sluttdato: LocalDate? = LocalDate.now().plusWeeks(4),
             vedtaksinformasjon: Vedtaksinformasjon? = null,
         ): Deltaker = lagDeltaker(
-            deltakerliste = lagDeltakerliste(id = deltakerlisteId),
+            gjennomforing = lagDeltakerliste(id = deltakerlisteId),
             status = lagDeltakerStatus(status),
             startdato = startdato,
             sluttdato = sluttdato,
@@ -529,10 +529,10 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
             deltakerRepository: DeltakerRepository,
             gjennomforingId: UUID,
             deltaker: Deltaker,
-            prisinfoStatus: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.TIL_BEHANDLING,
+            totrinnskontrollStatus: PrisinfoDbo.TotrinnskontrollStatus = PrisinfoDbo.TotrinnskontrollStatus.TIL_BEHANDLING,
         ) {
             every { deltakerRepository.getEnkeltplassdeltakerOrThrow(gjennomforingId) } returns deltaker
-            every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns prisinfoStatus
+            every { PrisinfoRepository.hentPrisinfoStatus(any(), any()) } returns totrinnskontrollStatus
         }
 
         fun stubGodkjennOkonomi(result: Boolean) {
@@ -559,7 +559,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
 
         val gjennomforingId: UUID = UUID.randomUUID()
         val deltakerInTest = lagDeltaker(
-            deltakerliste = lagDeltakerliste(id = gjennomforingId),
+            gjennomforing = lagDeltakerliste(id = gjennomforingId),
         )
 
         @BeforeEach

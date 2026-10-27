@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
 import no.nav.amt.deltaker.api.response.TiltakskoordinatorResponseBuilder
 import no.nav.amt.deltaker.extensions.getGjennomforingId
 import no.nav.amt.deltaker.navtiltakskoordinator.TiltakskoordinatorService
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.internapi.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.internapi.tiltakskoordinator.request.TiltaksKoordinatorDeltakerlisteRequest
@@ -19,7 +19,7 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
 fun Routing.registerTiltakskoordinatorApi(
-    deltakerlisteRepository: DeltakerlisteRepository,
+    gjennomforingRepository: GjennomforingRepository,
     deltakerResponseBuilder: DeltakerResponseBuilder,
     tiltakskoordinatorService: TiltakskoordinatorService,
     tiltakskoordinatorResponseBuilder: TiltakskoordinatorResponseBuilder,
@@ -27,10 +27,10 @@ fun Routing.registerTiltakskoordinatorApi(
     authenticate("SYSTEM") {
         get("/gjennomforing/{gjennomforingId}") {
             val gjennomforingId = call.getGjennomforingId()
-            val deltakerliste = deltakerlisteRepository.get(gjennomforingId)
+            val deltakerliste = gjennomforingRepository.get(gjennomforingId)
                 ?: throw NoSuchElementException("Fant ikke deltakerliste med id $gjennomforingId")
             val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 includeOpplaringKategorisering = false,
             )
 

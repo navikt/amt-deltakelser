@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.api.response
 
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -64,7 +64,7 @@ class DeltakerResponseBuilder(
                 navAnsatte = navAnsatte,
             ),
             gjennomforing = buildGjennomforingResponse(
-                deltakerliste = deltaker.deltakerliste,
+                gjennomforing = deltaker.gjennomforing,
                 includeOpplaringKategorisering = includeOpplaringKategorisering,
             ),
             startdato = deltaker.startdato,
@@ -113,17 +113,17 @@ class DeltakerResponseBuilder(
     }
 
     internal fun buildGjennomforingResponse(
-        deltakerliste: Deltakerliste,
+        gjennomforing: Gjennomforing,
         includeOpplaringKategorisering: Boolean,
     ): GjennomforingResponse {
         val prisinformasjon = GjennomforingPrisinformasjon.hent(
-            deltakerliste = deltakerliste,
+            gjennomforing = gjennomforing,
             includeOpplaringKategorisering = includeOpplaringKategorisering,
         )
 
         return SharedResponseMappers.buildGjennomforingResponse(
-            deltakerliste = deltakerliste,
-            opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
+            gjennomforing = gjennomforing,
+            opplaringKategoriseringValg = gjennomforing.opplaringKategorisering,
             prisinformasjon = prisinformasjon,
         )
     }

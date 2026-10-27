@@ -422,7 +422,7 @@ class PrisinfoRepoAdapterTest {
             )
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = returnertPrisinfoId,
-                status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
+                status = PrisinfoDbo.TotrinnskontrollStatus.RETURNERT,
             )
 
             val request = EndretPrisinfoRequest(
@@ -483,7 +483,7 @@ class PrisinfoRepoAdapterTest {
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
 
-            beforeGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+            beforeGodkjenning.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
 
             // Act
             godkjennMedTestGodkjenner(
@@ -498,7 +498,7 @@ class PrisinfoRepoAdapterTest {
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 ).shouldNotBeNull()
 
-            afterGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+            afterGodkjenning.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
 
             PrisinfoRepository
                 .hentPrisinfo(
@@ -528,10 +528,10 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjon = endringPrisinfo,
                 begrunnelse = "Begrunnelse",
             )
-            val aktivEndringId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
+            val aktivEndringId = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
             val stalePrisinfoId = UUID.randomUUID()
 
-            val endringFoer = PrisinfoRepository
+            val forslagTILENDRINGFoer = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -550,9 +550,9 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             result shouldBe false
-            Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
+            PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
 
-            val endringEtter = PrisinfoRepository
+            val forslagTILENDRINGEtter = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -563,8 +563,8 @@ class PrisinfoRepoAdapterTest {
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 ).shouldNotBeNull()
 
-            endringEtter.id shouldBe endringFoer.id
-            endringEtter.status shouldBe endringFoer.status
+            forslagTILENDRINGEtter.id shouldBe forslagTILENDRINGFoer.id
+            forslagTILENDRINGEtter.status shouldBe forslagTILENDRINGFoer.status
             gjeldendeEtter.id shouldBe gjeldendeFoer.id
             gjeldendeEtter.status shouldBe gjeldendeFoer.status
         }
@@ -976,7 +976,7 @@ class PrisinfoRepoAdapterTest {
         private val navAnsatt = lagNavAnsatt()
         private val deltakerliste = lagDeltakerliste()
         private val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         )
         private val vedtakFattet = LocalDateTime.now()
@@ -1158,10 +1158,82 @@ class PrisinfoRepoAdapterTest {
         ) = Database.query { session ->
             session.update(
                 queryOf(
-                    "UPDATE enkeltplass_prisinformasjon SET modified_at = ? WHERE id = ?",
+                    "UPDATE prisinformasjon SET modified_at = ? WHERE id = ?",
                     tidspunkt,
                     prisinformasjonId,
                 ),
+            )
+        }
+    }
+
+    @Nested
+    inner class ValiderPrisinfoTypeKanEndresTests {
+        private fun gjeldendeAnskaffelse(gjennomforingId: UUID) {
+            val gjeldendeId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingId,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+            godkjennMedTestGodkjenner(gjennomforingId = gjennomforingId, prisinformasjonId = gjeldendeId)
+        }
+
+        @Test
+        fun `typeendring med status DELTAR - kaster`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                    gjennomforingId = deltakerliste.id,
+                    nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                    deltakerStatus = DeltakerStatus.Type.DELTAR,
+                )
+            }
+        }
+
+        @Test
+        fun `typeendring med status SOKT_INN - kaster ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.SOKT_INN,
+            )
+        }
+
+        @Test
+        fun `verdiendring av samme type med status DELTAR - kaster ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = Anskaffelse(pris = 99999),
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
+            )
+        }
+
+        @Test
+        fun `ingen gjeldende prisinfo - kaster ikke ved typeendring`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
             )
         }
     }

@@ -90,11 +90,11 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal telle deltakere per status`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val deltaker3 =
-                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            val deltaker4 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+                lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker4 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
             TestRepository.insert(deltaker3)
@@ -120,10 +120,10 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal filtrere pa spesifiserte statuser`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val deltaker2 =
-                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            val deltaker3 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+                lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker3 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
             TestRepository.insert(deltaker3)
@@ -144,11 +144,11 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal telle OppdateringFraNav for alle relevante nav-hendelser`() {
             val deltakerliste = lagDeltakerliste()
-            val ikkeAktuell = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
-            val harSluttet = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
-            val avbrutt = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT))
+            val ikkeAktuell = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL))
+            val harSluttet = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val avbrutt = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT))
             val reaktivert =
-                lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             TestRepository.insertAll(ikkeAktuell, harSluttet, avbrutt, reaktivert)
 
             ulestHendelseRepository.upsert(
@@ -227,7 +227,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal ikke telle ikke-aktive forslag`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker)
@@ -256,7 +256,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal kun telle aktiv status nar deltaker har statushistorikk`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = LocalDateTime.now().minusHours(1),
@@ -292,7 +292,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal telle NyeDeltakere basert på uleste godkjenn-utkast-hendelser`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker)
@@ -330,7 +330,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal telle OppdateringFraNav basert på uleste nav-hendelser`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             )
             TestRepository.insert(deltaker)
@@ -367,7 +367,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal telle AktiveForslag og ikke dobbeltelle samme deltaker`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker)
@@ -390,11 +390,11 @@ class TiltakskoordinatorViewRepositoryTest {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
             val deltaker1 = lagDeltaker(
-                deltakerliste = deltakerliste1,
+                gjennomforing = deltakerliste1,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste2,
+                gjennomforing = deltakerliste2,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker1)
@@ -427,11 +427,11 @@ class TiltakskoordinatorViewRepositoryTest {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
             val deltaker1 = lagDeltaker(
-                deltakerliste = deltakerliste1,
+                gjennomforing = deltakerliste1,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste2,
+                gjennomforing = deltakerliste2,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker1)
@@ -471,13 +471,13 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal returnere deltakere for gjennomføring`() {
             val deltaker1 = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(deltaker1)
 
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             )
             TestRepository.insert(deltaker2)
@@ -507,9 +507,9 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal returnere deltakere som matcher gitte IDer`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            val deltaker3 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker3 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
             TestRepository.insert(deltaker3)
@@ -524,8 +524,8 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal returnere deltakere fra ulike deltakerlister`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
 
@@ -538,7 +538,7 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal ikke filtrere bort skjulte statuser`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
             TestRepository.insert(deltaker)
 
             val result = viewRepository.getDeltakere(listOf(deltaker.id))
@@ -552,7 +552,7 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal mappe alle felter korrekt`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusMonths(1),
                 sluttdato = LocalDate.now().plusMonths(2),
@@ -576,7 +576,7 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal inkludere berikede felter - forslag og vurdering`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
@@ -597,7 +597,7 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal inkludere soktInnDato fra vedtak`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val ansatt = lagNavAnsatt()
             val enhet = lagNavEnhet()
             TestRepository.insert(deltaker)
@@ -632,10 +632,10 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal returnere deltakere for gjennomføring`() {
             val deltakerliste = lagDeltakerliste()
 
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker1)
 
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
             TestRepository.insert(deltaker2)
 
             val result = getDeltakereMedBerikelse(deltakerliste.id)
@@ -648,8 +648,8 @@ class TiltakskoordinatorViewRepositoryTest {
         fun `skal ikke returnere deltakere fra andre gjennomføringer`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
-            val deltaker1 = lagDeltaker(deltakerliste = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker1 = lagDeltaker(gjennomforing = deltakerliste1, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste2, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker1)
             TestRepository.insert(deltaker2)
 
@@ -662,7 +662,7 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal mappe nav-bruker-felt korrekt`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -677,7 +677,7 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal mappe deltakerstatus korrekt`() {
             val deltakerliste = lagDeltakerliste()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             TestRepository.insert(deltaker)
 
             val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -688,10 +688,10 @@ class TiltakskoordinatorViewRepositoryTest {
         @Test
         fun `skal filtrere bort skjulte statuser i SQL`() {
             val deltakerliste = lagDeltakerliste()
-            val synlig = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-            val kladd = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
-            val feilregistrert = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
-            val utkast = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+            val synlig = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+            val kladd = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+            val feilregistrert = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
+            val utkast = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
             TestRepository.insert(synlig)
             TestRepository.insert(kladd)
             TestRepository.insert(feilregistrert)
@@ -708,7 +708,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal returnere null når ingen søkt-inn-kilder finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -719,7 +719,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal bruke arena innsoktDato når den finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val arenaDato = LocalDate.of(2024, 3, 15)
@@ -735,7 +735,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal bruke vedtak created_at som fallback for soktInnDato`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 val ansatt = lagNavAnsatt()
                 val enhet = lagNavEnhet()
                 TestRepository.insert(deltaker)
@@ -759,7 +759,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal bruke vedtak created_at selv når vedtak er utløpt (gyldig_til satt)`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 val ansatt = lagNavAnsatt()
                 val enhet = lagNavEnhet()
                 TestRepository.insert(deltaker)
@@ -785,7 +785,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal prioritere arena-import over vedtak`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 val ansatt = lagNavAnsatt()
                 val enhet = lagNavEnhet()
                 TestRepository.insert(deltaker)
@@ -815,7 +815,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være false når ingen forslag finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -826,7 +826,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være true når VenterPaSvar-forslag finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
                 forslagRepository.upsert(lagForslag(deltakerId = deltaker.id, status = Forslag.Status.VenterPaSvar))
 
@@ -838,7 +838,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være false når kun ikke-aktive forslag finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
                 forslagRepository.upsert(
                     lagForslag(
@@ -861,7 +861,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være null når ingen vurdering finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -872,7 +872,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal returnere nyeste vurderingstype`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 vurderingRepository.upsert(
@@ -901,7 +901,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være null når ingen vedtak finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -912,7 +912,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal returnere fattet kun fra aktivt vedtak`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 val ansatt = lagNavAnsatt()
                 val enhet = lagNavEnhet()
                 TestRepository.insert(deltaker)
@@ -937,7 +937,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være null for utløpt vedtak`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 val ansatt = lagNavAnsatt()
                 val enhet = lagNavEnhet()
                 TestRepository.insert(deltaker)
@@ -971,7 +971,7 @@ class TiltakskoordinatorViewRepositoryTest {
             val aktivStatusTidspunkt = LocalDateTime.now().minusWeeks(1)
 
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = aktivStatusTidspunkt,
@@ -1002,7 +1002,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal være null når ingen cache-entry finnes`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 val result = getDeltakereMedBerikelse(deltakerliste.id).single()
@@ -1013,7 +1013,7 @@ class TiltakskoordinatorViewRepositoryTest {
             @Test
             fun `skal returnere cachet digital-status for fersk cache-entry`() {
                 val deltakerliste = lagDeltakerliste()
-                val deltaker = lagDeltaker(deltakerliste = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+                val deltaker = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
                 TestRepository.insert(deltaker)
 
                 DigitalBrukerCacheRepository.upsertBatch(listOf(deltaker.navBruker.personident to true))

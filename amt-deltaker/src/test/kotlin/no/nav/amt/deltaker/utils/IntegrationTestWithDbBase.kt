@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
@@ -23,7 +23,7 @@ abstract class IntegrationTestWithDbBase : IntegrationTestBase() {
     override val arrangorRepository: ArrangorRepository = ArrangorRepository()
     override val deltakerEndringRepository: DeltakerEndringRepository = DeltakerEndringRepository()
     override val deltakerRepository: DeltakerRepository = DeltakerRepository()
-    override val deltakerlisteRepository: DeltakerlisteRepository = DeltakerlisteRepository()
+    override val gjennomforingRepository: GjennomforingRepository = GjennomforingRepository()
     override val endringFraArrangorRepository: EndringFraArrangorRepository = EndringFraArrangorRepository()
     override val endringFraArrangorBehandletRepository: EndringFraArrangorBehandletRepository =
         EndringFraArrangorBehandletRepository()

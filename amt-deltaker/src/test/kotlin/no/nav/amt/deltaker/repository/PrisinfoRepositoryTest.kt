@@ -45,7 +45,7 @@ class PrisinfoRepositoryTest {
             // Act
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -59,7 +59,7 @@ class PrisinfoRepositoryTest {
 
             assertSoftly(result.shouldNotBeNull()) {
                 gjennomforingId shouldBe gjennomforingInTest.id
-                status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+                status shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
@@ -81,7 +81,7 @@ class PrisinfoRepositoryTest {
             // Act
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo = prisinfoDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -124,7 +124,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+            result shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
         }
 
         @Test
@@ -139,7 +139,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 10000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(prisinfoDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(prisinfoDbo.id, PrisinfoDbo.TotrinnskontrollStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
@@ -148,7 +148,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.RETURNERT
+            result shouldBe PrisinfoDbo.TotrinnskontrollStatus.RETURNERT
         }
 
         @Test
@@ -216,7 +216,7 @@ class PrisinfoRepositoryTest {
         val deltakerliste = lagDeltakerliste()
         val navAnsatt = lagNavAnsatt()
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         )
 
@@ -368,11 +368,11 @@ class PrisinfoRepositoryTest {
             val deltakerliste2 = lagDeltakerliste()
 
             val deltaker1 = lagDeltaker(
-                deltakerliste = deltakerliste1,
+                gjennomforing = deltakerliste1,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste2,
+                gjennomforing = deltakerliste2,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val vedtak1 = lagVedtak(

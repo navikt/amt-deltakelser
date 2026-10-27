@@ -63,16 +63,16 @@ object DeltakerUtils {
                 }
 
             is EndringFraTiltakskoordinator.TildelPlass -> {
-                checkNotNull(deltaker.deltakerliste.startDato) { "Kursdeltaker mangler startdato" }
+                checkNotNull(deltaker.gjennomforing.startDato) { "Kursdeltaker mangler startdato" }
 
-                val kopierStartOgSluttdatoFraGjennomforing = deltaker.deltakerliste.erFellesOppstart &&
-                    deltaker.deltakerliste.startDato.isAfter(LocalDate.now())
+                val kopierStartOgSluttdatoFraGjennomforing = deltaker.gjennomforing.erFellesOppstart &&
+                    deltaker.gjennomforing.startDato.isAfter(LocalDate.now())
 
                 createResult(true) {
                     deltaker.copy(
                         status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                        startdato = deltaker.deltakerliste.startDato.takeIf { kopierStartOgSluttdatoFraGjennomforing },
-                        sluttdato = deltaker.deltakerliste.sluttDato?.takeIf { kopierStartOgSluttdatoFraGjennomforing },
+                        startdato = deltaker.gjennomforing.startDato.takeIf { kopierStartOgSluttdatoFraGjennomforing },
+                        sluttdato = deltaker.gjennomforing.sluttDato?.takeIf { kopierStartOgSluttdatoFraGjennomforing },
                     )
                 }
             }

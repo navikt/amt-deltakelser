@@ -141,13 +141,13 @@ class DeltakerRepositoryTest {
         fun `skal returnere deltaker`() {
             // Arrange
             val deltakerInTest = lagDeltaker(
-                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
+                gjennomforing = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
             TestRepository.insert(deltakerInTest)
 
             // Act
-            val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.deltakerliste.id)
+            val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.gjennomforing.id)
 
             // Assert
             deltaker.id shouldBe deltakerInTest.id
@@ -157,14 +157,14 @@ class DeltakerRepositoryTest {
         fun `kaster unntak for deltakerliste som ikke er enkeltplass`() {
             // Arrange
             val deltakerInTest = lagDeltaker(
-                deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
+                gjennomforing = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
             TestRepository.insert(deltakerInTest)
 
             // Act
             shouldThrow<NoSuchElementException> {
-                deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.deltakerliste.id)
+                deltakerRepository.getEnkeltplassdeltakerOrThrow(deltakerInTest.gjennomforing.id)
             }
         }
     }
@@ -189,7 +189,7 @@ class DeltakerRepositoryTest {
         fun `getKladdForDeltakerliste - skal returnere success hvis kladd finnes`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             TestRepository.insert(deltaker)
 
@@ -205,7 +205,7 @@ class DeltakerRepositoryTest {
         fun `upsertKladd - skal oppdatere eksisterende kladd`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             TestRepository.insert(deltaker)
 
@@ -236,7 +236,7 @@ class DeltakerRepositoryTest {
         fun `updateEnkeltplassKladd - skal opprette kladd`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
 
             TestRepository.insert(deltaker)
@@ -245,7 +245,7 @@ class DeltakerRepositoryTest {
                 startdato = deltaker.startdato,
                 sluttdato = deltaker.sluttdato,
                 deltakelsesinnhold = Deltakelsesinnhold(
-                    ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                    ledetekst = deltaker.gjennomforing.tiltakstype.innhold
                         ?.ledetekst,
                     innhold = listOf(Innhold.createFritekstInnhold("Dette er beskrivelsen")),
                 ),
@@ -268,7 +268,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetDeltakereForDeltakerlisteTests {
+    inner class GetDeltakereForGjennomforingTests {
         val deltakerliste = lagDeltakerliste()
 
         @Test
@@ -287,7 +287,7 @@ class DeltakerRepositoryTest {
         fun `skal returnere kladd hvis den finnes`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             TestRepository.insert(deltaker)
 
@@ -301,7 +301,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetDeltakereForAvsluttetDeltakerlisteTests {
+    inner class GetDeltakereForAvsluttetGjennomforingTests {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @BeforeEach
@@ -319,7 +319,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                    deltakerliste = deltakerlisteInTest,
+                    gjennomforing = deltakerlisteInTest,
                 ),
             )
 
@@ -333,7 +333,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    deltakerliste = deltakerlisteInTest,
+                    gjennomforing = deltakerlisteInTest,
                 ),
             )
 
@@ -344,7 +344,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetKladderForDeltakerlisteTests {
+    inner class GetKladderForGjennomforingTests {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @BeforeEach
@@ -361,11 +361,11 @@ class DeltakerRepositoryTest {
         fun `skal returnere kun deltakere med status KLADD`() {
             val kladd = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
-                deltakerliste = deltakerlisteInTest,
+                gjennomforing = deltakerlisteInTest,
             )
             val deltar = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                deltakerliste = deltakerlisteInTest,
+                gjennomforing = deltakerlisteInTest,
             )
             TestRepository.insert(kladd)
             TestRepository.insert(deltar)
@@ -400,7 +400,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(
                 lagDeltaker(
                     status = lagDeltakerStatus(status),
-                    deltakerliste = deltakerlisteInTest,
+                    gjennomforing = deltakerlisteInTest,
                 ),
             )
 
@@ -419,7 +419,7 @@ class DeltakerRepositoryTest {
                 TestRepository.insert(
                     lagDeltaker(
                         status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                        deltakerliste = deltakerlisteInTest,
+                        gjennomforing = deltakerlisteInTest,
                         sluttdato = sluttdato,
                     ),
                 )
@@ -432,7 +432,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class GetAntallDeltakereForDeltakerlisteTests {
+    inner class GetAntallDeltakereForGjennomforingTests {
         val deltakerlisteInTest = lagDeltakerliste()
 
         @BeforeEach
@@ -447,7 +447,7 @@ class DeltakerRepositoryTest {
 
         @Test
         fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() {
-            TestRepository.insert(lagDeltaker(deltakerliste = deltakerlisteInTest))
+            TestRepository.insert(lagDeltaker(gjennomforing = deltakerlisteInTest))
 
             val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
 
@@ -460,7 +460,7 @@ class DeltakerRepositoryTest {
         @Test
         fun `ny deltaker - insertes`() {
             val expectedDeltaker = lagDeltaker()
-            TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
+            TestRepository.insertAll(expectedDeltaker.gjennomforing, expectedDeltaker.navBruker)
 
             deltakerRepository.upsert(expectedDeltaker)
             DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
@@ -530,14 +530,14 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class DeltarPaAvsluttetDeltakerlisteTests {
+    inner class DeltarPaAvsluttetGjennomforingTests {
         @Test
         fun `deltar, dl-sluttdato passert - returnerer deltaker`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
+                gjennomforing = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -553,7 +553,7 @@ class DeltakerRepositoryTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now(),
-                deltakerliste = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
+                gjennomforing = lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -568,7 +568,7 @@ class DeltakerRepositoryTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     gjennomforingstype = GjennomforingType.Enkeltplass,
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
                     status = GjennomforingStatusType.AVSLUTTET,
@@ -587,7 +587,7 @@ class DeltakerRepositoryTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     gjennomforingstype = GjennomforingType.Enkeltplass,
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING),
                     status = GjennomforingStatusType.AVBRUTT,
@@ -606,7 +606,7 @@ class DeltakerRepositoryTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     gjennomforingstype = GjennomforingType.Enkeltplass,
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.HOYERE_UTDANNING),
                     status = GjennomforingStatusType.AVLYST,
@@ -704,7 +704,7 @@ class DeltakerRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             val gyldigFra = LocalDateTime.now().minusDays(2)
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = gyldigFra,
@@ -736,7 +736,7 @@ class DeltakerRepositoryTest {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val fattet = LocalDateTime.now().minusWeeks(1)
@@ -769,7 +769,7 @@ class DeltakerRepositoryTest {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val innsoktDato = LocalDate.now().minusMonths(2)
@@ -795,8 +795,8 @@ class DeltakerRepositoryTest {
             val bruker = lagNavBruker()
             val annenListe = lagDeltakerliste()
             val maalListe = lagDeltakerliste()
-            val annenDeltakelse = lagDeltaker(navBruker = bruker, deltakerliste = annenListe)
-            val maalDeltakelse = lagDeltaker(navBruker = bruker, deltakerliste = maalListe)
+            val annenDeltakelse = lagDeltaker(navBruker = bruker, gjennomforing = annenListe)
+            val maalDeltakelse = lagDeltaker(navBruker = bruker, gjennomforing = maalListe)
             TestRepository.insertAll(annenListe, maalListe, annenDeltakelse, maalDeltakelse)
 
             // Act
@@ -816,7 +816,7 @@ class DeltakerRepositoryTest {
             val deltakerliste = lagDeltakerliste()
             val tidligere = lagDeltaker(
                 navBruker = bruker,
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.HAR_SLUTTET,
                     gyldigFra = LocalDateTime.now().minusMonths(6),
@@ -824,7 +824,7 @@ class DeltakerRepositoryTest {
             )
             val aktiv = lagDeltaker(
                 navBruker = bruker,
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = LocalDateTime.now().minusDays(1),

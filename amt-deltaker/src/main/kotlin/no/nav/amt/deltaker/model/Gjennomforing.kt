@@ -11,7 +11,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
 
-data class Deltakerliste(
+data class Gjennomforing(
     val id: UUID,
     val gjennomforingstype: GjennomforingType,
     val tiltakstype: Tiltakstype,

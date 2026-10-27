@@ -48,12 +48,12 @@ class DeltakerService(
             ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
-            gjennomforing = deltaker.deltakerliste,
+            gjennomforing = deltaker.gjennomforing,
         )
 
         return deltaker.copy(
-            deltakerliste = deltaker.deltakerliste.copy(
-                arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
+            gjennomforing = deltaker.gjennomforing.copy(
+                arrangor = arrangor?.let { deltaker.gjennomforing.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
             ),
         )
     }
@@ -66,11 +66,11 @@ class DeltakerService(
         val deltakere = deltakerRepository.getFlereForPerson(personIdent)
         return deltakere.map { deltaker ->
             val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
-                gjennomforing = deltaker.deltakerliste,
+                gjennomforing = deltaker.gjennomforing,
             )
             deltaker.copy(
-                deltakerliste = deltaker.deltakerliste.copy(
-                    arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
+                gjennomforing = deltaker.gjennomforing.copy(
+                    arrangor = arrangor?.let { deltaker.gjennomforing.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
                 ),
             )
         }

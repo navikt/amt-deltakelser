@@ -29,7 +29,7 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
     private val navAnsatt: NavAnsatt = lagNavAnsatt(navIdent = "Z999999", navEnhetId = navEnhet.id)
     private val testGjennomforingId: UUID = UUID.randomUUID()
     private val deltakerInTest: Deltaker = lagDeltaker(
-        deltakerliste = lagDeltakerliste(id = testGjennomforingId),
+        gjennomforing = lagDeltakerliste(id = testGjennomforingId),
     )
 
     @BeforeEach

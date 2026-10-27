@@ -63,8 +63,8 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - sett på venteliste - upserter endring`() = runTest {
             // Arrange
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste)
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
@@ -81,7 +81,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val endredeDeltakere = tiltakskoordinatorService.oppdaterDeltakere(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 deltakerIder = deltakerIder,
                 endringsType = EndringFraTiltakskoordinator.SettPaaVenteliste,
                 endretAvIdent = navAnsattInTest.navIdent,
@@ -133,8 +133,8 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         @Test
         fun `oppdaterDeltakere - en deltaker er låst - upserter ikke endring`() = runTest {
             // Arrange
-            val laastDeltaker = lagDeltaker(deltakerliste = deltakerliste)
-            val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
+            val laastDeltaker = lagDeltaker(gjennomforing = deltakerliste)
+            val deltaker2 = lagDeltaker(gjennomforing = deltakerliste)
             val deltakerIder = setOf(laastDeltaker.id, deltaker2.id)
             val innsokt = lagInnsok(
                 deltakerId = laastDeltaker.id,
@@ -146,7 +146,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 innsoktAv = navAnsattInTest.id,
                 innsoktAvEnhet = navEnhetInTest.id,
             )
-            every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), laastDeltaker.deltakerliste.id) } returns mapOf(
+            every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), laastDeltaker.gjennomforing.id) } returns mapOf(
                 laastDeltaker.id to true,
                 deltaker2.id to false,
             )
@@ -196,7 +196,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
             val deltaker = lagDeltaker(
                 id = UUID.randomUUID(),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
@@ -207,7 +207,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
             )
 
-            val deltakerUtenVedtak = lagDeltaker(deltakerliste = deltakerliste)
+            val deltakerUtenVedtak = lagDeltaker(gjennomforing = deltakerliste)
             val deltakerIder = setOf(deltaker.id, deltakerUtenVedtak.id)
             val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
@@ -286,12 +286,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sluttDato = LocalDate.now().plusDays(30),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
@@ -391,12 +391,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sluttDato = LocalDate.now().plusDays(30),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
@@ -495,12 +495,12 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 sluttDato = LocalDate.now().plusDays(30),
             )
             val deltakerInsert = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
             val deltaker2Insert = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
             )
@@ -577,14 +577,14 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 ),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 startdato = null,
                 sluttdato = null,
                 status = no.nav.amt.deltaker.utils.data.TestData
@@ -679,7 +679,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - sett på venteliste allerede VENTELISTE - returnerer isSuccess false`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
             )
@@ -716,7 +716,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
             )
@@ -753,7 +753,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
                 erManueltDeltMedArrangor = true,
@@ -789,7 +789,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             )
             val deltaker = lagDeltaker(
                 navBruker = navBrukerUtenOppfolging,
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
@@ -820,7 +820,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         fun `oppdaterDeltakere - deltaker er FEILREGISTRERT - returnerer isSuccess false`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = no.nav.amt.deltaker.utils.data.TestData
                     .lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
             )
@@ -853,7 +853,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             val ugyldigDeltakerliste = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
             )
-            val deltaker = lagDeltaker(deltakerliste = ugyldigDeltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = ugyldigDeltakerliste)
             val innsokt = lagInnsok(
                 deltakerId = deltaker.id,
                 innsoktAv = navAnsattInTest.id,
@@ -880,7 +880,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 startDato = null,
             )
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerlisteUtenStartdato,
+                gjennomforing = deltakerlisteUtenStartdato,
                 startdato = null,
                 sluttdato = null,
             )
@@ -930,7 +930,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
                 // Act
                 val oppdateringResult = tiltakskoordinatorService.giAvslag(
-                    gjennomforingId = deltakerliste.id,
+                    gjennomforingId = gjennomforing.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
                     endretAv = navAnsatt.navIdent,
@@ -980,7 +980,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
 
                 // Act
                 val oppdateringResult = tiltakskoordinatorService.giAvslag(
-                    gjennomforingId = deltakerliste.id,
+                    gjennomforingId = gjennomforing.id,
                     deltakerId = deltaker.id,
                     avslag = avslag,
                     endretAv = navAnsatt.navIdent,
@@ -1023,7 +1023,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 // Act & Assert
                 shouldThrow<IllegalStateException> {
                     tiltakskoordinatorService.giAvslag(
-                        gjennomforingId = deltakerliste.id,
+                        gjennomforingId = gjennomforing.id,
                         deltakerId = deltaker.id,
                         avslag = avslag,
                         endretAv = navAnsatt.navIdent,
@@ -1043,7 +1043,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
             with(EndringFraTiltakskoordinatorCtx()) {
                 // Arrange
                 medInnsok()
-                every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), deltakerliste.id) } returns
+                every { deltakerLaaseService.erLaastForEndringerForDeltakere(any(), gjennomforing.id) } returns
                     mapOf(deltaker.id to true)
 
                 val avslag = EndringFraTiltakskoordinator.Avslag(
@@ -1057,7 +1057,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
                 // Act & Assert
                 shouldThrow<IllegalStateException> {
                     tiltakskoordinatorService.giAvslag(
-                        gjennomforingId = deltakerliste.id,
+                        gjennomforingId = gjennomforing.id,
                         deltakerId = deltaker.id,
                         avslag = avslag,
                         endretAv = navAnsatt.navIdent,

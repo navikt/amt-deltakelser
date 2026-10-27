@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
+class GjennomforingConsumerTest : IntegrationTestWithDbBase() {
     override val deltakerProducerService: DeltakerProducerService = mockk()
 
     private val arrangorInTest = lagArrangor()
@@ -63,7 +63,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         private val deltakerInTest = lagDeltaker(
-            deltakerliste = deltakerlisteInTest,
+            gjennomforing = deltakerlisteInTest,
             status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
         )
 
@@ -96,7 +96,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
 
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
                 arrangor = arrangorInTest,
-                deltakerliste = deltakerlisteInTest.copy(
+                gjennomforing = deltakerlisteInTest.copy(
                     status = GjennomforingStatusType.GJENNOMFORES,
                 ),
             )
@@ -116,7 +116,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             arrange()
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
                 arrangor = arrangorInTest,
-                deltakerliste = deltakerlisteInTest.copy(status = GjennomforingStatusType.GJENNOMFORES),
+                gjennomforing = deltakerlisteInTest.copy(status = GjennomforingStatusType.GJENNOMFORES),
             )
 
             // Act
@@ -145,7 +145,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = deltakerliste.sluttDato!!.plusMonths(1),
             )
@@ -172,7 +172,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = deltakerliste.sluttDato!!.minusDays(1),
             )
@@ -212,7 +212,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
             value = objectMapper.writeValueAsString(deltakerlistePayload),
         )
 
-        deltakerlisteRepository.get(expectedDeltakerliste.id) shouldBe null
+        gjennomforingRepository.get(expectedDeltakerliste.id) shouldBe null
     }
 
     @Test
@@ -241,7 +241,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+        gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
     }
 
     @Test
@@ -270,7 +270,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste.copy(
+        gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste.copy(
             navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
             status = deltakerliste.status,
             startDato = null,
@@ -305,7 +305,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+        gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
     }
 
     @Test
@@ -327,7 +327,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
+        gjennomforingRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Test
@@ -352,7 +352,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
+        gjennomforingRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Test
@@ -368,7 +368,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe null
+        gjennomforingRepository.get(deltakerliste.id) shouldBe null
     }
 
     @Test
@@ -390,11 +390,11 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
         )
 
         // Assert
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
+        gjennomforingRepository.get(deltakerliste.id) shouldBe oppdatertDeltakerliste
     }
 
     @Nested
-    inner class AvsluttDeltakelserPaaDeltakerlisteTests {
+    inner class AvsluttDeltakelserPaaGjennomforingTests {
         private val sistEndretAvNavEnhet = lagNavEnhet()
         private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
 
@@ -415,7 +415,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusMonths(1),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
@@ -430,7 +430,7 @@ class DeltakerlisteConsumerTest : IntegrationTestWithDbBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 startdato = LocalDate.now().minusMonths(1),
                 sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
             )
             val vedtak2 = lagVedtak(
                 deltakerId = deltaker2.id,

@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
-object Deltakerliste2PrisinfoRepository {
+object PrisinfoGjennomforingLinkRepository {
     fun upsert(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
@@ -15,9 +15,9 @@ object Deltakerliste2PrisinfoRepository {
             session.update(
                 queryOf(
                     """
-                    INSERT INTO deltakerliste_2_prisinformasjon (deltakerliste_id, prisinformasjon_id, rolle)
+                    INSERT INTO prisinformasjon_gjennomforing_link (gjennomforing_id, prisinformasjon_id, rolle)
                     VALUES (?, ?, ?)
-                    ON CONFLICT (deltakerliste_id, rolle) 
+                    ON CONFLICT (gjennomforing_id, rolle)
                     DO UPDATE 
                     SET 
                         prisinformasjon_id = EXCLUDED.prisinformasjon_id, 
@@ -36,8 +36,8 @@ object Deltakerliste2PrisinfoRepository {
             queryOf(
                 """
                 SELECT prisinformasjon_id 
-                FROM deltakerliste_2_prisinformasjon
-                WHERE deltakerliste_id = ? AND rolle = ?
+                FROM prisinformasjon_gjennomforing_link
+                WHERE gjennomforing_id = ? AND rolle = ?
                 """.trimIndent(),
                 gjennomforingId,
                 PrisinfoDbo.Rolle.ENDRING.name,
@@ -53,9 +53,9 @@ object Deltakerliste2PrisinfoRepository {
         session.update(
             queryOf(
                 """
-                DELETE FROM deltakerliste_2_prisinformasjon
+                DELETE FROM prisinformasjon_gjennomforing_link
                 WHERE 
-                    deltakerliste_id = ? 
+                    gjennomforing_id = ? 
                     AND prisinformasjon_id = ?
                     AND rolle = ?
                 """.trimIndent(),

@@ -32,16 +32,16 @@ class DeltakelserResponseMapper(
 
     private fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
         deltakerId = deltaker.id,
-        deltakerlisteId = deltaker.deltakerliste.id,
+        deltakerlisteId = deltaker.gjennomforing.id,
         tittel = lagArrangorTittel(
             deltaker,
         ),
-        tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
+        tiltakstype = deltaker.gjennomforing.tiltakstype.toTiltakstypeRespons(),
         status = deltaker.getStatus(),
         innsoktDato = deltaker.getInnsoktDato(),
         sistEndretDato = deltaker.getSistEndretDato(),
         periode = deltaker.getPeriode(),
-        oppstartstype = deltaker.deltakerliste.oppstart,
+        oppstartstype = deltaker.gjennomforing.oppstart,
     )
 
     private fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
@@ -87,10 +87,10 @@ class DeltakelserResponseMapper(
     }
 
     private fun lagArrangorTittel(deltaker: Deltaker): String = TiltakVisningsnavn.lagTittel(
-        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
-        tiltaksnavn = deltaker.deltakerliste.tiltakstype.navn,
-        arrangorNavn = deltaker.deltakerliste.arrangor?.navn ?: ARRANGOR_MANGLER,
-        opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategorisering,
+        tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
+        tiltaksnavn = deltaker.gjennomforing.tiltakstype.navn,
+        arrangorNavn = deltaker.gjennomforing.arrangor?.navn ?: ARRANGOR_MANGLER,
+        opplaringKategoriseringValg = deltaker.gjennomforing.opplaringKategorisering,
     )
 
     private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(

@@ -127,6 +127,6 @@ fun TestData.lagInnsok(
     deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
     utkastDelt = utkastDelt,
     utkastGodkjentAvNav = utkastGodkjentAvNav,
-    opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,
+    opplaringKategoriseringVedInnsok = deltaker.gjennomforing.opplaringKategorisering,
     prisinformasjonVedInnsok = null,
 )

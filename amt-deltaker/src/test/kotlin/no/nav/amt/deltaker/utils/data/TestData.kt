@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.utils.data
 
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
@@ -100,7 +100,7 @@ object TestData {
         opplaringKategorisering: OpplaringKategoriseringValg? = null,
         lopenummer: String? = "2026-01",
         tilgjengeligForArrangorFraOgMedDato: LocalDate? = null,
-    ) = Deltakerliste(
+    ) = Gjennomforing(
         id = id,
         tiltakstype = tiltakstype,
         gjennomforingstype = gjennomforingstype,
@@ -135,13 +135,13 @@ object TestData {
 
     fun lagEnkeltplassDeltakerlistePayload(
         arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
+        gjennomforing: Gjennomforing = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Enkeltplass(
-        id = deltakerliste.id,
-        lopenummer = deltakerliste.lopenummer,
-        status = deltakerliste.status,
-        tiltakskode = deltakerliste.tiltakstype.tiltakskode,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
+        id = gjennomforing.id,
+        lopenummer = gjennomforing.lopenummer,
+        status = gjennomforing.status,
+        tiltakskode = gjennomforing.tiltakstype.tiltakskode,
+        arrangor = GjennomforingV2KafkaPayload.Arrangor(gjennomforing.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
         pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -150,25 +150,25 @@ object TestData {
 
     fun lagDeltakerlistePayload(
         arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
+        gjennomforing: Gjennomforing = lagDeltakerliste(arrangor = arrangor),
     ) = GjennomforingV2KafkaPayload.Gruppe(
-        id = deltakerliste.id,
-        lopenummer = deltakerliste.lopenummer!!,
-        navn = deltakerliste.navn,
-        tiltakskode = deltakerliste.tiltakstype.tiltakskode,
-        startDato = deltakerliste.startDato!!,
-        sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status,
-        oppstart = deltakerliste.oppstart,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        tilgjengeligForArrangorFraOgMedDato = deltakerliste.tilgjengeligForArrangorFraOgMedDato,
-        antallPlasser = deltakerliste.antallPlasser ?: 0,
+        id = gjennomforing.id,
+        lopenummer = gjennomforing.lopenummer!!,
+        navn = gjennomforing.navn,
+        tiltakskode = gjennomforing.tiltakstype.tiltakskode,
+        startDato = gjennomforing.startDato!!,
+        sluttDato = gjennomforing.sluttDato,
+        status = gjennomforing.status,
+        oppstart = gjennomforing.oppstart,
+        apentForPamelding = gjennomforing.apentForPamelding,
+        oppmoteSted = gjennomforing.oppmoteSted,
+        tilgjengeligForArrangorFraOgMedDato = gjennomforing.tilgjengeligForArrangorFraOgMedDato,
+        antallPlasser = gjennomforing.antallPlasser ?: 0,
         deltidsprosent = 42.0,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor!!.organisasjonsnummer),
+        arrangor = GjennomforingV2KafkaPayload.Arrangor(gjennomforing.arrangor!!.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
-        pameldingType = deltakerliste.pameldingstype,
+        pameldingType = gjennomforing.pameldingstype,
     )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
@@ -180,7 +180,7 @@ object TestData {
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        gjennomforing: Gjennomforing = lagDeltakerliste(),
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
@@ -195,7 +195,7 @@ object TestData {
     ) = Deltaker(
         id = id,
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        gjennomforing = gjennomforing,
         startdato = startdato,
         sluttdato = sluttdato,
         dagerPerUke = dagerPerUke,
@@ -349,7 +349,7 @@ object TestData {
         id = deltaker.id,
         status = deltaker.status,
         navBruker = lagNavBrukerResponse(deltaker.navBruker),
-        gjennomforing = lagGjennomforingResponse(deltaker.deltakerliste),
+        gjennomforing = lagGjennomforingResponse(deltaker.gjennomforing),
         startdato = deltaker.startdato,
         sluttdato = deltaker.sluttdato,
         dagerPerUke = deltaker.dagerPerUke,
@@ -389,26 +389,26 @@ object TestData {
         erDigital = true,
     )
 
-    fun lagGjennomforingResponse(deltakerliste: Deltakerliste): GjennomforingResponse = GjennomforingResponse(
-        id = deltakerliste.id,
-        type = deltakerliste.gjennomforingstype,
-        tiltakstype = deltakerliste.tiltakstype,
-        navn = deltakerliste.navn,
-        status = deltakerliste.status,
-        startDato = deltakerliste.startDato,
-        sluttDato = deltakerliste.sluttDato,
-        antallPlasser = deltakerliste.antallPlasser,
-        oppstart = deltakerliste.oppstart,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        arrangor = deltakerliste.arrangor?.let {
+    fun lagGjennomforingResponse(gjennomforing: Gjennomforing): GjennomforingResponse = GjennomforingResponse(
+        id = gjennomforing.id,
+        type = gjennomforing.gjennomforingstype,
+        tiltakstype = gjennomforing.tiltakstype,
+        navn = gjennomforing.navn,
+        status = gjennomforing.status,
+        startDato = gjennomforing.startDato,
+        sluttDato = gjennomforing.sluttDato,
+        antallPlasser = gjennomforing.antallPlasser,
+        oppstart = gjennomforing.oppstart,
+        apentForPamelding = gjennomforing.apentForPamelding,
+        oppmoteSted = gjennomforing.oppmoteSted,
+        arrangor = gjennomforing.arrangor?.let {
             no.nav.amt.internapi.deltaker.response.ArrangorResponse(
                 id = it.id,
                 navn = it.navn,
                 organisasjonsnummer = it.organisasjonsnummer,
             )
         },
-        pameldingstype = deltakerliste.pameldingstype,
+        pameldingstype = gjennomforing.pameldingstype,
         visningsnavn = VisningsnavnResponse("Tittel"),
     )
 

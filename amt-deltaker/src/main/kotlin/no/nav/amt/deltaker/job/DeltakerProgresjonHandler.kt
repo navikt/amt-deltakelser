@@ -54,8 +54,8 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltakerliste.harFellesAvslutning }
-            .filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
+            .filter { it.gjennomforing.harFellesAvslutning }
+            .filter { !it.gjennomforing.erAvlystEllerAvbrutt() }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.FULLFORT, getSluttarsak(it))
@@ -69,8 +69,8 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltakerliste.harFellesAvslutning }
-            .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
+            .filter { it.gjennomforing.harFellesAvslutning }
+            .filter { it.gjennomforing.erAvlystEllerAvbrutt() }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it))
@@ -84,7 +84,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltakerliste.harFellesAvslutning }
+            .filter { !it.gjennomforing.harFellesAvslutning }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))
@@ -129,8 +129,8 @@ object DeltakerProgresjonHandler {
 
     private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? =
         if (deltaker.sluttdato == null || deltaker.sluttdato.isAfter(LocalDate.now())) {
-            if (deltaker.deltakerliste.sluttDato != null && !deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())) {
-                deltaker.deltakerliste.sluttDato
+            if (deltaker.gjennomforing.sluttDato != null && !deltaker.gjennomforing.sluttDato.isAfter(LocalDate.now())) {
+                deltaker.gjennomforing.sluttDato
             } else {
                 LocalDate.now()
             }
@@ -138,7 +138,7 @@ object DeltakerProgresjonHandler {
             deltaker.sluttdato
         }
 
-    private fun getSluttarsak(deltaker: Deltaker): DeltakerStatus.Aarsak? = if (deltaker.deltakerliste.erAvlystEllerAvbrutt()) {
+    private fun getSluttarsak(deltaker: Deltaker): DeltakerStatus.Aarsak? = if (deltaker.gjennomforing.erAvlystEllerAvbrutt()) {
         DeltakerStatus.Aarsak(
             type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
             beskrivelse = null,

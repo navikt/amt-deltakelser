@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.GjennomforingInsertDbo
 import no.nav.amt.deltaker.tiltak.TiltakRepository
@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
-class DeltakerlisteRepositoryTest {
-    private val deltakerlisteRepository = DeltakerlisteRepository()
+class GjennomforingRepositoryTest {
+    private val gjennomforingRepository = GjennomforingRepository()
     private val arrangorRepository = ArrangorRepository()
     private val tiltakRepository = TiltakRepository()
 
@@ -52,9 +52,9 @@ class DeltakerlisteRepositoryTest {
                 sluttDato = null,
             )
 
-            deltakerlisteRepository.upsert(deltakerliste)
+            gjennomforingRepository.upsert(deltakerliste)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+            gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -66,9 +66,9 @@ class DeltakerlisteRepositoryTest {
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
 
-            deltakerlisteRepository.upsert(deltakerliste)
+            gjennomforingRepository.upsert(deltakerliste)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+            gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -85,9 +85,9 @@ class DeltakerlisteRepositoryTest {
 
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
-            deltakerlisteRepository.upsert(deltakerliste)
+            gjennomforingRepository.upsert(deltakerliste)
 
-            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
+            val lagret = gjennomforingRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-42"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe tilgjengeligDato
         }
@@ -105,13 +105,13 @@ class DeltakerlisteRepositoryTest {
 
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
-            deltakerlisteRepository.upsert(deltakerliste)
+            gjennomforingRepository.upsert(deltakerliste)
 
             val nyDato = LocalDate.now().plusDays(5)
             val oppdatert = deltakerliste.copy(lopenummer = "2027-99", tilgjengeligForArrangorFraOgMedDato = nyDato)
-            deltakerlisteRepository.upsert(oppdatert)
+            gjennomforingRepository.upsert(oppdatert)
 
-            val lagret = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
+            val lagret = gjennomforingRepository.get(deltakerliste.id).shouldNotBeNull()
             lagret.lopenummer shouldBe "2027-99"
             lagret.tilgjengeligForArrangorFraOgMedDato shouldBe nyDato
         }
@@ -150,9 +150,9 @@ class DeltakerlisteRepositoryTest {
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
 
-            deltakerlisteRepository.upsert(gjennomforingdbo)
+            gjennomforingRepository.upsert(gjennomforingdbo)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+            gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -186,9 +186,9 @@ class DeltakerlisteRepositoryTest {
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
 
-            deltakerlisteRepository.upsert(gjennomforingdbo)
+            gjennomforingRepository.upsert(gjennomforingdbo)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe deltakerliste
+            gjennomforingRepository.get(deltakerliste.id) shouldBe deltakerliste
         }
 
         @Test
@@ -199,13 +199,13 @@ class DeltakerlisteRepositoryTest {
 
             arrangorRepository.upsert(arrangor)
             tiltakRepository.upsert(tiltakstype)
-            deltakerlisteRepository.upsert(deltakerliste)
+            gjennomforingRepository.upsert(deltakerliste)
 
             val oppdatertListe = deltakerliste.copy(sluttDato = LocalDate.now())
 
-            deltakerlisteRepository.upsert(oppdatertListe)
+            gjennomforingRepository.upsert(oppdatertListe)
 
-            deltakerlisteRepository.get(deltakerliste.id) shouldBe oppdatertListe
+            gjennomforingRepository.get(deltakerliste.id) shouldBe oppdatertListe
         }
     }
 
@@ -217,11 +217,11 @@ class DeltakerlisteRepositoryTest {
         arrangorRepository.upsert(arrangor)
 
         tiltakRepository.upsert(tiltakstype)
-        deltakerlisteRepository.upsert(deltakerliste)
+        gjennomforingRepository.upsert(deltakerliste)
 
-        deltakerlisteRepository.delete(deltakerliste.id)
+        gjennomforingRepository.delete(deltakerliste.id)
 
-        deltakerlisteRepository.get(deltakerliste.id) shouldBe null
+        gjennomforingRepository.get(deltakerliste.id) shouldBe null
     }
 
     @Test
@@ -232,9 +232,9 @@ class DeltakerlisteRepositoryTest {
 
         arrangorRepository.upsert(arrangor)
         tiltakRepository.upsert(tiltakstype)
-        deltakerlisteRepository.upsert(deltakerliste)
+        gjennomforingRepository.upsert(deltakerliste)
 
-        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).shouldNotBeNull()
+        val deltakerlisteMedArrangor = gjennomforingRepository.get(deltakerliste.id).shouldNotBeNull()
 
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.shouldNotBeNull().navn shouldBe arrangor.navn
@@ -261,9 +261,9 @@ class DeltakerlisteRepositoryTest {
         val gjennomforingAnnetTiltak = lagDeltakerliste(arrangor = arrangor, tiltakstype = annenTiltakstype)
 
         listOf(gjennomforing, annenGjennomforingSammeTiltak, gjennomforingAnnetTiltak)
-            .forEach { deltakerlisteRepository.upsert(it) }
+            .forEach { gjennomforingRepository.upsert(it) }
 
-        val result = deltakerlisteRepository.getManyForTiltakstype(tiltakstype.id)
+        val result = gjennomforingRepository.getManyForTiltakstype(tiltakstype.id)
 
         result.map { it.id }.toSet() shouldBe setOf(gjennomforing.id, annenGjennomforingSammeTiltak.id)
         val hentet = result.first { it.id == gjennomforing.id }
@@ -283,11 +283,11 @@ class DeltakerlisteRepositoryTest {
             tiltakstype = tiltakstype,
             gjennomforingstype = GjennomforingType.Enkeltplass,
         )
-        deltakerlisteRepository.upsert(enkeltplass)
+        gjennomforingRepository.upsert(enkeltplass)
 
         mockkObject(OpplaringKategoriseringRepoAdapter)
         try {
-            val result = deltakerlisteRepository.getManyForTiltakstype(tiltakstype.id)
+            val result = gjennomforingRepository.getManyForTiltakstype(tiltakstype.id)
 
             result.single { it.id == enkeltplass.id }.opplaringKategorisering shouldBe null
             verify(exactly = 0) { OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(any()) }

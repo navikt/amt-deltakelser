@@ -10,7 +10,7 @@ import java.util.UUID
 /**
  * Flat data-klasse som representerer én deltaker-rad fra tiltakskoordinator-spørringen.
  *
- * Deltakerliste-/arrangør-/tiltakstype-data hentes via [DeltakerlisteRepository.get]
+ * Deltakerliste-/arrangør-/tiltakstype-data hentes via [GjennomforingRepository.get]
  * for å unngå å gjenta identiske kolonner for alle deltakere (kan være 2000+).
  */
 data class TiltakskoordinatorDeltakerRow(

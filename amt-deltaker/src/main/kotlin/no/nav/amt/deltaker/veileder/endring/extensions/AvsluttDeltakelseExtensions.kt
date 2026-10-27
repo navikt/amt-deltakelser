@@ -43,7 +43,7 @@ private fun DeltakerEndring.Endring.AvsluttDeltakelse.getAvsluttendeStatus(delta
         LocalDateTime.now()
     }
     return nyDeltakerStatus(
-        type = if (deltaker.deltakerliste.erFellesOppstart || deltaker.deltarPaOpplaeringstiltak) {
+        type = if (deltaker.gjennomforing.erFellesOppstart || deltaker.deltarPaOpplaeringstiltak) {
             DeltakerStatus.Type.FULLFORT
         } else {
             DeltakerStatus.Type.HAR_SLUTTET

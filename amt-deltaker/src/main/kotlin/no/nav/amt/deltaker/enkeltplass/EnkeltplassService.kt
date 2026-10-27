@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
@@ -46,7 +46,7 @@ import java.util.UUID
 class EnkeltplassService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val navBrukerService: NavBrukerService,
     private val tiltakRepository: TiltakRepository,
     private val navEnhetService: NavEnhetService,
@@ -98,7 +98,7 @@ class EnkeltplassService(
         )
 
         Database.transaction {
-            deltakerlisteRepository.upsert(gjennomforing)
+            gjennomforingRepository.upsert(gjennomforing)
             deltakerRepository.upsertKladd(kladdDbo)
             DeltakerStatusRepository.lagreStatus(
                 deltakerId = kladdDbo.id,
@@ -201,20 +201,20 @@ class EnkeltplassService(
         validerDatoer: Boolean,
         afterUpdate: ((Deltaker) -> Deltaker)? = null,
     ): Deltaker {
-        require(deltaker.deltakerliste.erNyForskriftOpplaring) {
-            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.deltakerliste.gjennomforingstype}"
+        require(deltaker.gjennomforing.erNyForskriftOpplaring) {
+            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.gjennomforing.gjennomforingstype}"
         }
 
         // Arrangøren oppdateres bare hvis den er endret i requesten
         val arrangor = oppdaterKladdRequest.arrangorUnderenhet?.let {
             hentArrangorHvisEndret(
                 organisasjonsnummer = it,
-                eksisterendeArrangor = deltaker.deltakerliste.arrangor,
+                eksisterendeArrangor = deltaker.gjennomforing.arrangor,
             )
         }
 
         val kategoriseringResponse = opplaringKategoriseringClient.hentOpplaringKategorisering(
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
+            deltaker.gjennomforing.tiltakstype.tiltakskode,
         )
         // Datoene er valgfrie ved utkastoppdatering og skal ikke nullstille allerede lagrede datoer.
         val startdato = oppdaterKladdRequest.startdato ?: deltaker.startdato
@@ -225,9 +225,9 @@ class EnkeltplassService(
         }
 
         return Database.transaction {
-            deltakerlisteRepository.update(
+            gjennomforingRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
-                    id = deltaker.deltakerliste.id,
+                    id = deltaker.gjennomforing.id,
                     arrangorId = arrangor?.id,
                 ),
             )
@@ -243,7 +243,7 @@ class EnkeltplassService(
             )
 
             lagreKategoriseringOgPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 kodeverkValg = oppdaterKladdRequest.kodeverkValg,
                 sertifiseringValg = oppdaterKladdRequest.sertifiseringValg,
                 prisinformasjon = oppdaterKladdRequest.prisinformasjon,
@@ -269,7 +269,7 @@ class EnkeltplassService(
         nyStatus: DeltakerStatus.Type,
     ): Deltaker {
         val deltaker = deltakerService.getOrThrow(deltakerId)
-        val gjennomforing = deltaker.deltakerliste
+        val gjennomforing = deltaker.gjennomforing
         val request = decoratedRequest.wrappedRequest
 
         require(gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
@@ -286,7 +286,7 @@ class EnkeltplassService(
         val kategoriseringForTiltak = opplaringKategoriseringClient.hentOpplaringKategorisering(gjennomforing.tiltakstype.tiltakskode)
 
         return Database.transaction {
-            deltakerlisteRepository.update(
+            gjennomforingRepository.update(
                 EnkeltplassGjennomforingUpdateDbo(
                     id = gjennomforing.id,
                     arrangorId = arrangor.id,
@@ -421,7 +421,7 @@ class EnkeltplassService(
             sluttdato = sluttdato,
             dagerPerUke = dagerPerUke?.toFloat(),
             deltakelsesinnhold = Deltakelsesinnhold(
-                ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                ledetekst = deltaker.gjennomforing.tiltakstype.innhold
                     ?.ledetekst,
                 innhold = beskrivelse?.let { listOf(Innhold.createFritekstInnhold(it)) } ?: emptyList(),
             ),

@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.api.response
 
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
 import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
@@ -60,41 +60,41 @@ internal object SharedResponseMappers {
     )
 
     fun buildGjennomforingResponse(
-        deltakerliste: Deltakerliste,
+        gjennomforing: Gjennomforing,
         opplaringKategoriseringValg: OpplaringKategoriseringValg?,
         prisinformasjon: GjennomforingPrisinformasjon.PrisinformasjonData?,
     ) = GjennomforingResponse(
-        id = deltakerliste.id,
-        tiltakstype = deltakerliste.tiltakstype,
-        navn = deltakerliste.navn,
-        status = deltakerliste.status,
-        startDato = deltakerliste.startDato,
-        sluttDato = deltakerliste.sluttDato,
-        antallPlasser = deltakerliste.antallPlasser,
-        oppstart = deltakerliste.oppstart,
-        apentForPamelding = deltakerliste.apentForPamelding,
-        oppmoteSted = deltakerliste.oppmoteSted,
-        arrangor = deltakerliste.arrangor?.let { arrangor ->
+        id = gjennomforing.id,
+        tiltakstype = gjennomforing.tiltakstype,
+        navn = gjennomforing.navn,
+        status = gjennomforing.status,
+        startDato = gjennomforing.startDato,
+        sluttDato = gjennomforing.sluttDato,
+        antallPlasser = gjennomforing.antallPlasser,
+        oppstart = gjennomforing.oppstart,
+        apentForPamelding = gjennomforing.apentForPamelding,
+        oppmoteSted = gjennomforing.oppmoteSted,
+        arrangor = gjennomforing.arrangor?.let { arrangor ->
             ArrangorResponse(
                 id = arrangor.id,
                 navn = arrangor.navn.toTitleCase(),
                 organisasjonsnummer = arrangor.organisasjonsnummer,
             )
         },
-        pameldingstype = deltakerliste.pameldingstype,
-        type = deltakerliste.gjennomforingstype,
+        pameldingstype = gjennomforing.pameldingstype,
+        type = gjennomforing.gjennomforingstype,
         opplaringKategoriseringValg = opplaringKategoriseringValg,
         prisinformasjon = prisinformasjon?.aktiv,
         prisinformasjonTilGodkjenning = prisinformasjon?.tilGodkjenning,
         visningsnavn = TiltakVisningsnavn
             .lagVisningsnavn(
-                tiltakskode = deltakerliste.tiltakstype.tiltakskode,
-                tiltaksnavn = deltakerliste.tiltakstype.navn,
-                gjennomforingsnavn = deltakerliste.navn,
-                gjennomforingType = deltakerliste.gjennomforingstype,
+                tiltakskode = gjennomforing.tiltakstype.tiltakskode,
+                tiltaksnavn = gjennomforing.tiltakstype.navn,
+                gjennomforingsnavn = gjennomforing.navn,
+                gjennomforingType = gjennomforing.gjennomforingstype,
                 erKladd = false,
-                arrangorNavn = deltakerliste.arrangor?.navn ?: ARRANGOR_MANGLER,
-                opplaringKategoriseringValg = deltakerliste.opplaringKategorisering,
+                arrangorNavn = gjennomforing.arrangor?.navn ?: ARRANGOR_MANGLER,
+                opplaringKategoriseringValg = gjennomforing.opplaringKategorisering,
             ).let { VisningsnavnResponse(it.aktivitetskortTittel) },
     )
 

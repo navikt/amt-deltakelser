@@ -4,7 +4,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.repository.dbo.GodkjentPrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
-import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.PrisinfoStatus
+import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo.TotrinnskontrollStatus
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
@@ -14,13 +14,13 @@ object PrisinfoRepository {
             """
             SELECT
                 id,
-                deltakerliste_id,
+                gjennomforing_id,
                 status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
                 tilleggsopplysninger,
                 begrunnelse
-            FROM enkeltplass_prisinformasjon
+            FROM prisinformasjon
             WHERE id = ?
             """.trimIndent()
 
@@ -36,21 +36,21 @@ object PrisinfoRepository {
     fun hentPrisinfoStatus(
         gjennomforingId: UUID,
         prisinformasjonId: UUID,
-    ): PrisinfoStatus? {
+    ): TotrinnskontrollStatus? {
         val sql =
             """
             SELECT status 
-            FROM enkeltplass_prisinformasjon
+            FROM prisinformasjon
             WHERE
                 id = ?
-                AND deltakerliste_id = ? 
+                AND gjennomforing_id = ? 
             """.trimIndent()
 
         return Database.query { session ->
             session.run(
                 queryOf(sql, prisinformasjonId, gjennomforingId)
                     .map { row ->
-                        PrisinfoStatus.valueOf(row.string("status"))
+                        TotrinnskontrollStatus.valueOf(row.string("status"))
                     }.asSingle,
             )
         }
@@ -64,17 +64,17 @@ object PrisinfoRepository {
             """
             SELECT 
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
                 prisinfo.begrunnelse
             FROM
-                deltakerliste_2_prisinformasjon d2p
-                JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
+                prisinformasjon_gjennomforing_link d2p
+                JOIN prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
             WHERE 
-                d2p.deltakerliste_id = ? 
+                d2p.gjennomforing_id = ? 
                 AND d2p.rolle = ?
             """.trimIndent()
 
@@ -93,16 +93,16 @@ object PrisinfoRepository {
             SELECT 
                 d2p.rolle,
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
                 prisinfo.tilleggsopplysninger,
                 prisinfo.begrunnelse
             FROM
-                deltakerliste_2_prisinformasjon d2p
-                JOIN enkeltplass_prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
-            WHERE d2p.deltakerliste_id = ?
+                prisinformasjon_gjennomforing_link d2p
+                JOIN prisinformasjon prisinfo ON d2p.prisinformasjon_id = prisinfo.id
+            WHERE d2p.gjennomforing_id = ?
             """.trimIndent()
 
         return Database.query { session ->
@@ -118,9 +118,9 @@ object PrisinfoRepository {
     fun upsertPrisinfo(prisinfoDbo: PrisinfoDbo) {
         val sql =
             """
-            INSERT INTO enkeltplass_prisinformasjon (
+            INSERT INTO prisinformasjon (
                 id,
-                deltakerliste_id,
+                gjennomforing_id,
                 status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
@@ -129,7 +129,7 @@ object PrisinfoRepository {
             )
             VALUES (
                 :id,
-                :deltakerliste_id,
+                :gjennomforing_id,
                 :status,
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
@@ -147,7 +147,7 @@ object PrisinfoRepository {
 
         val params = mapOf(
             "id" to prisinfoDbo.id,
-            "deltakerliste_id" to prisinfoDbo.gjennomforingId,
+            "gjennomforing_id" to prisinfoDbo.gjennomforingId,
             "status" to prisinfoDbo.status.name,
             "prisinformasjon_json_type" to prisinfoDbo.prisinfoJsonSubtype,
             "anskaffelse_pris" to prisinfoDbo.anskaffelsePris,
@@ -164,16 +164,16 @@ object PrisinfoRepository {
 
     fun oppdaterStatusSomIkkeErGodkjent(
         prisinformasjonId: UUID,
-        status: PrisinfoStatus,
+        status: TotrinnskontrollStatus,
     ): Int {
-        if (status == PrisinfoStatus.GODKJENT) {
+        if (status == TotrinnskontrollStatus.GODKJENT) {
             throw IllegalArgumentException("Status kan ikke settes til GODKJENT med denne metoden. Bruk settGodkjent()")
         }
         return Database.query { session ->
             session.update(
                 queryOf(
                     """
-                    UPDATE enkeltplass_prisinformasjon
+                    UPDATE prisinformasjon
                     SET 
                         status = ?,
                         modified_at = now()
@@ -199,13 +199,13 @@ object PrisinfoRepository {
         session.update(
             queryOf(
                 """
-                UPDATE enkeltplass_prisinformasjon
+                UPDATE prisinformasjon
                 SET 
                     status = ?,
                     modified_at = now()
                 WHERE id = ?
                 """.trimIndent(),
-                PrisinfoStatus.GODKJENT.name,
+                TotrinnskontrollStatus.GODKJENT.name,
                 prisinformasjonId,
             ),
         )
@@ -213,7 +213,7 @@ object PrisinfoRepository {
         session.update(
             queryOf(
                 """
-                INSERT INTO enkeltplass_prisinfo_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
+                INSERT INTO prisinformasjon_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
                 VALUES (?, ?, ?)
                 ON CONFLICT (prisinformasjon_id) DO UPDATE SET
                     godkjent_av = EXCLUDED.godkjent_av,
@@ -237,7 +237,7 @@ object PrisinfoRepository {
             """
             SELECT 
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -250,8 +250,8 @@ object PrisinfoRepository {
             FROM
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
-                JOIN enkeltplass_prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.deltakerliste_id
-                JOIN enkeltplass_prisinfo_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
+                JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.gjennomforing_id
+                JOIN prisinformasjon_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
                 AND prisinfo.status = 'GODKJENT'
@@ -276,8 +276,8 @@ object PrisinfoRepository {
 
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
         id = row.uuid("id"),
-        gjennomforingId = row.uuid("deltakerliste_id"),
-        status = PrisinfoStatus.valueOf(row.string("status")),
+        gjennomforingId = row.uuid("gjennomforing_id"),
+        status = TotrinnskontrollStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),
         tilleggsopplysninger = row.stringOrNull("tilleggsopplysninger"),
