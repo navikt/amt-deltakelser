@@ -14,7 +14,7 @@ object PrisinfoRepository {
             """
             SELECT
                 id,
-                deltakerliste_id,
+                gjennomforing_id,
                 status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
@@ -43,7 +43,7 @@ object PrisinfoRepository {
             FROM prisinformasjon
             WHERE
                 id = ?
-                AND deltakerliste_id = ? 
+                AND gjennomforing_id = ? 
             """.trimIndent()
 
         return Database.query { session ->
@@ -64,7 +64,7 @@ object PrisinfoRepository {
             """
             SELECT 
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -93,7 +93,7 @@ object PrisinfoRepository {
             SELECT 
                 d2p.rolle,
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -120,7 +120,7 @@ object PrisinfoRepository {
             """
             INSERT INTO prisinformasjon (
                 id,
-                deltakerliste_id,
+                gjennomforing_id,
                 status,
                 prisinformasjon_json_type,
                 anskaffelse_pris,
@@ -129,7 +129,7 @@ object PrisinfoRepository {
             )
             VALUES (
                 :id,
-                :deltakerliste_id,
+                :gjennomforing_id,
                 :status,
                 :prisinformasjon_json_type,
                 :anskaffelse_pris,
@@ -147,7 +147,7 @@ object PrisinfoRepository {
 
         val params = mapOf(
             "id" to prisinfoDbo.id,
-            "deltakerliste_id" to prisinfoDbo.gjennomforingId,
+            "gjennomforing_id" to prisinfoDbo.gjennomforingId,
             "status" to prisinfoDbo.status.name,
             "prisinformasjon_json_type" to prisinfoDbo.prisinfoJsonSubtype,
             "anskaffelse_pris" to prisinfoDbo.anskaffelsePris,
@@ -237,7 +237,7 @@ object PrisinfoRepository {
             """
             SELECT 
                 prisinfo.id,
-                prisinfo.deltakerliste_id,
+                prisinfo.gjennomforing_id,
                 prisinfo.status,
                 prisinfo.prisinformasjon_json_type,
                 prisinfo.anskaffelse_pris,
@@ -250,7 +250,7 @@ object PrisinfoRepository {
             FROM
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
-                JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.deltakerliste_id
+                JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.gjennomforing_id
                 JOIN prisinformasjon_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
@@ -276,7 +276,7 @@ object PrisinfoRepository {
 
     private fun rowMapper(row: Row): PrisinfoDbo = PrisinfoDbo(
         id = row.uuid("id"),
-        gjennomforingId = row.uuid("deltakerliste_id"),
+        gjennomforingId = row.uuid("gjennomforing_id"),
         status = TotrinnskontrollStatus.valueOf(row.string("status")),
         prisinfoJsonSubtype = row.string("prisinformasjon_json_type"),
         anskaffelsePris = row.intOrNull("anskaffelse_pris"),

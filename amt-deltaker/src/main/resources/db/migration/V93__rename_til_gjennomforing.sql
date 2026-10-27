@@ -4,3 +4,7 @@ ALTER TABLE deltakerliste RENAME TO gjennomforing;
 ALTER TABLE enkeltplass_prisinfo_godkjenning RENAME TO prisinformasjon_godkjenning;
 ALTER TABLE enkeltplass_prisinformasjon RENAME TO prisinformasjon;
 ALTER TABLE enkeltplass_prisinformasjon_belop RENAME TO prisinformasjon_belop;
+ALTER TABLE deltakerliste_sertifisering_valg RENAME TO sertifisering_valg;
+ALTER TABLE sertifisering_valg RENAME COLUMN deltakerliste_id TO gjennomforing_id;
+ALTER TABLE opplaering_kategorisering_valg RENAME COLUMN deltakerliste_id TO gjennomforing_id;
+ALTER TABLE prisinformasjon RENAME COLUMN deltakerliste_id TO gjennomforing_id;
