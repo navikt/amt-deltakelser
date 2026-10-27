@@ -16,16 +16,6 @@ repositories {
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
-// Override Spring Boot's managed Jackson versions to apply the security fixes in 3.1.7.
-// Merk at Spring Boot ikke funker med 3.2.3
-val jacksonVersion = "3.1.7"
-dependencyManagement {
-    dependencies {
-        dependency("tools.jackson.core:jackson-core:$jacksonVersion")
-        dependency("tools.jackson.core:jackson-databind:$jacksonVersion")
-    }
-}
-
 dependencies {
     constraints {
         implementation(libsWrapper.getLibrary("lz4.java")) {
@@ -88,6 +78,17 @@ kotlin {
 
 ktlint {
     version = libsWrapper.getVersion("ktlint.cli.version")
+}
+
+configurations.named("ktlint") {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            requested.version?.let {
+                useVersion(it)
+                because("ktlint must use the Kotlin versions it was compiled against")
+            }
+        }
+    }
 }
 
 // Spring Boot-apper kjøres via bootJar, ikke den vanlige jar-tasken.
