@@ -10,6 +10,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.hendelse.HendelseRepository
 import no.nav.amt.distribusjon.journalforing.JournalforingService
+import no.nav.amt.distribusjon.journalforing.JournalforingstatusRepository
 import no.nav.amt.distribusjon.journalforing.model.HendelseMedJournalforingstatus
 import no.nav.amt.distribusjon.journalforing.model.Journalforingstatus
 import no.nav.amt.distribusjon.utils.data.HendelseTypeData
@@ -24,38 +25,55 @@ import java.util.UUID
 class EndringsvedtakJobTest {
     @Test
     fun `init - kaster exception ved negativ initialDelay`() {
+        // Arrange
+        val initialDelay = Duration.ofMinutes(-1)
+
+        // Act
         val exception = shouldThrow<IllegalArgumentException> {
-            lagJob(initialDelay = Duration.ofMinutes(-1))
+            lagJob(initialDelay = initialDelay)
         }
 
+        // Assert
         exception.message shouldBe "Initial delay for endringsvedtak-jobb må være større enn 0"
     }
 
     @Test
     fun `init - kaster exception ved null eller negativ jobPeriod`() {
-        val exceptionVedNullPeriode = shouldThrow<IllegalArgumentException> {
-            lagJob(jobPeriod = Duration.ZERO)
-        }
-        exceptionVedNullPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
+        // Arrange
+        val nullPeriode = Duration.ZERO
+        val negativPeriode = Duration.ofMinutes(-1)
 
-        val exceptionVedNegativPeriode = shouldThrow<IllegalArgumentException> {
-            lagJob(jobPeriod = Duration.ofMinutes(-1))
+        // Act
+        val exceptionVedNullPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = nullPeriode)
         }
+        val exceptionVedNegativPeriode = shouldThrow<IllegalArgumentException> {
+            lagJob(jobPeriod = negativPeriode)
+        }
+
+        // Assert
+        exceptionVedNullPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
         exceptionVedNegativPeriode.message shouldBe "Jobbperiode for endringsvedtak-jobb må være større enn 0"
     }
 
     @Test
     fun `init - kaster exception ved negativ gracePeriod`() {
+        // Arrange
+        val gracePeriod = Duration.ofMinutes(-1)
+
+        // Act
         val exception = shouldThrow<IllegalArgumentException> {
-            lagJob(gracePeriod = Duration.ofMinutes(-1))
+            lagJob(gracePeriod = gracePeriod)
         }
 
+        // Assert
         exception.message shouldBe "Grace-periode for endringsvedtak-jobb må være større enn 0"
     }
 
     @Test
     fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
         runTest {
+            // Arrange
             val deltakerIdA = UUID.randomUUID()
             val deltakerIdB = UUID.randomUUID()
 
@@ -75,8 +93,10 @@ class EndringsvedtakJobTest {
 
             val test = testSetup(hendelser)
 
+            // Act
             test.job.journalforEndringsvedtak()
 
+            // Assert
             coVerify(exactly = 1) {
                 test.journalforingService.journalforOgDistribuerEndringsvedtak(
                     match { liste ->
@@ -88,6 +108,7 @@ class EndringsvedtakJobTest {
 
     @Test
     fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalfores som endringsvedtak`() = runTest {
+        // Arrange
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -100,8 +121,10 @@ class EndringsvedtakJobTest {
 
         val test = testSetup(hendelser)
 
+        // Act
         test.job.journalforEndringsvedtak()
 
+        // Assert
         coVerify(exactly = 1) {
             test.journalforingService.journalforOgDistribuerEndringsvedtak(
                 match { liste ->
@@ -113,6 +136,7 @@ class EndringsvedtakJobTest {
 
     @Test
     fun `journalforEndringsvedtak - godkjent prisendring og vanlig endring eldre enn graceperiode - sendes samlet`() = runTest {
+        // Arrange
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -131,8 +155,10 @@ class EndringsvedtakJobTest {
 
         val test = testSetup(hendelser)
 
+        // Act
         test.job.journalforEndringsvedtak()
 
+        // Assert
         coVerify(exactly = 1) {
             test.journalforingService.journalforOgDistribuerEndringsvedtak(
                 match { liste ->
@@ -145,7 +171,44 @@ class EndringsvedtakJobTest {
     }
 
     @Test
+    fun `journalforEndringsvedtak - annullerer endringer dekket av sendt enkeltplass-hovedvedtak`() = runTest {
+        // Arrange
+        val deltakerId = UUID.randomUUID()
+        val fattetDato = LocalDateTime.now().minusMinutes(60)
+        val dekketHendelse = hendelseMedStatus(
+            deltakerId = deltakerId,
+            opprettet = fattetDato.minusMinutes(5),
+        )
+        val senereHendelse = hendelseMedStatus(
+            deltakerId = deltakerId,
+            opprettet = fattetDato.plusMinutes(5),
+        )
+        val hovedvedtak = hovedvedtakMedStatus(deltakerId, fattetDato)
+
+        val test = testSetup(
+            hendelser = listOf(dekketHendelse, senereHendelse),
+            sendteHovedvedtak = listOf(hovedvedtak),
+        )
+
+        // Act
+        test.job.journalforEndringsvedtak()
+
+        // Assert
+        verify(exactly = 1) {
+            test.journalforingstatusRepository.annuller(listOf(dekketHendelse.hendelse.id))
+        }
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 1 && liste.single().hendelse.id == senereHendelse.hendelse.id
+                },
+            )
+        }
+    }
+
+    @Test
     fun `journalforEndringsvedtak - godkjent prisendring innenfor graceperiode - venter og sender ikke`() = runTest {
+        // Arrange
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -164,8 +227,10 @@ class EndringsvedtakJobTest {
 
         val test = testSetup(hendelser)
 
+        // Act
         test.job.journalforEndringsvedtak()
 
+        // Assert
         coVerify(exactly = 0) {
             test.journalforingService.journalforOgDistribuerEndringsvedtak(any())
         }
@@ -173,6 +238,7 @@ class EndringsvedtakJobTest {
 
     @Test
     fun `journalforEndringsvedtak - behandler ikke hendelser innenfor graceperiode`() = runTest {
+        // Arrange
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -181,13 +247,16 @@ class EndringsvedtakJobTest {
 
         val test = testSetup(hendelser)
 
+        // Act
         test.job.journalforEndringsvedtak()
 
+        // Assert
         coVerify(exactly = 0) { test.journalforingService.journalforOgDistribuerEndringsvedtak(any()) }
     }
 
     @Test
     fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalforing feiler for en deltaker`() = runTest {
+        // Arrange
         val deltakerIdA = UUID.randomUUID()
         val deltakerIdB = UUID.randomUUID()
 
@@ -217,8 +286,10 @@ class EndringsvedtakJobTest {
             )
         } returns Unit
 
+        // Act
         test.job.journalforEndringsvedtak()
 
+        // Assert
         // Verifiserer at begge deltakere faktisk blir forsøkt
         coVerify(exactly = 1) {
             test.journalforingService.journalforOgDistribuerEndringsvedtak(
@@ -242,6 +313,7 @@ class EndringsvedtakJobTest {
 
     @Test
     fun `startJob - starter jobb med forventet initialDelay og period`() {
+        // Arrange
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
         val hendelseRepository = mockk<HendelseRepository>()
         val journalforingService = mockk<JournalforingService>()
@@ -249,15 +321,20 @@ class EndringsvedtakJobTest {
         val initialDelay = Duration.ofMinutes(5)
         val period = Duration.ofMinutes(10)
 
-        EndringsvedtakJob(
+        val job = EndringsvedtakJob(
             jobManager,
             hendelseRepository,
+            mockk(),
             journalforingService,
             initialDelay,
             period,
             Duration.ofHours(1),
-        ).startJob()
+        )
 
+        // Act
+        job.startJob()
+
+        // Assert
         verify(exactly = 1) {
             jobManager.startJob(
                 name = "EndringsvedtakJob",
@@ -275,36 +352,48 @@ class EndringsvedtakJobTest {
     ) = EndringsvedtakJob(
         jobManager = mockk(relaxUnitFun = true),
         hendelseRepository = mockk(),
+        journalforingstatusRepository = mockk(),
         journalforingService = mockk(),
         initialDelay = initialDelay,
         jobPeriod = jobPeriod,
         gracePeriod = gracePeriod,
     )
 
-    private fun testSetup(hendelser: List<HendelseMedJournalforingstatus>): TestSetup {
+    private fun testSetup(
+        hendelser: List<HendelseMedJournalforingstatus>,
+        sendteHovedvedtak: List<HendelseMedJournalforingstatus> = emptyList(),
+    ): TestSetup {
         val jobManager = mockk<JobManager>(relaxUnitFun = true)
         val hendelseRepository = mockk<HendelseRepository>()
+        val journalforingstatusRepository = mockk<JournalforingstatusRepository>()
         val journalforingService = mockk<JournalforingService>()
 
         every { hendelseRepository.hentIkkeJournalforteHendelser() } returns hendelser
         every { hendelseRepository.hentHendelserSomSkalDistribueresSomBrev() } returns emptyList()
+        every { hendelseRepository.hentDistribuerteEnkeltplassHovedvedtak(any()) } returns sendteHovedvedtak
+        every { journalforingstatusRepository.annuller(any()) } answers {
+            firstArg<Collection<UUID>>().size
+        }
 
         return TestSetup(
             job = EndringsvedtakJob(
                 jobManager,
                 hendelseRepository,
+                journalforingstatusRepository,
                 journalforingService,
                 initialDelay = Duration.ofMinutes(5),
                 jobPeriod = Duration.ofMinutes(10),
                 gracePeriod = Duration.ofMinutes(30),
             ),
             journalforingService = journalforingService,
+            journalforingstatusRepository = journalforingstatusRepository,
         )
     }
 
     private data class TestSetup(
         val job: EndringsvedtakJob,
         val journalforingService: JournalforingService,
+        val journalforingstatusRepository: JournalforingstatusRepository,
     )
 
     private fun hendelseMedStatus(
@@ -321,6 +410,30 @@ class EndringsvedtakJobTest {
                 hendelseId = hendelse.id,
                 journalpostId = null,
                 bestillingsId = null,
+                kanIkkeDistribueres = false,
+                kanIkkeJournalfores = false,
+            ),
+        )
+    }
+
+    private fun hovedvedtakMedStatus(
+        deltakerId: UUID,
+        fattetDato: LocalDateTime,
+    ): HendelseMedJournalforingstatus {
+        val hendelse = Hendelsesdata.hendelse(
+            payload = HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                utkast = HendelseTypeData.utkast(),
+                hovedvedtakFattetDato = fattetDato,
+            ),
+            deltaker = Hendelsesdata.lagDeltaker(id = deltakerId),
+        )
+
+        return HendelseMedJournalforingstatus(
+            hendelse = hendelse,
+            journalforingstatus = Journalforingstatus(
+                hendelseId = hendelse.id,
+                journalpostId = "test",
+                bestillingsId = UUID.randomUUID(),
                 kanIkkeDistribueres = false,
                 kanIkkeJournalfores = false,
             ),

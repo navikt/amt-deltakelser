@@ -225,6 +225,13 @@ class TotrinnskontrollConsumer(
      * - `VENTER_PA_OPPSTART` når startdato er i fremtiden
      * - `DELTAR` når startdato er i dag eller fortid og sluttdato er i fremtiden
      * - `FULLFORT` når startdato og sluttdato er i fortid
+     *
+     * @param deltaker Deltakeren som er godkjent.
+     * @param prisinfoId ID-en til prisinformasjonen som ble godkjent.
+     * @param behandletAvNavAnsatt Nav-ansatt som behandler godkjenningen.
+     * @param behandletAvNavEnhet Nav-enheten til den som behandler godkjenningen.
+     * @param godkjentAvNavAnsatt Nav-ansatt som godkjente økonomien.
+     * @param godkjentAvNavEnhet Nav-enheten til den som godkjente økonomien.
      */
     internal fun processGodkjentInnsoking(
         deltaker: Deltaker,
@@ -275,7 +282,14 @@ class TotrinnskontrollConsumer(
                         deltaker = oppdatertDeltaker,
                         navAnsatt = behandletAvNavAnsatt,
                         enhet = behandletAvNavEnhet,
-                    ) { utkastDto -> HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkastDto) }
+                    ) { utkastDto ->
+                        HendelseType.EnkeltplassOkonomiGodkjennUtkast(
+                            utkast = utkastDto,
+                            hovedvedtakFattetDato = checkNotNull(oppdatertDeltaker.vedtaksinformasjon?.fattet) {
+                                "Mangler fattet dato for deltaker ${oppdatertDeltaker.id} etter økonomigodkjenning"
+                            },
+                        )
+                    }
                 },
             )
         } catch (_: HistoriskPrisinfoException) {

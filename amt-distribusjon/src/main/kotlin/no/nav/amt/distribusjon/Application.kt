@@ -149,6 +149,7 @@ fun Application.module() {
 
     val hendelseRepository = HendelseRepository()
     val varselRepository = VarselRepository()
+    val journalforingstatusRepository = JournalforingstatusRepository()
 
     val varselService = VarselService(
         varselRepository = VarselRepository(),
@@ -157,7 +158,7 @@ fun Application.module() {
     )
 
     val journalforingService = JournalforingService(
-        JournalforingstatusRepository(),
+        journalforingstatusRepository,
         amtPersonClient,
         pdfgenClient,
         veilarboppfolgingClient,
@@ -193,6 +194,7 @@ fun Application.module() {
     val endringsvedtakJob = EndringsvedtakJob(
         jobManager,
         hendelseRepository,
+        journalforingstatusRepository,
         journalforingService,
         initialDelay = environment.endringsvedtakJobInitialDelay,
         jobPeriod = environment.endringsvedtakJobPeriod,
