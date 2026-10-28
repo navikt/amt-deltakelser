@@ -262,7 +262,7 @@ object PrisinfoRepository {
                 JOIN gjennomforing
                     ON gjennomforing.id = deltaker.deltakerliste_id
                     AND gjennomforing.gjennomforingstype = 'Enkeltplass'
-                JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.gjennomforing_id
+                JOIN prisinformasjon prisinfo ON deltaker.gjennomforing_id = prisinfo.gjennomforing_id
                 JOIN prisinformasjon_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
