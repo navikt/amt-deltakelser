@@ -250,7 +250,7 @@ object PrisinfoRepository {
             FROM
                 deltaker                
                 JOIN vedtak ON deltaker.id = vedtak.deltaker_id
-                JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.gjennomforing_id
+                JOIN prisinformasjon prisinfo ON deltaker.gjennomforing_id = prisinfo.gjennomforing_id
                 JOIN prisinformasjon_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
