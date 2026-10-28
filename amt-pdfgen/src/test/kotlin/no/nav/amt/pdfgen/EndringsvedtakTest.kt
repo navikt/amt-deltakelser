@@ -108,7 +108,7 @@ class EndringsvedtakTest :
                     doc.text() shouldContain "Pris og betalingsbetingelser er endret"
                     doc.text() shouldContain "Nav skal ikke betale for opplæringen."
                     doc.select("p.margins-1-rem").eachText() shouldContain "~tilleggsopplysninger~"
-                    doc.text() shouldContain "Nav sin begrunnelse: ~begrunnelseFraNav~"
+                    doc.text().substringAfter("~tilleggsopplysninger~") shouldContain "Nav sin begrunnelse: ~begrunnelseFraNav~"
                 }
 
                 describe("erEnkeltplassinnhold") {
