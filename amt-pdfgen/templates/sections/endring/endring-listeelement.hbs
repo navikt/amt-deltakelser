@@ -25,16 +25,16 @@
         {{> sections/enkeltplass-innhold hideHeading=true}}
     {{/if}}
 
+    {{#if this.prisinformasjon}}
+        {{> sections/enkeltplass-pris-og-betalingsbetingelser hideHeading=true}}
+    {{/if}}
+
     {{#if this.begrunnelseFraNav}}
         <p>Nav sin begrunnelse: {{this.begrunnelseFraNav}}</p>
     {{/if}}
 
     {{#if this.pavirkerPris}}
         <p class="margins-0-5-rem">Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette.</p>
-    {{/if}}
-
-    {{#if this.prisinformasjon}}
-        {{> sections/enkeltplass-pris-og-betalingsbetingelser hideHeading=true}}
     {{/if}}
 
     {{#if this.harDeltatt}}
