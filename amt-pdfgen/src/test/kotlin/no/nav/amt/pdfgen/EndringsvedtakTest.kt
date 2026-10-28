@@ -1,7 +1,9 @@
 package no.nav.amt.pdfgen
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -14,6 +16,7 @@ import no.nav.amt.pdfgen.util.DtoBuilders.defaultEndring
 import no.nav.amt.pdfgen.util.DtoBuilders.endringsvedtak
 import no.nav.amt.pdfgen.util.RenderUtils.fixedDate
 import no.nav.amt.pdfgen.util.RenderUtils.render
+import no.nav.amt.pdfgen.util.RenderUtils.toNorwegianShortDate
 import org.jsoup.nodes.Document
 
 class EndringsvedtakTest :
@@ -47,68 +50,6 @@ class EndringsvedtakTest :
             }
 
             describe("Endringstyper") {
-                val endringer =
-                    listOf(
-                        defaultEndring(),
-                        EndringDto.EndreStartdato(
-                            begrunnelseFraNav = "Begrunnelse",
-                            forslagFraArrangor = null,
-                            tittel = "Startdato tittel",
-                            pavirkerPris = false,
-                        ),
-                        EndringDto.EndreSluttdato(
-                            begrunnelseFraNav = "Begrunnelse",
-                            forslagFraArrangor = null,
-                            tittel = "Sluttdato tittel",
-                        ),
-                        EndringDto.ForlengDeltakelse(
-                            begrunnelseFraNav = "Begrunnelse",
-                            forslagFraArrangor = null,
-                            tittel = "Tittel",
-                            pavirkerPris = false,
-                        ),
-                        EndringDto.IkkeAktuell(
-                            aarsak = "Årsak",
-                            begrunnelseFraNav = "BegrunnelseFraNav",
-                            forslagFraArrangor = null,
-                        ),
-                        EndringDto.AvsluttDeltakelse(
-                            aarsak = "Årsak",
-                            begrunnelseFraNav = "BegrunnelseFraNav",
-                            forslagFraArrangor = null,
-                            harDeltatt = "Ja",
-                            harFullfort = "Nei",
-                            tittel = "Tittel",
-                        ),
-                        EndringDto.EndreAvslutning(
-                            aarsak = "Årsak",
-                            begrunnelseFraNav = "BegrunnelseFraNav",
-                            forslagFraArrangor = null,
-                            harFullfort = "Ja",
-                            sluttdato = "2024-01-01",
-                            tittel = "Tittel",
-                        ),
-                        EndringDto.AvbrytDeltakelse(
-                            aarsak = "Årsak",
-                            begrunnelseFraNav = "BegrunnelseFraNav",
-                            forslagFraArrangor = null,
-                            harDeltatt = "Ja",
-                            harFullfort = "Nei",
-                            tittel = "Tittel",
-                        ),
-                        EndringDto.EndreBakgrunnsinformasjon(
-                            bakgrunnsinformasjon = "Bakgrunnstekst",
-                        ),
-                        EndringDto.EndreInnhold(
-                            innhold = listOf("Punkt1", "Punkt2"),
-                            innholdBeskrivelse = "Beskrivelse",
-                        ),
-                        EndringDto.GodkjennPrisendring(
-                            tittel = "Pris og betalingsbetingelser er endret",
-                            prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
-                        ),
-                    )
-
                 describe("pavirkerPris-tekst") {
                     val tekst =
                         "Endringen forutsetter at endring i pris eller betalingsbetingelser blir godkjent. Du vil få en egen beskjed om dette."
@@ -116,15 +57,14 @@ class EndringsvedtakTest :
                     it("viser teksten når pavirkerPris er true på endringstype som støtter feltet") {
                         val doc = renderEndringsvedtak(
                             endringsvedtak(
-                                endringer =
-                                    listOf(
-                                        EndringDto.EndreStartdato(
-                                            begrunnelseFraNav = "Begrunnelse",
-                                            forslagFraArrangor = null,
-                                            pavirkerPris = true,
-                                            tittel = "Startdato tittel",
-                                        ),
+                                endringer = listOf(
+                                    EndringDto.EndreStartdato(
+                                        begrunnelseFraNav = "Begrunnelse",
+                                        forslagFraArrangor = null,
+                                        pavirkerPris = true,
+                                        tittel = "Startdato tittel",
                                     ),
+                                ),
                             ),
                         )
 
@@ -134,15 +74,14 @@ class EndringsvedtakTest :
                     it("viser ikke teksten når pavirkerPris er false på endringstype som støtter feltet") {
                         val doc = renderEndringsvedtak(
                             endringsvedtak(
-                                endringer =
-                                    listOf(
-                                        EndringDto.EndreStartdato(
-                                            begrunnelseFraNav = "Begrunnelse",
-                                            forslagFraArrangor = null,
-                                            pavirkerPris = false,
-                                            tittel = "Startdato tittel",
-                                        ),
+                                endringer = listOf(
+                                    EndringDto.EndreStartdato(
+                                        begrunnelseFraNav = "Begrunnelse",
+                                        forslagFraArrangor = null,
+                                        pavirkerPris = false,
+                                        tittel = "Startdato tittel",
                                     ),
+                                ),
                             ),
                         )
 
@@ -153,21 +92,23 @@ class EndringsvedtakTest :
                 it("viser begrunnelse og prisinformasjon for GodkjennPrisendring") {
                     val doc = renderEndringsvedtak(
                         endringsvedtak(
-                            endringer =
-                                listOf(
-                                    EndringDto.GodkjennPrisendring(
-                                        tittel = "Pris og betalingsbetingelser er endret",
-                                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
-                                        begrunnelseFraNav = "Prisendringen er godkjent",
+                            endringer = listOf(
+                                EndringDto.GodkjennPrisendring(
+                                    tittel = "Pris og betalingsbetingelser er endret",
+                                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
+                                        "~tilleggsopplysninger~",
                                     ),
+                                    begrunnelseFraNav = "~begrunnelseFraNav~",
                                 ),
+                            ),
                         ),
                     )
 
                     doc.select("section h2").eachText() shouldNotContain "Pris og betalingsbetingelser"
                     doc.text() shouldContain "Pris og betalingsbetingelser er endret"
                     doc.text() shouldContain "Nav skal ikke betale for opplæringen."
-                    doc.text() shouldContain "Nav sin begrunnelse: Prisendringen er godkjent"
+                    doc.select("p.margins-1-rem").eachText() shouldContain "~tilleggsopplysninger~"
+                    doc.text().substringAfter("~tilleggsopplysninger~") shouldContain "Nav sin begrunnelse: ~begrunnelseFraNav~"
                 }
 
                 describe("erEnkeltplassinnhold") {
@@ -214,125 +155,230 @@ class EndringsvedtakTest :
                     }
                 }
 
-                endringer.forEach { endring ->
+                describe("Hovedtittel") {
+                    it("viser hovedtittel for GodkjennPrisendring") {
+                        assertHovedtittel(
+                            EndringDto.GodkjennPrisendring(
+                                tittel = "Pris og betalingsbetingelser er endret",
+                                prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(
+                                    "~tilleggsopplysninger~",
+                                ),
+                                begrunnelseFraNav = "~begrunnelse~",
+                            ),
+                        )
+                    }
 
-                    describe(endring::class.simpleName!!) {
-                        it("viser hovedtittel") {
-                            val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
-                            doc.selectFirst("h1")!!.text() shouldBe "Endring: Endring i tiltak"
-                        }
+                    it("viser hovedtittel for EndreDeltakelsesmengde") {
+                        assertHovedtittel(defaultEndring())
+                    }
 
-                        // Nested ForslagDto hvis endringen har forslag
-                        val forslagListe =
-                            when (endring) {
-                                is EndringDto.EndreDeltakelsesmengde -> {
-                                    listOf(
-                                        ForslagDto.EndreDeltakelsesmengde(
-                                            deltakelsesmengdeTekst = "50%",
-                                            begrunnelseFraArrangor = "Redusert deltakelse",
-                                        ),
-                                    )
-                                }
+                    it("viser hovedtittel for EndreStartdato") {
+                        assertHovedtittel(
+                            EndringDto.EndreStartdato(
+                                begrunnelseFraNav = "Begrunnelse",
+                                forslagFraArrangor = null,
+                                tittel = "Startdato tittel",
+                                pavirkerPris = false,
+                            ),
+                        )
+                    }
 
-                                is EndringDto.EndreStartdato -> {
-                                    listOf(
-                                        ForslagDto.EndreStartdato(
-                                            startdato = fixedDate.plusDays(5),
-                                            begrunnelseFraArrangor = "Ny start",
-                                        ),
-                                    )
-                                }
+                    it("viser hovedtittel for EndreSluttdato") {
+                        assertHovedtittel(
+                            EndringDto.EndreSluttdato(
+                                begrunnelseFraNav = "Begrunnelse",
+                                forslagFraArrangor = null,
+                                tittel = "Sluttdato tittel",
+                            ),
+                        )
+                    }
 
-                                is EndringDto.EndreSluttdato -> {
-                                    listOf(
-                                        ForslagDto.EndreSluttdato(
-                                            sluttdato = fixedDate.plusMonths(1),
-                                            begrunnelseFraArrangor = "Ny sluttdato",
-                                        ),
-                                    )
-                                }
+                    it("viser hovedtittel for ForlengDeltakelse") {
+                        assertHovedtittel(
+                            EndringDto.ForlengDeltakelse(
+                                begrunnelseFraNav = "Begrunnelse",
+                                forslagFraArrangor = null,
+                                tittel = "Tittel",
+                                pavirkerPris = false,
+                            ),
+                        )
+                    }
 
-                                is EndringDto.ForlengDeltakelse -> {
-                                    listOf(
-                                        ForslagDto.ForlengDeltakelse(
-                                            sluttdato = fixedDate.plusMonths(2),
-                                            begrunnelseFraArrangor = "Forlenget",
-                                        ),
-                                    )
-                                }
+                    it("viser hovedtittel for IkkeAktuell") {
+                        assertHovedtittel(
+                            EndringDto.IkkeAktuell(
+                                aarsak = "Årsak",
+                                begrunnelseFraNav = "BegrunnelseFraNav",
+                                forslagFraArrangor = null,
+                            ),
+                        )
+                    }
 
-                                is EndringDto.AvsluttDeltakelse -> {
-                                    listOf(
-                                        ForslagDto.AvsluttDeltakelse(
-                                            aarsak = "Sykdom",
-                                            sluttdato = fixedDate.plusMonths(1),
-                                            harDeltatt = "Ja",
-                                            harFullfort = "Nei",
-                                            begrunnelseFraArrangor = "Anbefalt avslutning",
-                                        ),
-                                    )
-                                }
+                    it("viser hovedtittel for AvsluttDeltakelse") {
+                        assertHovedtittel(
+                            EndringDto.AvsluttDeltakelse(
+                                aarsak = "Årsak",
+                                begrunnelseFraNav = "BegrunnelseFraNav",
+                                forslagFraArrangor = null,
+                                harDeltatt = "Ja",
+                                harFullfort = "Nei",
+                                tittel = "Tittel",
+                            ),
+                        )
+                    }
 
-                                else -> {
-                                    emptyList()
-                                }
-                            }
+                    it("viser hovedtittel for EndreAvslutning") {
+                        assertHovedtittel(
+                            EndringDto.EndreAvslutning(
+                                aarsak = "Årsak",
+                                begrunnelseFraNav = "BegrunnelseFraNav",
+                                forslagFraArrangor = null,
+                                harFullfort = "Ja",
+                                sluttdato = "2024-01-01",
+                                tittel = "Tittel",
+                            ),
+                        )
+                    }
 
-                        forslagListe.forEach { forslag ->
-                            describe("Forslag: ${forslag::class.simpleName}") {
-                                it("rendrer forslag korrekt") {
-                                    val endringMedForslag =
-                                        when (endring) {
-                                            is EndringDto.EndreDeltakelsesmengde -> endring.copy(forslagFraArrangor = forslag)
-                                            is EndringDto.EndreStartdato -> endring.copy(forslagFraArrangor = forslag)
-                                            is EndringDto.EndreSluttdato -> endring.copy(forslagFraArrangor = forslag)
-                                            is EndringDto.ForlengDeltakelse -> endring.copy(forslagFraArrangor = forslag)
-                                            is EndringDto.AvsluttDeltakelse -> endring.copy(forslagFraArrangor = forslag)
-                                            else -> endring
-                                        }
+                    it("viser hovedtittel for AvbrytDeltakelse") {
+                        assertHovedtittel(
+                            EndringDto.AvbrytDeltakelse(
+                                aarsak = "Årsak",
+                                begrunnelseFraNav = "BegrunnelseFraNav",
+                                forslagFraArrangor = null,
+                                harDeltatt = "Ja",
+                                harFullfort = "Nei",
+                                tittel = "Tittel",
+                            ),
+                        )
+                    }
 
-                                    val doc = renderEndringsvedtak(endringsvedtak(listOf(endringMedForslag)))
+                    it("viser hovedtittel for EndreBakgrunnsinformasjon") {
+                        assertHovedtittel(
+                            EndringDto.EndreBakgrunnsinformasjon(
+                                bakgrunnsinformasjon = "Bakgrunnstekst",
+                            ),
+                        )
+                    }
 
-                                    // Sjekk generell tilstedeværelse
-                                    doc.text() shouldContain "Forslaget sendt fra arrangør"
+                    it("viser hovedtittel for EndreInnhold") {
+                        assertHovedtittel(
+                            EndringDto.EndreInnhold(
+                                innhold = listOf("Punkt1", "Punkt2"),
+                                innholdBeskrivelse = "Beskrivelse",
+                            ),
+                        )
+                    }
+                }
 
-                                    // spesifikke felter per ForslagDto-type
-                                    when (forslag) {
-                                        is ForslagDto.EndreDeltakelsesmengde -> {
-                                            doc.text() shouldContain forslag.deltakelsesmengdeTekst
-                                            forslag.begrunnelseFraArrangor?.let { doc.text() shouldContain it }
-                                        }
+                describe("Forslag fra arrangør") {
+                    it("viser forslag om EndreDeltakelsesmengde") {
+                        val endring = defaultEndring().copy(
+                            forslagFraArrangor = ForslagDto.EndreDeltakelsesmengde(
+                                deltakelsesmengdeTekst = "50%",
+                                begrunnelseFraArrangor = "Redusert deltakelse",
+                            ),
+                        )
 
-                                        is ForslagDto.EndreStartdato -> {
-                                            forslag.begrunnelseFraArrangor?.let { doc.text() shouldContain it }
-                                        }
+                        val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
 
-                                        is ForslagDto.EndreSluttdato -> {
-                                            forslag.begrunnelseFraArrangor?.let { doc.text() shouldContain it }
-                                        }
+                        doc.text() shouldContain "Forslaget sendt fra arrangør"
+                        doc.text() shouldContain "50%"
+                        doc.text() shouldContain "Redusert deltakelse"
+                    }
 
-                                        is ForslagDto.ForlengDeltakelse -> {
-                                            forslag.begrunnelseFraArrangor?.let { doc.text() shouldContain it }
-                                        }
+                    it("viser forslag om EndreStartdato") {
+                        val startdato = fixedDate.plusDays(5)
+                        val endring = EndringDto.EndreStartdato(
+                            begrunnelseFraNav = "Begrunnelse",
+                            forslagFraArrangor = ForslagDto.EndreStartdato(
+                                startdato = startdato,
+                                begrunnelseFraArrangor = "Ny start",
+                            ),
+                            tittel = "Startdato tittel",
+                            pavirkerPris = false,
+                        )
 
-                                        is ForslagDto.AvsluttDeltakelse -> {
-                                            forslag.aarsak?.let { doc.text() shouldContain it }
-                                            forslag.harDeltatt?.let { doc.text() shouldContain it }
-                                            forslag.harFullfort?.let { doc.text() shouldContain it }
-                                            forslag.begrunnelseFraArrangor?.let { doc.text() shouldContain it }
-                                        }
+                        val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
 
-                                        else -> {}
-                                    }
-                                }
-                            }
-                        }
+                        doc.text() shouldContain "Forslaget sendt fra arrangør"
+                        doc.text() shouldContain startdato.toNorwegianShortDate()
+                        doc.text() shouldContain "Ny start"
+                    }
+
+                    it("viser forslag om EndreSluttdato") {
+                        val sluttdato = fixedDate.plusMonths(1)
+                        val endring = EndringDto.EndreSluttdato(
+                            begrunnelseFraNav = "Begrunnelse",
+                            forslagFraArrangor = ForslagDto.EndreSluttdato(
+                                sluttdato = sluttdato,
+                                begrunnelseFraArrangor = "Ny sluttdato",
+                            ),
+                            tittel = "Sluttdato tittel",
+                        )
+
+                        val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
+
+                        doc.text() shouldContain "Forslaget sendt fra arrangør"
+                        doc.text() shouldContain sluttdato.toNorwegianShortDate()
+                        doc.text() shouldContain "Ny sluttdato"
+                    }
+
+                    it("viser forslag om ForlengDeltakelse") {
+                        val sluttdato = fixedDate.plusMonths(2)
+                        val endring = EndringDto.ForlengDeltakelse(
+                            begrunnelseFraNav = "Begrunnelse",
+                            forslagFraArrangor = ForslagDto.ForlengDeltakelse(
+                                sluttdato = sluttdato,
+                                begrunnelseFraArrangor = "Forlenget",
+                            ),
+                            tittel = "Tittel",
+                            pavirkerPris = false,
+                        )
+
+                        val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
+
+                        doc.text() shouldContain "Forslaget sendt fra arrangør"
+                        doc.text() shouldContain sluttdato.toNorwegianShortDate()
+                        doc.text() shouldContain "Forlenget"
+                    }
+
+                    it("viser forslag om AvsluttDeltakelse") {
+                        val sluttdato = fixedDate.plusMonths(1)
+                        val endring = EndringDto.AvsluttDeltakelse(
+                            aarsak = "Årsak",
+                            begrunnelseFraNav = "BegrunnelseFraNav",
+                            forslagFraArrangor = ForslagDto.AvsluttDeltakelse(
+                                aarsak = "Sykdom",
+                                sluttdato = sluttdato,
+                                harDeltatt = "Ja",
+                                harFullfort = "Nei",
+                                begrunnelseFraArrangor = "Anbefalt avslutning",
+                            ),
+                            harDeltatt = "Ja",
+                            harFullfort = "Nei",
+                            tittel = "Tittel",
+                        )
+
+                        val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
+
+                        doc.text() shouldContain "Forslaget sendt fra arrangør"
+                        doc.text() shouldContain "Sykdom"
+                        doc.text() shouldContain sluttdato.toNorwegianShortDate()
+                        doc.text() shouldContain "Ja"
+                        doc.text() shouldContain "Nei"
+                        doc.text() shouldContain "Anbefalt avslutning"
                     }
                 }
             }
         }
     }) {
-    companion object {
-        private fun renderEndringsvedtak(payload: EndringsvedtakPdfDto): Document = render("endringsvedtak", payload)
+    private companion object {
+        fun assertHovedtittel(endring: EndringDto) {
+            val doc = renderEndringsvedtak(endringsvedtak(listOf(endring)))
+            doc.selectFirst("h1").shouldNotBeNull().text() shouldBe "Endring: Endring i tiltak"
+        }
+
+        fun renderEndringsvedtak(payload: EndringsvedtakPdfDto): Document = render("endringsvedtak", payload)
     }
 }
