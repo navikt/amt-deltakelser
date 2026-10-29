@@ -7,7 +7,7 @@ plugins {
 
     id("org.springframework.boot")
     id("org.jetbrains.kotlin.plugin.spring")
-    id("io.spring.dependency-management")
+    id("amt-dependency-management-conventions")
 }
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -18,12 +18,6 @@ repositories {
 }
 
 dependencies {
-    constraints {
-        implementation(versionCatalog.findLibrary("lz4.java").get()) {
-            because("Fixes CVE-2026-59949")
-        }
-    }
-
     // --- Spring Boot ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web") {
