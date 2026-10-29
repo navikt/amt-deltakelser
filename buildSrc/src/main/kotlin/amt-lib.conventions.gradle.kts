@@ -1,4 +1,5 @@
 import java.net.URI
+import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     `java-library`
@@ -9,7 +10,7 @@ plugins {
 
 group = "no.nav.amt.deltakelser.lib"
 
-val libsWrapper = VersionCatalogWrapper.fromProject(project)
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 repositories {
     mavenCentral()
@@ -25,7 +26,7 @@ java {
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint.cli.version")
+    version = versionCatalog.findVersion("ktlint.cli.version").get().requiredVersion
 }
 
 publishing {

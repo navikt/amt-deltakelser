@@ -1,9 +1,11 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
 plugins {
     kotlin("jvm")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-val libsWrapper = VersionCatalogWrapper.fromProject(project)
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 repositories {
     mavenCentral()
@@ -14,7 +16,7 @@ kotlin {
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint.cli.version")
+    version = versionCatalog.findVersion("ktlint.cli.version").get().requiredVersion
 }
 
 tasks.named<Test>("test") {
