@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm")
     application
     id("org.jlleitschuh.gradle.ktlint")
-    id("amt-dependency-management-conventions")
 }
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -16,6 +15,14 @@ repositories {
 
 dependencies {
     constraints {
+        implementation(versionCatalog.findLibrary("guava").get()) {
+            because("Fixes Guava vulnerabilities")
+        }
+
+        implementation(versionCatalog.findLibrary("lz4.java").get()) {
+            because("Fixes CVE-2026-59949")
+        }
+
         implementation(versionCatalog.findLibrary("tools.jackson.core").get()) {
             because("Misc Dependabot alerts")
         }
