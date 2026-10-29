@@ -1,0 +1,37 @@
+ingress: https://amt-kafka-manager.intern.nav.no
+memory_request: 300Mi
+memory_limit: 1024Mi
+kafka_pool: nav-prod
+jdk_java_options: "-XX:MaxRAMPercentage=60.0"
+azure_groups:
+  - 0a84d77e-c8e9-4173-96af-164eb7fbb749
+  - dfc550d0-c5bf-4208-8b2b-3542bb8b5b15 # dab skal ha midlertidig tilgang
+topics:
+  - nom.skjermede-personer-status-v1
+  - amt.amt-tiltak-v1
+  - amt.deltaker-v1
+  - amt.deltaker-ekstern-v1
+  - teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p
+  - teamarenanais.aapen-arena-tiltakgjennomforingendret-v1-p
+  - teamarenanais.aapen-arena-histtiltakdeltakerendret-v1-p
+  - amt.virksomheter-v1
+  - pto.siste-14a-vedtak-v1
+  - team-mulighetsrommet.siste-tiltaksgjennomforinger-v1
+  - team-mulighetsrommet.siste-tiltaksgjennomforinger-v2
+  - team-mulighetsrommet.siste-tiltakstyper-v3
+  - amt.deltaker-v2
+  - amt.arrangor-ansatt-v1
+  - amt.arrangor-v1
+  - amt.deltakerliste-v1
+  - amt.endringsmelding-v1
+  - amt.nav-bruker-personalia-v1
+  - amt.nav-ansatt-personalia-v1
+  - amt.arrangor-ansatt-personalia-v1
+  - amt.deltaker-endring-v1
+  - amt.arrangor-melding-v1
+  - amt.deltaker-hendelse-v1
+  - amt.nav-enhet-v1
+  - amt.tiltakskoordinators-deltakerliste-v1
+  - amt.arena-enkeltplass-deltaker-v1
+  - dab.aktivitetskort-feil-v1
+  - amt.gjennomforing-intern

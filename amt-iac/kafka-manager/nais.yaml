@@ -1,0 +1,64 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-kafka-manager
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/kafka-manager:2026.10.29-01.38-fa100ca
+  port: 8080
+  webproxy: true
+  ingresses:
+    - {{ingress}}
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+
+  startup:
+    path: /internal/health/liveness
+    initialDelay: 20
+    failureThreshold: 20
+  readiness:
+    path: /internal/health/readiness
+  liveness:
+    path: /internal/health/liveness
+
+  replicas:
+    min: 1
+    max: 1 # 1 instance is required since in-memory session management is used
+    disableAutoScaling: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
+  azure:
+    application:
+      enabled: true
+      tenant: nav.no
+      claims:
+        groups:
+{{#each azure_groups}}
+          - id: {{this}}
+{{/each}}
+  kafka:
+    pool: {{kafka_pool}}
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "{{jdk_java_options}}"
+    - name: APP_CONFIG_JSON
+      value: >
+        {
+          "topics": [
+{{#each topics}}
+            {
+              "name": "{{this}}",
+              "location": "AIVEN",
+              "keyDeserializerType": "STRING",
+              "valueDeserializerType": "STRING"
+            }{{#unless @last}},{{/unless}}
+{{/each}}
+          ]
+        }
