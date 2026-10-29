@@ -12,6 +12,8 @@ plugins {
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+extra["flyway.version"] = versionCatalog.findVersion("flyway-version").get().requiredVersion
+
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
