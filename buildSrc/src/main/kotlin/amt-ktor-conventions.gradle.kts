@@ -9,6 +9,11 @@ plugins {
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+dependencyManagement {
+    // Keep Gradle's path-based exclusions so Micrometer cannot remove Prometheus tracing from other dependency paths.
+    applyMavenExclusions(false)
+}
+
 repositories {
     mavenCentral()
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
