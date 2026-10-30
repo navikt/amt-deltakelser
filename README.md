@@ -6,47 +6,163 @@ Repoet inneholder Terraform-konfigurasjon for å flytte data fra applikasjonsspe
 med Google Datastream for Komet. Bakgrunnen for at data flyttes til BigQuery er et ønske om å kunne bruke BigQuery som 
 datakilde for analyse og visualisering. 
 
-Datastreams er valgt på grunn av at data blir oppdatert så fort de blir skrevet til eller endret i kildedatabasen. Alternativet er
+Datastream er valgt fordi data blir oppdatert så fort de blir skrevet til eller endret i kildedatabasen. Alternativet er
 Federated Queries, som typisk flytter data med angitte intervaller, basert på en SQL-spørring. Mange av våre databasetabeller har 
 kolonner for `modifiedAt`, men ikke alle. For å være sikre på at vi får med alt som er relevant måtte vi ha flyttet alle data
 fra enkelte tabeller hver gang, og det blir unødvendig tungvint. 
 
-Begrunnelsen for å bruke Terraform i stedet for å opprettet ressursene direkte i Cloud Console er todelt. Først og fremst 
-gir det teamet en deterministisk måte å opprette og slette ressurser på. For det andre fungerer konfigurasjonen fungerer som 
+Begrunnelsen for å bruke Terraform i stedet for å opprette ressursene direkte i Cloud Console er todelt. Først og fremst
+gir det teamet en deterministisk måte å opprette og slette ressurser på. For det andre fungerer konfigurasjonen som
 dokumentasjon på hvilke ressurser som er opprettet. 
 
-*OBS: Husk å se over resultatet av `terraform plan` før du merger noe til main!*
+**En merge til `main` starter automatisk apply i både dev og prod. Se gjennom planene før du merger.**
 
-### Manuelle steg
+## Miljøer
 
-#### Manuelt oppsett Terraform
-Bruk Terraform-versjonen som er angitt i [`.terraform-version`](.terraform-version), både lokalt og i CI.
-Provider-låsefilene i `dev/` og `prod/` skal versjoneres.
-CI bruker `terraform init -lockfile=readonly`, slik at provider-valget ikke endres under kjøring.
+| Mappe | GCP-prosjekt | Bucket for Terraform-state |
+|-------|--------------|----------------------------|
+| [`dev/`](dev/) | `amt-dev-d98f` | `amt-terraform-state-dev` |
+| [`prod/`](prod/) | `amt-prod-d4dd` | `amt-terraform-state-prod` |
 
-Det er noen ressurser som må opprettes manuelt i hvert GCP-prosjekt for å få Terraform til å fungere: 
-- ServiceAccount for Terraform
-  - Gi tilstrekkelige permissions for ressurser som skal opprettes
-  - Opprett key i json-format, og ta vare på filen som lastes ned
-- Bucket for Terraform-tilstand (`amt-terraform-state-dev` for dev)
+Prod har Datastream-oppsett og BigQuery-views for `amt-deltaker` og `amt-distribusjon`.
+Dev er ikke i aktiv bruk, og Datastream for `amt-deltaker` er deaktivert som standard.
+Dev har likevel fellesressurser for Datastream-nettverket som Terraform fortsatt forvalter.
 
-Manuelt oppsett GitHub Actions: 
-- Legg til en repository secret som heter `GCP_SECRET_DEV` for dev og som inneholder json-keyen for service accounten for Terraform. 
+## Lokal arbeidsflyt
 
-Oppsett fra egen maskin: 
-- Kjør `export GOOGLE_CREDENTIALS=~/<key>.json` (`<key>.json` er filen som inneholder json-keyen for service accounten for Terraform).
+Kjør kommandoene fra repo-roten. Du trenger Git, Nais CLI, Google Cloud CLI (`gcloud`) og
+Terraform-versjonen i [`.terraform-version`](.terraform-version).
+Kontoen din må ha tilgang til ressursene og state-bucketen i miljøet du jobber med.
 
-#### Manuelt oppsett database
-Det må opprettes databasebruker for datastreamen, databasebrukeren må gis tilgang, og det må settes opp replikering. 
-Dette er godt beskrevet her: https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk. 
-OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn dataene fra datastreamen, hvis ikke fyller disken seg opp!
+### Logg inn
 
-#### Opprette secret for datastream-bruker
-Det må opprettes en secret i Google Secret Manager som inneholder brukernavn og passord for databasebrukeren for datastreamen. 
-Dette gjør du manuelt i GCP-konsollet. Brukernavn og passord finner du i kubernetes-secreten som ble opprettet av nais da 
-databasebrukeren ble opprettet, og du kan hente ut verdiene slik: 
+Hvis du tidligere satte `GOOGLE_CREDENTIALS` for å bruke en service account-nøkkel,
+fjern overstyringen fra terminalen før du logger inn:
+
+```bash
+unset GOOGLE_CREDENTIALS
+```
+
+Fjern også eventuell eksport av variabelen fra shell-oppsettet ditt, slik at den ikke kommer tilbake i nye terminaler.
+
+Logg inn med Nais CLI før du kjører Terraform lokalt:
+
+```bash
+nais login
+```
+
+Miljøvariablene `GOOGLE_CREDENTIALS` og `GOOGLE_APPLICATION_CREDENTIALS` kan styre hvilke credentials Terraform bruker.
+Du trenger ikke laste ned en service account-nøkkel for denne arbeidsflyten.
+
+### Initialiser og lag planer
+
+Initialiser begge miljøene uten å endre provider-låsefilene:
+
+```bash
+terraform -chdir=dev init -lockfile=readonly &&
+terraform -chdir=prod init -lockfile=readonly
+```
+
+Kontroller formatering og konfigurasjon før du lager planer:
+
+```bash
+terraform fmt -check -recursive &&
+terraform -chdir=dev validate &&
+terraform -chdir=prod validate &&
+terraform -chdir=dev plan &&
+terraform -chdir=prod plan
+```
+
+Se gjennom begge planene, også når du endrer en delt modul.
+Avklar uventede slettinger og erstatninger før du går videre.
+`No changes` betyr at Terraform ikke finner avvik, ikke at alle view-spørringer eller Metabase-tilkoblinger fungerer.
+
+Provider-låsefilene `dev/.terraform.lock.hcl` og `prod/.terraform.lock.hcl` skal være med i Git.
+Ikke bruk `terraform init -upgrade` i den vanlige initialiseringen.
+Oppgrader providerne i en egen endring, og se gjennom låsefilene og nye planer.
+Når du oppgraderer Terraform, må versjonen være den samme i `.terraform-version`,
+`dev/main.tf`, `prod/main.tf` og workflowen.
+
+### Manuell apply
+
+Vanlig deploy skjer gjennom CI etter merge. Kjør bare manuell apply når det er avtalt,
+for eksempel ved kontrollert synkronisering av Terraform og GCP.
+En apply kan endre eller slette ressurser. Kontroller riktig miljø og hele planen før du godkjenner.
+
+Eksempel for prod:
+
+```bash
+terraform -chdir=prod apply
+```
+
+Kommandoen lager en ny plan og ber om godkjenning. Den bruker ikke planen fra en tidligere `terraform plan`.
+For en avtalt endring i dev bruker du `-chdir=dev` i stedet.
+Ikke legg state, planfiler eller credentials i Git.
+
+## Endringer og CI
+
+Jobb på en branch med prefikset `komet-bau/`, push den og opprett en pull request.
+[Terraform-workflowen](.github/workflows/terraform.yml) kjører ved hver push:
+
+| Branch | Plan | Automatisk apply |
+|--------|------|------------------|
+| `main` | Dev og prod | Dev og prod |
+| `dev-*` | Dev og prod | Dev |
+| Andre brancher, inkludert `komet-bau/*` | Dev og prod | Nei |
+
+CI kontrollerer formatering i hele repoet og validerer begge miljøene.
+Hver apply-jobb venter på at plan-jobben for samme miljø lykkes.
+Apply-jobbene kjører med `-auto-approve`. De lager nye planer og bruker ikke lagrede planer fra plan-jobbene.
+
+CI bruker de eksisterende repository-secretene `GCP_SECRET_DEV` og `GCP_SECRET_PROD` for GCP-tilgang.
+CI-tilgangen er uavhengig av lokal innlogging med `nais login`.
+GitHub-tokenet har kun `contents: read`. GCP-rettighetene kommer fra GCP-credentials.
+Ikke skriv secret-verdier i logger, pull requests eller dokumentasjon.
+
+## Metabase-tilgang
+
+Metabase-tilgangene for de publiserte viewene er definert i
+[`prod/metabase-access.tf`](prod/metabase-access.tf).
+Hvert dataprodukt har sin egen Metabase-service account. Finn riktig konto i
+Datamarkedsplassen før du legger til eller endrer en kobling mellom view og konto.
+Ikke gjenbruk kontoen fra et annet dataprodukt uten å kontrollere at den er riktig.
+
+Terraform gir `roles/bigquery.dataViewer` på hvert view i disse koblingene og
+`roles/bigquery.metadataViewer` på datasettet som inneholder viewet.
+Metadata-rollen gjør metadata om alle objekter i datasettet synlige, men gir ikke lesetilgang til rådataene.
+Datasettilgangene ligger i de eksisterende `access_roles`-listene i
+[`prod/datastreams.tf`](prod/datastreams.tf).
+Bevar `authorized_views` og øvrige tilganger når du endrer disse listene.
+Ikke legg til parallelle dataset-IAM-ressurser som konkurrerer om de samme tilgangene.
+
+Etter endringer i tilganger eller view-skjema må du synkronisere skjemaet til
+dataproduktets tilkobling i Metabase. Velg **Admin → Databases → Sync database schema**.
+Kontroller også at spørringene og de berørte grafene fungerer.
+Skjemasynkronisering er ikke det samme som å skanne feltverdier.
+
+## Manuelle steg ved førstegangsoppsett
+
+### Terraform og CI
+
+Før første init må GCP-prosjektet ha en state-bucket, og CI må ha en service account
+med rettigheter til ressursene Terraform skal forvalte.
+Bucket-navnene står i miljøtabellen over.
+CI-credentials ligger i repository-secretene som er beskrevet under [Endringer og CI](#endringer-og-ci).
+Bruk `nais login` fra egen maskin, ikke en kopi av CI-nøkkelen.
+
+### Manuelt oppsett av database
+
+Opprett en databasebruker for datastreamen, gi databasebrukeren tilgang og sett opp replikering.
+Se [forutsetningene for bruk av nada-datastream](https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk).
+Vent med å sette opp replikeringen til du er klar til å lese inn dataene fra datastreamen. Ellers fylles disken opp.
+
+### Opprette secret for Datastream-bruker
+
+Opprett en secret i Google Secret Manager med brukernavn og passord for databasebrukeren for datastreamen.
+Dette gjør du manuelt i GCP-konsollen. Brukernavn og passord finner du i Kubernetes-secreten som Nais opprettet da
+databasebrukeren ble opprettet. Du kan hente ut verdiene slik:
 `kubectl get secret <secret-navn> -o json | jq ".data | map_values(@base64d)"` (installer `jq` med brew hvis du ikke har det installert). 
-Secreten skal være på formatet 
+Secreten skal ha følgende JSON-format:
 
 ```
 {
@@ -58,8 +174,10 @@ og kan hete f.eks. `amt-deltaker-datastream-credentials`.
 
 ## Feilsituasjoner
 
-### Oppgradering av postgres versjon
-Når man migrerer databaser til ny versjon kommer datastreamen til å stoppe opp, og kan ende opp som `Permanently Failed` i gcp consolet.
+### Oppgradering av PostgreSQL-versjon
+
+Når du migrerer en database til en ny versjon, stopper datastreamen.
+Den kan ende i tilstanden `Permanently Failed` i GCP-konsollen.
 
 #### 1. Gjenopprett replication slot
 Oppgraderingen fjerner logiske replication slots. Gjenopprett den med:
@@ -72,15 +190,15 @@ Du kan verifisere om det gikk bra ved å kjøre:
 SELECT * FROM pg_replication_slots;
 ```
 
-Bruk samme navn som er konfigurert i [datastreams.tf](./prod/datastreams.tf)
+Bruk samme navn som er konfigurert i [datastreams.tf](./prod/datastreams.tf).
 
 #### 2. Forsøk `Recover Stream`
-Fyll inn navnet på replication slottet som ble gjennopprettet, og start recovery.
+Fyll inn navnet du brukte da du gjenopprettet replication slot, og start recovery.
 
-Hvis det gikk bra, gå til Backfill steget, hvis ikke så bør det være en beskrivelse av feilen i vinduet.
+Hvis recovery lykkes, gå til backfill-steget. Hvis ikke, se etter en beskrivelse av feilen i vinduet.
 
-For eksempel kan det hende at datastreamen ikke har tilgang til tabeller som er nylig opprettet, da må man
-grante privileges som vanlig med noe som:
+For eksempel kan datastreamen mangle tilgang til nylig opprettede tabeller. Da må du
+gi tilgang, for eksempel med:
 ```sql
 DO
 $$
@@ -99,34 +217,35 @@ END;
 
 #### 3. Backfill
 Siden datastreamen har vært nede en stund, kan det være at den har gått glipp av endringer i databasen.
-Man kan da initiere en backfill av dataene, hvor datastreamen da leser inn all data fra tabellen på nytt.
+Du kan da starte en backfill, der datastreamen leser inn alle data fra tabellen på nytt.
 
-1. Det kan gjøres ved å gå inn på streamen i consolet.
-2. Finn fanen som heter objects
-3. `Initiate Backfill` på en eller alle tabellene som skal etterfylles.
+1. Åpne streamen i GCP-konsollen.
+2. Velg fanen `objects`.
+3. Velg `Initiate Backfill` for én eller alle tabellene som skal etterfylles.
 
 #### 4. Avstem data
-Det kan være lurt å sjekke om vi har konsistente data i Big Query etter dette er gjort, gjør noen tellinger i BQ og postgres. 
-Men vær obs på at BQ kan gjøre noe smart caching som fører til at det kan ta litt tid før man får det riktige resultatet.
+Kontroller at dataene i BigQuery og PostgreSQL er konsistente etterpå, for eksempel ved å sammenligne antall rader.
+Vær oppmerksom på at caching i BigQuery kan gjøre at det tar litt tid før du får riktig resultat.
 
-Benytt f.eks. feltet modified_at for å sjekke om det er konsistente data.
+Bruk for eksempel feltet `modified_at` for å kontrollere at dataene er konsistente.
 
 **Eksempel for amt-distribusjon**
 
-Spørring BigQuery:
+Spørring i BigQuery:
 ```sql
 SELECT MAX(modified_at) FROM amt_distribusjon_datastream.public_tiltakshendelse
 ```
 
-Spørring PostgreSQL:
+Spørring i PostgreSQL:
 ```sql
 SELECT MAX(modified_at) FROM tiltakshendelse
 ```
 Spørringene bør gi samme resultat.
 
 
-### Oppgradering av kubernetes clustre, eller rotering av passord
-Når nais oppgraderer kubernetes clustre kan det føre til at passord for databasebrukere blir rotert.
-I det tilfellet må man opprette en ny versjon av secreten som inneholder brukernavn og passord for datastreamen sin postgresbruker.
+### Oppgradering av Kubernetes-clustere eller rotering av passord
 
-Følg oppskriften som er gitt [her](#opprette-secret-for-datastream-bruker) for å hente ut oppdatert passord for brukeren.
+Når Nais oppgraderer Kubernetes-clustere, kan det føre til at passord for databasebrukere blir rotert.
+Da må du opprette en ny versjon av secreten med brukernavn og passord for Datastream-brukeren i PostgreSQL.
+
+Følg [oppskriften for Datastream-brukerens secret](#opprette-secret-for-datastream-bruker) for å hente ut oppdatert passord for brukeren.
