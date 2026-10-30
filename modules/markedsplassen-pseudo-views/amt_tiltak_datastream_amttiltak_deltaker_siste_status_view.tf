@@ -1,6 +1,6 @@
 module "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view" {
   source              = "../google-bigquery-view"
-  deletion_protection = true
+  deletion_protection = false
   dataset_id          = var.dataset_id
   view_id             = "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view"
 

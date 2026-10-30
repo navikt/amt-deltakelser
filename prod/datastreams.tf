@@ -186,6 +186,10 @@ module "amt_tiltak_datastream" {
   cloud_sql_instance_publication_name = "ds_publication"
   cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
+
+  datastream_desired_state                     = "PAUSED"
+  big_query_dataset_delete_contents_on_destroy = true
+
   postgresql_include_schemas = [
     {
       schema = "public"
