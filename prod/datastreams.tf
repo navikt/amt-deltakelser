@@ -60,16 +60,6 @@ locals {
     "hendelse",
     "journaforing",
   ]
-
-  tiltak_view_ids = [
-    "amttiltak_deltaker_personident_view",
-    "amttiltak_deltaker_siste_status_view",
-    "amttiltak_deltaker_status_view",
-  ]
-
-  markedsplassen_pseudo_view_ids = [
-    "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view",
-  ]
 }
 
 module "amt_datastream_vpc" {
@@ -172,64 +162,4 @@ module "amt_distribusjon_datastream" {
       }
     }
   ]
-}
-
-module "amt_tiltak_datastream" {
-  count = var.enable_amt_tiltak_datastream ? 1 : 0
-
-  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
-  gcp_project                         = var.gcp_project
-  application_name                    = "amt-tiltak"
-  cloud_sql_instance_name             = "amt-tiltak"
-  cloud_sql_instance_db_name          = "amt-tiltak"
-  cloud_sql_instance_db_credentials   = local.amt_tiltak_datastream_credentials
-  cloud_sql_instance_publication_name = "ds_publication"
-  cloud_sql_instance_replication_name = "ds_replication"
-  datastream_vpc_resources            = local.datastream_vpc_resources
-
-  datastream_desired_state                     = "PAUSED"
-  big_query_dataset_delete_contents_on_destroy = true
-
-  postgresql_include_schemas = [
-    {
-      schema = "public"
-      tables = [
-        { table = "deltaker_status" },
-        { table = "bruker", columns = ["id", "person_ident"] },
-        { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] },
-        { table = "gjennomforing" }
-      ]
-    }
-  ]
-  postgresql_exclude_schemas = [
-    {
-      schema = "public"
-      tables = [
-        { table = "flyway_schema_history" },
-        { table = "bruker", columns = ["adressebeskyttelse"] },
-      ]
-    }
-  ]
-  cloud_sql_proxy_vm_machine_type = "e2-micro"
-  access_roles                    = local.access_roles
-  authorized_views = concat(
-    [
-      for table_id in local.tiltak_view_ids : {
-        view = {
-          project_id = var.gcp_project["project"]
-          dataset_id = "amt_tiltak_datastream"
-          table_id   = table_id
-        }
-      }
-    ],
-    [
-      for table_id in local.markedsplassen_pseudo_view_ids : {
-        view = {
-          project_id = var.gcp_project["project"]
-          dataset_id = "markedsplassen_pseudo"
-          table_id   = table_id
-        }
-      }
-    ]
-  )
 }
