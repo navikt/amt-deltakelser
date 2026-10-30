@@ -104,7 +104,7 @@ module "amt_deltaker_datastream" {
   ]
 
   cloud_sql_proxy_vm_machine_type = "e2-micro"
-  access_roles                    = concat(local.access_roles, [
+  access_roles = concat(local.access_roles, [
     {
       role          = "READER"
       user_by_email = "bigqueryloader@teamoppfolging-prod-47fb.iam.gserviceaccount.com"
@@ -157,7 +157,7 @@ module "amt_distribusjon_datastream" {
     { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "outbox_record" }] }
   ]
   cloud_sql_proxy_vm_machine_type = "e2-micro"
-  access_roles                    = concat(local.access_roles, [
+  access_roles = concat(local.access_roles, [
     {
       role          = "roles/bigquery.metadataViewer"
       user_by_email = "izis.froyhov@nav.no"
