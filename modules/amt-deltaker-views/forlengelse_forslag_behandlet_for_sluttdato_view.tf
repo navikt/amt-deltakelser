@@ -52,7 +52,7 @@ ranked_results AS (
     WHERE JSON_EXTRACT_SCALAR(f.endring, '$.type') = 'ForlengDeltakelse' AND JSON_EXTRACT_SCALAR(f.status, '$.godkjent') IS NOT NULL
 )
 SELECT 
-    (COUNT(CASE WHEN forslag_godkjent < forrige_sluttdato THEN 1 END) / COUNT(*) * 100) AS percentage
+    SAFE_DIVIDE(COUNT(CASE WHEN forslag_godkjent < forrige_sluttdato THEN 1 END), COUNT(*)) * 100 AS percentage
     from ranked_results
     WHERE rn_per_forslag = 1;
 EOF
