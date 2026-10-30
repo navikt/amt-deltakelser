@@ -1,5 +1,9 @@
 kafka_pool: nav-dev
 cluster: dev-gcp
+endringsvedtak_job:
+  initial_delay: PT1M
+  period: PT1M
+  grace_period: PT1M
 memory_request: 512Mi
 cpu_request: 20m
 memory_limit: 1024Mi
