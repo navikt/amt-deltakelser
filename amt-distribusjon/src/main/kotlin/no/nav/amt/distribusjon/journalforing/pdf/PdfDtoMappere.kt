@@ -207,6 +207,7 @@ fun lagEndringsvedtakPdfDto(
                 hendelseType = it,
                 tiltakskode = deltaker.deltakerliste.tiltak.tiltakskode,
                 erEnkeltplass = deltaker.deltakerliste.erEnkeltplass,
+                opplaringKategoriseringValg = deltaker.deltakerliste.opplaringKategoriseringValg,
                 harFellesAvslutning = deltaker.deltakerliste.oppstartstype == Oppstartstype.FELLES ||
                     deltaker.deltakerliste.tiltak.tiltakskode
                         .erOpplaeringstiltak(),

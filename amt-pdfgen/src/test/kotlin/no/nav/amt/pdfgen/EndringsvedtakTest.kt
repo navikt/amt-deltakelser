@@ -224,6 +224,58 @@ class EndringsvedtakTest :
                         doc.text() shouldContain "Innhold 1"
                         doc.text() shouldContain "Innhold 2"
                     }
+
+                    it("viser kurstype for vanlig EndreInnhold før beskrivelsen") {
+                        // Arrange
+                        val kurstype = "Norskopplæring & <språk>"
+                        val endring = EndringDto.EndreInnhold(
+                            innhold = listOf("Annet: Nytt innhold"),
+                            innholdBeskrivelse = "Nytt innhold",
+                            kurstype = kurstype,
+                            tittel = "Innholdet er endret",
+                        )
+
+                        // Act
+                        val doc = renderEndringsvedtak(endringsvedtak(endringer = listOf(endring)))
+
+                        // Assert
+                        val section = doc.select("section").first {
+                            it.selectFirst("h2")?.text() == "Innholdet er endret"
+                        }
+                        val sectionText = section.text()
+                        val headingIndex = sectionText.indexOf("Innholdet er endret")
+                        val kurstypeIndex = sectionText.indexOf("Kurstype: $kurstype")
+                        val beskrivelseIndex = sectionText.lastIndexOf("Nytt innhold")
+
+                        section.select("p.margins-0-5-rem").eachText() shouldContain "Kurstype: $kurstype"
+                        section.select("p.margins-0-5-rem").size shouldBe 1
+                        section.select("p.margins-0-5-rem *").size shouldBe 0
+                        section.select("p.fritekst").eachText() shouldContain "Nytt innhold"
+                        section.select("ul").size shouldBe 0
+                        (headingIndex < kurstypeIndex) shouldBe true
+                        (kurstypeIndex < beskrivelseIndex) shouldBe true
+                    }
+
+                    it("viser ikke kurstype for vanlig EndreInnhold når kurstype er null") {
+                        // Arrange
+                        val endring = EndringDto.EndreInnhold(
+                            innhold = listOf("Annet: Nytt innhold"),
+                            innholdBeskrivelse = "Nytt innhold",
+                            kurstype = null,
+                            tittel = "Innholdet er endret",
+                        )
+
+                        // Act
+                        val doc = renderEndringsvedtak(endringsvedtak(endringer = listOf(endring)))
+
+                        // Assert
+                        val section = doc.select("section").first {
+                            it.selectFirst("h2")?.text() == "Innholdet er endret"
+                        }
+                        section.text() shouldNotContain "Kurstype:"
+                        section.select("p.fritekst").eachText() shouldContain "Nytt innhold"
+                        section.select("ul").size shouldBe 0
+                    }
                 }
 
                 describe("Hovedtittel") {
