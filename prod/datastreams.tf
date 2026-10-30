@@ -39,13 +39,26 @@ locals {
     "forlengelse_forslag_sendt_ift_sluttdato",
     "forslag_view",
     "vedtak_view",
+    "public_arrangor",
+    "public_deltaker",
+    "public_deltaker_endring",
+    "public_deltaker_status",
+    "public_deltakerliste",
+    "public_endring_fra_arrangor",
+    "public_endring_fra_tiltakskoordinator",
+    "public_forslag",
+    "public_importert_fra_arena",
+    "public_innsok_paa_felles_oppstart",
+    "public_nav_bruker",
+    "public_nav_enhet",
+    "public_tiltakstype",
+    "public_vedtak",
+    "public_vurdering",
   ]
 
   distribusjon_view_ids = [
     "hendelse",
     "journaforing",
-    "public_tiltakshendelse",
-    "public_varsel",
   ]
 
   tiltak_view_ids = [
@@ -56,8 +69,6 @@ locals {
 
   markedsplassen_pseudo_view_ids = [
     "amt_tiltak_datastream_amttiltak_deltaker_siste_status_view",
-    "amttiltak_dataset_amttiltak_deltaker_personident_view",
-    "amttiltak_dataset_amttiltak_deltaker_siste_status_view",
   ]
 }
 
@@ -79,27 +90,46 @@ module "amt_deltaker_datastream" {
   cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
   postgresql_include_schemas = [
+    { schema = "public" }
+  ]
+  postgresql_exclude_schemas = [
     {
       schema = "public"
       tables = [
-        { table = "arrangor", columns = ["id", "navn", "organisasjonsnummer", "overordnet_arrangor_id"] },
-        { table = "deltaker", columns = ["id", "person_id", "startdato", "sluttdato", "dager_per_uke", "deltakelsesprosent", "bakgrunnsinformasjon", "innhold", "deltakerliste_id", "created_at", "modified_at", "kilde"] },
-        { table = "deltaker_endring", columns = ["id", "deltaker_id", "forslag_id", "endring", "created_at", "modified_at"] },
-        { table = "deltaker_status", columns = ["id", "deltaker_id", "type", "aarsak", "gyldig_fra", "gyldig_til", "created_at", "modified_at"] },
-        { table = "deltakerliste", columns = ["id", "navn", "status", "start_dato", "slutt_dato", "oppstart", "tiltakstype_id", "arrangor_id", "created_at", "modified_at"] },
-        { table = "endring_fra_arrangor", columns = ["id", "deltaker_id", "endring", "opprettet", "created_at", "modified_at"] },
-        { table = "endring_fra_tiltakskoordinator", columns = ["id", "deltaker_id", "endret", "endring", "created_at", "modified_at"] },
-        { table = "forslag", columns = ["id", "deltaker_id", "opprettet", "endring", "status", "created_at", "modified_at"] },
-        { table = "importert_fra_arena", columns = ["deltaker_id", "deltaker_ved_import", "importert_dato"] },
-        { table = "nav_bruker", columns = ["person_id", "innsatsgruppe", "oppfolgingsperioder", "adressebeskyttelse"] },
-        { table = "tiltakstype", columns = ["id", "tiltakskode"] },
-        { table = "vedtak", columns = ["id", "deltaker_id", "created_at"] },
+        { table = "flyway_schema_history" },
+        { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] },
+        { table = "nav_ansatt" },
       ]
     }
   ]
 
   cloud_sql_proxy_vm_machine_type = "e2-micro"
-  access_roles                    = local.access_roles
+  access_roles                    = concat(local.access_roles, [
+    {
+      role          = "READER"
+      user_by_email = "bigqueryloader@teamoppfolging-prod-47fb.iam.gserviceaccount.com"
+    },
+    {
+      role          = "READER"
+      user_by_email = "rigmor.lindberg@nav.no"
+    },
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "nada-qsmwicfezhwqdcvc8f64as@nada-prod-6977.iam.gserviceaccount.com"
+    },
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "nada-sf1uv9kb3zvkhxlsmhnkw5@nada-prod-6977.iam.gserviceaccount.com"
+    },
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "del_robert.graarup.kittilsen@nav.no"
+    },
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "izis.froyhov@nav.no"
+    },
+  ])
   authorized_views = [
     for table_id in local.deltaker_view_ids : {
       view = {
@@ -127,7 +157,12 @@ module "amt_distribusjon_datastream" {
     { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "outbox_record" }] }
   ]
   cloud_sql_proxy_vm_machine_type = "e2-micro"
-  access_roles                    = local.access_roles
+  access_roles                    = concat(local.access_roles, [
+    {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = "izis.froyhov@nav.no"
+    },
+  ])
   authorized_views = [
     for table_id in local.distribusjon_view_ids : {
       view = {
@@ -159,6 +194,15 @@ module "amt_tiltak_datastream" {
         { table = "bruker", columns = ["id", "person_ident"] },
         { table = "deltaker", columns = ["id", "bruker_id", "gjennomforing_id", "start_dato", "slutt_dato", "dager_per_uke", "prosent_stilling", "registrert_dato", "created_at", "modified_at", "kilde"] },
         { table = "gjennomforing" }
+      ]
+    }
+  ]
+  postgresql_exclude_schemas = [
+    {
+      schema = "public"
+      tables = [
+        { table = "flyway_schema_history" },
+        { table = "bruker", columns = ["adressebeskyttelse"] },
       ]
     }
   ]
