@@ -56,6 +56,10 @@ data class EnkeltplassPdfDto(
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     sealed interface EnkeltplassInnhold {
+        data class Kurstype(
+            val kurstype: String,
+        ) : EnkeltplassInnhold
+
         data class Arbeidsmarkedsopplaering(
             val bransje: String,
             val forerkortOgSertifiseringer: List<String>,

@@ -4,11 +4,48 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class PdfDtoMappingUtilsTest {
+    @Test
+    fun `mapper valgt kurstype fra innholdsendringen til endringsbrevet`() {
+        // Arrange
+        val hendelseType = HendelseType.EnkeltplassEndreOpplaringKategorisering(
+            opplaringKategoriseringValg = OpplaringKategoriseringValg(
+                valgteKategoriseringer = setOf(
+                    OpplaringKategoriseringValg.ValgteFelt(
+                        representerer = OpplaringKategoriseringType.KURSTYPE_ID,
+                        valg = mapOf(UUID.randomUUID() to "Norskopplæring"),
+                    ),
+                ),
+                valgteSertifiseringer = emptySet(),
+            ),
+            innholdFritekst = "Opplæring i norsk",
+            pavirkerPris = true,
+        )
+
+        // Act
+        val resultat = tilEndringDto(
+            hendelseType = hendelseType,
+            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            erEnkeltplass = true,
+            harFellesAvslutning = false,
+        )
+
+        // Assert
+        resultat shouldBe EndringDto.EnkeltplassEndreOpplaringKategorisering(
+            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype("Norskopplæring"),
+            innholdFritekst = "Opplæring i norsk",
+            pavirkerPris = true,
+            erEnkeltplassinnhold = true,
+        )
+    }
+
     @Test
     fun `mapper EnkeltplassEndrePrisinfo til EndrePrisinfo`() {
         val hendelseType = HendelseType.EnkeltplassEndrePrisinfo(

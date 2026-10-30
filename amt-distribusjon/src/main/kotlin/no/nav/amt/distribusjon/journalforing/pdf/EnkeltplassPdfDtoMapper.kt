@@ -137,7 +137,9 @@ internal fun OpplaringKategoriseringValg.toEnkeltplassInnhold(): EnkeltplassInnh
 
     return when {
         // NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
-        representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.UtenInnhold
+        representerSet.contains(OpplaringKategoriseringType.KURSTYPE_ID) -> EnkeltplassInnhold.Kurstype(
+            kurstype = this.hentVerdier(OpplaringKategoriseringType.KURSTYPE_ID).first(),
+        )
 
         // Tilfeller som skal ha ekstra innhold i PDF
         representerSet.contains(OpplaringKategoriseringType.BRANSJE_ID) -> EnkeltplassInnhold.Arbeidsmarkedsopplaering(
