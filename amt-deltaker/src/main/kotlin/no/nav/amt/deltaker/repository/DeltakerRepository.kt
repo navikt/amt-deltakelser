@@ -77,7 +77,7 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getKladdForDeltakerliste",
             """
-            d.deltakerliste_id = :deltakerliste_id
+            d.gjennomforing_id = :deltakerliste_id
             AND nb.personident = :personident
             AND ds.type = 'KLADD'
             """.trimIndent(),
@@ -100,7 +100,7 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getKladderForDeltakerliste",
             """
-            d.deltakerliste_id = ?
+            d.gjennomforing_id = ?
             AND ds.type = 'KLADD'
             """.trimIndent(),
             limit = null,
@@ -142,7 +142,7 @@ class DeltakerRepository {
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT COUNT(*) FROM deltaker WHERE deltakerliste_id = :deltakerliste_id",
+                "SELECT COUNT(*) FROM deltaker WHERE gjennomforing_id = :deltakerliste_id",
                 mapOf("deltakerliste_id" to deltakerlisteId),
             ).map { it.int(1) }.asSingle,
         ) ?: 0
@@ -187,7 +187,7 @@ class DeltakerRepository {
             INSERT INTO deltaker (
                 id, 
                 person_id, 
-                deltakerliste_id, 
+                gjennomforing_id, 
                 startdato, 
                 sluttdato, 
                 dager_per_uke, 
@@ -250,7 +250,7 @@ class DeltakerRepository {
             INSERT INTO deltaker (
                 id, 
                 person_id, 
-                deltakerliste_id, 
+                gjennomforing_id, 
                 dager_per_uke, 
                 deltakelsesprosent, 
                 bakgrunnsinformasjon, 
@@ -341,7 +341,7 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     methodName = "getEnkeltplassdeltakerOrThrow",
-                    whereClause = "d.deltakerliste_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
+                    whereClause = "d.gjennomforing_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
                     limit = 1,
                 ),
                 mapOf("deltakerliste_id" to deltakerlisteId),
@@ -392,7 +392,7 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     "getFlereForPersonDeltakerliste",
-                    "nb.personident = :personident AND d.deltakerliste_id = :deltakerliste_id",
+                    "nb.personident = :personident AND d.gjennomforing_id = :deltakerliste_id",
                 ),
                 mapOf(
                     "personident" to personIdent,
@@ -442,7 +442,7 @@ class DeltakerRepository {
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
             WHERE 
                 nb.personident = ANY(:personidenter)
-                AND d.deltakerliste_id = :deltakerliste_id
+                AND d.gjennomforing_id = :deltakerliste_id
             """.trimIndent()
 
         return Database
@@ -529,7 +529,7 @@ class DeltakerRepository {
                     methodName = "getDeltakerHvorSluttdatoSkalEndres",
                     whereClause =
                         """
-                        d.deltakerliste_id = :deltakerliste_id 
+                        d.gjennomforing_id = :deltakerliste_id 
                         AND ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
                         AND d.sluttdato IS NOT NULL
                         AND dl.slutt_dato IS NOT NULL
@@ -546,7 +546,7 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     methodName = "getDeltakereForAvbruttDeltakerliste",
-                    whereClause = "d.deltakerliste_id = :deltakerliste_id AND ds.type != '${DeltakerStatus.Type.KLADD.name}'",
+                    whereClause = "d.gjennomforing_id = :deltakerliste_id AND ds.type != '${DeltakerStatus.Type.KLADD.name}'",
                     limit = 5_000, // enkelte deltakerlister kan inneholde mange deltakere
                 ),
                 mapOf("deltakerliste_id" to deltakerListeId),
@@ -560,7 +560,7 @@ class DeltakerRepository {
             SELECT d.id
             FROM 
                 deltaker d
-                JOIN gjennomforing dl ON d.deltakerliste_id = dl.id
+                JOIN gjennomforing dl ON d.gjennomforing_id = dl.id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE t.tiltakskode = :tiltakskode
             """.trimIndent()
@@ -729,7 +729,7 @@ class DeltakerRepository {
             1 AS "$methodName",
             d.id AS "d.id",
             d.person_id AS "d.person_id",
-            d.deltakerliste_id AS "d.deltakerliste_id",
+            d.gjennomforing_id AS "d.gjennomforing_id",
             d.startdato AS "d.startdato",
             d.sluttdato AS "d.sluttdato",
             d.dager_per_uke AS "d.dager_per_uke",
@@ -798,7 +798,7 @@ class DeltakerRepository {
                 d.id = ds.deltaker_id
                 AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra <= CURRENT_TIMESTAMP                
-            JOIN gjennomforing dl ON d.deltakerliste_id = dl.id
+            JOIN gjennomforing dl ON d.gjennomforing_id = dl.id
             JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             LEFT JOIN arrangor a ON a.id = dl.arrangor_id
             LEFT JOIN vedtak v ON 
