@@ -9,6 +9,9 @@ jobs:
   terraform-plan-dev:
     name: "terraform plan gcp-dev"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
     concurrency: terraform-plan-dev
     defaults:
       run:
@@ -18,10 +21,10 @@ jobs:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_DEV }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.17.1
 
@@ -32,7 +35,8 @@ jobs:
         run: terraform providers
 
       - name: Run 'terraform fmt'
-        run: terraform fmt -check
+        working-directory: ${{ github.workspace }}
+        run: terraform fmt -check -recursive
 
       - name: Run 'terraform validate'
         run: terraform validate
@@ -43,6 +47,9 @@ jobs:
   terraform-plan-prod:
     name: "terraform plan gcp-prod"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
     concurrency: terraform-plan-prod
     defaults:
       run:
@@ -52,10 +59,10 @@ jobs:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_PROD }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.17.1
 
@@ -63,7 +70,8 @@ jobs:
         run: terraform init -lockfile=readonly
 
       - name: Run 'terraform fmt'
-        run: terraform fmt -check
+        working-directory: ${{ github.workspace }}
+        run: terraform fmt -check -recursive
 
       - name: Run 'terraform validate'
         run: terraform validate
@@ -76,6 +84,9 @@ jobs:
     if: github.ref_name == 'main' || startsWith(github.ref_name, 'dev-')
     name: "terraform apply gcp-dev"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 60
     concurrency: terraform-plan-dev, terraform-apply-dev
     defaults:
       run:
@@ -85,10 +96,10 @@ jobs:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_DEV }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.17.1
 
@@ -103,6 +114,9 @@ jobs:
     if: github.ref_name == 'main'
     name: "terraform apply gcp-prod"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 60
     concurrency: terraform-plan-prod, terraform-apply-prod
     defaults:
       run:
@@ -112,10 +126,10 @@ jobs:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_PROD }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.17.1
 
