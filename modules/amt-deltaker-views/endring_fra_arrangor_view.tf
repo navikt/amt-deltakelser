@@ -35,6 +35,7 @@ module "endring_fra_arrangor_view" {
     { name = "deltakerliste_start_dato", type = "DATE" },
     { name = "deltakerliste_slutt_dato", type = "DATE" },
     { name = "deltakerliste_oppstart", type = "STRING" },
+    { name = "deltakerliste_gjennomforingstype", type = "STRING" },
     { name = "deltakerliste_modified_at", type = "TIMESTAMP" },
     { name = "deltakerliste_created_at", type = "TIMESTAMP" },
     { name = "tiltak_tiltakskode", type = "STRING" },
@@ -53,8 +54,8 @@ select e.id as endring_fra_arrangor_id,
   e.created_at as endring_fra_arrangor_created_at,
   e.modified_at as endring_fra_arrangor_modified_at,
   d.*
-from `${var.dataset_id}.deltaker_view` d 
-    join `${var.dataset_id}.public_endring_fra_arrangor` e on d.deltaker_id = e.deltaker_id
+from `${var.gcp_project["project"]}.${var.dataset_id}.deltaker_view` d
+    join `${var.gcp_project["project"]}.${var.dataset_id}.public_endring_fra_arrangor` e on d.deltaker_id = e.deltaker_id
 EOF
   )
 }
