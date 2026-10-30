@@ -134,6 +134,77 @@ class EndringsvedtakTest :
                         doc.text() shouldContain "Fritekst om hva opplæringen inneholder"
                         doc.text() shouldContain "Bransje: Bygg og anlegg"
                         doc.text() shouldNotContain "Dette er ledeteksten"
+                        doc.text() shouldNotContain "Kurstype:"
+                    }
+
+                    it("viser kurstype i innholdsseksjonen før friteksten") {
+                        // Arrange
+                        val kurstyper = listOf(
+                            "Norskopplæring",
+                            "Grunnleggende ferdigheter",
+                            "Forberedende opplæring for voksne",
+                        )
+
+                        kurstyper.forEach { kurstype ->
+                            // Arrange
+                            val payload =
+                                endringsvedtak(
+                                    endringer =
+                                        listOf(
+                                            EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                                tittel = "Innholdet er endret",
+                                                innholdFritekst = "Fritekst om hva opplæringen inneholder",
+                                                innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                                                erEnkeltplassinnhold = true,
+                                                pavirkerPris = false,
+                                            ),
+                                        ),
+                                )
+
+                            // Act
+                            val doc = renderEndringsvedtak(payload)
+
+                            // Assert
+                            val section = doc.select("section").first {
+                                it.selectFirst("h2")?.text() == "Innholdet er endret"
+                            }
+                            val sectionText = section.text()
+
+                            section.select("p").eachText() shouldContain "Kurstype: $kurstype"
+                            val headingIndex = sectionText.indexOf("Innholdet er endret")
+                            val kurstypeIndex = sectionText.indexOf("Kurstype: $kurstype")
+                            val fritekstIndex = sectionText.indexOf("Fritekst om hva opplæringen inneholder")
+                            (headingIndex < kurstypeIndex) shouldBe true
+                            (kurstypeIndex < fritekstIndex) shouldBe true
+                        }
+                    }
+
+                    it("HTML-escaper kurstype") {
+                        // Arrange
+                        val kurstype = "Norskopplæring & <språk>"
+                        val payload =
+                            endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                            tittel = "Innholdet er endret",
+                                            innholdFritekst = "Fritekst",
+                                            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                                            erEnkeltplassinnhold = true,
+                                            pavirkerPris = false,
+                                        ),
+                                    ),
+                            )
+
+                        // Act
+                        val doc = renderEndringsvedtak(payload)
+
+                        // Assert
+                        val section = doc.select("section").first {
+                            it.selectFirst("h2")?.text() == "Innholdet er endret"
+                        }
+                        section.select("p").eachText() shouldContain "Kurstype: $kurstype"
+                        section.select("p *").size shouldBe 0
                     }
 
                     it("viser standard innholdsliste når flagget ikke er med i data") {
