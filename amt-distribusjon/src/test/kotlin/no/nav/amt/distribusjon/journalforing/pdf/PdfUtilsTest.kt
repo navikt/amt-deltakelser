@@ -11,22 +11,18 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
-import no.nav.amt.internapi.hendelse.HendelseType
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 class PdfUtilsTest {
     @Nested
@@ -324,215 +320,6 @@ class PdfUtilsTest {
             pdfDto.endringer.size shouldBe 1
             (pdfDto.endringer.first() as EndringDto.EndreInnhold).innhold shouldBe listOf("beskrivelse")
             (pdfDto.endringer.first() as EndringDto.EndreInnhold).innholdBeskrivelse shouldBe "beskrivelse"
-        }
-
-        @Test
-        fun `lagEndringsvedtakPdfDto - EndreInnhold - inkluderer kurstype for enkeltplass med FOV-tiltak`() {
-            // Arrange
-            val kurstyper = listOf(
-                "Norskopplæring",
-                "Grunnleggende ferdigheter",
-                "FOV (Forberedende opplæring for voksne)",
-            )
-            val innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Nytt innhold"))
-
-            kurstyper.forEach { kurstype ->
-                // Arrange
-                val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                    valgteKategoriseringer = setOf(
-                        OpplaringKategoriseringValg.ValgteFelt(
-                            representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                            valg = mapOf(UUID.randomUUID() to kurstype),
-                        ),
-                    ),
-                    valgteSertifiseringer = emptySet(),
-                )
-                val deltakerliste = Hendelsesdata
-                    .lagDeltakerliste(
-                        tiltak = Hendelsesdata.tiltak(
-                            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        ),
-                        opplaringKategoriseringValg = opplaringKategoriseringValg,
-                    ).copy(erEnkeltplass = true)
-                val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
-                val hendelse = Hendelsesdata.hendelse(
-                    HendelseType.EndreInnhold(innhold),
-                    deltaker = deltaker,
-                )
-
-                // Act
-                val pdfDto = lagEndringsvedtakPdfDto(
-                    deltaker = deltaker,
-                    navBruker = Persondata.lagNavBruker(),
-                    ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
-                    hendelser = listOf(hendelse),
-                    opprettetDato = LocalDate.now(),
-                )
-                val endring = pdfDto.endringer.single() as EndringDto.EndreInnhold
-
-                // Assert
-                endring.kurstype shouldBe kurstype
-                endring.innhold shouldBe listOf("Nytt innhold")
-                endring.innholdBeskrivelse shouldBe "Nytt innhold"
-            }
-        }
-
-        @Test
-        fun `lagEndringsvedtakPdfDto - EndreInnhold - bruker alfabetisk minste kurstype som sidetittel`() {
-            // Arrange
-            val kurstypeFov = "Grunnleggende ferdigheter"
-            val opplaringKategoriseringValg = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                        valg = mapOf(
-                            UUID.randomUUID() to "Norskopplæring",
-                            UUID.randomUUID() to kurstypeFov,
-                        ),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val deltakerliste = Hendelsesdata
-                .lagDeltakerliste(
-                    tiltak = Hendelsesdata.tiltak(
-                        tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                    ),
-                    opplaringKategoriseringValg = opplaringKategoriseringValg,
-                ).copy(erEnkeltplass = true)
-            val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
-            val hendelse = Hendelsesdata.hendelse(
-                HendelseType.EndreInnhold(
-                    listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Nytt innhold")),
-                ),
-                deltaker = deltaker,
-            )
-
-            // Act
-            val pdfDto = lagEndringsvedtakPdfDto(
-                deltaker = deltaker,
-                navBruker = Persondata.lagNavBruker(),
-                ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
-                hendelser = listOf(hendelse),
-                opprettetDato = LocalDate.now(),
-            )
-            val endring = pdfDto.endringer.single() as EndringDto.EndreInnhold
-
-            // Assert
-            endring.kurstype shouldBe kurstypeFov
-            pdfDto.sidetittel shouldBe "$kurstypeFov hos ${deltakerliste.arrangor.navn}"
-        }
-
-        @Test
-        fun `lagEndringsvedtakPdfDto - EndreInnhold - setter ikke kurstype for andre tiltak eller gruppe`() {
-            // Arrange
-            val innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Nytt innhold"))
-            val kurstypeKategorisering = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.KURSTYPE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Norskopplæring"),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-            val tilfeller = listOf(
-                Pair(
-                    Triple(
-                        Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        false,
-                        kurstypeKategorisering,
-                    ),
-                    "Nytt innhold",
-                ),
-                Pair(
-                    Triple(
-                        Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        null,
-                        kurstypeKategorisering,
-                    ),
-                    "Nytt innhold",
-                ),
-                Pair(
-                    Triple(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, true, kurstypeKategorisering),
-                    null,
-                ),
-            )
-
-            tilfeller.forEach { (oppsett, forventetBeskrivelse) ->
-                val (tiltakskode, erEnkeltplass, kategorisering) = oppsett
-                // Arrange
-                val deltakerliste = Hendelsesdata
-                    .lagDeltakerliste(
-                        tiltak = Hendelsesdata.tiltak(tiltakskode = tiltakskode),
-                        opplaringKategoriseringValg = kategorisering,
-                    ).copy(erEnkeltplass = erEnkeltplass)
-                val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
-                val hendelse = Hendelsesdata.hendelse(
-                    HendelseType.EndreInnhold(innhold),
-                    deltaker = deltaker,
-                )
-
-                // Act
-                val pdfDto = lagEndringsvedtakPdfDto(
-                    deltaker = deltaker,
-                    navBruker = Persondata.lagNavBruker(),
-                    ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
-                    hendelser = listOf(hendelse),
-                    opprettetDato = LocalDate.now(),
-                )
-                val endring = pdfDto.endringer.single() as EndringDto.EndreInnhold
-
-                // Assert
-                endring.kurstype shouldBe null
-                endring.innhold shouldBe listOf("Nytt innhold")
-                endring.innholdBeskrivelse shouldBe forventetBeskrivelse
-            }
-        }
-
-        @Test
-        fun `lagEndringsvedtakPdfDto - EndreInnhold - setter ikke kurstype uten KURSTYPE_ID-kategorisering`() {
-            // Arrange
-            val hendelseType = HendelseType.EndreInnhold(
-                listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Nytt innhold")),
-            )
-            val kategoriseringUtenKurstype = OpplaringKategoriseringValg(
-                valgteKategoriseringer = setOf(
-                    OpplaringKategoriseringValg.ValgteFelt(
-                        representerer = OpplaringKategoriseringType.BRANSJE_ID,
-                        valg = mapOf(UUID.randomUUID() to "Bygg og anlegg"),
-                    ),
-                ),
-                valgteSertifiseringer = emptySet(),
-            )
-
-            listOf(null, kategoriseringUtenKurstype).forEach { kategorisering ->
-                // Arrange
-                val deltakerliste = Hendelsesdata
-                    .lagDeltakerliste(
-                        tiltak = Hendelsesdata.tiltak(
-                            tiltakskode = Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-                        ),
-                        opplaringKategoriseringValg = kategorisering,
-                    ).copy(erEnkeltplass = true)
-                val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
-                val hendelse = Hendelsesdata.hendelse(hendelseType, deltaker = deltaker)
-
-                // Act
-                val pdfDto = lagEndringsvedtakPdfDto(
-                    deltaker = deltaker,
-                    navBruker = Persondata.lagNavBruker(),
-                    ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
-                    hendelser = listOf(hendelse),
-                    opprettetDato = LocalDate.now(),
-                )
-                val endring = pdfDto.endringer.single() as EndringDto.EndreInnhold
-
-                // Assert
-                endring.kurstype shouldBe null
-                endring.innhold shouldBe listOf("Nytt innhold")
-                endring.innholdBeskrivelse shouldBe "Nytt innhold"
-            }
         }
 
         @Test

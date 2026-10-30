@@ -141,7 +141,6 @@ sealed interface EndringDto {
         val innhold: List<String>,
         val innholdBeskrivelse: String?,
         override val tittel: String = "Innholdet er endret",
-        val kurstype: String? = null,
     ) : EndringDto
 
     data class EnkeltplassEndreOpplaringKategorisering(

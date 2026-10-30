@@ -22,8 +22,6 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
-import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -131,7 +129,6 @@ fun tilEndringDto(
     tiltakskode: Tiltakskode,
     erEnkeltplass: Boolean?,
     harFellesAvslutning: Boolean,
-    opplaringKategoriseringValg: OpplaringKategoriseringValg? = null,
 ): EndringDto = when (hendelseType) {
     is HendelseType.InnbyggerGodkjennUtkast,
     is HendelseType.NavGodkjennUtkast,
@@ -297,13 +294,6 @@ fun tilEndringDto(
             hendelseType.innhold
                 .firstOrNull { it.innholdskode == INNHOLDSKODE_ANNET }
                 ?.beskrivelse
-        } else {
-            null
-        },
-        kurstype = if (erEnkeltplass == true && tiltakskode == Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV) {
-            opplaringKategoriseringValg
-                ?.hentVerdier(OpplaringKategoriseringType.KURSTYPE_ID, throwIfEmpty = false)
-                ?.minOrNull()
         } else {
             null
         },
