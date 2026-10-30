@@ -14,15 +14,15 @@ module "forslag_view" {
     { name = "journalforing_modified_at", type = "TIMESTAMP" },
     { name = "hendelse_id", type = "STRING" },
     { name = "hendelse_deltaker_id", type = "STRING" },
-    { name = "hendelse_ansvarlig", type = "JSON" },
-    { name = "hendelse_type", type = "JSON" },
+    { name = "hendelse_ansvarlig", type = "STRING" },
+    { name = "hendelse_type", type = "STRING" },
     { name = "hendelse_created_at", type = "TIMESTAMP" },
     { name = "hendelse_distribusjonskanal", type = "STRING" },
     { name = "hendelse_manuelloppfolging", type = "BOOLEAN" }
   ])
 
   view_query = chomp(<<EOF
-SELECT 
+SELECT
   j.journalpost_id as journalforing_journalpost_id,
   j.bestillingsid as journalforing_bestillingsid,
   j.kan_ikke_distribueres as journalforing_kan_ikke_distribueres,
@@ -36,7 +36,9 @@ SELECT
   h.hendelse_created_at,
   h.hendelse_distribusjonskanal,
   h.hendelse_manuelloppfolging,
- FROM `${var.gcp_project["project"]}.${var.dataset_id}.hendelse` h join `${var.gcp_project["project"]}.${var.dataset_id}.public_journalforingstatus` j on h.hendelse_id = j.hendelse_id
+FROM `${var.gcp_project["project"]}.${var.dataset_id}.hendelse` AS h
+JOIN `${var.gcp_project["project"]}.${var.dataset_id}.public_journalforingstatus` AS j
+  ON h.hendelse_id = j.hendelse_id
 EOF
   )
 }
