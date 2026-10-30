@@ -37,6 +37,7 @@ module "forslag_view" {
     { name = "deltakerliste_start_dato", type = "DATE", mode = "NULLABLE" },
     { name = "deltakerliste_slutt_dato", type = "DATE", mode = "NULLABLE" },
     { name = "deltakerliste_oppstart", type = "STRING", mode = "NULLABLE" },
+    { name = "deltakerliste_gjennomforingstype", type = "STRING", mode = "NULLABLE" },
     { name = "deltakerliste_modified_at", type = "TIMESTAMP", mode = "NULLABLE" },
     { name = "deltakerliste_created_at", type = "TIMESTAMP", mode = "NULLABLE" },
     { name = "tiltak_tiltakskode", type = "STRING", mode = "NULLABLE" },
@@ -57,7 +58,7 @@ select f.id as forslag_id,
   f.created_at as forslag_created_at,
   f.modified_at as forslag_modified_at,
   d.*
-from `${var.dataset_id}.deltaker_view` d join `${var.dataset_id}.public_forslag` f on d.deltaker_id = f.deltaker_id
+from `${var.gcp_project["project"]}.${var.dataset_id}.deltaker_view` d join `${var.gcp_project["project"]}.${var.dataset_id}.public_forslag` f on d.deltaker_id = f.deltaker_id
 EOF
   )
 }

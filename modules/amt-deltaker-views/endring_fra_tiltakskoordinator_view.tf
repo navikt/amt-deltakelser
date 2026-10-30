@@ -35,6 +35,7 @@ module "endring_fra_tiltakskoordinator_view" {
     { name = "deltakerliste_start_dato", type = "DATE" },
     { name = "deltakerliste_slutt_dato", type = "DATE" },
     { name = "deltakerliste_oppstart", type = "STRING" },
+    { name = "deltakerliste_gjennomforingstype", type = "STRING" },
     { name = "deltakerliste_modified_at", type = "TIMESTAMP" },
     { name = "deltakerliste_created_at", type = "TIMESTAMP" },
     { name = "tiltak_tiltakskode", type = "STRING" },
@@ -54,8 +55,8 @@ SELECT
   e.modified_at as endring_fra_tiltakskoordinator_modified_at,
   JSON_EXTRACT_SCALAR(e.endring, "$.type") as endring_fra_tiltakskoordinator_type,
   d.*
-FROM `${var.gcp_project["project"]}.${var.dataset_id}.public_endring_fra_tiltakskoordinator` as e 
-  join `${var.gcp_project["project"]}.${var.dataset_id}.deltaker_view` as d on e.deltaker_id = d.deltaker_id
+FROM `${var.gcp_project["project"]}.${var.dataset_id}.public_endring_fra_tiltakskoordinator` AS e
+  JOIN `${var.gcp_project["project"]}.${var.dataset_id}.deltaker_view` AS d ON e.deltaker_id = d.deltaker_id
 EOF
   )
 }
