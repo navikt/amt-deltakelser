@@ -8,22 +8,10 @@ variable "gcp_project" {
   }
 }
 
-variable "enable_amt_tiltak_datastream" {
-  description = "Enable datastream for amt-tiltak"
-  type        = bool
-  default     = false
-}
-
 variable "enable_amt_deltaker_datastream" {
   description = "Enable datastream for amt-deltaker"
   type        = bool
   default     = false
-}
-
-variable "amt_tiltak_datastream_secret" {
-  description = "The key of the GCP secret that provides the amt-tiltak datastream credentials."
-  type        = string
-  default     = "amttiltak-datastream-credentials"
 }
 
 variable "amt_deltaker_datastream_secret" {

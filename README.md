@@ -50,7 +50,7 @@ Secreten skal være på formatet
 "password": "<passord>"
 }
 ```
-og kan hete f.eks. `amttiltak-datastream-credentials`. 
+og kan hete f.eks. `amt-deltaker-datastream-credentials`.
 
 ## Feilsituasjoner
 
