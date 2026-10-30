@@ -22,9 +22,11 @@ jobs:
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
 
       - name: Run 'terraform init'
-        run: terraform init
+        run: terraform init -lockfile=readonly
 
       - name: Run 'terraform providers'
         run: terraform providers
@@ -54,9 +56,11 @@ jobs:
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
 
       - name: Run 'terraform init'
-        run: terraform init
+        run: terraform init -lockfile=readonly
 
       - name: Run 'terraform fmt'
         run: terraform fmt -check
@@ -85,9 +89,11 @@ jobs:
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
 
       - name: Run 'terraform init'
-        run: terraform init
+        run: terraform init -lockfile=readonly
 
       - name: Run 'terraform apply'
         run: terraform apply -auto-approve
@@ -110,9 +116,11 @@ jobs:
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
 
       - name: Run 'terraform init'
-        run: terraform init
+        run: terraform init -lockfile=readonly
 
       - name: Run 'terraform apply'
         run: terraform apply -auto-approve

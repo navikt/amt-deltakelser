@@ -20,6 +20,10 @@ dokumentasjon på hvilke ressurser som er opprettet.
 ### Manuelle steg
 
 #### Manuelt oppsett Terraform
+Bruk Terraform-versjonen som er angitt i [`.terraform-version`](.terraform-version), både lokalt og i CI.
+Provider-låsefilene i `dev/` og `prod/` skal versjoneres.
+CI bruker `terraform init -lockfile=readonly`, slik at provider-valget ikke endres under kjøring.
+
 Det er noen ressurser som må opprettes manuelt i hvert GCP-prosjekt for å få Terraform til å fungere: 
 - ServiceAccount for Terraform
   - Gi tilstrekkelige permissions for ressurser som skal opprettes
