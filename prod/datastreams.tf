@@ -119,6 +119,11 @@ module "amt_deltaker_datastream" {
       role          = "roles/bigquery.metadataViewer"
       user_by_email = "izis.froyhov@nav.no"
     },
+    ], [
+    for service_account in values(local.metabase_deltaker_view_readers) : {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = service_account
+    }
   ])
   authorized_views = [
     for table_id in local.deltaker_view_ids : {
@@ -152,6 +157,11 @@ module "amt_distribusjon_datastream" {
       role          = "roles/bigquery.metadataViewer"
       user_by_email = "izis.froyhov@nav.no"
     },
+    ], [
+    for service_account in values(local.metabase_distribusjon_view_readers) : {
+      role          = "roles/bigquery.metadataViewer"
+      user_by_email = service_account
+    }
   ])
   authorized_views = [
     for table_id in local.distribusjon_view_ids : {
