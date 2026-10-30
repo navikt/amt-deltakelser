@@ -1,5 +1,6 @@
 module "vedtak_view" {
   source              = "../google-bigquery-view"
+  depends_on          = [module.deltaker_view]
   deletion_protection = true
   dataset_id          = var.dataset_id
   view_id             = "vedtak_view"

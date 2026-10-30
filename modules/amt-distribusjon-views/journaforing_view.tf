@@ -1,5 +1,6 @@
 module "forslag_view" {
   source              = "../google-bigquery-view"
+  depends_on          = [module.hendelse_view]
   deletion_protection = true
   dataset_id          = var.dataset_id
   view_id             = "journaforing" # typo fra vedkommende som har opprettet view

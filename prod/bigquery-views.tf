@@ -26,6 +26,7 @@ module "markedsplassen_pseudo" {
   count = var.enable_amt_tiltak_datastream ? 1 : 0
 
   source      = "../modules/markedsplassen-pseudo-views"
+  depends_on  = [module.amt_tiltak_views]
   gcp_project = var.gcp_project
   dataset_id  = "markedsplassen_pseudo"
 }
