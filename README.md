@@ -6,7 +6,7 @@ Repoet inneholder Terraform-konfigurasjon for å flytte data fra applikasjonsspe
 med Google Datastream for Komet. Bakgrunnen for at data flyttes til BigQuery er et ønske om å kunne bruke BigQuery som 
 datakilde for analyse og visualisering. 
 
-Datastreams er valgt på grunn av at data blir oppdatert så fort de blir skrevet til eller endret i kildedatabasen. Alternativet er
+Datastream er valgt fordi data blir oppdatert så fort de blir skrevet til eller endret i kildedatabasen. Alternativet er
 Federated Queries, som typisk flytter data med angitte intervaller, basert på en SQL-spørring. Mange av våre databasetabeller har 
 kolonner for `modifiedAt`, men ikke alle. For å være sikre på at vi får med alt som er relevant måtte vi ha flyttet alle data
 fra enkelte tabeller hver gang, og det blir unødvendig tungvint. 
@@ -150,17 +150,19 @@ Bucket-navnene står i miljøtabellen over.
 CI-credentials ligger i repository-secretene som er beskrevet under [Endringer og CI](#endringer-og-ci).
 Bruk `nais login` fra egen maskin, ikke en kopi av CI-nøkkelen.
 
-### Manuelt oppsett database
-Det må opprettes databasebruker for datastreamen, databasebrukeren må gis tilgang, og det må settes opp replikering. 
-Dette er godt beskrevet her: https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk. 
-OBS! Ikke sett opp replikeringen før man nærmer seg klar til å lese inn dataene fra datastreamen, hvis ikke fyller disken seg opp!
+### Manuelt oppsett av database
 
-### Opprette secret for datastream-bruker
-Det må opprettes en secret i Google Secret Manager som inneholder brukernavn og passord for databasebrukeren for datastreamen. 
-Dette gjør du manuelt i GCP-konsollet. Brukernavn og passord finner du i kubernetes-secreten som ble opprettet av nais da 
-databasebrukeren ble opprettet, og du kan hente ut verdiene slik: 
+Opprett en databasebruker for datastreamen, gi databasebrukeren tilgang og sett opp replikering.
+Se [forutsetningene for bruk av nada-datastream](https://github.com/navikt/nada-datastream?tab=readme-ov-file#forutsetninger-for-bruk).
+Vent med å sette opp replikeringen til du er klar til å lese inn dataene fra datastreamen. Ellers fylles disken opp.
+
+### Opprette secret for Datastream-bruker
+
+Opprett en secret i Google Secret Manager med brukernavn og passord for databasebrukeren for datastreamen.
+Dette gjør du manuelt i GCP-konsollen. Brukernavn og passord finner du i Kubernetes-secreten som Nais opprettet da
+databasebrukeren ble opprettet. Du kan hente ut verdiene slik:
 `kubectl get secret <secret-navn> -o json | jq ".data | map_values(@base64d)"` (installer `jq` med brew hvis du ikke har det installert). 
-Secreten skal være på formatet 
+Secreten skal ha følgende JSON-format:
 
 ```
 {
@@ -172,8 +174,10 @@ og kan hete f.eks. `amt-deltaker-datastream-credentials`.
 
 ## Feilsituasjoner
 
-### Oppgradering av postgres versjon
-Når man migrerer databaser til ny versjon kommer datastreamen til å stoppe opp, og kan ende opp som `Permanently Failed` i gcp consolet.
+### Oppgradering av PostgreSQL-versjon
+
+Når du migrerer en database til en ny versjon, stopper datastreamen.
+Den kan ende i tilstanden `Permanently Failed` i GCP-konsollen.
 
 #### 1. Gjenopprett replication slot
 Oppgraderingen fjerner logiske replication slots. Gjenopprett den med:
@@ -186,15 +190,15 @@ Du kan verifisere om det gikk bra ved å kjøre:
 SELECT * FROM pg_replication_slots;
 ```
 
-Bruk samme navn som er konfigurert i [datastreams.tf](./prod/datastreams.tf)
+Bruk samme navn som er konfigurert i [datastreams.tf](./prod/datastreams.tf).
 
 #### 2. Forsøk `Recover Stream`
-Fyll inn navnet på replication slottet som ble gjennopprettet, og start recovery.
+Fyll inn navnet du brukte da du gjenopprettet replication slot, og start recovery.
 
-Hvis det gikk bra, gå til Backfill steget, hvis ikke så bør det være en beskrivelse av feilen i vinduet.
+Hvis recovery lykkes, gå til backfill-steget. Hvis ikke, se etter en beskrivelse av feilen i vinduet.
 
-For eksempel kan det hende at datastreamen ikke har tilgang til tabeller som er nylig opprettet, da må man
-grante privileges som vanlig med noe som:
+For eksempel kan datastreamen mangle tilgang til nylig opprettede tabeller. Da må du
+gi tilgang, for eksempel med:
 ```sql
 DO
 $$
@@ -213,34 +217,35 @@ END;
 
 #### 3. Backfill
 Siden datastreamen har vært nede en stund, kan det være at den har gått glipp av endringer i databasen.
-Man kan da initiere en backfill av dataene, hvor datastreamen da leser inn all data fra tabellen på nytt.
+Du kan da starte en backfill, der datastreamen leser inn alle data fra tabellen på nytt.
 
-1. Det kan gjøres ved å gå inn på streamen i consolet.
-2. Finn fanen som heter objects
-3. `Initiate Backfill` på en eller alle tabellene som skal etterfylles.
+1. Åpne streamen i GCP-konsollen.
+2. Velg fanen `objects`.
+3. Velg `Initiate Backfill` for én eller alle tabellene som skal etterfylles.
 
 #### 4. Avstem data
-Det kan være lurt å sjekke om vi har konsistente data i Big Query etter dette er gjort, gjør noen tellinger i BQ og postgres. 
-Men vær obs på at BQ kan gjøre noe smart caching som fører til at det kan ta litt tid før man får det riktige resultatet.
+Kontroller at dataene i BigQuery og PostgreSQL er konsistente etterpå, for eksempel ved å sammenligne antall rader.
+Vær oppmerksom på at caching i BigQuery kan gjøre at det tar litt tid før du får riktig resultat.
 
-Benytt f.eks. feltet modified_at for å sjekke om det er konsistente data.
+Bruk for eksempel feltet `modified_at` for å kontrollere at dataene er konsistente.
 
 **Eksempel for amt-distribusjon**
 
-Spørring BigQuery:
+Spørring i BigQuery:
 ```sql
 SELECT MAX(modified_at) FROM amt_distribusjon_datastream.public_tiltakshendelse
 ```
 
-Spørring PostgreSQL:
+Spørring i PostgreSQL:
 ```sql
 SELECT MAX(modified_at) FROM tiltakshendelse
 ```
 Spørringene bør gi samme resultat.
 
 
-### Oppgradering av kubernetes clustre, eller rotering av passord
-Når nais oppgraderer kubernetes clustre kan det føre til at passord for databasebrukere blir rotert.
-I det tilfellet må man opprette en ny versjon av secreten som inneholder brukernavn og passord for datastreamen sin postgresbruker.
+### Oppgradering av Kubernetes-clustere eller rotering av passord
 
-Følg oppskriften som er gitt [her](#opprette-secret-for-datastream-bruker) for å hente ut oppdatert passord for brukeren.
+Når Nais oppgraderer Kubernetes-clustere, kan det føre til at passord for databasebrukere blir rotert.
+Da må du opprette en ny versjon av secreten med brukernavn og passord for Datastream-brukeren i PostgreSQL.
+
+Følg [oppskriften for Datastream-brukerens secret](#opprette-secret-for-datastream-bruker) for å hente ut oppdatert passord for brukeren.
