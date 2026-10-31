@@ -14,9 +14,9 @@ locals {
 
   metabase_distribusjon_view_readers = {
     public_tiltakshendelse = "nada-3sgijmeoyzgr2456p356ze@nada-prod-6977.iam.gserviceaccount.com"
-    public_varsel         = "nada-gt8cmjmbfennd9dgje21nh@nada-prod-6977.iam.gserviceaccount.com"
-    hendelse              = "nada-a7cu3xj98axe4erqkrjsdq@nada-prod-6977.iam.gserviceaccount.com"
-    journaforing          = "nada-u3y4sntzmbjgs4mzdutkz1@nada-prod-6977.iam.gserviceaccount.com"
+    public_varsel          = "nada-gt8cmjmbfennd9dgje21nh@nada-prod-6977.iam.gserviceaccount.com"
+    hendelse               = "nada-a7cu3xj98axe4erqkrjsdq@nada-prod-6977.iam.gserviceaccount.com"
+    journaforing           = "nada-u3y4sntzmbjgs4mzdutkz1@nada-prod-6977.iam.gserviceaccount.com"
   }
 }
 
