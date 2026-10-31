@@ -43,7 +43,7 @@ locals {
     "public_deltaker",
     "public_deltaker_endring",
     "public_deltaker_status",
-    "public_deltakerliste",
+    "public_gjennomforing",
     "public_endring_fra_arrangor",
     "public_endring_fra_tiltakskoordinator",
     "public_forslag",
@@ -87,8 +87,9 @@ module "amt_deltaker_datastream" {
       schema = "public"
       tables = [
         { table = "flyway_schema_history" }, { table = "outbox_record" },
+        { table = "digital_bruker_cache" }, { table = "endring_fra_arrangor_behandlet" },
         { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] },
-        { table = "nav_ansatt" },
+        { table = "nav_ansatt" }, { table = "ulest_hendelse" },
       ]
     }
   ]

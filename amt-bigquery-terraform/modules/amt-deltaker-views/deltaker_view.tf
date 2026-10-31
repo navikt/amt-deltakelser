@@ -81,7 +81,7 @@ select d.id                   as deltaker_id,
        oa.organisasjonsnummer as overordnet_arrangor_orgnr
 from ${var.dataset_id}.public_deltaker d
          join ${var.dataset_id}.public_deltaker_status ds on d.id = ds.deltaker_id
-         join ${var.dataset_id}.public_deltakerliste dl on d.deltakerliste_id = dl.id
+         join ${var.dataset_id}.public_gjennomforing dl on d.deltakerliste_id = dl.id
          join ${var.dataset_id}.public_tiltakstype t on dl.tiltakstype_id = t.id
          join ${var.dataset_id}.public_arrangor a on dl.arrangor_id = a.id
          left join ${var.dataset_id}.public_arrangor oa on a.overordnet_arrangor_id = oa.id

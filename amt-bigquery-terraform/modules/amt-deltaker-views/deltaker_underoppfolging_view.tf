@@ -55,7 +55,7 @@ select d.id                   as deltaker_id,
       )) as aktiv_oppfolgingsperiode
 from ${var.dataset_id}.public_deltaker d
          join ${var.dataset_id}.public_deltaker_status ds on d.id = ds.deltaker_id
-         join ${var.dataset_id}.public_deltakerliste dl on d.deltakerliste_id = dl.id
+         join ${var.dataset_id}.public_gjennomforing dl on d.deltakerliste_id = dl.id
          join ${var.dataset_id}.public_tiltakstype t on dl.tiltakstype_id = t.id
          join ${var.dataset_id}.public_nav_bruker nb on d.person_id = nb.person_id
          left join ${var.dataset_id}.public_vedtak v on v.deltaker_id = d.id
