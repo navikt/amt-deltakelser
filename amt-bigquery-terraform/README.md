@@ -30,7 +30,8 @@ Dev har likevel fellesressurser for Datastream-nettverket som Terraform fortsatt
 
 ## Lokal arbeidsflyt
 
-Kjør kommandoene fra repo-roten. Du trenger Git, Nais CLI, Google Cloud CLI (`gcloud`) og
+Kjør kommandoene fra `amt-bigquery-terraform/` (fra repo-roten: `cd amt-bigquery-terraform`).
+Du trenger Git, Nais CLI, Google Cloud CLI (`gcloud`) og 
 Terraform-versjonen i [`.terraform-version`](.terraform-version).
 Kontoen din må ha tilgang til ressursene og state-bucketen i miljøet du jobber med.
 
@@ -182,7 +183,7 @@ Den kan ende i tilstanden `Permanently Failed` i GCP-konsollen.
 #### 1. Gjenopprett replication slot
 Oppgraderingen fjerner logiske replication slots. Gjenopprett den med:
 ```sql
-PERFORM PG_CREATE_LOGICAL_REPLICATION_SLOT('<app>_replication', 'pgoutput');
+SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('ds_replication', 'pgoutput');
 ```
 
 Du kan verifisere om det gikk bra ved å kjøre:

@@ -86,7 +86,7 @@ module "amt_deltaker_datastream" {
     {
       schema = "public"
       tables = [
-        { table = "flyway_schema_history" },
+        { table = "flyway_schema_history" }, { table = "outbox_record" },
         { table = "nav_bruker", columns = ["fornavn", "mellomnavn", "etternavn", "telefonnummer", "epost", "adresse", "er_skjermet"] },
         { table = "nav_ansatt" },
       ]
