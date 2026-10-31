@@ -1,6 +1,6 @@
 # amt-deltakelser
 
-Monorepo for Team Komet sine backend-applikasjoner (Ktor og Spring Boot) og fellesmodulen amt-lib.
+Monorepo for Team Komets backend-applikasjoner, fellesmoduler og infrastruktur.
 
 ## Innhold
 
@@ -17,6 +17,7 @@ Monorepo for Team Komet sine backend-applikasjoner (Ktor og Spring Boot) og fell
     - [amt-felles](#amt-felles)
 - [Infrastruktur](#infrastruktur)
     - [amt-iac](#amt-iac)
+    - [amt-bigquery-terraform](#amt-bigquery-terraform)
 - [Bygg](#bygg)
 - [CI/CD](#cicd)
 - [Avhengigheter](#avhengigheter)
@@ -26,7 +27,8 @@ Monorepo for Team Komet sine backend-applikasjoner (Ktor og Spring Boot) og fell
 
 ## Oversikt
 
-Dette monorepoet samler koden Team Komet jobber mest med — applikasjoner, fellesmoduler og infrastruktur.
+Applikasjonene bruker Kotlin med Ktor eller Spring Boot. Fellesmodulene inneholder blant annet datamodeller,
+API-kontrakter og teststøtte. Infrastruktur for Nais og BigQuery forvaltes i egne kataloger.
 
 ---
 
@@ -34,7 +36,14 @@ Dette monorepoet samler koden Team Komet jobber mest med — applikasjoner, fell
 
 ### amt-aktivitetskort-publisher
 
-**amt-aktivitetskort-publisher** leser data fra amt-domenet og publiserer til AKaaS for å generere og oppdatere aktivitetskort.
+**amt-aktivitetskort-publisher** oppretter og oppdaterer aktivitetskort for tiltaksdeltakelser i aktivitetsplanen.
+Applikasjonen er bygget på Spring Boot.
+
+- Leser deltaker-, gjennomførings- og arrangørdata fra Kafka og supplerer med oppslag mot andre tjenester.
+- Lagrer data og meldinger lokalt og publiserer aktivitetskort til AKaaS (Aktivitetskort som en tjeneste).
+- Oppdaterer kortene når deltakelsen, gjennomføringen eller arrangøren endres.
+
+Se [modulens README](amt-aktivitetskort-publisher/README.md) for byggkommandoer.
 
 ### amt-deltaker
 
@@ -64,8 +73,13 @@ skjer på en pålitelig måte.
 ### amt-tiltaksarrangor-bff
 
 **amt-tiltaksarrangor-bff** er backend-for-frontend for **amt-tiltaksarrangor-flate**, som gir tiltaksarrangører
-en deltakeroversikt og lar dem følge opp deltakere på sine tiltak. I motsetning til de andre applikasjonene i
-monorepoet er denne bygget på **Spring Boot**.
+en deltakeroversikt og lar dem følge opp deltakere på sine tiltak. Applikasjonen er bygget på Spring Boot.
+
+- Leser deltaker-, arrangør- og ansattdata fra Kafka og lagrer dem i en lokal database.
+- Tilbyr API-er for arrangørenes veiledere og koordinatorer.
+- Publiserer forslag, endringer og vurderinger fra arrangørene på Kafka.
+
+Se [modulens README](amt-tiltaksarrangor-bff/README.md).
 
 ### amt-pdfgen
 
@@ -110,12 +124,28 @@ i Nais (GCP). Strukturen er delt opp etter ressurstype og miljø (`dev`/`prod`):
 - **`kafka-manager/`** – Konfigurasjon av Kafka-brukere og tilganger (Aiven).
 - **`kafka-topic/`** – Definisjoner av Kafka-topics som eies av Team Komet.
 
-Endringer her rulles ut via egne workflows i `amt-iac`-katalogen.
+Endringer her deployes via [amt-iac-workflowen](.github/workflows/ci-deploy-iac.yml).
+
+### amt-bigquery-terraform
+
+**amt-bigquery-terraform** forvalter Datastream, BigQuery-datasett, views og tilganger med Terraform.
+Datastream replikerer data fra Cloud SQL til BigQuery for analyse og rapportering, blant annet i Metabase.
+
+- Prod har Datastream og views for `amt-deltaker` og `amt-distribusjon`.
+- Konfigurasjonen er delt mellom `dev/`, `prod/` og gjenbrukbare moduler i `modules/`.
+- Datastream for `amt-deltaker` i dev er deaktivert som standard, men Terraform forvalter fortsatt fellesressurser der.
+
+Modulen inngår ikke i Gradle-bygget. Se [modulens README](amt-bigquery-terraform/README.md) for
+innlogging, Terraform-kommandoer, Metabase-tilgang og backfill.
+
+**Endringer i denne katalogen som merges til `main`, starter automatisk Terraform apply i både dev og prod.
+Se gjennom planene før merge.**
 
 ---
 
 ## Bygg
-For å bygge alle modulene i **amt-deltakelser**, gjør følgende:
+Gradle-modulene krever Java 25. Testene som bruker Testcontainers, trenger Docker.
+Terraform-konfigurasjonen i `amt-bigquery-terraform` bygges og valideres separat.
 
 Klon repoet:
 
@@ -143,7 +173,7 @@ eller
 ./gradlew :amt-deltaker-bff:build
 ```
 
-Bygging av hele repoet skal normal gå raskt etter første bygg grunnet caching. Ved bumping av versjoner, vil alt bygges på nytt.
+Gradle gjenbruker byggresultater fra cache når kildekode og avhengigheter er uendret.
 
 ---
 
@@ -153,39 +183,58 @@ Bygging av hele repoet skal normal gå raskt etter første bygg grunnet caching.
 
 ### Test og bygg
 
-- Alle Ktor-applikasjoner og `amt-lib` bygges og testes automatisk ved push eller pull request.
+- [Test-workflowen](.github/workflows/ci-run-tests.yml) kjører ved push til brancher utenom `main`.
+  Den velger berørte moduler, inkludert Spring Boot-applikasjonene, og tester alle Gradle-modulene ved endringer i felleskode.
 - Enhetstester og integrasjonstester kjøres med **JUnit 5**, **Kotest** og **Testcontainers**.
 - KtLint sjekker kodeformat og stil automatisk.
-- Workflows trigges per modul via `paths` og `paths-ignore` for å redusere unødvendige bygg.
+- Filtre på endrede filer begrenser hvilke moduler som bygges og testes.
 
 ### Sikkerhet
 
-- **CodeQL** kjøres automatisk på alle PRer for å identifisere sikkerhetsrisikoer og sårbarheter i koden.
-- Eventuelle funn markeres som kommentarer i PR.
+- [CodeQL](.github/workflows/ci-codeql-analysis-kotlin.yml) analyserer Kotlin-koden ved relevante PR-er og push til
+  `main`, ved merge queue og i en ukentlig kjøring.
+- Funn vises i GitHubs code scanning.
 
 ### Publisering
 
-- `amt-lib` publiseres som Maven-pakke til GitHub Packages.
-- Publisering skjer **når en PR merges til `main`**, eller ved commits som pushes direkte til `main`.
+- [Applikasjons-workflowen](.github/workflows/ci-deploy-app.yml) bygger og deployer berørte applikasjoner ved
+  push til `main`, inkludert `amt-aktivitetskort-publisher` og `amt-tiltaksarrangor-bff`.
+- [`amt-lib`-workflowen](.github/workflows/amt-lib-release.yml) publiserer Maven-pakker til GitHub Packages ved
+  relevante endringer på `main` eller manuell kjøring.
+- Nais-ressurser og Terraform-konfigurasjon har egne workflows, uavhengig av Gradle-bygget.
+
+### Terraform
+
+[Terraform-workflowen](.github/workflows/terraform.yml) kjører ved push med endringer i `amt-bigquery-terraform/`.
+Den kontrollerer formatering, validerer konfigurasjonen og lager planer for dev og prod.
+På `main` kjører den deretter apply i begge miljøer. Brancher med prefikset `dev-` kjører apply bare i dev.
+Andre brancher lager planer uten apply.
 
 ---
 
 ## Avhengigheter
 
-Applikasjonene i **amt-deltakelser** benytter flere viktige biblioteker og fellesmoduler. 
-Vi bruker [**Gradle convention plugins**](buildSrc/src/main/kotlin) for å standardisere oppsettet, inkludert Kotlin, 
-Ktor og KtLint, slik at alle applikasjoner følger samme konvensjoner.
+Vi bruker [Gradle convention plugins](buildSrc/src/main/kotlin) for felles oppsett av Kotlin, KtLint og avhengigheter.
+Ktor-applikasjonene bruker `amt-ktor-conventions`, mens `amt-aktivitetskort-publisher` og
+`amt-tiltaksarrangor-bff` bruker `amt-spring-conventions`.
 
 ### Hovedbiblioteker og bundles
 
-- **Ktor** – HTTP-server og klient; alle Ktor-moduler håndteres via `ktor-server` og `ktor-client` bundles.
-- **Kafka** – Kafka-klienter og felles outbox-mønster via `amt-lib`.
-- **Database** – HikariCP, Flyway, PostgreSQL og Kotliquery samlet i `database` bundle.
-- **Logging** – Logback, Logstash-encoder og nav-common-log, samlet i `logging` bundle.
-- **Metrics** – Micrometer + Prometheus for overvåkning og eksponering av metrics.
-- **Testing** – Ktor-test, Kotest, Mockk og Nimbus JWT, samlet i `ktor-test` og `kotest` bundles.
-- **Fellesmoduler (amt-lib)** – inneholder modeller, utilities, outbox/Kafka-støtte og teststøtte.
-- **Kodekvalitet** – KtLint brukes via convention plugin for automatisk formatering og kodekontroll.
+- **Ktor**: HTTP-server og klient via bundlene `ktor-server` og `ktor-client`.
+- **Spring Boot**: Spring MVC med Jetty, Spring JDBC, Kafka, RestClient og Actuator.
+  Felles Spring Boot-avhengigheter legges til i [Spring-konvensjonen](buildSrc/src/main/kotlin/amt-spring-conventions.gradle.kts).
+- **Kafka**: Ktor-applikasjonene bruker Kafka- og outbox-støtte fra `amt-felles`.
+  Spring Boot-applikasjonene bruker Spring Boot Kafka og outbox fra `nav-common-kafka`.
+- **Database**: Ktor bruker HikariCP, Flyway, PostgreSQL og Kotliquery via `database`.
+  Spring Boot bruker Spring JDBC med `NamedParameterJdbcTemplate`, Flyway og PostgreSQL.
+- **Logging**: Logback, Logstash-encoder og nav-common-log via `logging` for Ktor.
+  Spring Boot bruker sitt logging-oppsett med Logstash-encoder og nav-common-log i tillegg.
+- **Metrics**: Micrometer og Prometheus, med Actuator i Spring Boot-applikasjonene.
+- **Testing**: Ktor bruker `amt-felles:ktor-test` og `ktor-test`.
+  Spring Boot bruker Spring Boot-testmoduler og SpringMockK. Kotest, MockK og Testcontainers brukes også.
+- **Fellesmoduler**: `amt-lib` inneholder modeller, hjelpekode, Spring-støtte og teststøtte.
+  `amt-felles` inneholder intern felleskode, blant annet Ktor-, Kafka- og outbox-støtte.
+- **Kodekvalitet**: KtLint brukes via convention plugins for formatering og kodekontroll.
 
 ### Bundles brukt i convention plugins
 
@@ -196,7 +245,11 @@ Ktor og KtLint, slik at alle applikasjoner følger samme konvensjoner.
 - `ktor-test` → Ktor test-host og klient-mock
 - `kotest` → Kotest assertions
 
-Alle versjoner styres i **libs.versions.toml**, slik at alle moduler i monorepoet har konsistente versjoner.
+Spring Boot-oppsettet bruker ikke egne bundles. Spring-avhengighetene legges til direkte i Spring-konvensjonen,
+mens applikasjonsspesifikke avhengigheter ligger i modulenes `build.gradle.kts`.
+
+Versjonskatalogen ligger i [gradle/libs.versions.toml](gradle/libs.versions.toml).
+Spring Boot-versjonen styres der, mens Spring Boot BOM styrer versjonene på avhengighetene den forvalter.
 
 ---
 
