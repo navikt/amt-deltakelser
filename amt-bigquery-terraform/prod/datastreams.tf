@@ -165,8 +165,25 @@ module "amt_distribusjon_datastream" {
   cloud_sql_instance_publication_name = "ds_publication"
   cloud_sql_instance_replication_name = "ds_replication"
   datastream_vpc_resources            = local.datastream_vpc_resources
+  postgresql_include_schemas = [
+    {
+      schema = "public"
+      tables = [
+        { table = "hendelse" },
+        { table = "journalforingstatus" },
+        { table = "tiltakshendelse" },
+        { table = "varsel" },
+      ]
+    }
+  ]
   postgresql_exclude_schemas = [
-    { schema = "public", tables = [{ table = "flyway_schema_history" }, { table = "outbox_record" }] }
+    {
+      schema = "public"
+      tables = [
+        { table = "flyway_schema_history" },
+        { table = "outbox_record" },
+      ]
+    }
   ]
   cloud_sql_proxy_vm_machine_type = "e2-micro"
   access_roles = concat(local.access_roles, [
