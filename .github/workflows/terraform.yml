@@ -1,9 +1,13 @@
 name: "Terraform"
-on: push
+
+on:
+  push:
+    paths:
+      - "amt-bigquery-terraform/**"
 
 env:
-  DEV_DIR: './dev'
-  PROD_DIR: './prod'
+  DEV_DIR: './amt-bigquery-terraform/dev'
+  PROD_DIR: './amt-bigquery-terraform/prod'
 
 jobs:
   terraform-plan-dev:
@@ -35,7 +39,7 @@ jobs:
         run: terraform providers
 
       - name: Run 'terraform fmt'
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/amt-bigquery-terraform
         run: terraform fmt -check -recursive
 
       - name: Run 'terraform validate'
@@ -70,7 +74,7 @@ jobs:
         run: terraform init -lockfile=readonly
 
       - name: Run 'terraform fmt'
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/amt-bigquery-terraform
         run: terraform fmt -check -recursive
 
       - name: Run 'terraform validate'
