@@ -106,14 +106,6 @@ module "amt_deltaker_datastream" {
     },
     {
       role          = "roles/bigquery.metadataViewer"
-      user_by_email = "nada-qsmwicfezhwqdcvc8f64as@nada-prod-6977.iam.gserviceaccount.com"
-    },
-    {
-      role          = "roles/bigquery.metadataViewer"
-      user_by_email = "nada-sf1uv9kb3zvkhxlsmhnkw5@nada-prod-6977.iam.gserviceaccount.com"
-    },
-    {
-      role          = "roles/bigquery.metadataViewer"
       user_by_email = "del_robert.graarup.kittilsen@nav.no"
     },
     {
