@@ -1,10 +1,12 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
 plugins {
     kotlin("jvm")
     application
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-val libsWrapper = VersionCatalogWrapper.fromProject(project)
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 repositories {
     mavenCentral()
@@ -13,29 +15,33 @@ repositories {
 
 dependencies {
     constraints {
-        implementation(libsWrapper.getLibrary("tools.jackson.core")) {
+        implementation(versionCatalog.findLibrary("guava").get()) {
+            because("Fixes Guava vulnerabilities")
+        }
+
+        implementation(versionCatalog.findLibrary("lz4.java").get()) {
+            because("Fixes CVE-2026-59949")
+        }
+
+        implementation(versionCatalog.findLibrary("tools.jackson.core").get()) {
             because("Misc Dependabot alerts")
         }
 
-        implementation(libsWrapper.getLibrary("jackson.core")) {
+        implementation(versionCatalog.findLibrary("jackson.core").get()) {
             because("GHSA-72hv-8253-57qq")
-        }
-
-        implementation(libsWrapper.getLibrary("lz4.java")) {
-            because("Fixes CVE-2026-59949")
         }
     }
 
     // Netty BOM — holder alle io.netty-moduler på samme versjon og fikser CVE-er samlet
-    implementation(platform(libsWrapper.getLibrary("netty.bom")))
+    implementation(platform(versionCatalog.findLibrary("netty.bom").get()))
 
     // --- Ktor ---
-    implementation(platform(libsWrapper.getLibrary("ktor.bom")))
-    libsWrapper.getBundle("ktor.server").forEach { implementation(it) }
-    libsWrapper.getBundle("ktor.client").forEach { implementation(it) }
+    implementation(platform(versionCatalog.findLibrary("ktor.bom").get()))
+    implementation(versionCatalog.findBundle("ktor.server").get())
+    implementation(versionCatalog.findBundle("ktor.client").get())
 
     // --- Logging ---
-    libsWrapper.getBundle("logging").forEach { implementation(it) }
+    implementation(versionCatalog.findBundle("logging").get())
 
     // --- amt-felles, amt-felles:ktor drar inn database, models og utils
     implementation(project(":amt-felles:ktor"))
@@ -44,8 +50,8 @@ dependencies {
 
     // --- Test ---
     testImplementation(project(":amt-felles:ktor-test"))
-    libsWrapper.getBundle("ktor.test").forEach { testImplementation(it) }
-    testImplementation(libsWrapper.getLibrary("nimbus.jose.jwt"))
+    testImplementation(versionCatalog.findBundle("ktor.test").get())
+    testImplementation(versionCatalog.findLibrary("nimbus.jose.jwt").get())
 }
 
 kotlin {
@@ -59,7 +65,7 @@ kotlin {
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint.cli.version")
+    version = versionCatalog.findVersion("ktlint.cli.version").get().requiredVersion
 }
 
 application {

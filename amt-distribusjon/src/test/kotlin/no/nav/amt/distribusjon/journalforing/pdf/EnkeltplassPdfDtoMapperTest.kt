@@ -155,7 +155,7 @@ class EnkeltplassPdfDtoMapperTest {
     @Nested
     inner class ToInnholdTests {
         @Test
-        fun `toEnkeltplassInnhold skal returnere UtenInnhold når KURSTYPE_ID finnes`() {
+        fun `toEnkeltplassInnhold skal returnere valgt kurstype når KURSTYPE_ID finnes`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -173,7 +173,7 @@ class EnkeltplassPdfDtoMapperTest {
             val resultat = deltakerliste.opplaringKategoriseringValg
                 ?.toEnkeltplassInnhold()
 
-            resultat shouldBe EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.Kurstype("Norskprøve")
         }
 
         @Test
@@ -305,7 +305,7 @@ class EnkeltplassPdfDtoMapperTest {
             val resultat = deltakerliste.opplaringKategoriseringValg
                 ?.toEnkeltplassInnhold()
 
-            resultat shouldBe EnkeltplassInnhold.UtenInnhold
+            resultat shouldBe EnkeltplassInnhold.Kurstype("Norskprøve")
         }
     }
 

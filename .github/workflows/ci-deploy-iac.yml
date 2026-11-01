@@ -30,9 +30,11 @@ jobs:
             alerts/prod:
               - amt-iac/alerts/prod/**
             kafka-manager/dev:
-              - amt-iac/kafka-manager/dev/**
+              - amt-iac/kafka-manager/nais.yaml
+              - amt-iac/kafka-manager/vars-dev.yaml
             kafka-manager/prod:
-              - amt-iac/kafka-manager/prod/**
+              - amt-iac/kafka-manager/nais.yaml
+              - amt-iac/kafka-manager/vars-prod.yaml
             kafka-topic/dev:
               - amt-iac/kafka-topic/dev/**
             kafka-topic/prod:
@@ -59,20 +61,30 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: List resource files
-        run: echo "RESOURCE_FILES=$(find amt-iac/${{ matrix.iac_folder }} -type f -name '*.yaml' -printf '%p,' | sed 's/,$//')" >> $GITHUB_ENV
+        env:
+          IAC_FOLDER: ${{ matrix.iac_folder }}
+        run: |
+          if [[ "$IAC_FOLDER" == kafka-manager/* ]]; then
+            echo "RESOURCE_FILES=amt-iac/kafka-manager/nais.yaml" >> "$GITHUB_ENV"
+            echo "VARS_FILE=amt-iac/kafka-manager/vars-${IAC_FOLDER##*/}.yaml" >> "$GITHUB_ENV"
+          else
+            echo "RESOURCE_FILES=$(find "amt-iac/$IAC_FOLDER" -type f -name '*.yaml' -printf '%p,' | sed 's/,$//')" >> "$GITHUB_ENV"
+          fi
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') }}
-        uses: nais/deploy/actions/deploy@1064e26587ab2794266a35f477387e561899a7ef # v2
+        uses: nais/deploy/actions/deploy@3944168fd20b7eea3818e97de3810f74b54c78ff # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
+          VARS: ${{ env.VARS_FILE }}
           PRINT_PAYLOAD: true
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') }}
-        uses: nais/deploy/actions/deploy@1064e26587ab2794266a35f477387e561899a7ef # v2
+        uses: nais/deploy/actions/deploy@3944168fd20b7eea3818e97de3810f74b54c78ff # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
+          VARS: ${{ env.VARS_FILE }}
           PRINT_PAYLOAD: true

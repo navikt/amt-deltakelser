@@ -6,10 +6,6 @@ build/
 !**/src/test/**/build/
 .kotlin/
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
 *.iws
 *.iml
 *.ipr
@@ -45,3 +41,21 @@ bin/
 # Local HTTP request files
 request.http
 
+### Terraform
+# Environment
+**/.env
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+gha-creds-*.json
+
+# Private keys
+*.key
+
+# Terraform overrides
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
