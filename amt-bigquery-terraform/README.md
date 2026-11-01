@@ -15,18 +15,17 @@ Begrunnelsen for å bruke Terraform i stedet for å opprette ressursene direkte 
 gir det teamet en deterministisk måte å opprette og slette ressurser på. For det andre fungerer konfigurasjonen som
 dokumentasjon på hvilke ressurser som er opprettet. 
 
-**En merge til `main` starter automatisk apply i både dev og prod. Se gjennom planene før du merger.**
+**En merge til `main` starter automatisk apply i prod. Se gjennom planen før du merger.**
 
 ## Miljøer
 
 | Mappe | GCP-prosjekt | Bucket for Terraform-state |
 |-------|--------------|----------------------------|
-| [`dev/`](dev/main.tf) | `amt-dev-d98f` | `amt-terraform-state-dev` |
 | [`prod/`](prod/main.tf) | `amt-prod-d4dd` | `amt-terraform-state-prod` |
 
 Prod har Datastream-oppsett og BigQuery-views for `amt-deltaker` og `amt-distribusjon`.
-Dev er ikke i aktiv bruk, og Datastream for `amt-deltaker` er deaktivert som standard.
-Dev har likevel fellesressurser for Datastream-nettverket som Terraform fortsatt forvalter.
+Dev-miljøet er ikke opprettet i GCP og inngår ikke i CI.
+Konfigurasjonen i `dev/` er beholdt, men den lokale arbeidsflyten nedenfor gjelder bare prod.
 
 ## Lokal arbeidsflyt
 
@@ -57,24 +56,21 @@ Du trenger ikke laste ned en service account-nøkkel for denne arbeidsflyten.
 
 ### Initialiser og lag planer
 
-Initialiser begge miljøene uten å endre provider-låsefilene:
+Initialiser prod uten å endre provider-låsefilen:
 
 ```bash
-terraform -chdir=dev init -lockfile=readonly &&
 terraform -chdir=prod init -lockfile=readonly
 ```
 
 Kontroller formatering og konfigurasjon før du lager planer:
 
 ```bash
-terraform fmt -check -recursive &&
-terraform -chdir=dev validate &&
+terraform fmt -check -recursive prod modules &&
 terraform -chdir=prod validate &&
-terraform -chdir=dev plan &&
 terraform -chdir=prod plan
 ```
 
-Se gjennom begge planene, også når du endrer en delt modul.
+Se gjennom prod-planen, også når du endrer en delt modul.
 Avklar uventede slettinger og erstatninger før du går videre.
 `No changes` betyr at Terraform ikke finner avvik, ikke at alle view-spørringer eller Metabase-tilkoblinger fungerer.
 
@@ -97,7 +93,6 @@ terraform -chdir=prod apply
 ```
 
 Kommandoen lager en ny plan og ber om godkjenning. Den bruker ikke planen fra en tidligere `terraform plan`.
-For en avtalt endring i dev bruker du `-chdir=dev` i stedet.
 Ikke legg state, planfiler eller credentials i Git.
 
 ## Endringer og CI
@@ -108,27 +103,25 @@ Jobb på en branch med prefikset `komet-bau/`, push den og opprett en pull reque
 
 | Branch | Plan | Automatisk apply |
 |--------|------|------------------|
-| `main` | Dev og prod | Dev og prod |
-| `dev-*` | Dev og prod | Dev |
-| Andre brancher, inkludert `komet-bau/*` | Dev og prod | Nei |
+| `main` | Prod | Prod |
+| Andre brancher, inkludert `komet-bau/*` og `dev-*` | Prod | Nei |
 
-CI kontrollerer formatering under `amt-bigquery-terraform/` og validerer begge miljøene.
-Plan og apply kjører i samme jobb per miljø, med én concurrency-gruppe per miljø på tvers av brancher.
+CI kontrollerer formatering i `prod/` og `modules/` og validerer prod.
+Plan og apply kjører i samme jobb, med én concurrency-gruppe for prod på tvers av brancher.
 CI lagrer planen med `terraform plan -out=tfplan`. Når branchen tillater apply og de foregående stegene har lykkes,
 kjører CI `terraform apply tfplan`, slik at CI utfører den lagrede planen uten å lage en ny.
 Planfilen blir bare liggende på jobbens runner. Den lastes ikke opp som artifact og slettes i et avsluttende steg.
 Terraform-state-låsen beskytter fortsatt mot samtidige endringer fra lokale kjøringer.
 
 CI bruker GitHubs OIDC-token og Workload Identity Federation for å impersonere
-Terraform-service accounten i hvert miljø. Provider-ID og service account er angitt i workflowen.
-Jobbene får kortlevde GCP-credentials, ikke en service account-nøkkel fra GitHub-secrets.
+Terraform-service accounten i prod. Provider-ID og service account er angitt i workflowen.
+Jobben får kortlevde GCP-credentials, ikke en service account-nøkkel fra GitHub-secrets.
 
 | Miljø | Terraform-service account |
 |-------|---------------------------|
-| Dev | `amt-terraform@amt-dev-d98f.iam.gserviceaccount.com` |
 | Prod | `amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com` |
 
-Hver jobb har `contents: read` for å hente koden og `id-token: write` for å hente OIDC-tokenet.
+Jobben har `contents: read` for å hente koden og `id-token: write` for å hente OIDC-tokenet.
 GCP-rettighetene kommer fra service accountens IAM-roller.
 Branch-reglene styrer når workflowen kjører apply, men begrenser ikke service accountens GCP-rettigheter.
 CI-tilgangen er uavhengig av lokal innlogging med `nais login`.
