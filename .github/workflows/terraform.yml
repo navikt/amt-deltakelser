@@ -25,16 +25,16 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
         with:
           workload_identity_provider: projects/696882554390/locations/global/workloadIdentityPools/github/providers/github-action
           service_account: amt-terraform@amt-dev-d98f.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.17.1
 
@@ -68,16 +68,16 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
         with:
           workload_identity_provider: projects/337368476147/locations/global/workloadIdentityPools/github/providers/github-action
           service_account: amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.17.1
 
@@ -110,16 +110,16 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
         with:
           workload_identity_provider: projects/696882554390/locations/global/workloadIdentityPools/github/providers/github-action
           service_account: amt-terraform@amt-dev-d98f.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.17.1
 
@@ -145,16 +145,16 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
         with:
           workload_identity_provider: projects/337368476147/locations/global/workloadIdentityPools/github/providers/github-action
           service_account: amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.17.1
 
