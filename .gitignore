@@ -59,3 +59,9 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# Terraform plans
+tfplan
+*.tfplan
+tfplan.json
+*.tfplan.json
