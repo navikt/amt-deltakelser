@@ -45,8 +45,9 @@ module "deltaker_view" {
 select d.id                   as deltaker_id,
        d.person_id            as deltaker_person_id,
        coalesce(
-        date(v.created_at),
-        date(JSON_EXTRACT_SCALAR(ia.deltaker_ved_import, '$.innsoktDato'))
+        date(JSON_EXTRACT_SCALAR(ia.deltaker_ved_import, '$.innsoktDato')),
+        date(i.innsokt, 'Europe/Oslo'),
+        date(v.created_at, 'Europe/Oslo')
       )                       as deltaker_innsokt_dato,
        d.startdato            as deltaker_startdato,
        d.sluttdato            as deltaker_sluttdato,
@@ -87,6 +88,7 @@ from ${var.dataset_id}.public_deltaker d
          left join ${var.dataset_id}.public_arrangor oa on a.overordnet_arrangor_id = oa.id
          left join ${var.dataset_id}.public_vedtak v on v.deltaker_id = d.id
          left join ${var.dataset_id}.public_importert_fra_arena ia on ia.deltaker_id = d.id
+         left join ${var.dataset_id}.public_innsok i on i.deltaker_id = d.id
          join `${var.dataset_id}.public_nav_bruker` nb on nb.person_id = d.person_id
 where ds.gyldig_til is null and ds.gyldig_fra <= CURRENT_TIMESTAMP() and nb.adressebeskyttelse is null
 EOF
