@@ -1,12 +1,20 @@
 locals {
-  datastream_vpc_resources = {
-    vpc_name                       = module.amt_datastream_vpc.vpc_name
-    private_connection_id          = module.amt_datastream_vpc.private_connection_id
-    bigquery_connection_profile_id = module.amt_datastream_vpc.bigquery_connection_profile_id
-  }
+  datastream_vpc_resources = var.enable_amt_deltaker_datastream ? {
+    vpc_name                       = module.amt_datastream_vpc[0].vpc_name
+    private_connection_id          = module.amt_datastream_vpc[0].private_connection_id
+    bigquery_connection_profile_id = module.amt_datastream_vpc[0].bigquery_connection_profile_id
+  } : null
+}
+
+# Engangsflytting av state etter innføring av count. Beholdes for eldre state.
+moved {
+  from = module.amt_datastream_vpc
+  to   = module.amt_datastream_vpc[0]
 }
 
 module "amt_datastream_vpc" {
+  count = var.enable_amt_deltaker_datastream ? 1 : 0
+
   source      = "../modules/datastream-vpc"
   gcp_project = var.gcp_project
 }

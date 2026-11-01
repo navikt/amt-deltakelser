@@ -24,7 +24,9 @@ dokumentasjon på hvilke ressurser som er opprettet.
 | [`prod/`](prod/main.tf) | `amt-prod-d4dd` | `amt-terraform-state-prod` |
 
 Prod har Datastream-oppsett og BigQuery-views for `amt-deltaker` og `amt-distribusjon`.
-Dev-miljøet er ikke opprettet i GCP og inngår ikke i CI.
+Dev inngår ikke i CI. Eksisterende dev-ressurser skal avvikles manuelt gjennom Terraform.
+`enable_amt_deltaker_datastream` styrer både stream-modulen, nettverksmodulen og secret-oppslaget i dev.
+Med standardverdien `false` vil en dev-plan foreslå sletting av eksisterende ressurser som Terraform forvalter.
 Konfigurasjonen i `dev/` er beholdt, men den lokale arbeidsflyten nedenfor gjelder bare prod.
 
 ## Lokal arbeidsflyt
