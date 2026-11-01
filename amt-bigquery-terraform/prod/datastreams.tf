@@ -48,7 +48,6 @@ locals {
     "public_endring_fra_tiltakskoordinator",
     "public_forslag",
     "public_importert_fra_arena",
-    "public_innsok",
     "public_nav_bruker",
     "public_tiltakstype",
     "public_vedtak",
