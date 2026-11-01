@@ -21,8 +21,8 @@ dokumentasjon på hvilke ressurser som er opprettet.
 
 | Mappe | GCP-prosjekt | Bucket for Terraform-state |
 |-------|--------------|----------------------------|
-| [`dev/`](dev/) | `amt-dev-d98f` | `amt-terraform-state-dev` |
-| [`prod/`](prod/) | `amt-prod-d4dd` | `amt-terraform-state-prod` |
+| [`dev/`](dev/main.tf) | `amt-dev-d98f` | `amt-terraform-state-dev` |
+| [`prod/`](prod/main.tf) | `amt-prod-d4dd` | `amt-terraform-state-prod` |
 
 Prod har Datastream-oppsett og BigQuery-views for `amt-deltaker` og `amt-distribusjon`.
 Dev er ikke i aktiv bruk, og Datastream for `amt-deltaker` er deaktivert som standard.
@@ -103,7 +103,8 @@ Ikke legg state, planfiler eller credentials i Git.
 ## Endringer og CI
 
 Jobb på en branch med prefikset `komet-bau/`, push den og opprett en pull request.
-[Terraform-workflowen](.github/workflows/terraform.yml) kjører ved hver push:
+[Terraform-workflowen](../.github/workflows/terraform.yml) kjører ved push som endrer
+`amt-bigquery-terraform/**` eller `.github/workflows/terraform.yml`:
 
 | Branch | Plan | Automatisk apply |
 |--------|------|------------------|
@@ -111,13 +112,23 @@ Jobb på en branch med prefikset `komet-bau/`, push den og opprett en pull reque
 | `dev-*` | Dev og prod | Dev |
 | Andre brancher, inkludert `komet-bau/*` | Dev og prod | Nei |
 
-CI kontrollerer formatering i hele repoet og validerer begge miljøene.
+CI kontrollerer formatering under `amt-bigquery-terraform/` og validerer begge miljøene.
 Hver apply-jobb venter på at plan-jobben for samme miljø lykkes.
 Apply-jobbene kjører med `-auto-approve`. De lager nye planer og bruker ikke lagrede planer fra plan-jobbene.
 
-CI bruker de eksisterende repository-secretene `GCP_SECRET_DEV` og `GCP_SECRET_PROD` for GCP-tilgang.
+CI bruker GitHubs OIDC-token og Workload Identity Federation for å impersonere
+Terraform-service accounten i hvert miljø. Provider-ID og service account er angitt i workflowen.
+Jobbene får kortlevde GCP-credentials, ikke en service account-nøkkel fra GitHub-secrets.
+
+| Miljø | Terraform-service account |
+|-------|---------------------------|
+| Dev | `amt-terraform@amt-dev-d98f.iam.gserviceaccount.com` |
+| Prod | `amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com` |
+
+Hver jobb har `contents: read` for å hente koden og `id-token: write` for å hente OIDC-tokenet.
+GCP-rettighetene kommer fra service accountens IAM-roller.
+Branch-reglene styrer når workflowen kjører apply, men begrenser ikke service accountens GCP-rettigheter.
 CI-tilgangen er uavhengig av lokal innlogging med `nais login`.
-GitHub-tokenet har kun `contents: read`. GCP-rettighetene kommer fra GCP-credentials.
 Ikke skriv secret-verdier i logger, pull requests eller dokumentasjon.
 
 ## Metabase-tilgang
@@ -148,8 +159,10 @@ Skjemasynkronisering er ikke det samme som å skanne feltverdier.
 Før første init må GCP-prosjektet ha en state-bucket, og CI må ha en service account
 med rettigheter til ressursene Terraform skal forvalte.
 Bucket-navnene står i miljøtabellen over.
-CI-credentials ligger i repository-secretene som er beskrevet under [Endringer og CI](#endringer-og-ci).
-Bruk `nais login` fra egen maskin, ikke en kopi av CI-nøkkelen.
+CI krever en Workload Identity Provider for GitHub og en IAM-binding som gir
+repoets GitHub-identitet `roles/iam.workloadIdentityUser` på Terraform-service accounten i hvert miljø.
+Se [Endringer og CI](#endringer-og-ci) for kontoene og workflow-konfigurasjonen.
+Bruk `nais login` fra egen maskin. Ikke opprett eller last ned en service account-nøkkel for CI.
 
 ### Manuelt oppsett av database
 
