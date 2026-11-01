@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "amt-bigquery-terraform/**"
+      - ".github/workflows/terraform.yml"
 
 env:
   DEV_DIR: './amt-bigquery-terraform/dev'
@@ -15,17 +16,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     timeout-minutes: 30
     concurrency: terraform-plan-dev
     defaults:
       run:
         working-directory: ${{ env.DEV_DIR }}
 
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_DEV }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        with:
+          workload_identity_provider: projects/696882554390/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: amt-terraform@amt-dev-d98f.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
@@ -53,17 +59,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     timeout-minutes: 30
     concurrency: terraform-plan-prod
     defaults:
       run:
         working-directory: ${{ env.PROD_DIR }}
 
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_PROD }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        with:
+          workload_identity_provider: projects/337368476147/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
@@ -90,17 +101,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     timeout-minutes: 60
     concurrency: terraform-plan-dev, terraform-apply-dev
     defaults:
       run:
         working-directory: ${{ env.DEV_DIR }}
 
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_DEV }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        with:
+          workload_identity_provider: projects/696882554390/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: amt-terraform@amt-dev-d98f.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
@@ -120,17 +136,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     timeout-minutes: 60
     concurrency: terraform-plan-prod, terraform-apply-prod
     defaults:
       run:
         working-directory: ${{ env.PROD_DIR }}
 
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SECRET_PROD }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2
+        with:
+          workload_identity_provider: projects/337368476147/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com
 
       - name: Run 'terraform setup'
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3

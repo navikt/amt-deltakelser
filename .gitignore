@@ -49,6 +49,7 @@ request.http
 **/.terraform/*
 *.tfstate
 *.tfstate.*
+gha-creds-*.json
 
 # Private keys
 *.key
