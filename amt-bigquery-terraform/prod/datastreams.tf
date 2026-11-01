@@ -48,12 +48,10 @@ locals {
     "public_endring_fra_tiltakskoordinator",
     "public_forslag",
     "public_importert_fra_arena",
-    "public_innsok_paa_felles_oppstart",
+    "public_innsok",
     "public_nav_bruker",
-    "public_nav_enhet",
     "public_tiltakstype",
     "public_vedtak",
-    "public_vurdering",
   ]
 
   distribusjon_view_ids = [
