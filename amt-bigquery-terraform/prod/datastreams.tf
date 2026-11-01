@@ -70,7 +70,7 @@ module "amt_datastream_vpc" {
 module "amt_deltaker_datastream" {
   count = var.enable_amt_deltaker_datastream ? 1 : 0
 
-  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
+  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.10"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-deltaker"
   cloud_sql_instance_name             = "amt-deltaker-2"
@@ -156,7 +156,7 @@ module "amt_deltaker_datastream" {
 module "amt_distribusjon_datastream" {
   count = var.enable_amt_distribusjon_datastream ? 1 : 0
 
-  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.4"
+  source                              = "git::https://github.com/navikt/terraform-google-bigquery-datastream.git?ref=v1.0.10"
   gcp_project                         = var.gcp_project
   application_name                    = "amt-distribusjon"
   cloud_sql_instance_name             = "amt-distribusjon"
