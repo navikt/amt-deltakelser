@@ -39,18 +39,6 @@ locals {
     "forlengelse_forslag_sendt_ift_sluttdato",
     "forslag_view",
     "vedtak_view",
-    "public_arrangor",
-    "public_deltaker",
-    "public_deltaker_endring",
-    "public_deltaker_status",
-    "public_gjennomforing",
-    "public_endring_fra_arrangor",
-    "public_endring_fra_tiltakskoordinator",
-    "public_forslag",
-    "public_importert_fra_arena",
-    "public_nav_bruker",
-    "public_tiltakstype",
-    "public_vedtak",
   ]
 
   distribusjon_view_ids = [

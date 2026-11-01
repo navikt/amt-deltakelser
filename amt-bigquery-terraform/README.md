@@ -113,8 +113,11 @@ Jobb på en branch med prefikset `komet-bau/`, push den og opprett en pull reque
 | Andre brancher, inkludert `komet-bau/*` | Dev og prod | Nei |
 
 CI kontrollerer formatering under `amt-bigquery-terraform/` og validerer begge miljøene.
-Hver apply-jobb venter på at plan-jobben for samme miljø lykkes.
-Apply-jobbene kjører med `-auto-approve`. De lager nye planer og bruker ikke lagrede planer fra plan-jobbene.
+Plan og apply kjører i samme jobb per miljø, med én concurrency-gruppe per miljø på tvers av brancher.
+CI lagrer planen med `terraform plan -out=tfplan`. Når branchen tillater apply og de foregående stegene har lykkes,
+kjører CI `terraform apply tfplan`, slik at CI utfører den lagrede planen uten å lage en ny.
+Planfilen blir bare liggende på jobbens runner. Den lastes ikke opp som artifact og slettes i et avsluttende steg.
+Terraform-state-låsen beskytter fortsatt mot samtidige endringer fra lokale kjøringer.
 
 CI bruker GitHubs OIDC-token og Workload Identity Federation for å impersonere
 Terraform-service accounten i hvert miljø. Provider-ID og service account er angitt i workflowen.
@@ -139,9 +142,11 @@ Hvert dataprodukt har sin egen Metabase-service account. Finn riktig konto i
 Datamarkedsplassen før du legger til eller endrer en kobling mellom view og konto.
 Ikke gjenbruk kontoen fra et annet dataprodukt uten å kontrollere at den er riktig.
 
-Terraform gir `roles/bigquery.dataViewer` på hvert view i disse koblingene og
+Terraform gir `roles/bigquery.dataViewer` på hvert view eller hver tabell i disse koblingene og
 `roles/bigquery.metadataViewer` på datasettet som inneholder viewet.
 Metadata-rollen gjør metadata om alle objekter i datasettet synlige, men gir ikke lesetilgang til rådataene.
+`public_varsel` og `public_tiltakshendelse` har direkte tabelltilgang til sine Metabase-service accounts.
+`authorized_views` inneholder bare SQL-viewene som trenger tilgang til kildedatasettet, ikke de replikerte tabellene.
 Datasettilgangene ligger i de eksisterende `access_roles`-listene i
 [`prod/datastreams.tf`](prod/datastreams.tf).
 Bevar `authorized_views` og øvrige tilganger når du endrer disse listene.

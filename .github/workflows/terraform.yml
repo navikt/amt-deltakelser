@@ -17,8 +17,10 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    timeout-minutes: 30
-    concurrency: terraform-plan-dev
+    timeout-minutes: 90
+    concurrency:
+      group: terraform-dev
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: ${{ env.DEV_DIR }}
@@ -52,7 +54,15 @@ jobs:
         run: terraform validate
 
       - name: Run 'terraform plan'
-        run: terraform plan
+        run: terraform plan -out=tfplan
+
+      - name: Run 'terraform apply'
+        if: github.ref_name == 'main' || startsWith(github.ref_name, 'dev-')
+        run: terraform apply tfplan
+
+      - name: Clean up Terraform plan
+        if: always()
+        run: rm -f tfplan
 
   terraform-plan-prod:
     name: "terraform plan gcp-prod"
@@ -60,8 +70,10 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    timeout-minutes: 30
-    concurrency: terraform-plan-prod
+    timeout-minutes: 90
+    concurrency:
+      group: terraform-prod
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: ${{ env.PROD_DIR }}
@@ -92,74 +104,12 @@ jobs:
         run: terraform validate
 
       - name: Run 'terraform plan'
-        run: terraform plan
-
-  terraform-apply-dev:
-    needs: terraform-plan-dev
-    if: github.ref_name == 'main' || startsWith(github.ref_name, 'dev-')
-    name: "terraform apply gcp-dev"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    timeout-minutes: 60
-    concurrency: terraform-plan-dev, terraform-apply-dev
-    defaults:
-      run:
-        working-directory: ${{ env.DEV_DIR }}
-
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
-        with:
-          workload_identity_provider: projects/696882554390/locations/global/workloadIdentityPools/github/providers/github-action
-          service_account: amt-terraform@amt-dev-d98f.iam.gserviceaccount.com
-
-      - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
-        with:
-          terraform_version: 1.17.1
-
-      - name: Run 'terraform init'
-        run: terraform init -lockfile=readonly
+        run: terraform plan -out=tfplan
 
       - name: Run 'terraform apply'
-        run: terraform apply -auto-approve
+        if: github.ref_name == 'main'
+        run: terraform apply tfplan
 
-  terraform-apply-prod:
-    needs: terraform-plan-prod
-    if: github.ref_name == 'main'
-    name: "terraform apply gcp-prod"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    timeout-minutes: 60
-    concurrency: terraform-plan-prod, terraform-apply-prod
-    defaults:
-      run:
-        working-directory: ${{ env.PROD_DIR }}
-
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v2
-        with:
-          workload_identity_provider: projects/337368476147/locations/global/workloadIdentityPools/github/providers/github-action
-          service_account: amt-terraform@amt-prod-d4dd.iam.gserviceaccount.com
-
-      - name: Run 'terraform setup'
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
-        with:
-          terraform_version: 1.17.1
-
-      - name: Run 'terraform init'
-        run: terraform init -lockfile=readonly
-
-      - name: Run 'terraform apply'
-        run: terraform apply -auto-approve
+      - name: Clean up Terraform plan
+        if: always()
+        run: rm -f tfplan
