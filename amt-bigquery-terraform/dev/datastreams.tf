@@ -6,6 +6,7 @@ locals {
   } : null
 }
 
+# Engangsflytting av state etter innføring av count. Beholdes for eldre state.
 moved {
   from = module.amt_datastream_vpc
   to   = module.amt_datastream_vpc[0]
