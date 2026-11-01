@@ -46,8 +46,8 @@ select d.id                   as deltaker_id,
        d.person_id            as deltaker_person_id,
        coalesce(
         date(JSON_EXTRACT_SCALAR(ia.deltaker_ved_import, '$.innsoktDato')),
-        date(i.innsokt),
-        date(v.created_at)
+        date(i.innsokt, 'Europe/Oslo'),
+        date(v.created_at, 'Europe/Oslo')
       )                       as deltaker_innsokt_dato,
        d.startdato            as deltaker_startdato,
        d.sluttdato            as deltaker_sluttdato,
