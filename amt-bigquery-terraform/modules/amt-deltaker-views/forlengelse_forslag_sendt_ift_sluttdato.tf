@@ -54,7 +54,7 @@ ranked_results AS (
     WHERE JSON_EXTRACT_SCALAR(f.endring, '$.type') = 'ForlengDeltakelse'
 ),
 time_differences AS (
-SELECT TIMESTAMP_DIFF(DATE(forrige_sluttdato), DATE(forslag_created_at), DAY) AS time_diff_days
+SELECT TIMESTAMP_DIFF(DATE(forrige_sluttdato), DATE(forslag_created_at, 'Europe/Oslo'), DAY) AS time_diff_days
 FROM ranked_results 
 where rn_per_forslag = 1
 )
