@@ -92,6 +92,7 @@ module "amt_deltaker_datastream" {
         { table = "forslag" },
         { table = "gjennomforing" },
         { table = "importert_fra_arena" },
+        { table = "innsok", columns = ["id", "deltaker_id", "innsokt"] },
         { table = "nav_bruker" },
         { table = "tiltakstype" },
         { table = "vedtak" },

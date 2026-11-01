@@ -87,8 +87,8 @@ from ${var.dataset_id}.public_deltaker d
          left join ${var.dataset_id}.public_arrangor oa on a.overordnet_arrangor_id = oa.id
          left join ${var.dataset_id}.public_vedtak v on v.deltaker_id = d.id
          left join ${var.dataset_id}.public_importert_fra_arena ia on ia.deltaker_id = d.id
-         left join `${var.dataset_id}.public_nav_bruker` nb on nb.person_id = d.person_id
-where ds.gyldig_til is null and nb.adressebeskyttelse is null
+         join `${var.dataset_id}.public_nav_bruker` nb on nb.person_id = d.person_id
+where ds.gyldig_til is null and ds.gyldig_fra <= CURRENT_TIMESTAMP() and nb.adressebeskyttelse is null
 EOF
   )
 }

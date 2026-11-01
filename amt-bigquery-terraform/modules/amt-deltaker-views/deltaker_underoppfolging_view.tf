@@ -60,7 +60,7 @@ from ${var.dataset_id}.public_deltaker d
          join ${var.dataset_id}.public_nav_bruker nb on d.person_id = nb.person_id
          left join ${var.dataset_id}.public_vedtak v on v.deltaker_id = d.id
          left join ${var.dataset_id}.public_importert_fra_arena ia on ia.deltaker_id = d.id
-where ds.gyldig_til is null and nb.adressebeskyttelse is null
+where ds.gyldig_til is null and ds.gyldig_fra <= CURRENT_TIMESTAMP() and nb.adressebeskyttelse is null
 EOF
   )
 }
