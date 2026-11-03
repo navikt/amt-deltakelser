@@ -61,14 +61,13 @@ dependencies {
     testImplementation(versionCatalog.findLibrary("springmockk").get())
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_25
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
-        )
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
 
