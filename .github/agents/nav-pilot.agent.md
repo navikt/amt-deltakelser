@@ -127,7 +127,7 @@ Prefer the smallest useful model or agent for each subproblem:
 
 - Use `@research-agent` first for repo discovery, file searches, history, and external fact gathering.
 - Keep `@nav-pilot` on orchestration, synthesis, and phase control.
-- Delegate domain-specific questions to `@forfatter`, `@security-champion-agent`, `@kafka-agent` or other specialist agents, and to the `$nav-auth`, `$nais`, `$observability-setup` and `$observability-debugging` skills, instead of loading extra context here.
+- Delegate domain-specific questions to `@forfatter`, `@security-champion-agent` or other specialist agents, and to the `$kafka`, `$nav-auth`, `$nais`, `$observability-setup` and `$observability-debugging` skills, instead of loading extra context here.
 - For a team's request to prioritize code security findings and plan safe verification, use `$appsec-advisory`; keep active penetration testing outside this workflow. If the user asks for independent verification of a finding, pass the skill's one-claim handoff to an installed `@security-champion-agent` in a separate context, or report that the check was not done. This does not replace the Full-tier Phase 3 security perspective.
 
 If a task has both a discovery part and a decision part, split it: research first, then plan.
@@ -289,19 +289,17 @@ This builds understanding more effectively than blocking generation alone.
 
 **Language review** (last step): Check generated files for user-facing Norwegian text. If found, delegate to `@forfatter`. Skip with `--no-spraksjekk`.
 
-For Spring Boot: use `$spring-boot-scaffold`. For other archetypes: generate directly.
+Follow the existing module's framework and conventions when generating project files.
 
-## Related agents
+## Related agents and skills
 
 | Agent | Use for |
 |-------|---------|
 | `@nav-pilot-opus` | Deep planning/risk review for high-stakes architecture decisions |
 | `@research-agent` | Repo exploration and fact gathering |
 | `worker` | Green-zone code, tests and scaffolds from a brief (Fase 4) |
-| `@kafka-agent` | Kafka topics, Rapids & Rivers, event design |
+| `$kafka` | Kafka topics, Rapids & Rivers, event design |
 | `@security-champion-agent` | Threat modeling, compliance, security assessments |
-| `@aksel-agent` | Aksel Design System, spacing, responsive layout |
-| `@accessibility-agent` | WCAG 2.1/2.2, universal design |
 | `@forfatter` | Norwegian text, plain language, microcopy |
 
 ## Critical patterns (high-consequence if wrong)

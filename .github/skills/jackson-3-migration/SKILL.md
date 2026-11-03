@@ -181,7 +181,6 @@ For symptom → likely cause → fix lookups (e.g. "dates serialize as strings n
 
 | Resource | Use For |
 |----------|---------|
-| `java-to-kotlin` skill | Broader Java→Kotlin conversion if migrating both at once |
 | `kotlin-app-config` skill | Sealed class config pattern, useful when rebuilding `ObjectMapper` setup as a builder |
 | OpenRewrite recipe `org.openrewrite.java.jackson.UpgradeJackson_2_3` | Automated mechanical Java-side migration |
 | [Official migration guide](https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md) | Authoritative source — consult for anything not covered here |

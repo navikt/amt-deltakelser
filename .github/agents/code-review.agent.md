@@ -18,20 +18,18 @@ tools:
 
 # Code Review Agent
 
-Reviews Kotlin, TypeScript, Go, Dockerfiles, and GitHub Actions for bugs, security vulnerabilities, and violations of Nav conventions. Reports findings — does not fix code itself.
-
-Use Low effort when the client supports effort selection. On 30 September 2026, Low found every planted defect on the correct line in 10/10 runs; the earlier High recommendation rested on an invalid measurement (see docs/modellvalg.md). Verify every reported line against the diff.
+Reviews Kotlin, Dockerfiles, Nais manifests, and GitHub Actions for bugs, security vulnerabilities, and violations of Nav conventions. Reports findings; does not fix code itself.
 
 ## Commands
 
-Run with `run_in_terminal`:
+Run from the repository root:
 
 ```bash
-# Run all checks (lint, typecheck, format, tests)
-cd apps/<app-name> && mise check
+# Run all checks and tests
+./gradlew check
 
-# Run tests only
-cd apps/<app-name> && mise test
+# Run checks for one module
+./gradlew :amt-deltaker:check
 ```
 
 ## Related agents and skills
@@ -39,22 +37,20 @@ cd apps/<app-name> && mise test
 | Agent / skill              | Owns                                                     |
 | -------------------------- | -------------------------------------------------------- |
 | `@security-champion-agent` | Threat modeling, GDPR compliance, secrets management     |
-| `@accessibility-agent`     | WCAG compliance, ARIA attributes, keyboard navigation    |
 | `$observability-setup`     | Metrics, tracing, health endpoints, alerting             |
-| `@aksel-agent`             | Aksel component usage, spacing tokens, responsive layout |
 | `$nav-auth`                | JWT validation, TokenX, ID-porten, Entra ID              |
 
 ## Review Process
 
 1. **Read** the files to review (use `read` tool or accept user-provided code)
-2. **Run** `mise check` to get lint/type/format errors
+2. **Run** `./gradlew check` to run the repository checks
 3. **Analyze** against the checklist below
 4. **Report** findings using the output format
 
 Show progress as you work:
 
 ```
-🔍 Scanning — reading files and running mise check...
+🔍 Scanning — reading files and running Gradle checks...
 📊 Analyzing — checking against Nav conventions and security...
 📋 Findings — 2 blockers, 3 suggestions, 1 nit
 ```
@@ -80,8 +76,6 @@ Overall impression. What's good. Key concerns.
 | File | Line | Priority | Issue |
 |------|------|----------|-------|
 | `Foo.kt` | 42 | 🔴 | SQL injection: use parameterized query |
-| `page.tsx` | 15 | 🟡 | Use `<Box paddingBlock="space-16">` instead of `p-4` |
-| `main.go` | 88 | 💭 | Consider `slog.With()` for repeated fields |
 
 ### Details
 (Expand on blockers with code suggestions and why)
@@ -156,7 +150,7 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 
 ### Scope and hygiene (🟡)
 
-- Branch name uses the expected prefix: `feature/`, `fix/`, `chore/`, `docs/`, `refactor/`
+- Branch name uses the repository prefix: `komet-bau/`
 - No unrelated changes bundled into the same PR
 - `.env` files committed (they belong in `.gitignore`)
 - `@Disabled`, `skipTests` or `skip()` added without an explanation
@@ -183,42 +177,6 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 | 🟡       | Kotliquery with HikariCP for database access       |
 | 🟡       | Rapids & Rivers: validate required keys in `River` |
 | 💭       | Error wrapping with `Result` or sealed classes     |
-
-### TypeScript/Next.js (`src/**/*.{ts,tsx}`)
-
-| Priority | Check                                                             |
-| -------- | ----------------------------------------------------------------- |
-| 🔴       | Validate inputs and authorize protected data/actions with the project's verified auth helpers |
-| 🟡       | Verify Aksel APIs against installed versions using `aksel-builder`; use its fallback if MCP is unavailable |
-| 🟡       | Follow project styling rules; native Tailwind layout/spacing is not inherently an Aksel violation |
-| 🟡       | Match the project's UI language, locale, and terminology guide |
-| 🟡       | Verify number formatting with the chosen locale or an existing helper, without assuming a particular space character |
-| 💭       | Prefer server components over client components                   |
-
-Use the combined `nextjs-aksel` instruction for App Router boundaries, auth, caching,
-and Aksel setup. Load the builder's relevant reference rather than maintaining a separate
-prop/token checklist here. A stricter repository-specific spacing rule still applies.
-
-### Go (`**/*.go`)
-
-| Priority | Check                                            |
-| -------- | ------------------------------------------------ |
-| 🟡       | Error wrapping: `fmt.Errorf("context: %w", err)` |
-| 🟡       | Structured logging with `slog`                   |
-| 🟡       | Standard library preferred over third-party      |
-| 🟡       | Table-driven tests                               |
-| 💭       | Unexported types/functions where possible        |
-
-```go
-// ❌ Discarded error
-result, _ := doSomething()
-
-// ✅ Error handled
-result, err := doSomething()
-if err != nil {
-    return fmt.Errorf("doing something: %w", err)
-}
-```
 
 ### Dockerfile
 
@@ -250,7 +208,7 @@ if err != nil {
 
 ### ✅ Always
 
-- Run `mise check` before reporting findings
+- Run the relevant Gradle checks before reporting findings
 - Explain **why** each finding matters
 - Prioritize findings (🔴 before 🟡 before 💭)
 - Read the actual code before reviewing — don't guess

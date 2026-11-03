@@ -6,7 +6,7 @@ applyTo: "**/*.kt"
 
 Kotlin backend patterns for Nav: Ktor and Rapids & Rivers, Spring Boot, database access, auth, testing, and error handling.
 
-> **Pick one half.** A file path cannot tell Ktor from Spring Boot, so this file covers both. Decide from the file itself: `RapidApplication`, `routing`, `River`, `embeddedServer` means Ktor; `@RestController`, `@Service`, `@SpringBootApplication` means Spring Boot. Apply the matching half and ignore the other. Ktor is the most widely used framework for new Kotlin backends in Nav, but Spring Boot is actively used by many teams, and teams choose for themselves. For migrating between them, see [$java-to-kotlin](../skills/java-to-kotlin/).
+> **Pick one half.** A file path cannot tell Ktor from Spring Boot, so this file covers both. Decide from the file itself: `RapidApplication`, `routing`, `River`, `embeddedServer` means Ktor; `@RestController`, `@Service`, `@SpringBootApplication` means Spring Boot. Apply the matching half and ignore the other. Ktor is the most widely used framework for new Kotlin backends in Nav, but Spring Boot is actively used by many teams, and teams choose for themselves.
 
 # Kotlin Backend Standards
 
@@ -731,9 +731,6 @@ class ResourceRepositorySliceTest {
 | Type | Name | When to use |
 |------|------|-------------|
 | Skill | [$kotlin-app-config](../skills/kotlin-app-config/) | Sealed class configuration pattern (Dev/Prod/Local) |
-| Skill | [$ktor-scaffold](../skills/ktor-scaffold/) | Scaffolding a new Ktor service with full stack |
-| Skill | [$spring-boot-scaffold](../skills/spring-boot-scaffold/) | Scaffolding a new Spring Boot Kotlin project |
-| Skill | [$java-to-kotlin](../skills/java-to-kotlin/) | Migrating Java or Spring Boot code to Kotlin |
 | Skill | [$flyway-migration](../skills/flyway-migration/) | Database migration patterns |
 | Skill | [$nav-auth](../skills/nav-auth/) | JWT validation, TokenX, ID-porten, Azure AD |
 | Skill | [$nais](../skills/nais/) | Nais manifest, accessPolicy, secrets |

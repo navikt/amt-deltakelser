@@ -42,9 +42,8 @@ Basert på analyse av reelle Nav-repoer (dp-behandling, helse-spesialist, tiltak
 
 | Blindsone    | Konsekvens | Spørsmål å stille |
 |--------------|------------|-------------------|
-| Manglende universell utforming | Lovbrudd (likestillingsloven) | «Er UU-krav ivaretatt? Bruker dere Aksel-komponenter?» |
+| Manglende universell utforming | Lovbrudd (likestillingsloven) | «Hvilke krav til universell utforming gjelder for brukergrensesnittet?» |
 | Direkte API-kall fra klient | CORS-problemer, token-eksponering | «Bruker dere BFF-mønster med server-side proxy?» |
-| Spacing that conflicts with project conventions | Inconsistent layout and harder maintenance | "Which layout and spacing conventions does the project use? For Aksel, consult aksel-builder; native Tailwind spacing is valid unless local rules restrict it." |
 | Manglende error boundaries | Hvit side ved feil | «Hva ser brukeren når noe feiler?» |
 
 ## Sikkerhet
