@@ -1,5 +1,4 @@
 import java.net.URI
-import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     `java-library`
@@ -16,12 +15,14 @@ repositories {
     mavenCentral()
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 java {
     withJavadocJar()
     withSourcesJar()
 
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(javaVersion)
     }
 }
 

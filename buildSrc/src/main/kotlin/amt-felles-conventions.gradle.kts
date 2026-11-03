@@ -1,4 +1,4 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
@@ -11,8 +11,13 @@ repositories {
     mavenCentral()
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+    }
 }
 
 ktlint {
