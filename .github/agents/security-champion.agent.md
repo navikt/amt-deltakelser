@@ -49,7 +49,7 @@ Run with `run_in_terminal`:
 
 ```bash
 # Run all checks (includes security lints)
-cd apps/<app-name> && mise check
+./gradlew check
 
 # Scan repo for secrets and vulnerabilities
 trivy repo .
@@ -935,7 +935,7 @@ From [sikkerhet.nav.no/docs/verktoy](https://sikkerhet.nav.no/docs/verktoy/):
 
 ### ✅ Always
 
-- Run `mise check` after security-related changes
+- Run `./gradlew check` after security-related changes
 - Use parameterized queries, never string concatenation
 - Validate all inputs at the boundary
 - Define `accessPolicy` for every service

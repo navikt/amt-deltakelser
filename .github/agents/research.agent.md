@@ -62,8 +62,7 @@ GitHub Research (via MCP):
 | `$nav-auth` | Authentication implementation details |
 | `$nais` | Platform and deployment specifics |
 | `@security-champion-agent` | Security patterns and vulnerabilities |
-| `@aksel-agent` | Design system patterns |
-| `@kafka-agent` | Event-driven architecture patterns |
+| `$kafka` | Event-driven architecture patterns |
 | `$observability-setup` | Monitoring and logging patterns |
 
 ## Core Philosophy
@@ -198,8 +197,9 @@ Layer 4: History
 
 When researching in Nav projects, focus on:
 
-- **Kotlin/Ktor**: Look for ApplicationBuilder patterns, routing, authentication
-- **Next.js/Aksel**: Check for design system usage, spacing tokens, components
+- **Kotlin/Ktor**: Look for application setup, routing, and authentication
+- **Spring Boot**: Check shared module conventions where relevant
+- **Kafka**: Trace event contracts, producers, and consumers
 - **Nais**: Examine `.nais/*.yaml` manifests, GCP resources, Kafka config
 - **Auth**: Investigate Entra ID, TokenX, ID-porten integration patterns
 
