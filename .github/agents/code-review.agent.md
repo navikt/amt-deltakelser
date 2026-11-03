@@ -20,7 +20,7 @@ tools:
 
 Reviews Kotlin, TypeScript, Go, Dockerfiles, and GitHub Actions for bugs, security vulnerabilities, and violations of Nav conventions. Reports findings — does not fix code itself.
 
-Use High effort when the client supports effort selection. Medium reported incorrect TSX line numbers in controlled testing; verify every reported line against the diff.
+Use Low effort when the client supports effort selection. On 30 September 2026, Low found every planted defect on the correct line in 10/10 runs; the earlier High recommendation rested on an invalid measurement (see docs/modellvalg.md). Verify every reported line against the diff.
 
 ## Commands
 
@@ -42,7 +42,7 @@ cd apps/<app-name> && mise test
 | `@accessibility-agent`     | WCAG compliance, ARIA attributes, keyboard navigation    |
 | `$observability-setup`     | Metrics, tracing, health endpoints, alerting             |
 | `@aksel-agent`             | Aksel component usage, spacing tokens, responsive layout |
-| `$nav-auth`                | JWT validation, TokenX, ID-porten, Azure AD              |
+| `$nav-auth`                | JWT validation, TokenX, ID-porten, Entra ID              |
 
 ## Review Process
 
@@ -120,7 +120,8 @@ logger.info("Processing user id=$userId")
 
 - No secrets hardcoded — use environment variables or Nais Console secrets
 - Validate all input at system boundaries
-- No FNR, JWT tokens, or passwords in logs
+- No secrets (JWT tokens, passwords) in logs. Fnr or other personal data about a person (name, home address, health or benefit data) written to application logs is 🔴, including via string interpolation, exception messages or `toString`. The only exception is a CEF-formatted line written through the dedicated `auditLogger` (own appender, `additivity="false"`) when personal data is shown to an employee; a line in the ordinary application logger is not an audit log, whatever it is called
+- An open or widened Nais `accessPolicy` is 🔴, not a compliance item: `accessPolicy.inbound` that allows all (`*`, every namespace or every application), a new inbound rule, or a removed restriction
 
 ### Error Handling (🟡)
 
@@ -147,7 +148,7 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 
 ### Nais Compliance (🟡)
 
-- `accessPolicy` defined for services that communicate — check inbound/outbound changes
+- `accessPolicy` defined for services that communicate. Check outbound changes. An open or widened inbound policy is 🔴 (see Security)
 - Health endpoints (`/isalive`, `/isready`) present
 - Resource limits set in `.nais/` manifests, and not silently lowered
 - New `envFrom` secret references or replica count changes
@@ -187,21 +188,16 @@ Only 34% of Nav developers agree that AI code passes review without extra work �
 
 | Priority | Check                                                             |
 | -------- | ----------------------------------------------------------------- |
-| 🔴       | Aksel spacing tokens — **never** Tailwind `p-*`/`m-*` utilities   |
-| 🔴       | `getUser()` auth check in server components/API routes            |
-| 🟡       | Use `Box`, `VStack`, `HStack`, `HGrid` for layout                 |
-| 🟡       | Norwegian UI text, follow `ORDBOK.md` terminology                 |
-| 🟡       | Norwegian number formatting: `formatNumber(151354)` → `"151 354"` |
+| 🔴       | Validate inputs and authorize protected data/actions with the project's verified auth helpers |
+| 🟡       | Verify Aksel APIs against installed versions using `aksel-builder`; use its fallback if MCP is unavailable |
+| 🟡       | Follow project styling rules; native Tailwind layout/spacing is not inherently an Aksel violation |
+| 🟡       | Match the project's UI language, locale, and terminology guide |
+| 🟡       | Verify number formatting with the chosen locale or an existing helper, without assuming a particular space character |
 | 💭       | Prefer server components over client components                   |
 
-```tsx
-// ❌ Tailwind spacing
-<div className="p-4 mx-8">
-
-// ✅ Aksel spacing tokens
-<Box paddingBlock={{ xs: "space-16", md: "space-24" }}
-     paddingInline={{ xs: "space-16", md: "space-40" }}>
-```
+Use the combined `nextjs-aksel` instruction for App Router boundaries, auth, caching,
+and Aksel setup. Load the builder's relevant reference rather than maintaining a separate
+prop/token checklist here. A stricter repository-specific spacing rule still applies.
 
 ### Go (`**/*.go`)
 
