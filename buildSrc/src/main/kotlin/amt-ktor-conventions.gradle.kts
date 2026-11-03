@@ -1,4 +1,4 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
@@ -54,13 +54,13 @@ dependencies {
     testImplementation(versionCatalog.findLibrary("nimbus.jose.jwt").get())
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
     compilerOptions {
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
-        )
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
 
