@@ -38,3 +38,8 @@ spec:
   env:
     - name: JDK_JAVA_OPTIONS
       value: "-XX:MaxRAMPercentage=70.0"
+
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
