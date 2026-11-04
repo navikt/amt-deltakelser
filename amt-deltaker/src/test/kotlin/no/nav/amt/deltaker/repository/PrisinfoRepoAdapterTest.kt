@@ -35,11 +35,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
-    companion object {
+    private companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private val gjennomforingInTest = lagDeltakerliste()
+        val gjennomforingInTest = lagDeltakerliste()
     }
 
     private val godkjennerEnhet = lagNavEnhet()
@@ -508,6 +508,25 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
+        fun `godkjennOkonomi kaster feil når prisinfo mangler for gjennomføringen`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+            val manglendePrisinfoId = UUID.randomUUID()
+
+            // Act
+            val exception = shouldThrow<IllegalStateException> {
+                godkjennMedTestGodkjenner(
+                    gjennomforingId = gjennomforingInTest.id,
+                    prisinformasjonId = manglendePrisinfoId,
+                )
+            }
+
+            // Assert
+            exception.message shouldBe
+                "Fant ikke prisinfo $manglendePrisinfoId for gjennomføring ${gjennomforingInTest.id}"
+        }
+
+        @Test
         fun `godkjennOkonomi returnerer false for historisk prisinformasjonId og lar mappinger vaere uendret`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
@@ -522,6 +541,11 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjonId = gjeldendePrisinfoId,
             )
 
+            val stalePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = Anskaffelse(pris = 15000),
+                begrunnelse = "Historisk prisendring",
+            )
             val endringPrisinfo = Anskaffelse(pris = 20000)
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = gjennomforingInTest.id,
@@ -529,13 +553,13 @@ class PrisinfoRepoAdapterTest {
                 begrunnelse = "Begrunnelse",
             )
             val aktivEndringId = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
-            val stalePrisinfoId = UUID.randomUUID()
 
-            val forslagTILENDRINGFoer = PrisinfoRepository
+            val forslagTilEndringFoer = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
+
             val gjeldendeFoer = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
@@ -550,22 +574,32 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             result shouldBe false
-            PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
 
-            val forslagTILENDRINGEtter = PrisinfoRepository
+            PrisinfoRepository
+                .hentPrisinfo(stalePrisinfoId)
+                .shouldNotBeNull()
+                .status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
+
+            PrisinfoGjennomforingLinkRepository
+                .hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
+
+            val forslagTilEndringEtter = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
+
             val gjeldendeEtter = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 ).shouldNotBeNull()
 
-            forslagTILENDRINGEtter.id shouldBe forslagTILENDRINGFoer.id
-            forslagTILENDRINGEtter.status shouldBe forslagTILENDRINGFoer.status
+            forslagTilEndringEtter.id shouldBe forslagTilEndringFoer.id
+            forslagTilEndringEtter.status shouldBe forslagTilEndringFoer.status
+
             gjeldendeEtter.id shouldBe gjeldendeFoer.id
+            gjeldendeEtter.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
             gjeldendeEtter.status shouldBe gjeldendeFoer.status
         }
     }
