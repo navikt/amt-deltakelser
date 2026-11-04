@@ -37,8 +37,8 @@ object PrisinfoRepoAdapter {
      * Godkjenner prisinfo for økonomi.
      *
      * Utfører tre steg:
-     * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
-     * 2. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 1. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 2. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
      * 3. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
