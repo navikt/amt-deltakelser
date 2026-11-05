@@ -10,7 +10,7 @@ module "prisinformasjon_view" {
     { name = "rolle", type = "STRING", mode = "NULLABLE" },
     { name = "pristype", type = "STRING", mode = "NULLABLE" },
     { name = "prisinformasjon_status", type = "STRING", mode = "NULLABLE" },
-    { name = "pris", type = "FLOAT", mode = "NULLABLE" },
+    { name = "pris", type = "INTEGER", mode = "NULLABLE" },
     { name = "tilskuddstype", type = "STRING", mode = "NULLABLE" }
   ])
 
@@ -21,7 +21,7 @@ select
     link.rolle as rolle,
     p.prisinformasjon_json_type as pristype,
     p.status as prisinformasjon_status,
-    coalesce(p.anskaffelse_pris, pb.pris) as pris,
+    cast(coalesce(p.anskaffelse_pris, pb.pris) as int64) as pris,
     pb.pristype as tilskuddstype
 from `${var.dataset_id}.public_gjennomforing` g
 join `${var.dataset_id}.prisinformasjon_gjennomforing_link` link on g.id = link.gjennomforing_id
