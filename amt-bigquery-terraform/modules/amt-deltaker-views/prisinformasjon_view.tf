@@ -24,9 +24,9 @@ select
     cast(coalesce(p.anskaffelse_pris, pb.pris) as int64) as pris,
     pb.pristype as tilskuddstype
 from `${var.dataset_id}.public_gjennomforing` g
-join `${var.dataset_id}.prisinformasjon_gjennomforing_link` link on g.id = link.gjennomforing_id
-join `${var.dataset_id}.prisinformasjon` p on p.id = link.prisinformasjon_id
-left join `${var.dataset_id}.prisinformasjon_belop` pb on p.id = pb.prisinfo_id
+join `${var.dataset_id}.public_prisinformasjon_gjennomforing_link` link on g.id = link.gjennomforing_id
+join `${var.dataset_id}.public_prisinformasjon` p on p.id = link.prisinformasjon_id
+left join `${var.dataset_id}.public_prisinformasjon_belop` pb on p.id = pb.prisinfo_id
 EOF
   )
 }
