@@ -128,12 +128,11 @@ class EndringsvedtakBddTest :
         }
 
         Given("EndrePrisinfo uten vedtaks- og klageinformasjon") {
-            val endring =
-                EndringDto.EndrePrisinfo(
-                    tittel = "Pris og betalingsbetingelser er endret",
-                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
-                    begrunnelseFraNav = "Prisendringen er foreslått",
-                )
+            val endring = EndringDto.EndrePrisinfo(
+                tittel = "Pris og betalingsbetingelser er endret",
+                prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                begrunnelseFraNav = "Prisendringen er foreslått",
+            )
 
             When("dokumentet rendres med visVedtakOgKlage=false") {
                 val doc = renderEndringsvedtak(
@@ -151,20 +150,18 @@ class EndringsvedtakBddTest :
         }
 
         Given("EndreDeltakelsesmengde") {
-            val baseEndring =
-                EndringDto.EndreDeltakelsesmengde(
-                    tittel = "Deltakelsesmengde er endret",
-                    begrunnelseFraNav = null,
-                    forslagFraArrangor = null,
-                    gyldigFra = null,
-                    pavirkerPris = false,
-                )
+            val baseEndring = EndringDto.EndreDeltakelsesmengde(
+                tittel = "Deltakelsesmengde er endret",
+                begrunnelseFraNav = null,
+                forslagFraArrangor = null,
+                gyldigFra = null,
+                pavirkerPris = false,
+            )
 
-            val baseForslag =
-                ForslagDto.EndreDeltakelsesmengde(
-                    deltakelsesmengdeTekst = "50%",
-                    begrunnelseFraArrangor = null,
-                )
+            val baseForslag = ForslagDto.EndreDeltakelsesmengde(
+                deltakelsesmengdeTekst = "50%",
+                begrunnelseFraArrangor = null,
+            )
 
             forAll(
                 row(baseEndring),
@@ -197,13 +194,12 @@ class EndringsvedtakBddTest :
         }
 
         Given("EndreStartdato") {
-            val baseEndring =
-                EndringDto.EndreStartdato(
-                    tittel = "Startdato er endret",
-                    begrunnelseFraNav = null,
-                    forslagFraArrangor = null,
-                    pavirkerPris = false,
-                )
+            val baseEndring = EndringDto.EndreStartdato(
+                tittel = "Startdato er endret",
+                begrunnelseFraNav = null,
+                forslagFraArrangor = null,
+                pavirkerPris = false,
+            )
 
             val baseForslag = ForslagDto.EndreStartdato(startdato = null, begrunnelseFraArrangor = null)
 
@@ -224,8 +220,7 @@ class EndringsvedtakBddTest :
                         doc.sectionText().assertSectionText("Nav sin begrunnelse:", endring.begrunnelseFraNav)
 
                         if (endring.forslagFraArrangor != null) {
-                            val forslag =
-                                endring.forslagFraArrangor.shouldBeInstanceOf<ForslagDto.EndreStartdato>()
+                            val forslag = endring.forslagFraArrangor.shouldBeInstanceOf<ForslagDto.EndreStartdato>()
 
                             doc.sectionText() shouldContain "Forslaget sendt fra arrangør:"
                             doc.sectionText().assertSectionText("Ny oppstartsdato:", forslag.startdato)
@@ -237,21 +232,19 @@ class EndringsvedtakBddTest :
         }
 
         Given("EndreStartdatoOgVarighet") {
-            val baseEndring =
-                EndringDto.EndreStartdatoOgVarighet(
-                    tittel = "Startdato og varighet er endret",
-                    begrunnelseFraNav = null,
-                    forslagFraArrangor = null,
-                    sluttdato = "1.1.2023",
-                    pavirkerPris = false,
-                )
+            val baseEndring = EndringDto.EndreStartdatoOgVarighet(
+                tittel = "Startdato og varighet er endret",
+                begrunnelseFraNav = null,
+                forslagFraArrangor = null,
+                sluttdato = "1.1.2023",
+                pavirkerPris = false,
+            )
 
-            val baseForslag =
-                ForslagDto.EndreStartdatoOgVarighet(
-                    startdato = null,
-                    sluttdato = fixedDate,
-                    begrunnelseFraArrangor = null,
-                )
+            val baseForslag = ForslagDto.EndreStartdatoOgVarighet(
+                startdato = null,
+                sluttdato = fixedDate,
+                begrunnelseFraArrangor = null,
+            )
 
             forAll(
                 row(baseEndring),
@@ -270,8 +263,8 @@ class EndringsvedtakBddTest :
                         doc.sectionText().assertSectionText("Nav sin begrunnelse:", endring.begrunnelseFraNav)
 
                         if (endring.forslagFraArrangor != null) {
-                            val forslag =
-                                endring.forslagFraArrangor.shouldBeInstanceOf<ForslagDto.EndreStartdatoOgVarighet>()
+                            val forslag = endring.forslagFraArrangor
+                                .shouldBeInstanceOf<ForslagDto.EndreStartdatoOgVarighet>()
 
                             doc.sectionText() shouldContain "Forslaget sendt fra arrangør:"
                             doc.sectionText() shouldContain "Ny sluttdato: ${forslag.sluttdato.toNorwegianShortDate()}"

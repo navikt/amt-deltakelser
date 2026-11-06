@@ -17,23 +17,21 @@ class VentelisteTest :
         describe("Venteliste PDF") {
             it("FELLES oppstart - Skal vise deltakerliste data") {
 
-                val doc =
-                    renderVentelistebrev(
-                        baseDto(
-                            oppstartstype = Oppstartstype.FELLES,
-                        ),
-                    )
+                val doc = renderVentelistebrev(
+                    baseDto(
+                        oppstartstype = Oppstartstype.FELLES,
+                    ),
+                )
                 doc.text() shouldContain "Du er satt på venteliste"
                 doc.text() shouldContain "Kurset starter"
             }
             it("LOPENDE oppstart - Skal vise deltakerliste data") {
 
-                val doc =
-                    renderVentelistebrev(
-                        baseDto(
-                            oppstartstype = Oppstartstype.LOPENDE,
-                        ),
-                    )
+                val doc = renderVentelistebrev(
+                    baseDto(
+                        oppstartstype = Oppstartstype.LOPENDE,
+                    ),
+                )
                 doc.text() shouldContain "Du er satt på venteliste"
                 doc.text() shouldNotContain "Ordinær oppstart er"
             }

@@ -6,6 +6,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.pdfgen.core.Environment
 import no.nav.pdfgen.core.PDFGenCore
 import no.nav.pdfgen.core.pdf.createHtml
@@ -15,8 +16,7 @@ import java.nio.file.Path
 
 class TemplateRenderSpec :
     StringSpec({
-
-        beforeSpec { PDFGenCore.init(Environment()) }
+        beforeSpec { PDFGenCore.init(Environment(), SimpleMeterRegistry()) }
 
         "alle amt-templates rendrer gyldig HTML uten handlebars-rester" {
             val templatesDir = Path.of("templates/amt")
@@ -31,20 +31,18 @@ class TemplateRenderSpec :
                     val templateName = templatePath.fileName.toString().removeSuffix(".hbs")
                     val dataPath = dataDir.resolve("$templateName.json")
 
-                    val jsonNode =
-                        if (Files.exists(dataPath)) {
-                            val data: Map<String, Any> = objectMapper.readValue(Files.readString(dataPath))
-                            objectMapper.valueToTree(data)
-                        } else {
-                            objectMapper.createObjectNode()
-                        }
+                    val jsonNode = if (Files.exists(dataPath)) {
+                        val data: Map<String, Any> = objectMapper.readValue(Files.readString(dataPath))
+                        objectMapper.valueToTree(data)
+                    } else {
+                        objectMapper.createObjectNode()
+                    }
 
-                    val html =
-                        createHtml(
-                            template = templateName,
-                            directoryName = "amt",
-                            jsonPayload = jsonNode,
-                        )
+                    val html = createHtml(
+                        template = templateName,
+                        directoryName = "amt",
+                        jsonPayload = jsonNode,
+                    )
 
                     html.shouldNotBeNull()
                     html.shouldNotContain("{{")

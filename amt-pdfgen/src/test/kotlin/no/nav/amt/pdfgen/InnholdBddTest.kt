@@ -11,16 +11,15 @@ class InnholdBddTest :
     BehaviorSpec({
         Given("sub-template innhold") {
             When("innhold rendres med ledetekst og valgte innholdselementer") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer =
-                            listOf(
-                                "Innhold Pt 1",
-                                "Innhold Pt 2",
-                            ),
-                        fritekstBeskrivelse = "",
-                        ledetekst = "Avklaring ledetekst",
-                    )
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer =
+                        listOf(
+                            "Innhold Pt 1",
+                            "Innhold Pt 2",
+                        ),
+                    fritekstBeskrivelse = "",
+                    ledetekst = "Avklaring ledetekst",
+                )
 
                 val doc = renderSection("innhold", FakeVedtakContainer(innhold))
 
