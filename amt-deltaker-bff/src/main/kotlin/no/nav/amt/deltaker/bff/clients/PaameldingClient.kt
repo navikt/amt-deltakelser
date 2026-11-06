@@ -2,11 +2,11 @@ package no.nav.amt.deltaker.bff.clients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.internapi.paamelding.request.KladdRequest
 import no.nav.amt.internapi.paamelding.request.OpprettKladdRequest
+import no.nav.amt.internapi.paamelding.request.UtkastRequest
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -43,10 +43,13 @@ class PaameldingClient(
     suspend fun slettKladd(deltakerId: UUID) = performDelete("kladd/$deltakerId")
         .failIfNotSuccess("Kunne ikke slette kladd i amt-deltaker.")
 
-    suspend fun utkast(utkast: Utkast) = performPost(
-        urlSubPath = "pamelding/${utkast.deltakerId}",
-        requestBody = DtoMappers.utkastRequestFromUtkast(utkast),
-    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker for deltaker ${utkast.deltakerId}")
+    suspend fun utkast(
+        deltakerId: UUID,
+        utkast: UtkastRequest,
+    ) = performPost(
+        urlSubPath = "pamelding/$deltakerId",
+        requestBody = utkast,
+    ).failIfNotSuccess("Kunne ikke oppdatere utkast i amt-deltaker for deltaker $deltakerId")
         .body<DeltakerResponse>()
 
     suspend fun avbrytUtkast(

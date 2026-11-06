@@ -16,8 +16,6 @@ import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.clients.PaameldingClient
 import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
-import no.nav.amt.deltaker.bff.model.Pamelding
-import no.nav.amt.deltaker.bff.model.Utkast
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -54,26 +52,23 @@ fun Routing.registerPameldingApi(
                 norskIdent = deltaker.navBruker.personident,
             )
 
-            val utkast = Utkast(
-                deltakerId = deltaker.id,
-                pamelding = Pamelding(
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
-                        innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
-                    ),
-                    bakgrunnsinformasjon = request.bakgrunnsinformasjon,
-                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
-                    dagerPerUke = request.dagerPerUke?.toFloat(),
-                    endretAv = call.getNavIdent(),
-                    endretAvEnhet = call.getEnhetsnummer(),
+            val utkastRequest = no.nav.amt.internapi.paamelding.request.UtkastRequest(
+                deltakelsesinnhold = Deltakelsesinnhold(
+                    ledetekst = deltaker.deltakelsesinnhold?.ledetekst,
+                    innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
                 ),
-                godkjentAvNav = false,
+                bakgrunnsinformasjon = request.bakgrunnsinformasjon,
+                deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                dagerPerUke = request.dagerPerUke?.toFloat(),
+                endretAv = call.getNavIdent(),
+                endretAvEnhet = call.getEnhetsnummer(),
+                godkjentAvNav = true,
             )
 
             MetricRegister.DELT_UTKAST.inc()
 
             pameldingClient
-                .utkast(utkast)
+                .utkast(deltaker.id, utkastRequest)
                 .let { ModelMapper.toDeltaker(it) }
                 .let { DeltakerResponse.fromDeltakerModel(it) }
                 .also { call.respond(it) }
@@ -114,25 +109,22 @@ fun Routing.registerPameldingApi(
                 norskIdent = deltaker.navBruker.personident,
             )
 
-            // kaller paameldingClient.utkast
-            val utkast = Utkast(
-                deltakerId = deltaker.id,
-                pamelding = Pamelding(
-                    deltakelsesinnhold = Deltakelsesinnhold(
-                        innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
-                        ledetekst = deltaker.gjennomforing.tiltak.innhold
-                            ?.ledetekst,
-                    ),
+            val utkastRequest =
+                no.nav.amt.internapi.paamelding.request.UtkastRequest(
+                    deltakelsesinnhold =
+                        Deltakelsesinnhold(
+                            innhold = request.innhold.toInnholdModel(deltaker.gjennomforing.tiltak),
+                            ledetekst = deltaker.gjennomforing.tiltak.innhold
+                                ?.ledetekst,
+                        ),
                     bakgrunnsinformasjon = request.bakgrunnsinformasjon,
                     deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
                     dagerPerUke = request.dagerPerUke?.toFloat(),
                     endretAv = call.getNavIdent(),
                     endretAvEnhet = call.getEnhetsnummer(),
-                ),
-                godkjentAvNav = true,
-            )
-
-            pameldingClient.utkast(utkast)
+                    godkjentAvNav = true,
+                )
+            pameldingClient.utkast(deltaker.id, utkastRequest)
 
             if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
                 MetricRegister.MELDT_PA_DIREKTE_MED_UTKAST.inc()
