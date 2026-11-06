@@ -187,33 +187,46 @@ object PrisinfoRepository {
     }
 
     /**
-     * Setter prisinfo til GODKJENT og lagrer hvem som godkjente den.
+     * Setter prisinfo til GODKJENT hvis den tilhører gjennomføringen, og lagrer hvem som godkjente den.
      *
      * Godkjenneren lagres per godkjenning fordi den ikke kan utledes i etterkant.
+     *
+     * @return `true` hvis prisinfo ble godkjent, ellers `false` hvis den ikke finnes for gjennomføringen.
      */
     fun settGodkjent(
+        gjennomforingId: UUID,
         prisinformasjonId: UUID,
         godkjentAv: UUID,
         godkjentAvEnhet: UUID,
-    ) = Database.query { session ->
-        session.update(
+    ): Boolean = Database.query { session ->
+        val prisinfoOppdatert = session.update(
             queryOf(
                 """
                 UPDATE prisinformasjon
                 SET 
                     status = ?,
                     modified_at = now()
-                WHERE id = ?
+                WHERE 
+                    id = ? 
+                    AND gjennomforing_id = ?
                 """.trimIndent(),
                 TotrinnskontrollStatus.GODKJENT.name,
                 prisinformasjonId,
+                gjennomforingId,
             ),
-        )
+        ) > 0
+
+        // manglende prisinfo er en feilsituasjon som må håndteres av kallsted
+        if (!prisinfoOppdatert) return@query false
 
         session.update(
             queryOf(
                 """
-                INSERT INTO prisinformasjon_godkjenning (prisinformasjon_id, godkjent_av, godkjent_av_enhet)
+                INSERT INTO prisinformasjon_godkjenning (
+                    prisinformasjon_id, 
+                    godkjent_av, 
+                    godkjent_av_enhet
+                )
                 VALUES (?, ?, ?)
                 ON CONFLICT (prisinformasjon_id) DO UPDATE SET
                     godkjent_av = EXCLUDED.godkjent_av,
@@ -224,6 +237,8 @@ object PrisinfoRepository {
                 godkjentAvEnhet,
             ),
         )
+
+        true
     }
 
     /**

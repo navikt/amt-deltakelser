@@ -37,15 +37,16 @@ object PrisinfoRepoAdapter {
      * Godkjenner prisinfo for økonomi.
      *
      * Utfører tre steg:
-     * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
-     * 2. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
-     * 3. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 1. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 2. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
+     * 3. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
      * @param prisinformasjonId ID til prisinfoen som skal godkjennes
      * @param godkjentAv ID til Nav-ansatt som godkjente prisinfoen
      * @param godkjentAvEnhet ID til Nav-enheten som godkjente prisinfoen
-     * @return `true` hvis godkjenningen var vellykket, `false` hvis prisinfoen ikke finnes eller ikke er ENDRING
+     * @return `true` hvis prisinfoen er aktiv ENDRING, `false` hvis den er historisk
+     * @throws IllegalStateException hvis prisinfoen ikke finnes for gjennomføringen
      */
     fun godkjennOkonomi(
         gjennomforingId: UUID,
@@ -53,24 +54,34 @@ object PrisinfoRepoAdapter {
         godkjentAv: UUID,
         godkjentAvEnhet: UUID,
     ): Boolean {
-        val endringFinnes = PrisinfoGjennomforingLinkRepository.delete(
+        // alltid godkjenn prisendring
+        val prisinfoFinnes = PrisinfoRepository.settGodkjent(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
+            godkjentAv = godkjentAv,
+            godkjentAvEnhet = godkjentAvEnhet,
+        )
+
+        check(prisinfoFinnes) {
+            "Fant ikke prisinfo $prisinformasjonId for gjennomføring $gjennomforingId"
+        }
+
+        // fjern lenking fra deltaker til aktiv prisendring, ny lenking til GJELDENDE
+        // settes inn nedenfor
+        val prisendringErAktiv = PrisinfoGjennomforingLinkRepository.delete(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
         ) > 0
 
-        if (!endringFinnes) return false
+        // hvis dette ikke er nyeste prisendring, returner
+        if (!prisendringErAktiv) return false
 
+        // sett prisinfo som gjeldende for deltaker
         PrisinfoGjennomforingLinkRepository.upsert(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.GJELDENDE,
-        )
-
-        PrisinfoRepository.settGodkjent(
-            prisinformasjonId = prisinformasjonId,
-            godkjentAv = godkjentAv,
-            godkjentAvEnhet = godkjentAvEnhet,
         )
 
         return true
