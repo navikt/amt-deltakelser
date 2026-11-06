@@ -77,7 +77,6 @@ class EnkeltplassInnsokingsbrevTest :
                     doc.text() shouldContain "Nav skal ikke betale for opplæringen."
                     doc.text() shouldContain "Opplæringen er kostnadsfri ved oppmøte"
                 }
-
             }
 
             describe("Innholdstyper") {

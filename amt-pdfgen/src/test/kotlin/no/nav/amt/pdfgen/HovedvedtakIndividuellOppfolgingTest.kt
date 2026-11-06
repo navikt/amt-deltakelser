@@ -19,19 +19,17 @@ class HovedvedtakIndividuellOppfolgingTest :
 
         describe("Hovedvedtak Individuell oppfølging PDF") {
             it("VARIG_TILRETTELAGT_ARBEID_SKJERMET") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer = emptyList(),
-                        fritekstBeskrivelse = "Dette er en beskrivelse av annet for VTA",
-                        ledetekst = "Dette er ledeteksten",
-                    )
-                val doc =
-                    renderHovedvedtak(
-                        hovedvedtak(
-                            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                            innhold,
-                        ),
-                    )
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer = emptyList(),
+                    fritekstBeskrivelse = "Dette er en beskrivelse av annet for VTA",
+                    ledetekst = "Dette er ledeteksten",
+                )
+                val doc = renderHovedvedtak(
+                    hovedvedtak(
+                        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                        innhold,
+                    ),
+                )
                 doc.text() shouldContain "sidetittel: VARIG_TILRETTELAGT_ARBEID_SKJERMET"
                 doc.text() shouldContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
                 doc.text() shouldContain "Deltakelsesmengde"
@@ -41,21 +39,19 @@ class HovedvedtakIndividuellOppfolgingTest :
             }
 
             it("TILRETTELAGT_ARBEID_ORDINAER") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer = emptyList(),
-                        fritekstBeskrivelse = "Dette er en beskrivelse av annet for tao",
-                        ledetekst = "Dette er ledeteksten",
-                    )
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer = emptyList(),
+                    fritekstBeskrivelse = "Dette er en beskrivelse av annet for tao",
+                    ledetekst = "Dette er ledeteksten",
+                )
                 val deltaker = hovedvedtakDeltaker(innhold, deltakelsesmengde = null)
-                val doc =
-                    renderHovedvedtak(
-                        hovedvedtak(
-                            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
-                            innhold,
-                            deltaker,
-                        ),
-                    )
+                val doc = renderHovedvedtak(
+                    hovedvedtak(
+                        Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+                        innhold,
+                        deltaker,
+                    ),
+                )
                 doc.text() shouldContain "sidetittel: TILRETTELAGT_ARBEID_ORDINAER"
                 doc.text() shouldContain "Nav eller arrangøren tar kontakt med deg for å avtale når skal begynne."
                 doc.text() shouldNotContain "avgjør om du tilbys plass. Ved tilbud om plass vil du bli ansatt."
@@ -66,19 +62,17 @@ class HovedvedtakIndividuellOppfolgingTest :
             }
 
             it("ARBEIDSFORBEREDENDE_TRENING") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer = emptyList(),
-                        fritekstBeskrivelse = "Dette er en beskrivelse av annet for AFT",
-                        ledetekst = "Dette er ledeteksten",
-                    )
-                val doc =
-                    renderHovedvedtak(
-                        hovedvedtak(
-                            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
-                            innhold,
-                        ),
-                    )
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer = emptyList(),
+                    fritekstBeskrivelse = "Dette er en beskrivelse av annet for AFT",
+                    ledetekst = "Dette er ledeteksten",
+                )
+                val doc = renderHovedvedtak(
+                    hovedvedtak(
+                        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                        innhold,
+                    ),
+                )
                 doc.text() shouldContain "sidetittel: ARBEIDSFORBEREDENDE_TRENING"
                 doc.text() shouldContain "Deltakelsesmengde"
 
@@ -87,26 +81,23 @@ class HovedvedtakIndividuellOppfolgingTest :
             }
 
             it("GRUPPE_ARBEIDSMARKEDSOPPLAERING") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer = emptyList(),
-                        fritekstBeskrivelse = "Dette er en beskrivelse av annet for VTA",
-                        ledetekst = "",
-                    )
-                val deltaker =
-                    hovedvedtakDeltaker(
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer = emptyList(),
+                    fritekstBeskrivelse = "Dette er en beskrivelse av annet for VTA",
+                    ledetekst = "",
+                )
+                val deltaker = hovedvedtakDeltaker(
+                    innhold,
+                    bakgrunnsinfo = "",
+                    deltakelsesmengde = "",
+                )
+                val doc = renderHovedvedtak(
+                    hovedvedtak(
+                        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
                         innhold,
-                        bakgrunnsinfo = "",
-                        deltakelsesmengde = "",
-                    )
-                val doc =
-                    renderHovedvedtak(
-                        hovedvedtak(
-                            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
-                            innhold,
-                            deltaker,
-                        ),
-                    )
+                        deltaker,
+                    ),
+                )
                 doc.text() shouldContain "sidetittel: GRUPPE_ARBEIDSMARKEDSOPPLAERING"
                 doc.text() shouldContain "Du er meldt på arbeidsmarkedstiltaket"
 
@@ -118,33 +109,30 @@ class HovedvedtakIndividuellOppfolgingTest :
             }
 
             it("AVKLARING") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer =
-                            listOf(
-                                "Innhold Pt 1",
-                                "Innhold Pt 2",
-                            ),
-                        fritekstBeskrivelse = "",
-                        ledetekst = "Avklaring ledetekst",
-                    )
-                val doc =
-                    renderHovedvedtak(
-                        hovedvedtak(
-                            Tiltakskode.AVKLARING,
-                            innhold,
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer =
+                        listOf(
+                            "Innhold Pt 1",
+                            "Innhold Pt 2",
                         ),
-                    )
+                    fritekstBeskrivelse = "",
+                    ledetekst = "Avklaring ledetekst",
+                )
+                val doc = renderHovedvedtak(
+                    hovedvedtak(
+                        Tiltakskode.AVKLARING,
+                        innhold,
+                    ),
+                )
                 doc.text() shouldContain "sidetittel: AVKLARING"
                 doc.text() shouldContain "Du er meldt på arbeidsmarkedstiltaket"
 
                 doc.getElementById("fritekst").shouldBeNull()
                 doc.getElementById("ledetekst").shouldNotBeNull()
-                val innholdselementer =
-                    doc
-                        .getElementById("innholdselementer")
-                        ?.getElementsByClass("fritekst")
-                        ?.asList()
+                val innholdselementer = doc
+                    .getElementById("innholdselementer")
+                    ?.getElementsByClass("fritekst")
+                    ?.asList()
                 innholdselementer.shouldNotBeNull()
                 innholdselementer.map { it.text() } shouldBe innhold.valgteInnholdselementer
 
@@ -167,6 +155,9 @@ class HovedvedtakIndividuellOppfolgingTest :
         }
     }) {
     companion object {
-        private fun renderHovedvedtak(payload: HovedvedtakPdfDto): Document = render("hovedvedtak-individuell-oppfolging", payload)
+        private fun renderHovedvedtak(payload: HovedvedtakPdfDto): Document = render(
+            templateName = "hovedvedtak-individuell-oppfolging",
+            payload = payload,
+        )
     }
 }
