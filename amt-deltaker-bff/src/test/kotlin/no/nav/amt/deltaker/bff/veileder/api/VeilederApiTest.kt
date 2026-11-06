@@ -9,6 +9,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import no.nav.amt.deltaker.bff.clients.ModelMapper
@@ -61,6 +62,9 @@ import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.util.UUID
 
@@ -271,6 +275,29 @@ class VeilederApiTest : IntegrationTestBase() {
                         bodyAsText() shouldBe objectMapper.writeValueAsString(expected)
                     }
             }
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = ["   ", "\t\n"])
+        fun `tom bakgrunnsinfo kan ikke erstatte eksisterende tekst`(bakgrunnsinformasjon: String?) {
+            val deltaker = lagDeltakerOld(
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                bakgrunnsinformasjon = "Eksisterende bakgrunnsinfo",
+            )
+            setupMocksLocal(deltaker)
+
+            withTestApplicationContext { httpClient ->
+                httpClient
+                    .post("/deltaker/${deltaker.id}/bakgrunnsinformasjon") {
+                        createPostRequest(EndreBakgrunnsinformasjonRequest(bakgrunnsinformasjon))
+                    }.apply {
+                        status shouldBe HttpStatusCode.BadRequest
+                        bodyAsText() shouldBe "400: Bakgrunnsinfo må fylles ut."
+                    }
+            }
+
+            coVerify(exactly = 0) { amtDeltakerClient.postEndreDeltaker(any(), any()) }
         }
 
         @Nested

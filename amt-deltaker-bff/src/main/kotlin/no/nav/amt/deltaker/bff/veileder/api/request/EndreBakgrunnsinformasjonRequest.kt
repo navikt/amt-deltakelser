@@ -8,7 +8,7 @@ data class EndreBakgrunnsinformasjonRequest(
     val bakgrunnsinformasjon: String?,
 ) : EndringRequestFromFrontend {
     override fun valider(deltaker: DeltakerModel) {
-        validerBakgrunnsinformasjon(bakgrunnsinformasjon)
+        validerBakgrunnsinformasjon(bakgrunnsinformasjon, pakrevd = true)
         validerDeltakerKanEndres(this, deltaker)
         require(bakgrunnsinformasjon != deltaker.bakgrunnsinformasjon) {
             "Ingen endring i bakgrunnsinformasjon"

@@ -31,9 +31,21 @@ const val MIN_DELTAKELSESPROSENT = 1
 const val MAX_DELTAKELSESPROSENT = 100
 const val MAX_BEGRUNNELSE_LENGDE = 200
 
-fun validerBakgrunnsinformasjon(tekst: String?) = tekst?.let {
-    require(it.length <= MAX_BAKGRUNNSINFORMASJON_LENGDE) {
-        "Bakgrunnsinformasjon kan ikke være lengre enn $MAX_BAKGRUNNSINFORMASJON_LENGDE"
+fun Tiltakskode.harBakgrunnsinfo() = !erOpplaeringstiltak() &&
+    this != Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK &&
+    this != Tiltakskode.JOBBKLUBB
+
+fun validerBakgrunnsinformasjon(
+    tekst: String?,
+    pakrevd: Boolean,
+) {
+    require(!pakrevd || !tekst.isNullOrBlank()) {
+        "Bakgrunnsinfo må fylles ut."
+    }
+    tekst?.let {
+        require(it.length <= MAX_BAKGRUNNSINFORMASJON_LENGDE) {
+            "Bakgrunnsinformasjon kan ikke være lengre enn $MAX_BAKGRUNNSINFORMASJON_LENGDE"
+        }
     }
 }
 

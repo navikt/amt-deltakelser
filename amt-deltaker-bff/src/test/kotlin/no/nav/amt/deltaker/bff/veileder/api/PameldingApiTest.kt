@@ -6,12 +6,14 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import no.nav.amt.deltaker.bff.clients.ModelMapper
 import no.nav.amt.deltaker.bff.utils.IntegrationTestBase
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerOld
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.bff.utils.TestData.lagTiltakstype
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
 import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
@@ -20,13 +22,73 @@ import no.nav.amt.deltaker.bff.veileder.api.utils.noBodyRequest
 import no.nav.amt.internapi.deltaker.request.InnholdsElementRequest
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import java.util.UUID
 
 class PameldingApiTest : IntegrationTestBase() {
+    @ParameterizedTest
+    @MethodSource("tiltakMedBakgrunnsinfo")
+    fun `tiltak med bakgrunnsinfo krever utfylt tekst - returnerer 400 uten å sende utkast`(tiltakskode: Tiltakskode) {
+        val deltaker = lagDeltakerOld(
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            tiltakstype = lagTiltakstype(tiltakskode = tiltakskode),
+        )
+        val response = lagDeltakerResponse(deltaker)
+        coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns response
+        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
+        coEvery { paameldingClient.utkast(any(), any()) } returns response
+
+        withTestApplicationContext { httpClient ->
+            listOf(null, "", "   ", "\t\n").forEach { bakgrunnsinformasjon ->
+                val request = utkastRequest(deltaker.deltakelsesinnhold!!.innhold.toInnholdDto())
+                    .copy(bakgrunnsinformasjon = bakgrunnsinformasjon)
+                listOf("", "/utenGodkjenning").forEach { handling ->
+                    httpClient
+                        .post("/pamelding/${deltaker.id}$handling") {
+                            createPostRequest(request)
+                        }.apply {
+                            status shouldBe HttpStatusCode.BadRequest
+                            bodyAsText() shouldBe "400: Bakgrunnsinfo må fylles ut."
+                        }
+                }
+            }
+        }
+
+        coVerify(exactly = 0) { paameldingClient.utkast(any(), any()) }
+    }
+
+    @ParameterizedTest
+    @MethodSource("tiltakUtenBakgrunnsinfo")
+    fun `påmelding uten bakgrunnsinfo tillates for tiltak uten feltet`(tiltakskode: Tiltakskode) {
+        val deltaker = lagDeltakerOld(
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            tiltakstype = lagTiltakstype(tiltakskode = tiltakskode, innhold = null),
+        )
+        val response = lagDeltakerResponse(deltaker)
+        coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns response
+        coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
+        coEvery { paameldingClient.utkast(any(), any()) } returns response
+
+        withTestApplicationContext { httpClient ->
+            listOf(null, "", "   ", "\t\n").forEach { bakgrunnsinformasjon ->
+                listOf("", "/utenGodkjenning").forEach { handling ->
+                    httpClient
+                        .post("/pamelding/${deltaker.id}$handling") {
+                            createPostRequest(utkastRequest().copy(bakgrunnsinformasjon = bakgrunnsinformasjon))
+                        }.status shouldBe HttpStatusCode.OK
+                }
+            }
+        }
+
+        coVerify(exactly = 8) { paameldingClient.utkast(deltaker.id, any()) }
+    }
+
     @Test
     fun `meld på direkte og avbryt utkast - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
@@ -142,6 +204,32 @@ class PameldingApiTest : IntegrationTestBase() {
     )
 
     companion object {
+        @JvmStatic
+        fun tiltakMedBakgrunnsinfo() = listOf(
+            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            Tiltakskode.AVKLARING,
+            Tiltakskode.OPPFOLGING,
+            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
+        )
+
+        @JvmStatic
+        fun tiltakUtenBakgrunnsinfo() = listOf(
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_UTDANNING,
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            Tiltakskode.STUDIESPESIALISERING,
+            Tiltakskode.FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+            Tiltakskode.JOBBKLUBB,
+        )
+
         private fun List<Innhold>.toInnholdDto() = this.map {
             InnholdsElementRequest(
                 it.innholdskode,
