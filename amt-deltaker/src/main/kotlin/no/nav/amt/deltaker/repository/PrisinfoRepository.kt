@@ -230,7 +230,8 @@ object PrisinfoRepository {
                 VALUES (?, ?, ?)
                 ON CONFLICT (prisinformasjon_id) DO UPDATE SET
                     godkjent_av = EXCLUDED.godkjent_av,
-                    godkjent_av_enhet = EXCLUDED.godkjent_av_enhet
+                    godkjent_av_enhet = EXCLUDED.godkjent_av_enhet,
+                    modified_at = now()
                 """.trimIndent(),
                 prisinformasjonId,
                 godkjentAv,
