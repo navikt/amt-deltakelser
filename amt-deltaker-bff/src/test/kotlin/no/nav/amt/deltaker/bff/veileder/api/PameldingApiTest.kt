@@ -68,7 +68,7 @@ class PameldingApiTest : IntegrationTestBase() {
         val amtDeltakerResponse = lagDeltakerResponse(deltaker)
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { amtDeltakerClient.getDeltaker(deltaker.id) } returns amtDeltakerResponse
-        coEvery { paameldingClient.utkast(any()) } returns amtDeltakerResponse
+        coEvery { paameldingClient.utkast(any(), any()) } returns amtDeltakerResponse
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
 
         withTestApplicationContext { httpClient ->
@@ -104,7 +104,7 @@ class PameldingApiTest : IntegrationTestBase() {
 
     @Test
     fun `post utkast uten godkjenning - deltaker finnes ikke - returnerer 404`() {
-        coEvery { paameldingClient.utkast(any()) } throws NoSuchElementException()
+        coEvery { paameldingClient.utkast(any(), any()) } throws NoSuchElementException()
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
 
         withTestApplicationContext { httpClient ->
