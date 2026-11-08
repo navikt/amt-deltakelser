@@ -1,5 +1,5 @@
 # Dockerfile
-FROM ghcr.io/navikt/pdfgen:2.1.1
+FROM ghcr.io/navikt/pdfgen:2.1.2
 
 ENV TZ="Europe/Oslo"
 
