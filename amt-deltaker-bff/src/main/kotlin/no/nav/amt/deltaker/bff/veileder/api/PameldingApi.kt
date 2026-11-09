@@ -61,7 +61,7 @@ fun Routing.registerPameldingApi(
                 dagerPerUke = request.dagerPerUke?.toFloat(),
                 endretAv = call.getNavIdent(),
                 endretAvEnhet = call.getEnhetsnummer(),
-                godkjentAvNav = true,
+                godkjentAvNav = false,
             )
 
             MetricRegister.DELT_UTKAST.inc()
