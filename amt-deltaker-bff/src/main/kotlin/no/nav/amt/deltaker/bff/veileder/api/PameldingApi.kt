@@ -18,7 +18,6 @@ import no.nav.amt.deltaker.bff.extensions.getDeltakerId
 import no.nav.amt.deltaker.bff.extensions.getEnhetsnummer
 import no.nav.amt.deltaker.bff.veileder.api.request.PameldingUtenGodkjenningRequest
 import no.nav.amt.deltaker.bff.veileder.api.request.UtkastRequest
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.request.toInnholdModel
 import no.nav.amt.lib.ktor.clients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -69,8 +68,6 @@ fun Routing.registerPameldingApi(
 
             pameldingClient
                 .utkast(deltaker.id, utkastRequest)
-                .let { ModelMapper.toDeltaker(it) }
-                .let { DeltakerResponse.fromDeltakerModel(it) }
                 .also { call.respond(it) }
         }
 
