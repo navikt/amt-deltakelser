@@ -1,41 +1,12 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-
-data class DeltakerStatusResponse(
-    val id: UUID,
-    val type: DeltakerStatus.Type,
-    val aarsak: Aarsak?,
-    val gyldigFra: LocalDateTime,
-    val gyldigTil: LocalDateTime?,
-    val opprettet: LocalDateTime,
-) {
-    data class Aarsak(
-        val type: DeltakerStatus.Aarsak.Type,
-        val beskrivelse: String?,
-    ) {
-        constructor(model: DeltakerStatus.Aarsak) : this(
-            type = model.type,
-            beskrivelse = model.beskrivelse,
-        )
-    }
-
-    constructor(model: DeltakerStatus) : this(
-        id = model.id,
-        type = model.type,
-        aarsak = model.aarsak?.let(::Aarsak),
-        gyldigFra = model.gyldigFra,
-        gyldigTil = model.gyldigTil,
-        opprettet = model.opprettet,
-    )
-}
 
 fun DeltakerStatus.toDeltakerStatusResponse() = DeltakerStatusResponse(this)
 
