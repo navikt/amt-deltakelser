@@ -9,9 +9,9 @@ import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakelsesmengderResponse as DeltakelsesmengderVeilederResponse
 
 data class InnbyggerDeltakerResponse(
     val deltakerId: UUID,
@@ -27,7 +27,7 @@ data class InnbyggerDeltakerResponse(
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
     val importertFraArena: ImportertFraArenaResponse?,
-    val deltakelsesmengder: DeltakelsesmengderVeilederResponse,
+    val deltakelsesmengder: DeltakelsesmengderResponse,
     val erManueltDeltMedArrangor: Boolean,
 ) {
     companion object {
@@ -54,7 +54,7 @@ data class InnbyggerDeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
-                deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderVeilederResponse) ?: DeltakelsesmengderVeilederResponse(),
+                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }
