@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.kafka.payload.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
@@ -22,7 +22,7 @@ import java.util.UUID
 class EnkeltplassDeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val unleashToggle: CommonUnleashToggle,
@@ -50,7 +50,7 @@ class EnkeltplassDeltakerConsumer(
     }
 
     suspend fun consumeDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
-        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId)
+        val deltakerliste = gjennomforingRepository.get(deltakerPayload.gjennomforingId)
             ?: throw IllegalStateException("Deltakerliste ${deltakerPayload.gjennomforingId} ikke mottatt fra Mulighetsrommet ennå")
 
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
@@ -69,7 +69,7 @@ class EnkeltplassDeltakerConsumer(
         }
 
         val deltaker = deltakerPayload.toDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             navBruker = navBruker.getOrThrow(),
             forrigeDeltakerStatus = eksisterendeDeltaker?.status,
         )

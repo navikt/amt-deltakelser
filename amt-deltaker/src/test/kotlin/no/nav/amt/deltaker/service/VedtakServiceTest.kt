@@ -7,7 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -424,17 +424,17 @@ class VedtakServiceTest {
     private fun lagDeltakerKladd(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        gjennomforing: Gjennomforing = lagDeltakerliste(),
     ) = TestData.lagDeltaker(
         id = id,
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        gjennomforing = gjennomforing,
         startdato = null,
         sluttdato = null,
         dagerPerUke = null,
         deltakelsesprosent = null,
         bakgrunnsinformasjon = null,
-        innhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
+        innhold = Deltakelsesinnhold(gjennomforing.tiltakstype.innhold?.ledetekst, emptyList()),
         status = TestData.lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
     )
 }

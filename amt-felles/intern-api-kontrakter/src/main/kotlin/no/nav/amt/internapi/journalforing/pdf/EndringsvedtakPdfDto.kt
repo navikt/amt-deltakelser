@@ -49,6 +49,13 @@ data class EndringsvedtakPdfDto(
 sealed interface EndringDto {
     val tittel: String
 
+    data class EndrePrisinfo(
+        override val tittel: String,
+        val prisinformasjon: Prisinformasjon,
+        val begrunnelseFraNav: String? = null,
+    ) : EndringDto
+
+    // lik EndrePrisinfo, men benytter forskjellige klasser for å være tydelig
     data class GodkjennPrisendring(
         override val tittel: String,
         val prisinformasjon: Prisinformasjon,

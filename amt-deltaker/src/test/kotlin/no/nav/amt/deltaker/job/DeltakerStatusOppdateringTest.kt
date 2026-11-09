@@ -109,7 +109,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().plusMonths(3),
             ),
@@ -142,7 +142,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusWeeks(1),
                 sluttdato = LocalDate.now().minusDays(2),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.LOPENDE,
                     sluttDato = LocalDate.now().plusMonths(3),
                 ),
@@ -182,7 +182,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().minusDays(2),
             ),
@@ -213,7 +213,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().plusDays(2),
             ),
@@ -244,7 +244,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = GjennomforingStatusType.AVSLUTTET,
@@ -266,7 +266,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak shouldBe null
-            sluttdato shouldBe deltaker.deltakerliste.sluttDato
+            sluttdato shouldBe deltaker.gjennomforing.sluttDato
         }
     }
 
@@ -277,7 +277,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = GjennomforingStatusType.AVSLUTTET,
@@ -310,7 +310,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = GjennomforingStatusType.AVLYST,
@@ -332,7 +332,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
         assertSoftly(deltakerRepository.get(deltaker.id).shouldNotBeNull()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-            sluttdato shouldBe deltaker.deltakerliste.sluttDato
+            sluttdato shouldBe deltaker.gjennomforing.sluttDato
         }
     }
 
@@ -344,7 +344,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
                 sluttdato = null,
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.LOPENDE,
                     sluttDato = LocalDate.now().minusDays(2),
                     status = GjennomforingStatusType.AVBRUTT,
@@ -377,7 +377,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
             sluttdato = null,
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = GjennomforingStatusType.AVBRUTT,
@@ -489,7 +489,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
                 oppstart = Oppstartstype.LOPENDE,
@@ -523,7 +523,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = lagDeltakerliste(
+            gjennomforing = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING),
                 oppstart = Oppstartstype.LOPENDE,
@@ -558,7 +558,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
                 sluttdato = null,
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     gjennomforingstype = GjennomforingType.Enkeltplass,
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.HOYERE_UTDANNING),
                     oppstart = Oppstartstype.LOPENDE,

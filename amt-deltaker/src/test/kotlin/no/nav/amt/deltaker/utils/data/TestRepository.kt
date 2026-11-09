@@ -4,13 +4,13 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassGjennomforingUpdateDbo
 import no.nav.amt.deltaker.innbygger.NavBrukerRepository
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.DeltakerRepository
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
@@ -60,18 +60,18 @@ object TestRepository {
     }
 
     fun insert(
-        deltakerliste: Deltakerliste,
+        gjennomforing: Gjennomforing,
         overordnetArrangor: Arrangor? = null,
     ) {
-        TiltakRepository().upsert(deltakerliste.tiltakstype)
+        TiltakRepository().upsert(gjennomforing.tiltakstype)
         overordnetArrangor?.let { ArrangorRepository().upsert(it) }
-        ArrangorRepository().upsert(deltakerliste.arrangor!!)
+        ArrangorRepository().upsert(gjennomforing.arrangor!!)
 
-        if (deltakerliste.gjennomforingstype == GjennomforingType.Enkeltplass) {
-            DeltakerlisteRepository().upsert(deltakerliste.toGjennomforingInsertDbo())
-            DeltakerlisteRepository().update(deltakerliste.toEnkeltplassUpdateDbo())
+        if (gjennomforing.gjennomforingstype == GjennomforingType.Enkeltplass) {
+            GjennomforingRepository().upsert(gjennomforing.toGjennomforingInsertDbo())
+            GjennomforingRepository().update(gjennomforing.toEnkeltplassUpdateDbo())
         } else {
-            DeltakerlisteRepository().upsert(deltakerliste)
+            GjennomforingRepository().upsert(gjennomforing)
         }
     }
 
@@ -108,8 +108,8 @@ object TestRepository {
         vedtak: Vedtak? = null,
     ) {
         insert(deltaker.navBruker)
-        insert(deltaker.deltakerliste)
-        insertKategoriseringer(deltaker.deltakerliste.id, deltaker.deltakerliste.opplaringKategorisering)
+        insert(deltaker.gjennomforing)
+        insertKategoriseringer(deltaker.gjennomforing.id, deltaker.gjennomforing.opplaringKategorisering)
 
         DeltakerRepository().upsert(deltaker)
         DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
@@ -124,7 +124,7 @@ object TestRepository {
                 is NavEnhet -> NavEnhetRepository().upsert(it)
                 is Arrangor -> ArrangorRepository().upsert(it)
                 is Tiltakstype -> TiltakRepository().upsert(it)
-                is Deltakerliste -> insert(it)
+                is Gjennomforing -> insert(it)
                 is Deltaker -> insert(it)
                 is Vedtak -> insert(it)
                 is Forslag -> ForslagRepository().upsert(it)
@@ -138,7 +138,7 @@ object TestRepository {
         }
     }
 
-    private fun Deltakerliste.toGjennomforingInsertDbo(): GjennomforingInsertDbo = GjennomforingInsertDbo(
+    private fun Gjennomforing.toGjennomforingInsertDbo(): GjennomforingInsertDbo = GjennomforingInsertDbo(
         id = this.id,
         type = this.gjennomforingstype,
         tiltakId = this.tiltakstype.id,
@@ -206,7 +206,7 @@ object TestRepository {
     }
 }
 
-private fun Deltakerliste.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(
+private fun Gjennomforing.toEnkeltplassUpdateDbo() = EnkeltplassGjennomforingUpdateDbo(
     id = this.id,
     arrangorId = this.arrangor?.id,
 )

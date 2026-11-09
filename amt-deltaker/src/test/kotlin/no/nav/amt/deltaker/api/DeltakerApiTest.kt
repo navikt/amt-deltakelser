@@ -195,7 +195,7 @@ class DeltakerApiTest : IntegrationTestBase() {
                     innhold = innholdRequest.innholdselementer.toInnholdModel(TestData.lagTiltakstype()),
                 ),
             )
-            val innholdEndring = innholdRequest.toEndring(deltaker.deltakerliste.tiltakstype)
+            val innholdEndring = innholdRequest.toEndring(deltaker.gjennomforing.tiltakstype)
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = innholdEndring)))
 
             runEndringTest(innholdRequest, deltaker, historikk)
@@ -421,7 +421,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         fun `get historikk - har tilgang - returnerer 200`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste)
             val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)))
             val navAnsatte = historikk.flatMap { it.navAnsatte() }.map { lagNavAnsatt(id = it) }
             val navEnheter = historikk.flatMap { it.navEnheter() }.map { lagNavEnhet(id = it) }
@@ -456,7 +456,7 @@ class DeltakerApiTest : IntegrationTestBase() {
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
             val vedtak = TestData.lagVedtak()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste)
             val historikk = listOf(
                 DeltakerHistorikk.Vedtak(vedtak),
                 DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)),
@@ -490,7 +490,7 @@ class DeltakerApiTest : IntegrationTestBase() {
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
             )
             val vedtak = TestData.lagVedtak()
-            val deltaker = lagDeltaker(deltakerliste = deltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = deltakerliste)
             val historikk = listOf(
                 DeltakerHistorikk.Vedtak(vedtak),
                 DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(deltakerId = deltaker.id)),

@@ -17,8 +17,8 @@ import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerRepositoryTest
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
-import no.nav.amt.deltaker.repository.Deltakerliste2PrisinfoRepository
 import no.nav.amt.deltaker.repository.OpplaringKategoriseringRepoAdapter
+import no.nav.amt.deltaker.repository.PrisinfoGjennomforingLinkRepository
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
@@ -154,7 +154,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, vedtak)
             val prisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000)
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinformasjon = prisinfo,
                 begrunnelse = "Begrunnelse",
             )
@@ -176,11 +176,11 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             DeltakerRepositoryTest.assertDeltakereAreEqual(resultat, lagretDeltaker)
             deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
             PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe prisinfo.copy(begrunnelse = "Begrunnelse")
             outboxService.assertNotProduced<GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon>(
-                expectedKey = deltaker.deltakerliste.id,
+                expectedKey = deltaker.gjennomforing.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
             )
         }
@@ -201,7 +201,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, vedtak)
             val gammelPrisinfo = PrisinformasjonDto.Anskaffelse(pris = 5000)
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinformasjon = gammelPrisinfo,
                 begrunnelse = "Begrunnelse",
             )
@@ -221,14 +221,14 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
 
             // Assert
             PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
             ) shouldBe nyPrisinfo.copy(begrunnelse = request.begrunnelse)
             deltakerEndringRepository.getForDeltaker(deltaker.id) shouldHaveSize 1
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassEndrePrisinfo>(deltaker.id)
             verify {
                 outboxService.insertRecord(
-                    key = deltaker.deltakerliste.id,
+                    key = deltaker.gjennomforing.id,
                     value = match<GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon> {
                         it.totrinnskontroll.begrunnelse == request.begrunnelse
                     },
@@ -253,7 +253,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, vedtak)
             val prisinfoTilGodkjenning = PrisinformasjonDto.Anskaffelse(pris = 6000)
             val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinformasjon = prisinfoTilGodkjenning,
                 begrunnelse = "Begrunnelse",
             )
@@ -267,7 +267,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 endringRequest = request,
             )
 
-            Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(deltaker.deltakerliste.id).shouldBeNull()
+            PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(deltaker.gjennomforing.id).shouldBeNull()
 
             val endring = deltakerEndringRepository
                 .getForDeltaker(deltaker.id)
@@ -281,7 +281,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
 
             outboxService.assertProducedHendelse<HendelseType.EnkeltplassTilbakekallPrisendring>(deltaker.id)
             outboxService.assertProduced<GjennomforingRequestPayload.EnkeltplassTilbakekallPrisinformasjon>(
-                expectedKey = deltaker.deltakerliste.id,
+                expectedKey = deltaker.gjennomforing.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
             )
         }
@@ -330,7 +330,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 fattet = LocalDateTime.now(),
             )
             TestRepository.insertAll(deltaker, vedtak)
-            mockKategoriseringKlient(deltaker.deltakerliste.tiltakstype.tiltakskode)
+            mockKategoriseringKlient(deltaker.gjennomforing.tiltakstype.tiltakskode)
             val request = EndretOpplaringKategoriseringRequest(
                 endretAv = navAnsattInTest.navIdent,
                 endretAvEnhet = navEnhetInTest.enhetsnummer,
@@ -355,7 +355,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             resultat.status.type shouldBe deltaker.status.type
             resultat.deltakelsesinnhold?.getAnnetFritekstBeskrivelse() shouldBe request.beskrivelse
 
-            val lagretKategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id)
+            val lagretKategorisering = OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id)
             lagretKategorisering shouldBe OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -406,7 +406,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insertAll(deltaker, vedtak)
             OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 valgteVerdier = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
                         representerer = OpplaringKategoriseringType.BRANSJE_ID,
@@ -469,7 +469,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insertAll(deltaker, vedtak)
             OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 valgteVerdier = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
                         representerer = OpplaringKategoriseringType.BRANSJE_ID,
@@ -478,7 +478,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 ),
                 valgteSertifiseringer = sertifiseringer,
             )
-            mockKategoriseringKlient(deltaker.deltakerliste.tiltakstype.tiltakskode)
+            mockKategoriseringKlient(deltaker.gjennomforing.tiltakstype.tiltakskode)
             val request = EndretOpplaringKategoriseringRequest(
                 endretAv = navAnsattInTest.navIdent,
                 endretAvEnhet = navEnhetInTest.enhetsnummer,
@@ -530,7 +530,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insertAll(deltaker, vedtak)
             OpplaringKategoriseringRepoAdapter.lagreOpplaringKategoriseringValg(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 valgteVerdier = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
                         representerer = OpplaringKategoriseringType.BRANSJE_ID,
@@ -539,7 +539,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
                 ),
                 valgteSertifiseringer = sertifiseringer,
             )
-            mockKategoriseringKlient(deltaker.deltakerliste.tiltakstype.tiltakskode)
+            mockKategoriseringKlient(deltaker.gjennomforing.tiltakstype.tiltakskode)
             val request = EndretOpplaringKategoriseringRequest(
                 endretAv = navAnsattInTest.navIdent,
                 endretAvEnhet = navEnhetInTest.enhetsnummer,
@@ -615,7 +615,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusMonths(1),
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
                 ),
             )
@@ -759,7 +759,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             // Arrange
             val deltakerliste = lagDeltakerlisteMedDirekteVedtak()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             )
             val vedtak = lagVedtak(
@@ -771,7 +771,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             )
             TestRepository.insertAll(deltaker, vedtak)
             val kladd = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 navBruker = deltaker.navBruker,
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
@@ -797,7 +797,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
             // Arrange — ingen kladd finnes for denne deltakerlisten
             val deltakerliste = lagDeltakerlisteMedDirekteVedtak()
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             )
             val vedtak = lagVedtak(

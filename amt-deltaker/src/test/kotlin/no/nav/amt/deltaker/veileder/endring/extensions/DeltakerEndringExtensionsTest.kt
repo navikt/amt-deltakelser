@@ -20,7 +20,7 @@ class DeltakerEndringExtensionsTest {
     fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
+            gjennomforing = TestData.lagDeltakerlisteMedDirekteVedtak(),
         )
 
         val resultat = reaktiverDeltakelseRequest
@@ -41,7 +41,7 @@ class DeltakerEndringExtensionsTest {
     fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
+            gjennomforing = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
         )
 
         val resultat = reaktiverDeltakelseRequest

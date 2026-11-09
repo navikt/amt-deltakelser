@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.veileder
 
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.DeltakerUtils
@@ -21,7 +21,7 @@ import java.util.UUID
 class KladdService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val navBrukerService: NavBrukerService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -43,7 +43,7 @@ class KladdService(
             .upsertAndProduceDeltaker(
                 deltaker = lagKladd(
                     navBrukerService.get(personIdent).getOrThrow(),
-                    deltakerlisteRepository.get(deltakerListeId)
+                    gjennomforingRepository.get(deltakerListeId)
                         ?: throw NoSuchElementException("Fant ikke deltakerliste med id $deltakerListeId"),
                 ),
                 erDeltakerSluttdatoEndret = false,
@@ -75,7 +75,7 @@ class KladdService(
     fun slettKladd(deltakerId: UUID) {
         val opprinneligDeltaker = deltakerRepository.get(deltakerId) ?: return
 
-        val gjennomforingId = opprinneligDeltaker.deltakerliste.id
+        val gjennomforingId = opprinneligDeltaker.gjennomforing.id
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
             throw IllegalArgumentException(
@@ -84,7 +84,7 @@ class KladdService(
         }
 
         if (opprinneligDeltaker.erEnkeltplass) {
-            require(!opprinneligDeltaker.deltakerliste.erDeltMedValp) {
+            require(!opprinneligDeltaker.gjennomforing.erDeltMedValp) {
                 "Kan ikke slette Enkeltplass gjennomføring $gjennomforingId som er delt med valp"
             }
         }
@@ -93,7 +93,7 @@ class KladdService(
             deltakerService.deleteDeltaker(deltakerId)
             if (opprinneligDeltaker.erEnkeltplass) {
                 log.info("Sletter deltakerliste med id $gjennomforingId for kladd deltaker med id $deltakerId")
-                deltakerlisteRepository.delete(gjennomforingId)
+                gjennomforingRepository.delete(gjennomforingId)
             }
         }
     }
@@ -101,11 +101,11 @@ class KladdService(
     companion object {
         private fun lagKladd(
             navBruker: NavBruker,
-            deltakerListe: Deltakerliste,
+            deltakerListe: Gjennomforing,
         ) = Deltaker(
             id = UUID.randomUUID(),
             navBruker = navBruker,
-            deltakerliste = deltakerListe,
+            gjennomforing = deltakerListe,
             startdato = null,
             sluttdato = null,
             dagerPerUke = null,
@@ -129,12 +129,12 @@ class KladdService(
         ) = DeltakerKladdUpsertDbo(
             id = deltaker.id,
             navBrukerId = deltaker.navBruker.personId,
-            deltakerlisteId = deltaker.deltakerliste.id,
+            deltakerlisteId = deltaker.gjennomforing.id,
             bakgrunnsinformasjon = bakgrunnsinformasjon,
             deltakelsesprosent = deltakelsesprosent?.toFloat(),
             dagerPerUke = dagerPerUke?.toFloat(),
             deltakelsesinnhold = Deltakelsesinnhold(
-                ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+                ledetekst = deltaker.gjennomforing.tiltakstype.innhold
                     ?.ledetekst,
                 innhold = innhold,
             ),

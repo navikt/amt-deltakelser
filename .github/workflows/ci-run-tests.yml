@@ -5,16 +5,32 @@ on:
     branches-ignore:
       - main
 
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     outputs:
-      # Når all kjøres, dekker den hele testsettet, så modultestene blir overflødige.
-      modules: ${{ contains(fromJSON(steps.filter.outputs.changes), 'all') && '["all"]' || steps.filter.outputs.changes }}
+      modules: >-
+        ${{ contains(fromJSON(steps.filter.outputs.changes), 'all')
+          && '[
+            "amt-aktivitetskort-publisher",
+            "amt-deltaker-bff",
+            "amt-deltaker",
+            "amt-distribusjon",
+            "amt-felles",
+            "amt-lib",
+            "amt-pdfgen",
+            "amt-tiltaksarrangor-bff"
+          ]'
+          || steps.filter.outputs.changes }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,7 +47,12 @@ jobs:
             amt-pdfgen: amt-pdfgen/**
             amt-tiltaksarrangor-bff: amt-tiltaksarrangor-bff/**
             all:
-              - gradle/libs.versions.toml
+              - .github/workflows/ci-run-tests.yml
+              - .github/workflows/reusable-test.yml
+              - gradle/**
+              - gradle.properties
+              - gradlew
+              - settings.gradle.kts
               - amt-felles/**
               - amt-lib/**
               - buildSrc/**
@@ -45,6 +66,7 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.modules != '[]' }}
     strategy:
+      fail-fast: false
       matrix:
         module: ${{ fromJSON(needs.changes.outputs.modules) }}
     uses: ./.github/workflows/reusable-test.yml

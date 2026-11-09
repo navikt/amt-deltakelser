@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.kafka.payload
 
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.person.NavBruker
@@ -25,13 +25,13 @@ data class EnkeltplassDeltakerPayload(
     val innsokBegrunnelse: String?,
 ) {
     fun toDeltaker(
-        deltakerliste: Deltakerliste,
+        gjennomforing: Gjennomforing,
         navBruker: NavBruker,
         forrigeDeltakerStatus: DeltakerStatus?,
     ) = Deltaker(
         id = id,
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        gjennomforing = gjennomforing,
         startdato = startDato,
         sluttdato = sluttDato,
         dagerPerUke = dagerPerUke,

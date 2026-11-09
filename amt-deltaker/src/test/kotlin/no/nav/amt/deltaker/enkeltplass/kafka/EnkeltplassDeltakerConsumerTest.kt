@@ -19,9 +19,9 @@ import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.kafka.payload.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.kafka.payload.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
@@ -55,7 +55,7 @@ class EnkeltplassDeltakerConsumerTest {
     private val deltakerEksternV1Producer = mockk<DeltakerEksternV1Producer>()
     private val deltakerRepository = DeltakerRepository()
     private val importertFraArenaRepository = ImportertFraArenaRepository()
-    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val gjennomforingRepository = GjennomforingRepository()
     private val tiltakRepository = TiltakRepository()
     private val arrangorService = mockk<ArrangorService>()
     private val deltakerProducerService = DeltakerProducerService(
@@ -82,7 +82,7 @@ class EnkeltplassDeltakerConsumerTest {
     private val consumer = EnkeltplassDeltakerConsumer(
         deltakerRepository,
         deltakerService,
-        deltakerlisteRepository,
+        gjennomforingRepository,
         navBrukerService,
         importertFraArenaRepository,
         unleashToggle,
@@ -110,7 +110,7 @@ class EnkeltplassDeltakerConsumerTest {
         val deltakerListe = lagEnkeltplassDeltakerliste()
         TestRepository.insert(deltakerListe)
 
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerListe)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
@@ -133,7 +133,7 @@ class EnkeltplassDeltakerConsumerTest {
         val deltakerListe = lagEnkeltplassDeltakerliste()
         TestRepository.insert(deltakerListe)
 
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerListe)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
         TestRepository.insert(deltaker.navBruker)
 
         val importertFraArena = lagImportertFraArenaHistorikk(deltaker)
@@ -151,7 +151,7 @@ class EnkeltplassDeltakerConsumerTest {
         val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
         assertSoftly(deltakerFromDb) {
             id shouldBe deltaker.id
-            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            gjennomforing.id shouldBe deltaker.gjennomforing.id
             status.type shouldBe deltaker.status.type
             bakgrunnsinformasjon.shouldBeNull() // kommer fra payload
         }
@@ -173,7 +173,7 @@ class EnkeltplassDeltakerConsumerTest {
             pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerListe)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
         tiltakRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
 
@@ -191,19 +191,19 @@ class EnkeltplassDeltakerConsumerTest {
     fun `consumeDeltaker - databasefeil ved oppslag av deltaker - kaster videre`() = runTest {
         // Arrange
         val deltakerliste = lagEnkeltplassDeltakerliste()
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerliste)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerliste)
         val databaseFeil = IllegalStateException("Database er utilgjengelig")
         val mockDeltakerRepository = mockk<DeltakerRepository>()
-        val mockDeltakerlisteRepository = mockk<DeltakerlisteRepository>()
+        val mockGjennomforingRepository = mockk<GjennomforingRepository>()
         val mockNavBrukerService = mockk<NavBrukerService>()
         val mockToggle = mockk<CommonUnleashToggle>()
-        every { mockDeltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
+        every { mockGjennomforingRepository.get(deltakerliste.id) } returns deltakerliste
         every { mockToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { mockDeltakerRepository.get(deltaker.id) } throws databaseFeil
         val consumerWithMockedRepositories = EnkeltplassDeltakerConsumer(
             deltakerRepository = mockDeltakerRepository,
             deltakerService = mockk(),
-            deltakerlisteRepository = mockDeltakerlisteRepository,
+            gjennomforingRepository = mockGjennomforingRepository,
             navBrukerService = mockNavBrukerService,
             importertFraArenaRepository = mockk(),
             unleashToggle = mockToggle,
@@ -224,7 +224,7 @@ class EnkeltplassDeltakerConsumerTest {
     fun `consumeDeltaker - eksisterende deltaker - status endres fra DELTAR til FULLFORT - oppdaterer og produserer`() {
         // Arrange
         val deltakerListe = lagEnkeltplassDeltakerliste()
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerListe)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
 
         val nyStatus = lagDeltakerStatus(
             statusType = DeltakerStatus.Type.FULLFORT,
@@ -277,7 +277,7 @@ class EnkeltplassDeltakerConsumerTest {
     fun `consumeDeltaker - eksisterende deltaker - samme status - andre endringer på deltaker - oppdaterer og produserer`() {
         // Arrange
         val deltakerListe = lagEnkeltplassDeltakerliste()
-        val deltaker = lagArenaDeltaker(deltakerliste = deltakerListe)
+        val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
 
         val deltakerMedEndringer = deltaker.copy(
             sluttdato = LocalDate.now().plusDays(1),
@@ -328,12 +328,12 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         private fun lagArenaDeltaker(
-            deltakerliste: Deltakerliste,
+            gjennomforing: Gjennomforing,
             statusOpprettet: LocalDateTime = LocalDateTime.now().minusWeeks(1),
             sistEndret: LocalDateTime = LocalDateTime.now().minusDays(1),
         ) = lagDeltaker(
             kilde = Kilde.ARENA,
-            deltakerliste = deltakerliste,
+            gjennomforing = gjennomforing,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
@@ -355,7 +355,7 @@ class EnkeltplassDeltakerConsumerTest {
             innsokBegrunnelse: String? = null,
         ) = EnkeltplassDeltakerPayload(
             id = deltaker.id,
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             personIdent = deltaker.navBruker.personident,
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,

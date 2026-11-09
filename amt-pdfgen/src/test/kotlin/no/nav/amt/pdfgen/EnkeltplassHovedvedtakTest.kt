@@ -85,6 +85,30 @@ class EnkeltplassHovedvedtakTest :
                     doc.text() shouldNotContain "Utdanningsprogram:"
                     doc.text() shouldNotContain "Lærefag:"
                 }
+
+                it("Kurstype - skal ikke vise kurstypelinje i hovedvedtak") {
+                    // Arrange
+                    val kurstype = "Norskopplæring"
+                    val brevFraBuilder = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                    )
+                    val brevUtenInnhold = brevFraBuilder.copy(
+                        deltakerliste = brevFraBuilder.deltakerliste.copy(tiltaksnavn = kurstype),
+                    )
+                    val brevMedKurstype = brevUtenInnhold.copy(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                    )
+
+                    // Act
+                    val tekstUtenInnhold = render("enkeltplass-hovedvedtak", brevUtenInnhold).text()
+                    val tekstMedKurstype = render("enkeltplass-hovedvedtak", brevMedKurstype).text()
+
+                    // Assert
+                    tekstUtenInnhold shouldContain kurstype
+                    tekstMedKurstype shouldBe tekstUtenInnhold
+                    tekstMedKurstype shouldNotContain "Kurstype:"
+                }
             }
 
             it("skal vise deltakelsesmengde") {

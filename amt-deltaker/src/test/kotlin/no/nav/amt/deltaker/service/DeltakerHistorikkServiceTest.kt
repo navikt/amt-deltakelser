@@ -86,7 +86,7 @@ class DeltakerHistorikkServiceTest {
 
             val deltaker = no.nav.amt.deltaker.utils.data.TestData
                 .lagDeltaker(
-                    deltakerliste = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                    gjennomforing = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
                         opplaringKategorisering = kategorisering,
                     ),
                 )

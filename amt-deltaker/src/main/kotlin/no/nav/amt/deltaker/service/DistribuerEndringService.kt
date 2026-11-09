@@ -335,7 +335,7 @@ class DistribuerEndringService(
         sistBesokt: ZonedDateTime,
     ) {
         // hvis ikke Komet er master for tiltakskode
-        if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) return
+        if (!unleashToggle.erKometMasterForTiltakstype(deltaker.gjennomforing.tiltakstype.tiltakskode)) return
 
         val ansvarlig = HendelseAnsvarlig.Deltaker(
             id = deltaker.id,
@@ -363,10 +363,10 @@ class DistribuerEndringService(
 
         // for endringsvedtak er dette overflødig, men kalltreet er foreløpig for dypt til å skru dette av/på
         // bør refaktureres
-        val (prisinformasjon, opplaringKategoriseringValg) = if (deltaker.deltakerliste.erNyForskriftOpplaring) {
+        val (prisinformasjon, opplaringKategoriseringValg) = if (deltaker.gjennomforing.erNyForskriftOpplaring) {
             Pair(
-                PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id),
-                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.deltakerliste.id),
+                PrisinfoRepoAdapter.hentPrisinfo(deltaker.gjennomforing.id),
+                OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id),
             )
         } else {
             Pair(null, null)

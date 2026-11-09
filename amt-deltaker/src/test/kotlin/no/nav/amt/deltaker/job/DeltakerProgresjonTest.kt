@@ -46,7 +46,7 @@ class DeltakerProgresjonTest {
             ),
         )
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = yesterday,
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -76,7 +76,7 @@ class DeltakerProgresjonTest {
             oppstart = Oppstartstype.LOPENDE,
         )
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = yesterday,
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -100,7 +100,7 @@ class DeltakerProgresjonTest {
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -123,7 +123,7 @@ class DeltakerProgresjonTest {
     fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -147,7 +147,7 @@ class DeltakerProgresjonTest {
     fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() {
         val deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),

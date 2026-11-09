@@ -13,9 +13,9 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.DeltakerRepository
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
@@ -45,7 +45,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class GjennomforingConsumerTest {
-    private val deltakerlisteRepository = mockk<DeltakerlisteRepository>()
+    private val gjennomforingRepository = mockk<GjennomforingRepository>()
     private val deltakerRepository = mockk<DeltakerRepository>()
     private val tiltakRepository = mockk<TiltakRepository>()
     private val arrangorService = mockk<ArrangorService>()
@@ -56,7 +56,7 @@ class GjennomforingConsumerTest {
     private val unleashToggle = mockk<CommonUnleashToggle>()
 
     private val consumer = GjennomforingConsumer(
-        deltakerlisteRepository = deltakerlisteRepository,
+        gjennomforingRepository = gjennomforingRepository,
         deltakerRepository = deltakerRepository,
         tiltakRepository = tiltakRepository,
         arrangorService = arrangorService,
@@ -85,7 +85,7 @@ class GjennomforingConsumerTest {
             lagTiltakstype(tiltakskode = firstArg())
         }
 
-        every { deltakerlisteRepository.upsert(any<Deltakerliste>()) } just runs
+        every { gjennomforingRepository.upsert(any<Gjennomforing>()) } just runs
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
         every { deltakerRepository.getKladderForDeltakerliste(any()) } returns emptyList()
         every { deltakerProducerService.produce(any<Deltaker>(), any<Boolean>()) } just runs
@@ -99,29 +99,29 @@ class GjennomforingConsumerTest {
     @AfterEach
     fun cleanup() = unmockkObject(Database)
 
-    private fun stubEksisterendeDeltakerliste(deltakerliste: Deltakerliste) {
-        deltakerliste.arrangor?.let { arrangor ->
+    private fun stubEksisterendeDeltakerliste(gjennomforing: Gjennomforing) {
+        gjennomforing.arrangor?.let { arrangor ->
             coEvery { arrangorService.hentArrangor(arrangor.organisasjonsnummer) } returns arrangor
         }
-        every { deltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
+        every { gjennomforingRepository.get(gjennomforing.id) } returns gjennomforing
     }
 
-    private suspend fun consumePayloadFor(deltakerliste: Deltakerliste) {
-        val payload = when (deltakerliste.gjennomforingstype) {
+    private suspend fun consumePayloadFor(gjennomforing: Gjennomforing) {
+        val payload = when (gjennomforing.gjennomforingstype) {
             GjennomforingType.Enkeltplass -> lagEnkeltplassDeltakerlistePayload(
-                deltakerliste = deltakerliste.copy(
+                gjennomforing = gjennomforing.copy(
                     pameldingstype = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 ),
             ).copy(
-                id = deltakerliste.id,
-                status = deltakerliste.status,
+                id = gjennomforing.id,
+                status = gjennomforing.status,
             )
 
-            GjennomforingType.Gruppe -> lagDeltakerlistePayload(deltakerliste = deltakerliste)
+            GjennomforingType.Gruppe -> lagDeltakerlistePayload(gjennomforing = gjennomforing)
         }
 
         consumer.consume(
-            key = deltakerliste.id,
+            key = gjennomforing.id,
             value = objectMapper.writeValueAsString(payload),
         )
     }
@@ -133,7 +133,7 @@ class GjennomforingConsumerTest {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = enkeltplassDeltakerliste,
+                gjennomforing = enkeltplassDeltakerliste,
             )
             every { deltakerRepository.getEnkeltplassdeltakerOrThrow(enkeltplassDeltakerliste.id) } returns deltaker
 
@@ -172,7 +172,7 @@ class GjennomforingConsumerTest {
     }
 
     @Nested
-    inner class GruppeDeltakerlisteTest {
+    inner class GruppeGjennomforingTest {
         @Test
         fun `skal ikke kalle handterDeltakere for Arena-enkeltplass tiltakskoder`() = runTest {
             // Arrange
@@ -198,7 +198,7 @@ class GjennomforingConsumerTest {
             val avbruttGruppeDeltakerliste = lagGruppeDeltakerliste(
                 status = GjennomforingStatusType.AVBRUTT,
             ).copy(id = aktivGruppeDeltakerliste.id)
-            val deltaker = lagDeltaker(deltakerliste = aktivGruppeDeltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = aktivGruppeDeltakerliste)
 
             every { tiltakRepository.get(any()) } returns
                 lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
@@ -219,7 +219,7 @@ class GjennomforingConsumerTest {
             val avbruttGruppeDeltakerliste = lagGruppeDeltakerliste(
                 status = GjennomforingStatusType.AVBRUTT,
             ).copy(id = aktivGruppeDeltakerliste.id)
-            val deltaker = lagDeltaker(deltakerliste = aktivGruppeDeltakerliste)
+            val deltaker = lagDeltaker(gjennomforing = aktivGruppeDeltakerliste)
 
             every { tiltakRepository.get(any()) } returns lagTiltakstype()
             stubEksisterendeDeltakerliste(aktivGruppeDeltakerliste)
@@ -241,11 +241,11 @@ class GjennomforingConsumerTest {
             ).copy(id = aktivGruppeDeltakerliste.id)
 
             val kladd = lagDeltaker(
-                deltakerliste = aktivGruppeDeltakerliste,
+                gjennomforing = aktivGruppeDeltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
             val aktivDeltaker = lagDeltaker(
-                deltakerliste = aktivGruppeDeltakerliste,
+                gjennomforing = aktivGruppeDeltakerliste,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
 
@@ -260,12 +260,12 @@ class GjennomforingConsumerTest {
             verify(exactly = 1) { kladdService.slettKladd(kladd.id) }
             verify(exactly = 0) { kladdService.slettKladd(aktivDeltaker.id) }
             // Assert - listeoppdateringen fullfører fortsatt
-            verify { deltakerlisteRepository.upsert(any<Deltakerliste>()) }
+            verify { gjennomforingRepository.upsert(any<Gjennomforing>()) }
         }
     }
 
     @Nested
-    inner class UnchangedDeltakerlisteTest {
+    inner class UnchangedGjennomforingTest {
         @Test
         fun `skal ikke handtere deltakere hvis deltakerlisten er uendret`() = runTest {
             // Arrange
@@ -286,7 +286,7 @@ class GjennomforingConsumerTest {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
-                deltakerliste = enkeltplassDeltakerliste,
+                gjennomforing = enkeltplassDeltakerliste,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
             )
 
@@ -316,7 +316,7 @@ class GjennomforingConsumerTest {
             )
 
             val deltaker = lagDeltaker(
-                deltakerliste = originalDeltakerliste,
+                gjennomforing = originalDeltakerliste,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
                 sluttdato = originalSluttDato.plusDays(30), // Deltaker har senere sluttdato
             )
@@ -398,7 +398,7 @@ class GjennomforingConsumerTest {
         fun `produserer riktig payload for ny gruppegjennomforing`() = runTest {
             // Arrange
             val gjennomforing = lagGruppeDeltakerliste()
-            every { deltakerlisteRepository.get(gjennomforing.id) } returns null
+            every { gjennomforingRepository.get(gjennomforing.id) } returns null
 
             val payloadSlot = slot<AmtGjennomforingPayload>()
             every { amtGjennomforingProducer.produce(capture(payloadSlot)) } just runs
@@ -456,13 +456,13 @@ class GjennomforingConsumerTest {
             // Arrange
             val id = UUID.randomUUID()
             every { deltakerRepository.getAntallDeltakereForDeltakerliste(id) } returns 0
-            every { deltakerlisteRepository.delete(id) } just runs
+            every { gjennomforingRepository.delete(id) } just runs
 
             // Act
             consumer.consume(key = id, value = null)
 
             // Assert
-            verify(exactly = 1) { deltakerlisteRepository.delete(id) }
+            verify(exactly = 1) { gjennomforingRepository.delete(id) }
             verify(exactly = 1) { amtGjennomforingProducer.produceTombstone(id) }
         }
 
@@ -476,7 +476,7 @@ class GjennomforingConsumerTest {
             consumer.consume(key = id, value = null)
 
             // Assert
-            verify(exactly = 0) { deltakerlisteRepository.delete(any()) }
+            verify(exactly = 0) { gjennomforingRepository.delete(any()) }
             verify(exactly = 0) { amtGjennomforingProducer.produceTombstone(any()) }
         }
     }

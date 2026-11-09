@@ -70,7 +70,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             // Arrange
             val arrangor = lagArrangor(navn = "TEST ARRANGØR")
             val expectedDeltaker = lagDeltaker(
-                deltakerliste = lagDeltakerliste(arrangor = arrangor),
+                gjennomforing = lagDeltakerliste(arrangor = arrangor),
                 sluttdato = null,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
@@ -78,13 +78,13 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val actualDeltaker = kladdService.opprettKladd(
-                expectedDeltaker.deltakerliste.id,
+                expectedDeltaker.gjennomforing.id,
                 expectedDeltaker.navBruker.personident,
             )
 
             // Assert
             actualDeltaker.id shouldBe expectedDeltaker.id
-            actualDeltaker.deltakerliste.arrangor
+            actualDeltaker.gjennomforing.arrangor
                 .shouldNotBeNull()
                 .navn shouldBe "Test Arrangør"
         }
@@ -118,7 +118,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                     ).first()
                     .id
 
-                it.deltakerliste.id shouldBe deltakerListe.id
+                it.gjennomforing.id shouldBe deltakerListe.id
                 status.type shouldBe DeltakerStatus.Type.KLADD
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -165,7 +165,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                         deltakerlisteId = deltakerListe.id,
                     ).first()
                     .id
-                it.deltakerliste.id shouldBe deltakerListe.id
+                it.gjennomforing.id shouldBe deltakerListe.id
                 status.type shouldBe DeltakerStatus.Type.KLADD
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -208,7 +208,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
 
             // Act
             val nyDeltaker = kladdService.opprettKladd(
-                deltaker.deltakerliste.id,
+                deltaker.gjennomforing.id,
                 deltaker.navBruker.personident,
             )
 
@@ -267,7 +267,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `deltaker med direkte vedtak, godkjent av Nav - oppdaterer deltaker og oppretter fattet vedtak`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK),
+                gjennomforing = lagDeltakerliste(pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
@@ -309,7 +309,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av Nav - oppdaterer deltaker`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
+                gjennomforing = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
@@ -431,7 +431,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             // Arrange
             val arrangor = lagArrangor(navn = "TEST ARRANGØR")
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(arrangor = arrangor),
+                gjennomforing = lagDeltakerlisteMedDirekteVedtak().copy(arrangor = arrangor),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = null)
@@ -443,7 +443,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             val result = pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
             // Assert
-            val resultArrangor = result.deltakerliste.arrangor.shouldNotBeNull()
+            val resultArrangor = result.gjennomforing.arrangor.shouldNotBeNull()
             resultArrangor.id shouldBe arrangor.id
             resultArrangor.navn shouldBe "Test Arrangør"
         }
@@ -452,7 +452,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                gjennomforing = lagDeltakerlisteMedDirekteVedtak(),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
@@ -479,7 +479,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
+                gjennomforing = lagDeltakerlisteMedTrengerGodkjenning(),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
@@ -510,7 +510,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `innbyggerGodkjennUtkast - enkeltplass - vedtak fattes og gjennomforing publiseres`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning()
+                gjennomforing = lagDeltakerlisteMedTrengerGodkjenning()
                     .copy(
                         gjennomforingstype = GjennomforingType.Enkeltplass,
                     ),
@@ -522,7 +522,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
             PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
-                gjennomforingId = deltaker.deltakerliste.id,
+                gjennomforingId = deltaker.gjennomforing.id,
                 prisinformasjon = IngenKostnader(
                     tilleggsopplysninger = "Dette tiltaket koster 100 kr/mnd",
                 ),
@@ -540,7 +540,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             }
 
             outboxService.assertProduced<GjennomforingRequestPayload>(
-                expectedKey = deltaker.deltakerliste.id,
+                expectedKey = deltaker.gjennomforing.id,
                 expectedTopic = Environment.GJENNOMFORING_REQUEST_TOPIC,
             )
         }
@@ -549,7 +549,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                gjennomforing = lagDeltakerlisteMedDirekteVedtak(),
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
@@ -579,7 +579,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             )
             val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = deltakerStatusKladd,
             )
 
@@ -601,7 +601,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
             )
             val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
+                gjennomforing = deltakerliste,
                 status = deltakerStatusKladd,
             )
 

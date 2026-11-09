@@ -9,7 +9,7 @@ import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.tiltak.TiltakConsumer
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorRepository
@@ -28,11 +28,11 @@ import java.util.UUID
 
 class TiltakstypeConsumerTest {
     private val tiltakRepository = TiltakRepository()
-    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val gjennomforingRepository = GjennomforingRepository()
     private val arrangorRepository = ArrangorRepository()
     private val amtGjennomforingProducer = mockk<AmtGjennomforingProducer>()
 
-    private val consumer = TiltakConsumer(tiltakRepository, deltakerlisteRepository, amtGjennomforingProducer)
+    private val consumer = TiltakConsumer(tiltakRepository, gjennomforingRepository, amtGjennomforingProducer)
 
     companion object {
         @RegisterExtension
@@ -94,7 +94,7 @@ class TiltakstypeConsumerTest {
         tiltakRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-        deltakerlisteRepository.upsert(deltakerliste)
+        gjennomforingRepository.upsert(deltakerliste)
 
         return deltakerliste.id
     }

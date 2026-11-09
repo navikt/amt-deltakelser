@@ -23,7 +23,7 @@ class DeltakerLaaseServiceTest {
 
     private val deltakerInTest = lagDeltaker()
     private val tidligereDeltakerInTest = lagDeltaker(
-        deltakerliste = deltakerInTest.deltakerliste,
+        gjennomforing = deltakerInTest.gjennomforing,
         navBruker = deltakerInTest.navBruker,
     )
 
@@ -40,7 +40,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     personIdenter = setOf(deltakerInTest.navBruker.personident),
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                 )
             } returns mapOf(
                 deltakerInTest.navBruker.personident to emptyList(),
@@ -61,7 +61,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     personIdenter = setOf(deltakerInTest.navBruker.personident),
-                    gjennomforingId = deltakerInTest.deltakerliste.id,
+                    gjennomforingId = deltakerInTest.gjennomforing.id,
                 )
             } returns mapOf(
                 deltakerInTest.navBruker.personident to listOf(
@@ -83,7 +83,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(personident),
-                    deltakerInTest.deltakerliste.id,
+                    deltakerInTest.gjennomforing.id,
                 )
             } returns mapOf(
                 personident to listOf(
@@ -129,7 +129,7 @@ class DeltakerLaaseServiceTest {
             verify(exactly = 1) {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
+                    deltakerInTest.gjennomforing.id,
                 )
             }
         }
@@ -156,7 +156,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(deltakerInTest.navBruker.personident),
-                    deltakerInTest.deltakerliste.id,
+                    deltakerInTest.gjennomforing.id,
                 )
             } returns mapOf(
                 deltakerInTest.navBruker.personident to listOf(
@@ -167,7 +167,7 @@ class DeltakerLaaseServiceTest {
             // Act
             val result = sut.erLaastForEndringerForDeltakere(
                 deltakerIdToPersonIdentMap = mapOf(deltakerInTest.id to deltakerInTest.navBruker.personident),
-                gjennomforingId = deltakerInTest.deltakerliste.id,
+                gjennomforingId = deltakerInTest.gjennomforing.id,
             )
 
             // Assert
@@ -186,7 +186,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(personident),
-                    kladd.deltakerliste.id,
+                    kladd.gjennomforing.id,
                 )
             } returns mapOf(
                 personident to listOf(
@@ -213,7 +213,7 @@ class DeltakerLaaseServiceTest {
                     tidligereAvsluttetDeltaker.id to tidligereAvsluttetDeltaker.navBruker.personident,
                     kladd.id to kladd.navBruker.personident,
                 ),
-                gjennomforingId = kladd.deltakerliste.id,
+                gjennomforingId = kladd.gjennomforing.id,
             )
 
             // Assert
@@ -233,7 +233,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(personident),
-                    nyeste.deltakerliste.id,
+                    nyeste.gjennomforing.id,
                 )
             } returns mapOf(
                 personident to listOf(
@@ -260,7 +260,7 @@ class DeltakerLaaseServiceTest {
                     eldre.id to eldre.navBruker.personident,
                     nyeste.id to nyeste.navBruker.personident,
                 ),
-                gjennomforingId = nyeste.deltakerliste.id,
+                gjennomforingId = nyeste.gjennomforing.id,
             )
 
             // Assert
@@ -280,7 +280,7 @@ class DeltakerLaaseServiceTest {
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
                     setOf(personident),
-                    aktiv.deltakerliste.id,
+                    aktiv.gjennomforing.id,
                 )
             } returns mapOf(
                 personident to listOf(
@@ -309,7 +309,7 @@ class DeltakerLaaseServiceTest {
                     aktiv.id to aktiv.navBruker.personident,
                     nyereAvsluttet.id to nyereAvsluttet.navBruker.personident,
                 ),
-                gjennomforingId = aktiv.deltakerliste.id,
+                gjennomforingId = aktiv.gjennomforing.id,
             )
 
             // Assert

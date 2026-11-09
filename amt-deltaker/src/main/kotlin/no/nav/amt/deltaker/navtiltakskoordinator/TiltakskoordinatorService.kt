@@ -69,15 +69,15 @@ class TiltakskoordinatorService(
 
         val deltakerIdToErLaastForEndringerMap = deltakerLaaseService.erLaastForEndringerForDeltakere(
             deltakerIdToPersonIdentMap = deltakere.associate { it.id to it.navBruker.personident },
-            gjennomforingId = deltakere.first().deltakerliste.id,
+            gjennomforingId = deltakere.first().gjennomforing.id,
         )
 
         val deltakerlister = deltakere
-            .map { it.deltakerliste.id }
+            .map { it.gjennomforing.id }
             .distinct()
 
         val tiltakskoder = deltakere
-            .map { it.deltakerliste.tiltakstype.tiltakskode }
+            .map { it.gjennomforing.tiltakstype.tiltakskode }
             .distinct()
 
         require(deltakerlister.size == 1 && deltakerlister.first() == gjennomforingId) {

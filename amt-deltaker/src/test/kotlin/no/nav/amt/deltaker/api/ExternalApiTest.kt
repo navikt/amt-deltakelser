@@ -60,9 +60,9 @@ class ExternalApiTest : IntegrationTestBase() {
         @BeforeEach
         fun setup() {
             every { arrangorService.getFunksjonellArrangorForGjennomforing(any()) } answers {
-                firstArg<no.nav.amt.deltaker.model.Deltakerliste>()
+                firstArg<no.nav.amt.deltaker.model.Gjennomforing>()
                     .arrangor!!
-                    .copy(navn = firstArg<no.nav.amt.deltaker.model.Deltakerliste>().arrangor!!.navn.toTitleCase())
+                    .copy(navn = firstArg<no.nav.amt.deltaker.model.Gjennomforing>().arrangor!!.navn.toTitleCase())
             }
         }
 
@@ -96,7 +96,7 @@ class ExternalApiTest : IntegrationTestBase() {
 
             val innsoktDato = LocalDate.now().minusDays(4)
             val deltaker = lagDeltaker(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                     tiltakstype = lagTiltakstype(
                         tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -118,11 +118,11 @@ class ExternalApiTest : IntegrationTestBase() {
                 aktive = listOf(
                     DeltakerKort(
                         deltakerId = deltaker.id,
-                        deltakerlisteId = deltaker.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${deltaker.deltakerliste.arrangor!!.navn.toTitleCase()}",
+                        deltakerlisteId = deltaker.gjennomforing.id,
+                        tittel = "Arbeidsforberedende trening hos ${deltaker.gjennomforing.arrangor!!.navn.toTitleCase()}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
-                            navn = deltaker.deltakerliste.tiltakstype.navn,
-                            tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                            navn = deltaker.gjennomforing.tiltakstype.navn,
+                            tiltakskode = deltaker.gjennomforing.tiltakstype.tiltakskode,
                         ),
                         status = DeltakerKort.Status(
                             type = DeltakerStatus.Type.DELTAR,
@@ -135,7 +135,7 @@ class ExternalApiTest : IntegrationTestBase() {
                             startdato = deltaker.startdato,
                             sluttdato = deltaker.sluttdato,
                         ),
-                        oppstartstype = deltaker.deltakerliste.oppstart,
+                        oppstartstype = deltaker.gjennomforing.oppstart,
                     ),
                 ),
                 historikk = emptyList(),
@@ -153,7 +153,7 @@ class ExternalApiTest : IntegrationTestBase() {
         fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
             val innsoktDato = LocalDate.now().minusDays(4)
             val deltakerKladd = lagDeltaker(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                     tiltakstype = lagTiltakstype(
                         tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -166,7 +166,7 @@ class ExternalApiTest : IntegrationTestBase() {
             every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
             val avsluttetDeltaker = lagDeltaker(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
                     tiltakstype = lagTiltakstype(
                         tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -196,11 +196,11 @@ class ExternalApiTest : IntegrationTestBase() {
                 aktive = listOf(
                     DeltakerKort(
                         deltakerId = deltakerKladd.id,
-                        deltakerlisteId = deltakerKladd.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${deltakerKladd.deltakerliste.arrangor!!.navn.toTitleCase()}",
+                        deltakerlisteId = deltakerKladd.gjennomforing.id,
+                        tittel = "Arbeidsforberedende trening hos ${deltakerKladd.gjennomforing.arrangor!!.navn.toTitleCase()}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
-                            navn = deltakerKladd.deltakerliste.tiltakstype.navn,
-                            tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode,
+                            navn = deltakerKladd.gjennomforing.tiltakstype.navn,
+                            tiltakskode = deltakerKladd.gjennomforing.tiltakstype.tiltakskode,
                         ),
                         status = DeltakerKort.Status(
                             type = DeltakerStatus.Type.KLADD,
@@ -210,17 +210,17 @@ class ExternalApiTest : IntegrationTestBase() {
                         innsoktDato = null,
                         sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
                         periode = null,
-                        oppstartstype = deltakerKladd.deltakerliste.oppstart,
+                        oppstartstype = deltakerKladd.gjennomforing.oppstart,
                     ),
                 ),
                 historikk = listOf(
                     DeltakerKort(
                         deltakerId = avsluttetDeltaker.id,
-                        deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
-                        tittel = "Arbeidsforberedende trening hos ${avsluttetDeltaker.deltakerliste.arrangor!!.navn.toTitleCase()}",
+                        deltakerlisteId = avsluttetDeltaker.gjennomforing.id,
+                        tittel = "Arbeidsforberedende trening hos ${avsluttetDeltaker.gjennomforing.arrangor!!.navn.toTitleCase()}",
                         tiltakstype = DeltakelserResponse.Tiltakstype(
-                            navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
-                            tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode,
+                            navn = avsluttetDeltaker.gjennomforing.tiltakstype.navn,
+                            tiltakskode = avsluttetDeltaker.gjennomforing.tiltakstype.tiltakskode,
                         ),
                         status = DeltakerKort.Status(
                             type = DeltakerStatus.Type.HAR_SLUTTET,
@@ -233,7 +233,7 @@ class ExternalApiTest : IntegrationTestBase() {
                             startdato = avsluttetDeltaker.startdato,
                             sluttdato = avsluttetDeltaker.sluttdato,
                         ),
-                        oppstartstype = avsluttetDeltaker.deltakerliste.oppstart,
+                        oppstartstype = avsluttetDeltaker.gjennomforing.oppstart,
                     ),
                 ),
             )

@@ -24,7 +24,7 @@ class EndreStartdatoExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             startdato = LocalDate.now().plusDays(3),
             sluttdato = opprinneligSluttdato,
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.ENKELTPLASS,
@@ -61,7 +61,7 @@ class EndreStartdatoExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             startdato = LocalDate.now().plusDays(3),
             sluttdato = opprinneligSluttdato,
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.ENKELTPLASS,
@@ -373,7 +373,7 @@ class EndreStartdatoExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().minusDays(1),
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),

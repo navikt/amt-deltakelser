@@ -9,23 +9,25 @@ plugins {
 
 group = "no.nav.amt.deltakelser.lib"
 
-val libsWrapper = VersionCatalogWrapper.fromProject(project)
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 repositories {
     mavenCentral()
 }
+
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
 
 java {
     withJavadocJar()
     withSourcesJar()
 
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(javaVersion)
     }
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint.cli.version")
+    version = versionCatalog.findVersion("ktlint.cli.version").get().requiredVersion
 }
 
 publishing {

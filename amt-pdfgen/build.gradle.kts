@@ -1,14 +1,23 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm")
 }
 
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+    }
 }
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
 dependencies {

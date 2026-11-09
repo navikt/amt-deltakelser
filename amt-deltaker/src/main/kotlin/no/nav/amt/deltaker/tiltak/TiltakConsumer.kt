@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.tiltak
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.kafka.AmtGjennomforingProducer
 import no.nav.amt.deltaker.kafka.toAmtGjennomforingPayload
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskoder.skalKometLagreTiltakstype
@@ -17,7 +17,7 @@ import java.util.UUID
 
 class TiltakConsumer(
     private val repository: TiltakRepository,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val amtGjennomforingProducer: AmtGjennomforingProducer,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -58,7 +58,7 @@ class TiltakConsumer(
      * i `amt.gjennomforing-intern`-payloaden blir oppdatert hos konsumentene.
      */
     private fun reproduserGjennomforinger(tiltakstypeId: UUID) {
-        val gjennomforinger = deltakerlisteRepository
+        val gjennomforinger = gjennomforingRepository
             .getManyForTiltakstype(tiltakstypeId)
             .filter { it.arrangor != null }
 

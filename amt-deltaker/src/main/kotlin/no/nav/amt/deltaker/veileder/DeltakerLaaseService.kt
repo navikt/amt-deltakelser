@@ -32,7 +32,7 @@ class DeltakerLaaseService(
      */
     fun erLaastForEndringer(deltaker: Deltaker): Boolean = erLaastForEndringerForDeltakere(
         deltakerIdToPersonIdentMap = mapOf(deltaker.id to deltaker.navBruker.personident),
-        gjennomforingId = deltaker.deltakerliste.id,
+        gjennomforingId = deltaker.gjennomforing.id,
     ).getValue(deltaker.id)
 
     /**

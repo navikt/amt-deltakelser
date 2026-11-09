@@ -28,7 +28,7 @@ class DeltakerProducerServiceTest {
     @Test
     fun `produce - tiltakskode TILRETTELAGT_ARBEID_ORDINAER - publiserer ikke til deltaker-v1`() {
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER),
             ),
         )
@@ -48,7 +48,7 @@ class DeltakerProducerServiceTest {
     @Test
     fun `produce - annen tiltakskode der Komet er master - publiserer til deltaker-v1`() {
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
+            gjennomforing = TestData.lagDeltakerliste(
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING),
             ),
         )

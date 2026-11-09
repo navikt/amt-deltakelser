@@ -52,15 +52,6 @@ class TotrinnskontrollConsumer(
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Signalerer at totrinnskontrollhendelsen peker på historisk prisinfo som ikke lenger kan godkjennes.
-     *
-     * Brukes kun internt for å avbryte videre prosessering av hendelsen uten å stoppe consumeren.
-     */
-    private class HistoriskPrisinfoException(
-        message: String,
-    ) : IllegalStateException(message)
-
     private val consumer = buildManagedKafkaConsumer(
         topic = Environment.TOTRINNSKONTROLL_TOPIC,
         consumeFunc = ::consume,
@@ -91,7 +82,7 @@ class TotrinnskontrollConsumer(
         if (totrinnskontrollHendelse.status != TotrinnskontrollHendelsePayload.Status.GODKJENT) {
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = totrinnskontrollHendelse.id,
-                status = PrisinfoDbo.PrisinfoStatus.valueOf(totrinnskontrollHendelse.status.name),
+                status = PrisinfoDbo.TotrinnskontrollStatus.valueOf(totrinnskontrollHendelse.status.name),
             )
 
             log.info(
@@ -102,21 +93,13 @@ class TotrinnskontrollConsumer(
 
         val deltaker = deltakerRepository.getEnkeltplassdeltakerOrThrow(totrinnskontrollHendelse.entityId)
 
-        val prisinfoStatus = PrisinfoRepository.hentPrisinfoStatus(
-            gjennomforingId = deltaker.deltakerliste.id,
+        val totrinnskontrollStatus = PrisinfoRepository.hentPrisinfoStatus(
+            gjennomforingId = deltaker.gjennomforing.id,
             prisinformasjonId = totrinnskontrollHendelse.id,
-        ) ?: run {
-            if (Environment.isDev()) {
-                // dette kan skje i dev i en overgangsfase grunnet ny db-struktur
-                log.warn("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
-                return
-            } else {
-                error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
-            }
-        }
+        ) ?: error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
 
         // Sjekk om prisinfo allerede er godkjent for å gjøre consumer idempotent.
-        if (prisinfoStatus == PrisinfoDbo.PrisinfoStatus.GODKJENT) {
+        if (totrinnskontrollStatus == PrisinfoDbo.TotrinnskontrollStatus.GODKJENT) {
             log.info("Totrinnskontroll ${totrinnskontrollHendelse.id} er allerede godkjent, skipper videre prosessering.")
             return
         }
@@ -130,10 +113,10 @@ class TotrinnskontrollConsumer(
         // Godkjenningen skal attribueres til den som besluttet (besluttetAv), ikke den som forespurte
         // (behandletAv).
         val besluttetAv = totrinnskontrollHendelse.besluttetAv
-        require(besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt)
-        {
+        require(besluttetAv is TotrinnskontrollHendelsePayload.TotrinnskontrollAgent.NavAnsatt) {
             "Totrinnskontroll ${totrinnskontrollHendelse.id} er godkjent med uventet type for `besluttetAv`. Avbryter behandling: $besluttetAv"
         }
+
         val (godkjentAvNavAnsatt, godkjentAvNavEnhet) = navAnsattService.hentNavAnsattOgEnhet(besluttetAv.navIdent)
         when (totrinnskontrollHendelse.type) {
             TotrinnskontrollType.ENKELTPLASS_OKONOMI -> {
@@ -160,7 +143,7 @@ class TotrinnskontrollConsumer(
                 } else {
                     processGodkjentPrisEndring(
                         deltaker = deltaker,
-                        prisinfoId = totrinnskontrollHendelse.id,
+                        prisinformasjonId = totrinnskontrollHendelse.id,
                         behandletAvNavAnsatt = behandletAvNavAnsatt,
                         behandletAvNavEnhet = behandletAvNavEnhet,
                         godkjentAvNavAnsatt = godkjentAvNavAnsatt,
@@ -182,7 +165,7 @@ class TotrinnskontrollConsumer(
      */
     internal fun processGodkjentPrisEndring(
         deltaker: Deltaker,
-        prisinfoId: UUID,
+        prisinformasjonId: UUID,
         behandletAvNavAnsatt: NavAnsatt,
         behandletAvNavEnhet: NavEnhet,
         godkjentAvNavAnsatt: NavAnsatt,
@@ -190,27 +173,32 @@ class TotrinnskontrollConsumer(
     ) {
         Database.transaction {
             val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
-                gjennomforingId = deltaker.deltakerliste.id,
-                prisinformasjonId = prisinfoId,
+                gjennomforingId = deltaker.gjennomforing.id,
+                prisinformasjonId = prisinformasjonId,
                 godkjentAv = godkjentAvNavAnsatt.id,
                 godkjentAvEnhet = godkjentAvNavEnhet.id,
             )
 
-            if (!skalPublisereHendelse) return@transaction
+            if (!skalPublisereHendelse) {
+                log.info("prisinformasjon $prisinformasjonId er ikke aktiv prisendring for deltaker ${deltaker.id}")
+                return@transaction
+            }
 
-            val godkjentPrisinfo: PrisinformasjonDto = PrisinfoRepoAdapter.hentPrisinfo(
-                gjennomforingId = deltaker.deltakerliste.id,
+            // gjeldendeGodkjentPrisinfo ble knyttet i begynnelsen av denne transaksjonen
+            val gjeldendeGodkjentPrisinfo: PrisinformasjonDto = PrisinfoRepoAdapter.hentPrisinfo(
+                gjennomforingId = deltaker.gjennomforing.id,
                 rolle = PrisinfoDbo.Rolle.GJELDENDE,
             ) ?: error("Fant ikke gjeldende prisinfo for deltaker ${deltaker.id}")
-            val begrunnelse = godkjentPrisinfo.begrunnelse
-                ?: error("Fant ikke begrunnelse for prisinfo $prisinfoId")
+
+            val begrunnelse = gjeldendeGodkjentPrisinfo.begrunnelse
+                ?: error("Fant ikke begrunnelse for prisinfo $prisinformasjonId")
 
             distribuerEndringService.produceHendelse(
                 deltaker = deltaker,
                 navAnsatt = behandletAvNavAnsatt,
                 enhet = behandletAvNavEnhet,
                 endring = HendelseType.EnkeltplassGodkjennPrisendring(
-                    prisinfo = godkjentPrisinfo,
+                    prisinfo = gjeldendeGodkjentPrisinfo,
                     begrunnelse = begrunnelse,
                 ),
             )
@@ -241,50 +229,39 @@ class TotrinnskontrollConsumer(
             return
         }
 
-        try {
-            deltakerService.upsertAndProduceDeltaker(
-                deltaker = deltaker,
-                erDeltakerSluttdatoEndret = false,
-                beforeUpsert = { deltaker ->
-                    // setter prisinformasjon til rolle = GJELDENDE og oppdaterer status til GODKJENT
-                    val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
-                        gjennomforingId = deltaker.deltakerliste.id,
-                        prisinformasjonId = prisinfoId,
-                        godkjentAv = godkjentAvNavAnsatt.id,
-                        godkjentAvEnhet = godkjentAvNavEnhet.id,
-                    )
+        deltakerService.upsertAndProduceDeltakerConditionally(
+            deltaker = deltaker,
+            beforeUpsert = { deltakerForGodkjenning ->
+                val skalPublisereHendelse = PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = deltakerForGodkjenning.gjennomforing.id,
+                    prisinformasjonId = prisinfoId,
+                    godkjentAv = godkjentAvNavAnsatt.id,
+                    godkjentAvEnhet = godkjentAvNavEnhet.id,
+                )
 
-                    if (!skalPublisereHendelse) {
-                        throw HistoriskPrisinfoException(
-                            "Fant ikke aktiv ENDRING-prisinfo $prisinfoId for deltaker ${deltaker.id}",
-                        )
-                    }
+                if (!skalPublisereHendelse) {
+                    log.info("Prisinformasjon $prisinfoId er historisk for deltaker ${deltakerForGodkjenning.id}")
+                    return@upsertAndProduceDeltakerConditionally null
+                }
 
-                    vedtakService.godkjentOkonomiFattVedtak(
-                        deltaker = deltaker,
-                        sistEndretAv = behandletAvNavAnsatt,
-                        sistEndretAvEnhet = behandletAvNavEnhet,
-                    )
+                vedtakService.godkjentOkonomiFattVedtak(
+                    deltaker = deltakerForGodkjenning,
+                    sistEndretAv = behandletAvNavAnsatt,
+                    sistEndretAvEnhet = behandletAvNavEnhet,
+                )
 
-                    deltaker.copy(
-                        status = DeltakerUtils.nyDeltakerStatus(nyDeltakerStatus(deltaker)),
-                    )
-                },
-                afterUpsert = { oppdatertDeltaker ->
-                    distribuerEndringService.produceHendelseForUtkast(
-                        deltaker = oppdatertDeltaker,
-                        navAnsatt = behandletAvNavAnsatt,
-                        enhet = behandletAvNavEnhet,
-                    ) { utkastDto -> HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkastDto) }
-                },
-            )
-        } catch (_: HistoriskPrisinfoException) {
-            log.info(
-                "Totrinnskontroll for prisinfoId $prisinfoId, deltaker ${deltaker.id} gjelder historiske data, " +
-                    "skipper videre prosessering.",
-            )
-            return
-        }
+                deltakerForGodkjenning.copy(
+                    status = DeltakerUtils.nyDeltakerStatus(nyDeltakerStatus(deltakerForGodkjenning)),
+                )
+            },
+            afterUpsert = { oppdatertDeltaker ->
+                distribuerEndringService.produceHendelseForUtkast(
+                    deltaker = oppdatertDeltaker,
+                    navAnsatt = behandletAvNavAnsatt,
+                    enhet = behandletAvNavEnhet,
+                ) { utkastDto -> HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkastDto) }
+            },
+        )
 
         log.info("Totrinnskontrollhendelse behandlet for deltaker ${deltaker.id}")
     }

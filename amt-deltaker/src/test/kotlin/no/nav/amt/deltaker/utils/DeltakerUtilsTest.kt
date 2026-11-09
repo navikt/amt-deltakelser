@@ -66,7 +66,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - tildel plass - felles oppstart med fremtidig startdato setter datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.FELLES,
                     startDato = LocalDate.now().plusDays(2),
                     sluttDato = LocalDate.now().plusDays(30),
@@ -80,8 +80,8 @@ class DeltakerUtilsTest {
                 ).getOrThrow()
 
             endretDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            endretDeltaker.startdato shouldBe deltaker.deltakerliste.startDato
-            endretDeltaker.sluttdato shouldBe deltaker.deltakerliste.sluttDato
+            endretDeltaker.startdato shouldBe deltaker.gjennomforing.startDato
+            endretDeltaker.sluttdato shouldBe deltaker.gjennomforing.sluttDato
         }
     }
 
@@ -89,7 +89,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - tildel plass - felles oppstart med passert startdato setter ikke datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.FELLES,
                     startDato = LocalDate.now().minusDays(1),
                     sluttDato = LocalDate.now().plusDays(30),
@@ -112,7 +112,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - tildel plass - felles oppstart med startdato i dag setter ikke datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.FELLES,
                     startDato = LocalDate.now(),
                     sluttDato = LocalDate.now().plusDays(30),
@@ -135,7 +135,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - tildel plass - lopende oppstart setter ikke datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
-                deltakerliste = lagDeltakerliste(
+                gjennomforing = lagDeltakerliste(
                     oppstart = Oppstartstype.LOPENDE,
                     startDato = LocalDate.now().plusDays(2),
                     sluttDato = LocalDate.now().plusDays(30),

@@ -29,7 +29,7 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
     private val navAnsatt: NavAnsatt = lagNavAnsatt(navIdent = "Z999999", navEnhetId = navEnhet.id)
     private val testGjennomforingId: UUID = UUID.randomUUID()
     private val deltakerInTest: Deltaker = lagDeltaker(
-        deltakerliste = lagDeltakerliste(id = testGjennomforingId),
+        gjennomforing = lagDeltakerliste(id = testGjennomforingId),
     )
 
     @BeforeEach
@@ -59,24 +59,6 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
 
     @Nested
     inner class ProcessGodkjentPrisEndringTests {
-        @Test
-        fun `kaller godkjennOkonomi med gjennomforingId`() = runTest {
-            // Arrange: default stubs and test data are configured in setup().
-
-            // Act
-            processGodkjentPrisEndring(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
-
-            // Assert
-            verify {
-                PrisinfoRepoAdapter.godkjennOkonomi(
-                    gjennomforingId = testGjennomforingId,
-                    prisinformasjonId = totrinnskontrollId,
-                    godkjentAv = navAnsatt.id,
-                    godkjentAvEnhet = navEnhet.id,
-                )
-            }
-        }
-
         @Test
         fun `processGodkjentPrisEndring - kaster unntak når godkjennOkonomi feiler`() = runTest {
             // Arrange
@@ -126,6 +108,14 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
 
             // Assert
             (hendelseSlot.captured as HendelseType.EnkeltplassGodkjennPrisendring).begrunnelse shouldBe forventetBegrunnelse
+            verify {
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = testGjennomforingId,
+                    prisinformasjonId = totrinnskontrollId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
+                )
+            }
         }
 
         @Test
@@ -163,7 +153,7 @@ class TotrinnskontrollConsumerPrisendringTest : TotrinnskontrollConsumerTestBase
         ) {
             consumer.processGodkjentPrisEndring(
                 deltaker = deltaker,
-                prisinfoId = prisinfoId,
+                prisinformasjonId = prisinfoId,
                 behandletAvNavAnsatt = navAnsatt,
                 behandletAvNavEnhet = navEnhet,
                 godkjentAvNavAnsatt = navAnsatt,
