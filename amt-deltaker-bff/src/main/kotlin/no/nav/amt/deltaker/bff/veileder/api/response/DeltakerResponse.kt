@@ -7,6 +7,7 @@ import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.getInnholdselementer
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import java.time.LocalDate
 import java.util.UUID
 
