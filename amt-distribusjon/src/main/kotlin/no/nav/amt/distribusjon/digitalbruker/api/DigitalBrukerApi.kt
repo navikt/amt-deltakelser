@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.distribusjon.digitalbruker.DigitalBrukerService
+import no.nav.amt.internapi.distribusjon.DigitalBrukerResponse
 
 fun Routing.registerDigitalBrukerApi(digitalBrukerService: DigitalBrukerService) {
     authenticate("SYSTEM") {

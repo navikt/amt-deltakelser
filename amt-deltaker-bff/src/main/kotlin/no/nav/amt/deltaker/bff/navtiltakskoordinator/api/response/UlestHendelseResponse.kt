@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.AnsvarligNavnOgEnhet
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseType
-import no.nav.amt.deltaker.bff.veileder.api.response.DeltakerEndringEndringResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagEndringResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringAarsakResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -87,13 +87,13 @@ sealed interface UlestHendelseTypeResponse {
     }
 
     data class IkkeAktuell(
-        val aarsak: DeltakerEndringEndringResponse.AarsakResponse,
+        val aarsak: DeltakerEndringAarsakResponse,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
     ) : HendelseMedForslagResponse {
         constructor(model: UlestHendelseType.IkkeAktuell) : this(
-            aarsak = DeltakerEndringEndringResponse.AarsakResponse(model.aarsak),
+            aarsak = DeltakerEndringAarsakResponse(model.aarsak),
             begrunnelseFraNav = model.begrunnelseFraNav,
             begrunnelseFraArrangor = model.begrunnelseFraArrangor,
             endringFraForslag = model.endringFraForslag?.let(ForslagEndringResponse::fromModel),
@@ -101,14 +101,14 @@ sealed interface UlestHendelseTypeResponse {
     }
 
     data class AvsluttDeltakelse(
-        val aarsak: DeltakerEndringEndringResponse.AarsakResponse?,
+        val aarsak: DeltakerEndringAarsakResponse?,
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
     ) : HendelseMedForslagResponse {
         constructor(model: UlestHendelseType.AvsluttDeltakelse) : this(
-            aarsak = model.aarsak?.let { DeltakerEndringEndringResponse.AarsakResponse(it) },
+            aarsak = model.aarsak?.let(::DeltakerEndringAarsakResponse),
             sluttdato = model.sluttdato,
             begrunnelseFraNav = model.begrunnelseFraNav,
             begrunnelseFraArrangor = model.begrunnelseFraArrangor,
@@ -117,14 +117,14 @@ sealed interface UlestHendelseTypeResponse {
     }
 
     data class AvbrytDeltakelse(
-        val aarsak: DeltakerEndringEndringResponse.AarsakResponse?,
+        val aarsak: DeltakerEndringAarsakResponse?,
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: ForslagEndringResponse?,
     ) : HendelseMedForslagResponse {
         constructor(model: UlestHendelseType.AvbrytDeltakelse) : this(
-            aarsak = model.aarsak?.let { DeltakerEndringEndringResponse.AarsakResponse(it) },
+            aarsak = model.aarsak?.let(::DeltakerEndringAarsakResponse),
             sluttdato = model.sluttdato,
             begrunnelseFraNav = model.begrunnelseFraNav,
             begrunnelseFraArrangor = model.begrunnelseFraArrangor,

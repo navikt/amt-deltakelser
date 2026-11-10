@@ -1,6 +1,7 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.client.annotation.ClientRegistrationId
@@ -15,7 +16,7 @@ interface AmtPersonApi {
     @GetExchange("/api/nav-enhet/{id}")
     fun hentEnhet(
         @PathVariable id: UUID,
-    ): ResponseEntity<NavEnhetResponse>
+    ): ResponseEntity<NavEnhetDto>
 
     @GetExchange("/api/nav-ansatt/{id}")
     fun hentNavAnsatt(

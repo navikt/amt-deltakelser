@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.bff.veileder.api.response
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerEndringAarsakResponse
 import no.nav.amt.internapi.deltaker.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -81,24 +82,24 @@ sealed interface DeltakerEndringEndringResponse {
     }
 
     data class IkkeAktuell(
-        val aarsak: AarsakResponse,
+        val aarsak: DeltakerEndringAarsakResponse,
         val begrunnelse: String?,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.IkkeAktuell) : this(
-            aarsak = AarsakResponse(model.aarsak),
+            aarsak = DeltakerEndringAarsakResponse(model.aarsak),
             begrunnelse = model.begrunnelse,
         )
     }
 
     data class AvsluttDeltakelse(
-        val aarsak: AarsakResponse?,
+        val aarsak: DeltakerEndringAarsakResponse?,
         val sluttdato: LocalDate,
         val begrunnelse: String?,
         val harFullfort: Boolean,
         val oppstartstype: Oppstartstype?,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.AvsluttDeltakelse, oppstartstype: Oppstartstype?) : this(
-            aarsak = model.aarsak?.let(::AarsakResponse),
+            aarsak = model.aarsak?.let(::DeltakerEndringAarsakResponse),
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
             harFullfort = true,
@@ -106,7 +107,7 @@ sealed interface DeltakerEndringEndringResponse {
         )
 
         constructor(model: DeltakerEndring.Endring.AvbrytDeltakelse, oppstartstype: Oppstartstype?) : this(
-            aarsak = AarsakResponse(model.aarsak),
+            aarsak = DeltakerEndringAarsakResponse(model.aarsak),
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
             harFullfort = false,
@@ -115,13 +116,13 @@ sealed interface DeltakerEndringEndringResponse {
     }
 
     data class EndreAvslutning(
-        val aarsak: AarsakResponse?,
+        val aarsak: DeltakerEndringAarsakResponse?,
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
         val harFullfort: Boolean?,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreAvslutning) : this(
-            aarsak = model.aarsak?.let(::AarsakResponse),
+            aarsak = model.aarsak?.let(::DeltakerEndringAarsakResponse),
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
             harFullfort = model.harFullfort,
@@ -129,11 +130,11 @@ sealed interface DeltakerEndringEndringResponse {
     }
 
     data class EndreSluttarsak(
-        val aarsak: AarsakResponse,
+        val aarsak: DeltakerEndringAarsakResponse,
         val begrunnelse: String?,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreSluttarsak) : this(
-            aarsak = AarsakResponse(model.aarsak),
+            aarsak = DeltakerEndringAarsakResponse(model.aarsak),
             begrunnelse = model.begrunnelse,
         )
     }
@@ -177,16 +178,6 @@ sealed interface DeltakerEndringEndringResponse {
             opplaringKategoriseringValg = OpplaringKategoriseringValgResponse.fromModel(model.opplaringKategoriseringValg),
             beskrivelse = model.beskrivelse,
             pavirkerPris = model.pavirkerPris,
-        )
-    }
-
-    data class AarsakResponse(
-        val type: DeltakerEndring.Aarsak.Type,
-        val beskrivelse: String? = null,
-    ) {
-        constructor(model: DeltakerEndring.Aarsak) : this(
-            type = model.type,
-            beskrivelse = model.beskrivelse,
         )
     }
 

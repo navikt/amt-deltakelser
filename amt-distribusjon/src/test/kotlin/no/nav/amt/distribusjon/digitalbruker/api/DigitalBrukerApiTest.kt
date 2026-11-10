@@ -14,10 +14,12 @@ import io.mockk.coEvery
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
 import no.nav.amt.distribusjon.utils.generateJWT
+import no.nav.amt.internapi.distribusjon.DigitalBrukerResponse
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 
 class DigitalBrukerApiTest : IntegrationTestBase() {
     private val personident = randomIdent()
@@ -40,7 +42,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.post("/digital") { postRequest(DigitalBrukerRequest(personident)) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DigitalBrukerResponse(true))
+                objectMapper.readValue<DigitalBrukerResponse>(bodyAsText()) shouldBe DigitalBrukerResponse(true)
             }
         }
     }
@@ -52,7 +54,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
 
             client.post("/digital") { postRequest(DigitalBrukerRequest(personident)) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DigitalBrukerResponse(false))
+                objectMapper.readValue<DigitalBrukerResponse>(bodyAsText()) shouldBe DigitalBrukerResponse(false)
             }
         }
     }
@@ -64,7 +66,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
         withTestApplicationContext { client ->
             client.post("/digital") { postRequest(DigitalBrukerRequest(personident)) }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DigitalBrukerResponse(false))
+                objectMapper.readValue<DigitalBrukerResponse>(bodyAsText()) shouldBe DigitalBrukerResponse(false)
             }
         }
     }

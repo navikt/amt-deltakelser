@@ -26,12 +26,12 @@ import no.nav.amt.lib.models.kafka.Personalia
 import no.nav.amt.lib.models.kafka.Tiltak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.tiltaksarrangor.client.amtarrangor.HentArrangorClient
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingDto
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingType
 import no.nav.tiltaksarrangor.consumer.model.Innhold
@@ -583,7 +583,7 @@ class KafkaConsumerServiceTest {
             enhetsnummer = "1234",
             navn = gammeltNavn,
         )
-        val nyEnhet = NavEnhetResponse(
+        val nyEnhet = NavEnhetDto(
             id = id,
             enhetId = "1234",
             navn = nyttNavn,
@@ -594,7 +594,7 @@ class KafkaConsumerServiceTest {
 
         kafkaConsumerService.lagreNavEnhet(id, nyEnhet)
 
-        verify(exactly = 1) { navEnhetService.upsert(match { it.navn == nyttNavn }) }
+        verify(exactly = 1) { navEnhetService.upsert(NavEnhet(id, "1234", nyttNavn)) }
         verify(exactly = 1) { deltakerRepository.oppdaterEnhetsnavnForDeltakere(gammeltNavn, nyttNavn) }
     }
 
