@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -315,7 +316,7 @@ class PrisinfoRepositoryTest {
     @Nested
     inner class HentPrisinfoListeForHistorikkTests {
         private val navEnhet = lagNavEnhet()
-        val deltakerliste = lagDeltakerliste()
+        val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
         val navAnsatt = lagNavAnsatt()
         val deltaker = lagDeltaker(
             gjennomforing = deltakerliste,
@@ -455,7 +456,7 @@ class PrisinfoRepositoryTest {
         }
 
         @Test
-        fun `returnerer tom liste for deltaker uten vedtak`() {
+        fun `returnerer godkjent prisinfo for deltaker uten vedtak`() {
             TestRepository.insert(deltaker)
 
             val prisinfoDbo = PrisinfoDbo(
@@ -475,14 +476,14 @@ class PrisinfoRepositoryTest {
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
 
             // Assert
-            result shouldHaveSize 0
+            result shouldHaveSize 1
         }
 
         @Test
         fun `returnerer ikke prisinfo fra en annen deltakers deltakerliste`() {
             // Arrange
-            val deltakerliste1 = lagDeltakerliste()
-            val deltakerliste2 = lagDeltakerliste()
+            val deltakerliste1 = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
+            val deltakerliste2 = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
 
             val deltaker1 = lagDeltaker(
                 gjennomforing = deltakerliste1,
@@ -533,76 +534,30 @@ class PrisinfoRepositoryTest {
         }
 
         @Test
-        fun `setter erForsteGodkjenning til true når godkjenning skjedde før vedtaket ble fattet`() {
-            // Arrange - vedtaket fattes etter at prisinfo ble godkjent
-            insertDeltakerMedVedtak(fattet = LocalDateTime.now().plusMinutes(5))
-            godkjennNyPrisinfo()
-
-            // Act
-            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
-
-            // Assert
-            result shouldHaveSize 1
-            assertSoftly(result.first()) {
-                erForsteGodkjenning shouldBe true
-                prisinfo.anskaffelsePris shouldBe 20000
-            }
-        }
-
-        @Test
-        fun `setter erForsteGodkjenning til false når godkjenning skjedde etter at vedtaket ble fattet`() {
-            // Arrange - prisendring godkjennes etter at vedtaket er fattet
-            insertDeltakerMedVedtak(fattet = LocalDateTime.now().minusMinutes(5))
-            godkjennNyPrisinfo()
-
-            // Act
-            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
-
-            // Assert
-            result shouldHaveSize 1
-            result.first().erForsteGodkjenning shouldBe false
-        }
-
-        @Test
-        fun `setter erForsteGodkjenning til false når vedtaket ikke er fattet`() {
-            // Arrange
-            insertDeltakerMedVedtak(fattet = null)
-            godkjennNyPrisinfo()
-
-            // Act
-            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
-
-            // Assert
-            result shouldHaveSize 1
-            result.first().erForsteGodkjenning shouldBe false
-        }
-
-        private fun insertDeltakerMedVedtak(fattet: LocalDateTime?) {
-            val vedtak = lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                fattet = fattet,
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                sistEndretAv = navAnsatt,
-                sistEndretAvEnhet = navEnhet,
+        fun `returnerer ikke godkjent prisinfo for gruppedeltaker`() {
+            val gruppe = lagDeltakerliste(gjennomforingstype = GjennomforingType.Gruppe)
+            val gruppeDeltaker = lagDeltaker(
+                gjennomforing = gruppe,
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
-            TestRepository.insert(deltaker, vedtak)
-        }
+            TestRepository.insert(gruppeDeltaker)
 
-        private fun godkjennNyPrisinfo() {
             val prisinfoDbo = PrisinfoDbo(
-                gjennomforingId = deltakerliste.id,
+                gjennomforingId = gruppe.id,
                 prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
-                anskaffelsePris = 20000,
+                anskaffelsePris = 30000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
             PrisinfoRepository.settGodkjent(
-                gjennomforingId = deltakerliste.id,
+                gjennomforingId = gruppe.id,
                 prisinformasjonId = prisinfoDbo.id,
                 godkjentAv = navAnsatt.id,
                 godkjentAvEnhet = navEnhet.id,
             )
+
+            val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(gruppeDeltaker.id)
+
+            result shouldHaveSize 0
         }
     }
 

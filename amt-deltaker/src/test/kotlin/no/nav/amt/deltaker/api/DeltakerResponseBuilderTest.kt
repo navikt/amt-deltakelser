@@ -364,7 +364,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
 
         coEvery { distribusjonClient.digitalBruker(deltaker.navBruker.personident) } returns true
         every { deltakerLaaseService.erLaastForEndringer(deltaker) } returns true
-        every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns emptyList()
+        every { deltakerHistorikkService.getForDeltaker(any<java.util.UUID>(), any()) } returns emptyList()
         every { deltakerRepository.getSoktInnDato(any()) } returns null
         every { vurderingRepository.getForDeltaker(deltaker.id) } returns listOf(vurdering)
 
@@ -428,7 +428,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         ) {
             coEvery { distribusjonClient.digitalBruker(any()) } returns true
             every { deltakerLaaseService.erLaastForEndringer(any()) } returns false
-            every { deltakerHistorikkService.getForDeltaker(any(), any()) } returns historikk
+            every { deltakerHistorikkService.getForDeltaker(any<java.util.UUID>(), any()) } returns historikk
             every { deltakerRepository.getSoktInnDato(any()) } returns null
             every { vurderingRepository.getForDeltaker(any()) } returns emptyList()
             every { forslagRepository.getForDeltaker(any()) } returns emptyList()

@@ -3,11 +3,13 @@ package no.nav.amt.deltaker.service
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotliquery.queryOf
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -21,11 +23,14 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -110,6 +115,77 @@ class DeltakerHistorikkServiceTest {
             vedtakResult.shouldBeInstanceOf<DeltakerHistorikk.Vedtak>()
             vedtakResult.vedtak.deltakerVedVedtak.opplaringKategorisering shouldNotBe null
             DeltakerTestUtils.sammenlignHistorikk(vedtakResult, DeltakerHistorikk.Vedtak(vedtak))
+        }
+
+        @Test
+        fun `merker bare siste godkjente prisinfo før vedtaket som forste godkjenning`() {
+            val navEnhet = TestData.lagNavEnhet()
+            navEnhetRepository.upsert(navEnhet)
+
+            val navAnsatt = TestData.lagNavAnsatt(navEnhetId = navEnhet.id)
+            TestRepository.insert(navAnsatt)
+            navAnsattRepository.upsert(navAnsatt)
+
+            val gjennomforing = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+            )
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData
+                .lagDeltaker(gjennomforing = gjennomforing)
+            val vedtakFattet = LocalDateTime.now()
+            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                deltakerId = deltaker.id,
+                deltakerVedVedtak = deltaker,
+                fattet = vedtakFattet,
+                opprettetAv = navAnsatt,
+                opprettetAvEnhet = navEnhet,
+                sistEndret = vedtakFattet,
+            )
+            TestRepository.insert(deltaker)
+            TestRepository.insert(vedtak)
+
+            val eldrePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjon = Anskaffelse(pris = 34),
+                begrunnelse = "Første pris",
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjonId = eldrePrisinfoId,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
+            settPrisinfoTidspunkt(eldrePrisinfoId, vedtakFattet.minusMinutes(3))
+
+            val nyPrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjon = Anskaffelse(pris = 90),
+                begrunnelse = "Prisendring",
+            )
+            PrisinfoRepoAdapter.godkjennOkonomi(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjonId = nyPrisinfoId,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
+            settPrisinfoTidspunkt(nyPrisinfoId, vedtakFattet.minusSeconds(1))
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 90, begrunnelse = "Prisendring"),
+                Anskaffelse(pris = 34, begrunnelse = "Første pris"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(true, false)
+
+            val gruppedeltaker = deltaker.copy(
+                gjennomforing = gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
+            )
+            val utenOkonomiHistorikk = deltakerHistorikkService
+                .getForDeltaker(gruppedeltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+            utenOkonomiHistorikk shouldBe emptyList()
         }
     }
 
@@ -469,5 +545,20 @@ class DeltakerHistorikkServiceTest {
 
         // Assert
         historikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
+    }
+
+    private fun settPrisinfoTidspunkt(
+        prisinformasjonId: UUID,
+        tidspunkt: LocalDateTime,
+    ) {
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "UPDATE prisinformasjon SET modified_at = ? WHERE id = ?",
+                    tidspunkt,
+                    prisinformasjonId,
+                ),
+            )
+        }
     }
 }

@@ -112,7 +112,7 @@ class ExternalApiTest : IntegrationTestBase() {
             )
 
             every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
-            every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+            every { deltakerHistorikkService.getForDeltaker(any<UUID>()) } returns historikk
 
             val forventetRespons = DeltakelserResponse(
                 aktive = listOf(
