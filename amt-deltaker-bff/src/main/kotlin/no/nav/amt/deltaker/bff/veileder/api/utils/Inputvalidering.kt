@@ -39,8 +39,10 @@ fun validerBakgrunnsinformasjon(
     tekst: String?,
     pakrevd: Boolean,
 ) {
-    require(!pakrevd || !tekst.isNullOrBlank()) {
-        "Bakgrunnsinfo må fylles ut."
+    if (pakrevd) {
+        require(!tekst.isNullOrBlank()) {
+            "Bakgrunnsinfo må fylles ut."
+        }
     }
     tekst?.let {
         require(it.length <= MAX_BAKGRUNNSINFORMASJON_LENGDE) {
