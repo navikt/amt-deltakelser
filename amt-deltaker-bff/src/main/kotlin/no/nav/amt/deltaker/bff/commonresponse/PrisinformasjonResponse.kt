@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.bff.commonresponse
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse.Tilskudd.TilskuddInfo
+import no.nav.amt.internapi.deltaker.response.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -15,17 +15,7 @@ sealed interface PrisinformasjonResponse {
         val tilskudd: List<TilskuddInfo>,
         val tilleggsopplysninger: String?,
         val begrunnelse: String?,
-    ) : PrisinformasjonResponse {
-        data class TilskuddInfo(
-            val type: PrisinformasjonDto.Tilskudd.Tilskuddstype,
-            val pris: Int,
-        ) {
-            constructor(model: PrisinformasjonDto.Tilskudd.TilskuddInfo) : this(
-                type = model.type,
-                pris = model.pris,
-            )
-        }
-    }
+    ) : PrisinformasjonResponse
 
     data class IngenKostnader(
         val tilleggsopplysninger: String,

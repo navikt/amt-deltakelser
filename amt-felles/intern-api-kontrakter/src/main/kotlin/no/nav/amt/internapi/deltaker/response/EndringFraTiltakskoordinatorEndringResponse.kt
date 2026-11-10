@@ -1,4 +1,4 @@
-package no.nav.tiltaksarrangor.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
