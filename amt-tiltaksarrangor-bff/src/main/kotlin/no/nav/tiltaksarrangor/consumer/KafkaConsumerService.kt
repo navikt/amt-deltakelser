@@ -8,16 +8,16 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
+import no.nav.tiltaksarrangor.client.amtperson.toNavEnhet
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.getGjennomforingstypeFromDeltakerJsonPayload
 import no.nav.tiltaksarrangor.consumer.model.AVSLUTTENDE_STATUSER
 import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.ArrangorDto
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingDto
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
-import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.consumer.model.SKJULES_ALLTID_STATUSER
 import no.nav.tiltaksarrangor.consumer.model.toAnsattDbo
 import no.nav.tiltaksarrangor.consumer.model.toArrangorDbo
@@ -416,7 +416,7 @@ class KafkaConsumerService(
     @Transactional
     fun lagreNavEnhet(
         id: UUID,
-        enhet: NavEnhetResponse,
+        enhet: NavEnhetDto,
     ) {
         val opprinneligEnhet = navEnhetService.hentEnhet(id)
         if (opprinneligEnhet != null && opprinneligEnhet.navn != enhet.navn) {
@@ -427,16 +427,10 @@ class KafkaConsumerService(
             log.info("Oppdaterer enhetsnavn for deltakere fra ${opprinneligEnhet.navn} til ${enhet.navn}")
         }
 
-        navEnhetService.upsert(enhet.toModel())
+        navEnhetService.upsert(enhet.toNavEnhet())
         log.info("Lagret Nav-enhet med id $id")
     }
 }
-
-private fun NavEnhetResponse.toModel() = NavEnhet(
-    id = id,
-    enhetsnummer = enhetId,
-    navn = navn,
-)
 
 fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() = DeltakerStatusAarsakJsonDboDto(
     type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),

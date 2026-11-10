@@ -9,10 +9,11 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.tiltaksarrangor.IntegrationTestBase
 import no.nav.tiltaksarrangor.client.amtarrangor.dto.ArrangorMedOverordnetArrangor
 import no.nav.tiltaksarrangor.client.amtperson.NavAnsattResponse
-import no.nav.tiltaksarrangor.client.amtperson.NavEnhetResponse
+import no.nav.tiltaksarrangor.client.amtperson.toNavEnhet
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.arrangorInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.deltakerlisteIdInTest
 import no.nav.tiltaksarrangor.consumer.ConsumerTestUtils.gjennomforingPayloadInTest
@@ -68,7 +69,7 @@ class KafkaConsumerTest(
     fun setup() {
         val enhetIdSlot = slot<UUID>()
         every { amtPersonClient.hentEnhet(capture(enhetIdSlot)) } answers {
-            NavEnhetResponse(
+            NavEnhetDto(
                 id = enhetIdSlot.captured,
                 enhetId = "0000",
                 navn = "Ukjent enhet",

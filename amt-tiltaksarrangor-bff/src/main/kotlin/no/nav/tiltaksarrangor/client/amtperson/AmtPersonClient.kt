@@ -1,6 +1,7 @@
 package no.nav.tiltaksarrangor.client.amtperson
 
 import no.nav.amt.lib.models.kafka.Kontaktinformasjon
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.spring.boot.client.executeUpstreamCallWithRequiredBody
 import no.nav.tiltaksarrangor.client.AMT_PERSON_SERVICE_CLIENT_ID
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
@@ -32,3 +33,9 @@ class AmtPersonClient(
         operation = "hente kontaktinformasjon",
     ) { api.hentKontaktinformasjon(personidenter) }
 }
+
+internal fun NavEnhetDto.toNavEnhet() = NavEnhet(
+    id = id,
+    enhetsnummer = enhetId,
+    navn = navn,
+)

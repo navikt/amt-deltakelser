@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.internapi.distribusjon.DigitalBrukerResponse
 import no.nav.amt.lib.testing.utils.ClientTestUtils.createMockHttpClient
 import no.nav.amt.lib.testing.utils.ClientTestUtils.mockAzureAdClient
 import no.nav.amt.lib.testing.utils.CountingCache
