@@ -5,7 +5,9 @@ import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.model.Tiltakskoordinator
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelse
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse.Aarsak
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
+import no.nav.amt.internapi.deltaker.response.NavVeilederResponse
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -38,17 +40,17 @@ object ResponseMapper {
             fodselsnummer = if (tilgangTilBruker) navBruker.personident else null,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let(::DeltakerStatusAarsakResponse),
+                aarsak = status.aarsak?.let(::Aarsak),
             ),
             startdato = startdato,
             sluttdato = sluttdato,
             navEnhet = navBruker.navEnhet,
-            navVeileder = navBruker.navVeileder?.let(::NavVeilederResponse) ?: NavVeilederResponse(
+            navVeileder = navBruker.navVeileder ?: NavVeilederResponse(
                 navn = null,
                 telefonnummer = null,
                 epost = null,
             ),
-            vurdering = sisteVurdering?.let(::VurderingResponse),
+            vurdering = sisteVurdering,
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,
             innsatsgruppe = navBruker.innsatsgruppe,
             tiltakskode = TiltakskodeResponse(deltaker.gjennomforing.tiltak.tiltakskode),
