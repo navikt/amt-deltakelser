@@ -25,21 +25,42 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.utils.TestData.lagDeltakerRegistreringInnhold
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class InputvalideringTest {
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = ["   ", "\t\n"])
+    fun `bakgrunnsinfo må fylles ut`(tekst: String?) {
+        shouldThrow<IllegalArgumentException> {
+            validerBakgrunnsinformasjon(tekst, pakrevd = true)
+        }.message shouldBe "Bakgrunnsinfo må fylles ut."
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = ["   ", "\t\n"])
+    fun `tom bakgrunnsinfo tillates når feltet ikke er påkrevd`(tekst: String?) {
+        shouldNotThrow<IllegalArgumentException> {
+            validerBakgrunnsinformasjon(tekst, pakrevd = false)
+        }
+    }
+
     @Test
     fun testValiderBakgrunnsinformasjon() {
         val forLang = input(MAX_BAKGRUNNSINFORMASJON_LENGDE + 1)
         val ok = input(MAX_BAKGRUNNSINFORMASJON_LENGDE - 1)
 
         shouldThrow<IllegalArgumentException> {
-            validerBakgrunnsinformasjon(forLang)
+            validerBakgrunnsinformasjon(forLang, pakrevd = true)
         }
         shouldNotThrow<IllegalArgumentException> {
-            validerBakgrunnsinformasjon(ok)
+            validerBakgrunnsinformasjon(ok, pakrevd = true)
         }
     }
 

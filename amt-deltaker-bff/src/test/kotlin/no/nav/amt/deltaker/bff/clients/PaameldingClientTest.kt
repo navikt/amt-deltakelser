@@ -61,10 +61,10 @@ class PaameldingClientTest {
             deltakelsesprosent = 60,
             dagerPerUke = 3,
         )
-        val utkast = Testdata.lagUtkast(deltakerInTest.id, opprettTestDeltakelseRequest)
+        val utkast = Testdata.lagUtkast(opprettTestDeltakelseRequest)
 
         val deltakerLambda: suspend (PaameldingClient) -> DeltakerResponse =
-            { client -> client.utkast(utkast) }
+            { client -> client.utkast(deltakerInTest.id, utkast) }
 
         @ParameterizedTest
         @MethodSource("no.nav.amt.lib.testing.utils.ClientTestUtils#failureCases")
