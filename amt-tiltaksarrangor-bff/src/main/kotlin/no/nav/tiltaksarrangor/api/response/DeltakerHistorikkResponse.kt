@@ -6,7 +6,8 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraArrangorEndringResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraTiltakskoordinatorEndringResponse
-import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
+import no.nav.amt.internapi.deltaker.response.ForslagEndringResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponseStatus
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -161,7 +162,7 @@ data class ForslagHistorikkResponse(
     val begrunnelse: String?,
     val arrangorNavn: String,
     val endring: ForslagEndringResponse,
-    val status: ForslagHistorikkResponseStatus,
+    val status: ForslagResponseStatus,
 ) : DeltakerHistorikkResponse {
     constructor(model: Forslag, arrangornavn: String) : this(
         model = model,
@@ -183,139 +184,6 @@ data class ForslagHistorikkResponse(
         endring = ForslagEndringResponse.fromModel(model.endring),
         status = model.getForslagResponseStatus(ansatte, enheter),
     )
-}
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed interface EndringAarsakResponse {
-    data object Syk : EndringAarsakResponse
-
-    data object FattJobb : EndringAarsakResponse
-
-    data object TrengerAnnenStotte : EndringAarsakResponse
-
-    data object Utdanning : EndringAarsakResponse
-
-    data object IkkeMott : EndringAarsakResponse
-
-    data class Annet(
-        val beskrivelse: String,
-    ) : EndringAarsakResponse {
-        constructor(model: EndringAarsak.Annet) : this(
-            beskrivelse = model.beskrivelse,
-        )
-    }
-
-    companion object {
-        fun fromModel(model: EndringAarsak): EndringAarsakResponse = when (model) {
-            EndringAarsak.Syk -> Syk
-            EndringAarsak.FattJobb -> FattJobb
-            EndringAarsak.TrengerAnnenStotte -> TrengerAnnenStotte
-            EndringAarsak.Utdanning -> Utdanning
-            EndringAarsak.IkkeMott -> IkkeMott
-            is EndringAarsak.Annet -> Annet(model)
-        }
-    }
-}
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed interface ForslagEndringResponse {
-    data class ForlengDeltakelse(
-        val sluttdato: LocalDate,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.ForlengDeltakelse) : this(
-            sluttdato = model.sluttdato,
-        )
-    }
-
-    data class AvsluttDeltakelse(
-        val sluttdato: LocalDate?,
-        val aarsak: EndringAarsakResponse?,
-        val harDeltatt: Boolean?,
-        val harFullfort: Boolean?,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.AvsluttDeltakelse) : this(
-            sluttdato = model.sluttdato,
-            aarsak = model.aarsak?.let(EndringAarsakResponse::fromModel),
-            harDeltatt = model.harDeltatt,
-            harFullfort = model.harFullfort,
-        )
-    }
-
-    data class EndreAvslutning(
-        val aarsak: EndringAarsakResponse?,
-        val harDeltatt: Boolean?,
-        val harFullfort: Boolean?,
-        val sluttdato: LocalDate?,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.EndreAvslutning) : this(
-            aarsak = model.aarsak?.let(EndringAarsakResponse::fromModel),
-            harDeltatt = model.harDeltatt,
-            harFullfort = model.harFullfort,
-            sluttdato = model.sluttdato,
-        )
-    }
-
-    data class IkkeAktuell(
-        val aarsak: EndringAarsakResponse,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.IkkeAktuell) : this(
-            aarsak = EndringAarsakResponse.fromModel(model.aarsak),
-        )
-    }
-
-    data class Deltakelsesmengde(
-        val deltakelsesprosent: Int,
-        val dagerPerUke: Int?,
-        val gyldigFra: LocalDate?,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.Deltakelsesmengde) : this(
-            deltakelsesprosent = model.deltakelsesprosent,
-            dagerPerUke = model.dagerPerUke,
-            gyldigFra = model.gyldigFra,
-        )
-    }
-
-    data class Startdato(
-        val startdato: LocalDate,
-        val sluttdato: LocalDate?,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.Startdato) : this(
-            startdato = model.startdato,
-            sluttdato = model.sluttdato,
-        )
-    }
-
-    data class Sluttdato(
-        val sluttdato: LocalDate,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.Sluttdato) : this(
-            sluttdato = model.sluttdato,
-        )
-    }
-
-    data class Sluttarsak(
-        val aarsak: EndringAarsakResponse,
-    ) : ForslagEndringResponse {
-        constructor(model: Forslag.Sluttarsak) : this(
-            aarsak = EndringAarsakResponse.fromModel(model.aarsak),
-        )
-    }
-
-    data object FjernOppstartsdato : ForslagEndringResponse
-
-    companion object {
-        fun fromModel(model: Forslag.Endring): ForslagEndringResponse = when (model) {
-            is Forslag.ForlengDeltakelse -> ForlengDeltakelse(model)
-            is Forslag.AvsluttDeltakelse -> AvsluttDeltakelse(model)
-            is Forslag.EndreAvslutning -> EndreAvslutning(model)
-            is Forslag.IkkeAktuell -> IkkeAktuell(model)
-            is Forslag.Deltakelsesmengde -> Deltakelsesmengde(model)
-            is Forslag.Startdato -> Startdato(model)
-            is Forslag.Sluttdato -> Sluttdato(model)
-            is Forslag.Sluttarsak -> Sluttarsak(model)
-            Forslag.FjernOppstartsdato -> FjernOppstartsdato
-        }
-    }
 }
 
 data class ImportertFraArenaResponse(
@@ -390,39 +258,15 @@ data class EndringFraTiltakskoordinatorResponse(
     )
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed interface ForslagHistorikkResponseStatus {
-    data object VenterPaSvar : ForslagHistorikkResponseStatus
-
-    data class Godkjent(
-        val godkjent: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Avvist(
-        val avvistAv: String,
-        val avvistAvEnhet: String,
-        val avvist: LocalDateTime,
-        val begrunnelseFraNav: String,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Tilbakekalt(
-        val tilbakekalt: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Erstattet(
-        val erstattet: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-}
-
 private fun Forslag.getForslagResponseStatus(
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
-): ForslagHistorikkResponseStatus = when (val status = status) {
-    is Forslag.Status.VenterPaSvar -> ForslagHistorikkResponseStatus.VenterPaSvar
-    is Forslag.Status.Godkjent -> ForslagHistorikkResponseStatus.Godkjent(status.godkjent)
+): ForslagResponseStatus = when (val status = status) {
+    is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+    is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
     is Forslag.Status.Avvist -> {
         val avvist = status
-        ForslagHistorikkResponseStatus.Avvist(
+        ForslagResponseStatus.Avvist(
             avvistAv = ansatte[avvist.avvistAv.id]!!.navn,
             avvistAvEnhet = enheter[avvist.avvistAv.enhetId]!!.navn,
             avvist = avvist.avvist,
@@ -430,6 +274,6 @@ private fun Forslag.getForslagResponseStatus(
         )
     }
 
-    is Forslag.Status.Tilbakekalt -> ForslagHistorikkResponseStatus.Tilbakekalt(status.tilbakekalt)
-    is Forslag.Status.Erstattet -> ForslagHistorikkResponseStatus.Erstattet(status.erstattet)
+    is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+    is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
 }

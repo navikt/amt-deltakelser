@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.bff.veileder.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDateTime

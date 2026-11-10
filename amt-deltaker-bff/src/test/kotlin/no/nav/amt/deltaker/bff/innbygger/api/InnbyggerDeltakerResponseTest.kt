@@ -8,8 +8,8 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakelsesinnhold
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import org.junit.jupiter.api.Test
 
 class InnbyggerDeltakerResponseTest {
@@ -21,7 +21,7 @@ class InnbyggerDeltakerResponseTest {
         val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
 
         result.deltakerId shouldBe model.id
-        result.status shouldBe model.status.toDeltakerStatusResponse()
+        result.status shouldBe DeltakerStatusResponse(model.status)
         result.startdato shouldBe model.startdato
         result.sluttdato shouldBe model.sluttdato
         result.dagerPerUke shouldBe model.dagerPerUke
