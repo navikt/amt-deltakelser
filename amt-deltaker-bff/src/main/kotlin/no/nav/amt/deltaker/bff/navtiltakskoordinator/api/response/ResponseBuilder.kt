@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.bff.navtiltakskoordinator.api.response
 
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.ulestdeltakerhendelse.model.UlestHendelseFlags
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse.Aarsak
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.internapi.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.internapi.tiltakskoordinator.response.TiltakskoordinatorDeltakerIListeResponse
@@ -56,7 +57,7 @@ class ResponseBuilder {
             etternavn = etternavn,
             status = DeltakerStatusResponse(
                 type = status.type,
-                aarsak = status.aarsak?.let(::DeltakerStatusAarsakResponse),
+                aarsak = status.aarsak?.let(::Aarsak),
             ),
             vurdering = sisteVurderingstype,
             beskyttelsesmarkering = navBruker.beskyttelsesmarkeringer,

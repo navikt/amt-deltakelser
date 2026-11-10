@@ -3,7 +3,9 @@ package no.nav.tiltaksarrangor.api.response
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraArrangorEndringResponse
+import no.nav.amt.internapi.deltaker.response.EndringFraTiltakskoordinatorEndringResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag

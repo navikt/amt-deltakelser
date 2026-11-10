@@ -8,17 +8,17 @@ micrometer-version = "1.17.2"
 ktlint-version = "14.2.0"
 ktlint-cli-version = "1.8.0"
 jackson2-version = "2.22.4"
-nav-common-version = "4.2026.10.30_22.48-ed045c9bbfa2"
+nav-common-version = "4.2026.11.05_07.24-dd0ce2805c16"
 poao-tilgang-version = "2026.05.05_13.02-76cbce4f654a"
 kotest-version = "6.2.6"
-flyway-version = "13.11.1"
+flyway-version = "13.12.0"
 hikari-version = "7.1.0"
 kotliquery-version = "1.9.1"
 postgres-version = "42.7.14"
 caffeine-version = "3.3.1"
 mockk-version = "1.14.11"
 nimbus-version = "10.10"
-unleash-version = "12.3.1"
+unleash-version = "12.3.2"
 tms-varsel-kotlin-builder-version = "2.2.0"
 
 # amt-lib spesifikt
@@ -39,13 +39,14 @@ springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
 jsoup-version = "1.23.2"
-pdfgen-core-version = "1.1.87"
+pdfgen-core-version = "1.1.92"
 
 # CVE-fixes
-netty-version = "4.2.19.Final"
-guava-version = "33.7.2-jre"
+netty-version = "4.2.20.Final"
+guava-version = "33.8.0-jre"
 lz4-java-version = "1.12.1"
 snappy-java-version = "1.1.10.12"
+org-json-version = "20260814"
 
 [libraries]
 

@@ -1,44 +1,7 @@
-package no.nav.tiltaksarrangor.api.response
+package no.nav.amt.internapi.deltaker.response
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.tiltaksarrangor.model.DeltakerStatusAarsakJsonDboDto
-import java.time.LocalDateTime
-import java.util.UUID
-
-data class DeltakerStatusResponse(
-    val id: UUID,
-    val type: DeltakerStatus.Type,
-    val aarsak: Aarsak?,
-    val gyldigFra: LocalDateTime,
-    val gyldigTil: LocalDateTime?,
-    val opprettet: LocalDateTime,
-) {
-    data class Aarsak(
-        val type: DeltakerStatus.Aarsak.Type,
-        val beskrivelse: String?,
-    ) {
-        constructor(model: DeltakerStatus.Aarsak) : this(
-            type = model.type,
-            beskrivelse = model.beskrivelse,
-        )
-
-        constructor(model: DeltakerStatusAarsakJsonDboDto) : this(
-            type = model.type,
-            beskrivelse = model.beskrivelse,
-        )
-    }
-
-    constructor(model: DeltakerStatus) : this(
-        id = model.id,
-        type = model.type,
-        aarsak = model.aarsak?.let(::Aarsak),
-        gyldigFra = model.gyldigFra,
-        gyldigTil = model.gyldigTil,
-        opprettet = model.opprettet,
-    )
-}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface EndringFraTiltakskoordinatorEndringResponse {
