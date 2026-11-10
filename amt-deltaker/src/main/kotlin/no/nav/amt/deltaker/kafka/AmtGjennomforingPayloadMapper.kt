@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.kafka
 
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 
 /**
- * Mapper en lagret [Deltakerliste] til payloaden for det interne `amt.gjennomforing-intern`-topicet.
+ * Mapper en lagret [Gjennomforing] til payloaden for det interne `amt.gjennomforing-intern`-topicet.
  *
  * Bruker domenemodellen som eneste kilde, slik at både konsument-stien (ny/endret gjennomføring) og
  * reload-stien (når tiltakstypen endres) produserer identisk payload.
@@ -16,7 +16,7 @@ import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
  * @throws IllegalArgumentException dersom arrangør mangler – en gjennomføring uten arrangør er ikke
  * komplett nok til å deles.
  */
-fun Deltakerliste.toAmtGjennomforingPayload(): AmtGjennomforingPayload {
+fun Gjennomforing.toAmtGjennomforingPayload(): AmtGjennomforingPayload {
     val erGruppe = gjennomforingstype == GjennomforingType.Gruppe
 
     return AmtGjennomforingPayload(

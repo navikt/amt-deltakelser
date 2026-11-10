@@ -2,6 +2,7 @@ package no.nav.tiltaksarrangor.api.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
 import no.nav.tiltaksarrangor.consumer.model.NavEnhet
@@ -94,7 +95,10 @@ data class UlestEndringResponse(
                     oppdatering = OppdateringResponse.AvslagResponse(
                         it.oppdatering.endretAv,
                         it.oppdatering.endretAvEnhet,
-                        DeltakerStatusResponse.Aarsak(it.oppdatering.aarsak),
+                        DeltakerStatusResponse.Aarsak(
+                            type = it.oppdatering.aarsak.type,
+                            beskrivelse = it.oppdatering.aarsak.beskrivelse,
+                        ),
                         it.oppdatering.begrunnelse,
                         it.oppdatert,
                     ),

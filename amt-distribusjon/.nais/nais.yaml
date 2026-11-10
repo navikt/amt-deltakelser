@@ -90,6 +90,14 @@ spec:
         - id: elastic
         - id: loki
   env:
+{{#if endringsvedtak_job}}
+    - name: ENDRINGSVEDTAK_JOB_INITIAL_DELAY
+      value: "{{endringsvedtak_job.initial_delay}}"
+    - name: ENDRINGSVEDTAK_JOB_PERIOD
+      value: "{{endringsvedtak_job.period}}"
+    - name: ENDRINGSVEDTAK_JOB_GRACE_PERIOD
+      value: "{{endringsvedtak_job.grace_period}}"
+{{/if}}
     - name: JDK_JAVA_OPTIONS
       value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
     - name: AMT_PERSONSERVICE_SCOPE

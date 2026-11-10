@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 
 private val responsePakker = arrayOf(
     "no.nav.tiltaksarrangor.api.response..",
+    "no.nav.amt.internapi.deltaker.response..",
 )
 
 class ResponseKlasseAvhengigheterTest {

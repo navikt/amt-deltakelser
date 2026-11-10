@@ -7,7 +7,7 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import java.time.LocalDate
 
 fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type = when {
-    deltakerliste.erFellesOppstart || deltarPaOpplaeringstiltak ->
+    gjennomforing.erFellesOppstart || deltarPaOpplaeringstiltak ->
         if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
 
     else -> DeltakerStatus.Type.HAR_SLUTTET

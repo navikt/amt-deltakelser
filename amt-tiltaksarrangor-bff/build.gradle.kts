@@ -13,5 +13,6 @@ dependencies {
     implementation(libs.shedlock.jdbc.template)
 
     implementation(project(":amt-felles:kafka"))
+    implementation(project(":amt-felles:intern-api-kontrakter"))
     testImplementation(project(":amt-felles:archunit-test"))
 }

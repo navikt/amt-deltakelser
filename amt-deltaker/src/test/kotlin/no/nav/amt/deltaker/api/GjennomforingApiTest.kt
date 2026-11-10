@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.api.response.DeltakerResponseBuilder
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -17,7 +17,7 @@ import java.util.UUID
 
 class GjennomforingApiTest : IntegrationTestBase() {
     override val arrangorService: ArrangorService = mockk()
-    override val deltakerlisteRepository: DeltakerlisteRepository = mockk()
+    override val gjennomforingRepository: GjennomforingRepository = mockk()
 
     @Test
     fun `get gjennomforing - mangler token - returnerer 401`() {
@@ -30,7 +30,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
     fun `get gjennomforing - gjennomforing finnes - returnerer 200 med gjennomforing`() {
         val deltakerliste = lagDeltakerliste()
 
-        every { deltakerlisteRepository.get(deltakerliste.id) } returns deltakerliste
+        every { gjennomforingRepository.get(deltakerliste.id) } returns deltakerliste
 
         val expectedResponse = DeltakerResponseBuilder(
             navAnsattService = mockk(),
@@ -42,7 +42,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
             vurderingRepository = mockk(),
             deltakerRepository = mockk(),
         ).buildGjennomforingResponse(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             includeOpplaringKategorisering = false,
         )
 
@@ -57,7 +57,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
     @Test
     fun `get gjennomforing - gjennomforing finnes ikke - returnerer 404`() {
         every {
-            deltakerlisteRepository.get(any())
+            gjennomforingRepository.get(any())
         } returns null
 
         withTestApplicationContext { client ->

@@ -5,13 +5,13 @@ import java.util.UUID
 data class PrisinfoDbo(
     val id: UUID = UUID.randomUUID(),
     val gjennomforingId: UUID,
-    val status: PrisinfoStatus = PrisinfoStatus.KLADD_UTKAST,
+    val status: TotrinnskontrollStatus = TotrinnskontrollStatus.KLADD_UTKAST,
     val prisinfoJsonSubtype: String,
     val anskaffelsePris: Int? = null,
     val tilleggsopplysninger: String? = null,
     val begrunnelse: String? = null, // har verdi kun ved endringer
 ) {
-    enum class PrisinfoStatus {
+    enum class TotrinnskontrollStatus {
         KLADD_UTKAST,
         SENDT,
         RETURNERT,

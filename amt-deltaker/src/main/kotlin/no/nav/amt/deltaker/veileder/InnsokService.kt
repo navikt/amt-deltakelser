@@ -35,7 +35,7 @@ class InnsokService(
     ): Innsok {
         if (deltaker.vedtaksinformasjon == null) throw IllegalStateException("Kan ikke søke inn deltaker som ikke har et vedtak")
         val prisinformasjonVedInnsok = if (deltaker.erEnkeltplass) {
-            PrisinfoRepoAdapter.hentPrisinfo(deltaker.deltakerliste.id)
+            PrisinfoRepoAdapter.hentPrisinfo(deltaker.gjennomforing.id)
         } else {
             null
         }
@@ -53,7 +53,7 @@ class InnsokService(
             prisinformasjonVedInnsok = prisinformasjonVedInnsok,
             utkastDelt = if (forrigeStatus.type == Type.UTKAST_TIL_PAMELDING) forrigeStatus.opprettet else null,
             utkastGodkjentAvNav = godkjentAvNav,
-            opplaringKategoriseringVedInnsok = deltaker.deltakerliste.opplaringKategorisering,
+            opplaringKategoriseringVedInnsok = deltaker.gjennomforing.opplaringKategorisering,
         )
         repository.insert(innsok)
         return innsok

@@ -102,9 +102,9 @@ fun Routing.registerVeilederApi(
 
                 val response = DeltakerHistorikkDataResponse(
                     historikk = historikk,
-                    arrangornavn = deltaker.deltakerliste.arrangor?.navn ?: "",
-                    oppstartstype = deltaker.deltakerliste.oppstart,
-                    pameldingstype = deltaker.deltakerliste.pameldingstype,
+                    arrangornavn = deltaker.gjennomforing.arrangor?.navn ?: "",
+                    oppstartstype = deltaker.gjennomforing.oppstart,
+                    pameldingstype = deltaker.gjennomforing.pameldingstype,
                     ansatte = navAnsattService.getMany(ansatteIder).associateBy { it.id },
                     enheter = navEnhetService
                         .getEnheter(enheterIder)

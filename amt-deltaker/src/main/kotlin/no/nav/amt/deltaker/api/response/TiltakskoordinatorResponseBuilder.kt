@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.api.response
 
 import io.ktor.network.sockets.SocketTimeoutException
 import no.nav.amt.deltaker.digitalbruker.DigitalBrukerService
-import no.nav.amt.deltaker.repository.DeltakerlisteRepository
+import no.nav.amt.deltaker.repository.GjennomforingRepository
 import no.nav.amt.deltaker.repository.TiltakskoordinatorDeltakerRow
 import no.nav.amt.deltaker.repository.TiltakskoordinatorViewRepository
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
@@ -22,7 +22,7 @@ import java.util.UUID
  * Optimalisert for kall med mange deltakere (kan være >2000 per request).
  *
  * Henter data i **to SQL-spørringer**:
- *   1. [DeltakerlisteRepository.get] — deltakerliste/tiltakstype/arrangør (1 rad).
+ *   1. [GjennomforingRepository.get] — deltakerliste/tiltakstype/arrangør (1 rad).
  *   2. [TiltakskoordinatorViewRepository.getDeltakere] — deltakere med berikede felt (N rader).
  *
  * Deltakerliste-kolonnene gjentas ikke for hver deltaker — sparer båndbredde ved store lister.
@@ -31,7 +31,7 @@ import java.util.UUID
  */
 class TiltakskoordinatorResponseBuilder(
     private val viewRepository: TiltakskoordinatorViewRepository,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val gjennomforingRepository: GjennomforingRepository,
     private val digitalBrukerService: DigitalBrukerService,
     private val deltakerLaaseService: DeltakerLaaseService,
 ) {
@@ -39,7 +39,7 @@ class TiltakskoordinatorResponseBuilder(
      * Henter gjennomføring og deltakere for en gjennomføring-id.
      */
     suspend fun buildResponse(request: TiltaksKoordinatorDeltakerlisteRequest): PaginatedResult<TiltakskoordinatorDeltakerIListeResponse> {
-        val gjennomforing = deltakerlisteRepository.get(request.gjennomforingId)
+        val gjennomforing = gjennomforingRepository.get(request.gjennomforingId)
             ?: return PaginatedResult(
                 pageSize = 0,
                 data = emptyList(),

@@ -1,20 +1,27 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-val libsWrapper = VersionCatalogWrapper.fromProject(project)
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 repositories {
     mavenCentral()
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
+
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+    }
 }
 
 ktlint {
-    version = libsWrapper.getVersion("ktlint.cli.version")
+    version = versionCatalog.findVersion("ktlint.cli.version").get().requiredVersion
 }
 
 tasks.named<Test>("test") {

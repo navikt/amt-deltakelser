@@ -98,7 +98,7 @@ fun DeltakerEndring.Endring.anvendPaaDeltaker(
         deltaker = deltaker,
         hasChanges = { deltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL },
         apply = {
-            val nyStatus = if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
+            val nyStatus = if (deltaker.gjennomforing.deltakelserMaaGodkjennes) {
                 nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
             } else {
                 nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)

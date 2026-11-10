@@ -48,12 +48,12 @@ class DeltakerService(
             ?: throw NoSuchElementException("Fant ikke deltaker med id $deltakerId")
 
         val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
-            gjennomforing = deltaker.deltakerliste,
+            gjennomforing = deltaker.gjennomforing,
         )
 
         return deltaker.copy(
-            deltakerliste = deltaker.deltakerliste.copy(
-                arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
+            gjennomforing = deltaker.gjennomforing.copy(
+                arrangor = arrangor?.let { deltaker.gjennomforing.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
             ),
         )
     }
@@ -66,11 +66,11 @@ class DeltakerService(
         val deltakere = deltakerRepository.getFlereForPerson(personIdent)
         return deltakere.map { deltaker ->
             val arrangor = arrangorService.getFunksjonellArrangorForGjennomforing(
-                gjennomforing = deltaker.deltakerliste,
+                gjennomforing = deltaker.gjennomforing,
             )
             deltaker.copy(
-                deltakerliste = deltaker.deltakerliste.copy(
-                    arrangor = arrangor?.let { deltaker.deltakerliste.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
+                gjennomforing = deltaker.gjennomforing.copy(
+                    arrangor = arrangor?.let { deltaker.gjennomforing.arrangor?.copy(navn = arrangor.navn) ?: arrangor },
                 ),
             )
         }
@@ -124,6 +124,36 @@ class DeltakerService(
             oppdatertDeltaker
         },
     ).getOrThrow()
+
+    /**
+     * Utfører upsert av deltakeren i samme transaksjon som [beforeUpsert].
+     * Hvis [beforeUpsert] returnerer `null`, lagres endringene den har gjort uten at deltakeren
+     * oppdateres eller publiseres.
+     */
+    internal fun upsertAndProduceDeltakerConditionally(
+        deltaker: Deltaker,
+        beforeUpsert: (Deltaker) -> Deltaker?,
+        afterUpsert: (Deltaker) -> Unit = {},
+    ): Deltaker? = Database.transaction {
+        beforeUpsert(deltaker.copy(sistEndret = LocalDateTime.now()))?.let { deltakerForUpsert ->
+            deltakerRepository.upsert(deltakerForUpsert)
+
+            lagreDeltakerStatus(
+                deltakerId = deltakerForUpsert.id,
+                nyDeltakerStatus = deltakerForUpsert.status,
+                erDeltakerSluttdatoEndret = false,
+            )
+
+            val oppdatertDeltaker = getOrThrow(deltakerForUpsert.id)
+
+            deltakerProducerService.produce(oppdatertDeltaker)
+
+            log.info("Oppdatert deltaker ${deltakerForUpsert.id}")
+
+            afterUpsert(oppdatertDeltaker)
+            oppdatertDeltaker
+        }
+    }
 
     fun deleteDeltaker(deltakerId: UUID) {
         importertFraArenaRepository.deleteForDeltaker(deltakerId)

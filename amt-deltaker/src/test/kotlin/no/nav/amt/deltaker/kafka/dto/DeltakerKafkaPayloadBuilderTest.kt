@@ -54,7 +54,7 @@ class DeltakerKafkaPayloadBuilderTest {
         status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
-        deltakerliste = lagDeltakerliste(
+        gjennomforing = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
         navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
@@ -103,7 +103,7 @@ class DeltakerKafkaPayloadBuilderTest {
                 )
             }.forEach {
                 val deltaker2 = deltaker.copy(
-                    deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
+                    gjennomforing = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
                 )
                 deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
             }
@@ -202,7 +202,7 @@ class DeltakerKafkaPayloadBuilderTest {
     fun `buildDeltakerEksternV1Record - alle tiltakstyper - har deltakelsesmengder`() {
         Tiltakskode.entries.forEach {
             val deltaker2 = deltaker.copy(
-                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
+                gjennomforing = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
             )
 
             // Act

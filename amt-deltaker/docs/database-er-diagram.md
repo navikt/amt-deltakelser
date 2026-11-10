@@ -147,7 +147,7 @@ erDiagram
 | `deltaker`                       | Hovedtabell for deltakere | 1.66M rader |
 | `deltaker_status`                | Statushistorikk per deltaker (gyldig_til IS NULL = aktiv) | 2.3M rader |
 | `nav_bruker`                     | Persondata for brukere | 786k rader |
-| `deltakerliste`                  | Tiltaksgjennomføringer (grupper eller enkeltplass) | ~30k rader |
+| `gjennomforing`                  | Tiltaksgjennomføringer (grupper eller enkeltplass) | ~30k rader |
 | `vedtak`                         | Nav-vedtak knyttet til deltaker | 143k rader |
 | `deltaker_endring`               | Endringslogg fra Nav-veiledere | 195k rader |
 | `forslag`                        | Forslag fra arrangør-ansatte | — |

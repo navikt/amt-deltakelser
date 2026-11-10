@@ -73,6 +73,7 @@ sealed interface HendelseType {
     data class EnkeltplassEndrePrisinfo(
         val kreverGodkjenning: Boolean,
         val prisinfo: PrisinformasjonDto,
+        val begrunnelse: String? = null,
     ) : HendelseType
 
     /**
@@ -233,6 +234,7 @@ fun DeltakerEndring.toHendelseEndring(
             // I senere statuser (vedtak fattet) må endringen godkjennes eksplisitt i tiltaksadministrasjon.
             kreverGodkjenning = deltakerStatus != DeltakerStatus.Type.SOKT_INN,
             prisinfo = endring.prisinfo,
+            begrunnelse = endring.begrunnelse,
         )
     }
 

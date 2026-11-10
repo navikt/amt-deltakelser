@@ -46,13 +46,13 @@ fun Routing.registerKladdApi(
             }
             validerKladdInnhold(
                 kladdRequest.innhold,
-                deltaker.deltakerliste.tiltakstype.innhold,
-                deltaker.deltakerliste.tiltakstype.tiltakskode,
+                deltaker.gjennomforing.tiltakstype.innhold,
+                deltaker.gjennomforing.tiltakstype.tiltakskode,
             )
 
             kladdService.oppdaterKladd(
                 deltaker = deltaker,
-                innhold = kladdRequest.innhold.toInnholdModel(deltaker.deltakerliste.tiltakstype),
+                innhold = kladdRequest.innhold.toInnholdModel(deltaker.gjennomforing.tiltakstype),
                 bakgrunnsinformasjon = kladdRequest.bakgrunnsinformasjon,
                 deltakelsesprosent = kladdRequest.deltakelsesprosent,
                 dagerPerUke = kladdRequest.dagerPerUke,

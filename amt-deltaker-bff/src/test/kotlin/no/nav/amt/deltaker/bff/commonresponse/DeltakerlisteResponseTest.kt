@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.bff.commonresponse
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingModel
-import no.nav.amt.deltaker.bff.veileder.api.response.OpplaringKategoriseringValgResponse
+import no.nav.amt.internapi.deltaker.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType

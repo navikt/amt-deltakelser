@@ -6,6 +6,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.pdfgen.core.Environment
 import no.nav.pdfgen.core.PDFGenCore
 import no.nav.pdfgen.core.pdf.createHtml
@@ -16,7 +17,12 @@ import java.nio.file.Path
 class TemplateRenderSpec :
     StringSpec({
 
-        beforeSpec { PDFGenCore.init(Environment()) }
+        beforeSpec {
+            PDFGenCore.init(
+                initialEnvironment = Environment(),
+                meterRegistry = SimpleMeterRegistry(),
+            )
+        }
 
         "alle amt-templates rendrer gyldig HTML uten handlebars-rester" {
             val templatesDir = Path.of("templates/amt")

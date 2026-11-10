@@ -8,7 +8,7 @@ import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload
 fun GjennomforingV2KafkaPayload.Gruppe.toModel(
     arrangor: Arrangor,
     tiltakstype: Tiltakstype,
-) = Deltakerliste(
+) = Gjennomforing(
     id = id,
     tiltakstype = tiltakstype,
     navn = navn,
@@ -29,7 +29,7 @@ fun GjennomforingV2KafkaPayload.Gruppe.toModel(
 fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(
     arrangor: Arrangor,
     tiltakstype: Tiltakstype,
-) = Deltakerliste(
+) = Gjennomforing(
     id = id,
     tiltakstype = tiltakstype,
     navn = tiltakstype.navn,

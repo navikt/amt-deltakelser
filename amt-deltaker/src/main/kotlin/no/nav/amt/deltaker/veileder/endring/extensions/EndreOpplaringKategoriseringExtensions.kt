@@ -12,7 +12,7 @@ fun DeltakerEndring.Endring.EndreOpplaringKategorisering.hasChanges(deltaker: De
 fun DeltakerEndring.Endring.EndreOpplaringKategorisering.endreOpplaringKategorisering(deltaker: Deltaker) = VellykketEndring(
     deltaker.copy(
         deltakelsesinnhold = Deltakelsesinnhold(
-            ledetekst = deltaker.deltakerliste.tiltakstype.innhold
+            ledetekst = deltaker.gjennomforing.tiltakstype.innhold
                 ?.ledetekst,
             innhold = listOf(Innhold.createFritekstInnhold(this.beskrivelse)),
         ),

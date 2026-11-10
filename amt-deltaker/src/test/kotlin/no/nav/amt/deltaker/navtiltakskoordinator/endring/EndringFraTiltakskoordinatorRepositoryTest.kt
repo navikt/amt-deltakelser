@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.navtiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -75,11 +75,11 @@ fun sammenlignEndringFraTiltakskoordinator(
 data class EndringFraTiltakskoordinatorCtx(
     val navEnhet: NavEnhet = lagNavEnhet(),
     val navAnsatt: NavAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id),
-    val deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
+    val gjennomforing: Gjennomforing = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
     val navBruker: NavBruker = lagNavBruker(),
     var deltaker: Deltaker = TestData.lagDeltaker(
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        gjennomforing = gjennomforing,
         startdato = null,
         sluttdato = null,
         status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
@@ -96,7 +96,7 @@ data class EndringFraTiltakskoordinatorCtx(
     private val innsokRepository = InnsokRepository()
 
     init {
-        TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
+        TestRepository.insertAll(navEnhet, navAnsatt, gjennomforing, deltaker)
     }
 
     fun medStatusDeltar() {

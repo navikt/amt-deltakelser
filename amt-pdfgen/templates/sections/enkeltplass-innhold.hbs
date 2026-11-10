@@ -2,6 +2,12 @@
     <h2>Dette er innholdet</h2>
 {{/unless}}
 
+{{#if visKurstype}}
+    {{#eq innhold.type "Kurstype"}}
+        <p class="margins-0-5-rem">Kurstype: {{innhold.kurstype}}</p>
+    {{/eq}}
+{{/if}}
+
 <p class="fritekst">{{innholdFritekst}}</p>
 
 {{#eq innhold.type "Arbeidsmarkedsopplaering"}}

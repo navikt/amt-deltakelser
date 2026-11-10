@@ -1,0 +1,91 @@
+module "vedtak_view" {
+  source              = "../google-bigquery-view"
+  depends_on          = [module.deltaker_view]
+  deletion_protection = true
+  dataset_id          = var.dataset_id
+  view_id             = "vedtak_view"
+
+  view_schema = jsonencode([
+    { name = "vedtak_id", type = "STRING", mode = "NULLABLE" },
+    { name = "vedtak_fattet", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "vedtak_fattet_av_nav", type = "BOOLEAN", mode = "NULLABLE" },
+    { name = "vedtak_gyldig_til", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "vedtak_created_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "vedtak_modified_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_id", type = "STRING", mode = "NULLABLE" },
+    { name = "deltaker_person_id", type = "STRING", mode = "NULLABLE" },
+    { name = "deltaker_innsokt_dato", type = "DATE", mode = "NULLABLE" },
+    { name = "deltaker_startdato", type = "DATE", mode = "NULLABLE" },
+    { name = "deltaker_sluttdato", type = "DATE", mode = "NULLABLE" },
+    { name = "deltaker_dager_per_uke", type = "FLOAT", mode = "NULLABLE" },
+    { name = "deltaker_deltakelsesprosent", type = "FLOAT", mode = "NULLABLE" },
+    { name = "deltaker_created_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_modified_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_kilde", type = "STRING", mode = "NULLABLE" },
+    { name = "deltaker_status_type", type = "STRING", mode = "NULLABLE" },
+    { name = "deltaker_status_aarsak", type = "STRING", mode = "NULLABLE" },
+    { name = "deltaker_status_gyldig_fra", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_status_gyldig_til", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_status_created_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltaker_status_modified_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltakerliste_id", type = "STRING", mode = "NULLABLE" },
+    { name = "deltakerliste_navn", type = "STRING", mode = "NULLABLE" },
+    { name = "deltakerliste_status", type = "STRING", mode = "NULLABLE" },
+    { name = "deltakerliste_start_dato", type = "DATE", mode = "NULLABLE" },
+    { name = "deltakerliste_slutt_dato", type = "DATE", mode = "NULLABLE" },
+    { name = "deltakerliste_oppstart", type = "STRING", mode = "NULLABLE" },
+    { name = "deltakerliste_modified_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "deltakerliste_created_at", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "tiltak_tiltakskode", type = "STRING", mode = "NULLABLE" },
+    { name = "arrangor_id", type = "STRING", mode = "NULLABLE" },
+    { name = "arrangor_navn", type = "STRING", mode = "NULLABLE" },
+    { name = "arrangor_orgnr", type = "STRING", mode = "NULLABLE" },
+    { name = "overordnet_arrangor_id", type = "STRING", mode = "NULLABLE" },
+    { name = "overordnet_arrangor_navn", type = "STRING", mode = "NULLABLE" },
+    { name = "overordnet_arrangor_orgnr", type = "STRING", mode = "NULLABLE" }
+  ])
+
+  view_query = chomp(<<EOF
+select v.id as vedtak_id,
+  v.fattet as vedtak_fattet,
+  v.fattet_av_nav as vedtak_fattet_av_nav,
+  v.gyldig_til as vedtak_gyldig_til,
+  --v.deltaker_ved_vedtak as vedtak_deltaker_ved_vedtak,
+  v.created_at as vedtak_created_at,
+  v.modified_at as vedtak_modified_at,
+d.deltaker_id,
+d.deltaker_person_id,
+d.deltaker_innsokt_dato,
+d.deltaker_startdato,
+d.deltaker_sluttdato,
+d.deltaker_dager_per_uke,
+d.deltaker_deltakelsesprosent,
+d.deltaker_created_at,
+d.deltaker_modified_at,
+d.deltaker_kilde,
+d.deltaker_status_type,
+d.deltaker_status_aarsak,
+d.deltaker_status_gyldig_fra,
+d.deltaker_status_gyldig_til,
+d.deltaker_status_created_at,
+d.deltaker_status_modified_at,
+d.deltakerliste_id,
+d.deltakerliste_navn,
+d.deltakerliste_status,
+d.deltakerliste_start_dato,
+d.deltakerliste_slutt_dato,
+d.deltakerliste_oppstart,
+d.deltakerliste_modified_at,
+d.deltakerliste_created_at,
+d.tiltak_tiltakskode,
+d.arrangor_id,
+d.arrangor_navn,
+d.arrangor_orgnr,
+d.overordnet_arrangor_id,
+d.overordnet_arrangor_navn,
+d.overordnet_arrangor_orgnr,
+from `${var.dataset_id}.deltaker_view` d 
+    join `${var.dataset_id}.public_vedtak` v on d.deltaker_id = v.deltaker_id
+EOF
+  )
+}

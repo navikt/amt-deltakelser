@@ -12,7 +12,8 @@ on:
       - "amt-distribusjon/**"
       - "amt-felles/**"
       - "amt-lib/**"
-      - "amt-pdfgen/**"
+      - "amt-pdfgen/Dockerfile"
+      - "amt-pdfgen/templates/**"
       - "amt-tiltaksarrangor-bff/**"
       - "gradle/**"
 
@@ -63,11 +64,8 @@ jobs:
               - buildSrc/**
 
             amt-pdfgen:
-              - amt-pdfgen/**
-              - amt-felles/**
-              - amt-lib/**
-              - gradle/libs.versions.toml
-              - buildSrc/**
+              - amt-pdfgen/Dockerfile
+              - amt-pdfgen/templates/**
     
             amt-tiltaksarrangor-bff:
               - amt-tiltaksarrangor-bff/**

@@ -35,11 +35,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class PrisinfoRepoAdapterTest {
-    companion object {
+    private companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
-        private val gjennomforingInTest = lagDeltakerliste()
+        val gjennomforingInTest = lagDeltakerliste()
     }
 
     private val godkjennerEnhet = lagNavEnhet()
@@ -422,7 +422,7 @@ class PrisinfoRepoAdapterTest {
             )
             PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
                 prisinformasjonId = returnertPrisinfoId,
-                status = PrisinfoDbo.PrisinfoStatus.RETURNERT,
+                status = PrisinfoDbo.TotrinnskontrollStatus.RETURNERT,
             )
 
             val request = EndretPrisinfoRequest(
@@ -483,7 +483,7 @@ class PrisinfoRepoAdapterTest {
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
 
-            beforeGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+            beforeGodkjenning.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
 
             // Act
             godkjennMedTestGodkjenner(
@@ -498,13 +498,32 @@ class PrisinfoRepoAdapterTest {
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 ).shouldNotBeNull()
 
-            afterGodkjenning.status shouldBe PrisinfoDbo.PrisinfoStatus.GODKJENT
+            afterGodkjenning.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
 
             PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldBeNull()
+        }
+
+        @Test
+        fun `godkjennOkonomi kaster feil når prisinfo mangler for gjennomføringen`() {
+            // Arrange
+            TestRepository.insert(gjennomforingInTest)
+            val manglendePrisinfoId = UUID.randomUUID()
+
+            // Act
+            val exception = shouldThrow<IllegalStateException> {
+                godkjennMedTestGodkjenner(
+                    gjennomforingId = gjennomforingInTest.id,
+                    prisinformasjonId = manglendePrisinfoId,
+                )
+            }
+
+            // Assert
+            exception.message shouldBe
+                "Fant ikke prisinfo $manglendePrisinfoId for gjennomføring ${gjennomforingInTest.id}"
         }
 
         @Test
@@ -522,20 +541,25 @@ class PrisinfoRepoAdapterTest {
                 prisinformasjonId = gjeldendePrisinfoId,
             )
 
+            val stalePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                gjennomforingId = gjennomforingInTest.id,
+                prisinformasjon = Anskaffelse(pris = 15000),
+                begrunnelse = "Historisk prisendring",
+            )
             val endringPrisinfo = Anskaffelse(pris = 20000)
             PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjon = endringPrisinfo,
                 begrunnelse = "Begrunnelse",
             )
-            val aktivEndringId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
-            val stalePrisinfoId = UUID.randomUUID()
+            val aktivEndringId = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id)
 
-            val endringFoer = PrisinfoRepository
+            val forslagTilEndringFoer = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
+
             val gjeldendeFoer = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
@@ -550,22 +574,32 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             result shouldBe false
-            Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
 
-            val endringEtter = PrisinfoRepository
+            PrisinfoRepository
+                .hentPrisinfo(stalePrisinfoId)
+                .shouldNotBeNull()
+                .status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
+
+            PrisinfoGjennomforingLinkRepository
+                .hentPrisinformasjonIdForEndring(gjennomforingInTest.id) shouldBe aktivEndringId
+
+            val forslagTilEndringEtter = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.ENDRING,
                 ).shouldNotBeNull()
+
             val gjeldendeEtter = PrisinfoRepository
                 .hentPrisinfo(
                     gjennomforingId = gjennomforingInTest.id,
                     rolle = PrisinfoDbo.Rolle.GJELDENDE,
                 ).shouldNotBeNull()
 
-            endringEtter.id shouldBe endringFoer.id
-            endringEtter.status shouldBe endringFoer.status
+            forslagTilEndringEtter.id shouldBe forslagTilEndringFoer.id
+            forslagTilEndringEtter.status shouldBe forslagTilEndringFoer.status
+
             gjeldendeEtter.id shouldBe gjeldendeFoer.id
+            gjeldendeEtter.status shouldBe PrisinfoDbo.TotrinnskontrollStatus.GODKJENT
             gjeldendeEtter.status shouldBe gjeldendeFoer.status
         }
     }
@@ -976,7 +1010,7 @@ class PrisinfoRepoAdapterTest {
         private val navAnsatt = lagNavAnsatt()
         private val deltakerliste = lagDeltakerliste()
         private val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         )
         private val vedtakFattet = LocalDateTime.now()
@@ -1158,10 +1192,82 @@ class PrisinfoRepoAdapterTest {
         ) = Database.query { session ->
             session.update(
                 queryOf(
-                    "UPDATE enkeltplass_prisinformasjon SET modified_at = ? WHERE id = ?",
+                    "UPDATE prisinformasjon SET modified_at = ? WHERE id = ?",
                     tidspunkt,
                     prisinformasjonId,
                 ),
+            )
+        }
+    }
+
+    @Nested
+    inner class ValiderPrisinfoTypeKanEndresTests {
+        private fun gjeldendeAnskaffelse(gjennomforingId: UUID) {
+            val gjeldendeId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingId,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+            godkjennMedTestGodkjenner(gjennomforingId = gjennomforingId, prisinformasjonId = gjeldendeId)
+        }
+
+        @Test
+        fun `typeendring med status DELTAR - kaster`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            shouldThrow<IllegalArgumentException> {
+                PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                    gjennomforingId = deltakerliste.id,
+                    nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                    deltakerStatus = DeltakerStatus.Type.DELTAR,
+                )
+            }
+        }
+
+        @Test
+        fun `typeendring med status SOKT_INN - kaster ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.SOKT_INN,
+            )
+        }
+
+        @Test
+        fun `verdiendring av samme type med status DELTAR - kaster ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            gjeldendeAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = Anskaffelse(pris = 99999),
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
+            )
+        }
+
+        @Test
+        fun `ingen gjeldende prisinfo - kaster ikke ved typeendring`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
             )
         }
     }

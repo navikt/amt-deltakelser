@@ -1,11 +1,13 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse
 import no.nav.amt.deltaker.bff.commonresponse.DeltakerlisteResponse
 import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
+import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import java.time.LocalDate
 import java.util.UUID
 
@@ -77,7 +79,7 @@ data class DeltakerResponse(
                 harAdresse = navBruker.adresse != null,
                 // Her bør det gjøres noen forenklinger
                 // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = deltakelsesmengder?.let(::DeltakelsesmengderResponse) ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )

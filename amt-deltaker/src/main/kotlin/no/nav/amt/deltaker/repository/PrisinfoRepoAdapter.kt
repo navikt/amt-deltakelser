@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.repository.dbo.Priskomponent
 import no.nav.amt.internapi.deltaker.request.EndretPrisinfoRequest
 import no.nav.amt.lib.models.deltaker.ANSKAFFELSE_SUB_TYPE
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
@@ -36,15 +37,16 @@ object PrisinfoRepoAdapter {
      * Godkjenner prisinfo for økonomi.
      *
      * Utfører tre steg:
-     * 1. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
-     * 2. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
-     * 3. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 1. Setter status på prisinfo til GODKJENT og lagrer hvem som godkjente
+     * 2. Sletter ENDRING-koblingen mellom gjennomføring og prisinfo
+     * 3. Oppretter GJELDENDE-kobling mellom gjennomføring og prisinfo
      *
      * @param gjennomforingId ID til gjennomføringen prisinfo tilhører
      * @param prisinformasjonId ID til prisinfoen som skal godkjennes
      * @param godkjentAv ID til Nav-ansatt som godkjente prisinfoen
      * @param godkjentAvEnhet ID til Nav-enheten som godkjente prisinfoen
-     * @return `true` hvis godkjenningen var vellykket, `false` hvis prisinfoen ikke finnes eller ikke er ENDRING
+     * @return `true` hvis prisinfoen er aktiv ENDRING, `false` hvis den er historisk
+     * @throws IllegalStateException hvis prisinfoen ikke finnes for gjennomføringen
      */
     fun godkjennOkonomi(
         gjennomforingId: UUID,
@@ -52,24 +54,34 @@ object PrisinfoRepoAdapter {
         godkjentAv: UUID,
         godkjentAvEnhet: UUID,
     ): Boolean {
-        val endringFinnes = Deltakerliste2PrisinfoRepository.delete(
+        // alltid godkjenn prisendring
+        val prisinfoFinnes = PrisinfoRepository.settGodkjent(
+            gjennomforingId = gjennomforingId,
+            prisinformasjonId = prisinformasjonId,
+            godkjentAv = godkjentAv,
+            godkjentAvEnhet = godkjentAvEnhet,
+        )
+
+        check(prisinfoFinnes) {
+            "Fant ikke prisinfo $prisinformasjonId for gjennomføring $gjennomforingId"
+        }
+
+        // fjern lenking fra deltaker til aktiv prisendring, ny lenking til GJELDENDE
+        // settes inn nedenfor
+        val prisendringErAktiv = PrisinfoGjennomforingLinkRepository.delete(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
         ) > 0
 
-        if (!endringFinnes) return false
+        // hvis dette ikke er nyeste prisendring, returner
+        if (!prisendringErAktiv) return false
 
-        Deltakerliste2PrisinfoRepository.upsert(
+        // sett prisinfo som gjeldende for deltaker
+        PrisinfoGjennomforingLinkRepository.upsert(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.GJELDENDE,
-        )
-
-        PrisinfoRepository.settGodkjent(
-            prisinformasjonId = prisinformasjonId,
-            godkjentAv = godkjentAv,
-            godkjentAvEnhet = godkjentAvEnhet,
         )
 
         return true
@@ -139,7 +151,7 @@ object PrisinfoRepoAdapter {
         gjennomforingId: UUID,
         prisinformasjon: PrisinformasjonDto,
     ): UUID {
-        val eksisterendePrisinfoId = Deltakerliste2PrisinfoRepository.hentPrisinformasjonIdForEndring(
+        val eksisterendePrisinfoId = PrisinfoGjennomforingLinkRepository.hentPrisinformasjonIdForEndring(
             gjennomforingId = gjennomforingId,
         )
 
@@ -154,7 +166,7 @@ object PrisinfoRepoAdapter {
 
         if (eksisterendePrisinfoId == null) {
             // opprett kopling mellom gjennomføring og prisinfo
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingId,
                 prisinformasjonId = faktiskPrisinfoId,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -193,13 +205,13 @@ object PrisinfoRepoAdapter {
             prisinformasjon.toPrisinfoDbo(
                 prisinfoId = nyPrisinfoId,
                 gjennomforingId = gjennomforingId,
-                status = PrisinfoDbo.PrisinfoStatus.SENDT,
+                status = PrisinfoDbo.TotrinnskontrollStatus.SENDT,
                 begrunnelse = begrunnelse,
             ),
         )
 
         // opprett kopling mellom gjennomføring og prisinfo
-        Deltakerliste2PrisinfoRepository.upsert(
+        PrisinfoGjennomforingLinkRepository.upsert(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = nyPrisinfoId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -216,19 +228,52 @@ object PrisinfoRepoAdapter {
     }
 
     /**
+     * Håndhever at selve *typen* prisinformasjon kun kan endres så lenge deltakelsen
+     * ikke har passert søknadsfasen (status UTKAST_TIL_PAMELDING eller SOKT_INN).
+     *
+     * Dette speiler valideringen i amt-deltaker-bff ([validerPrisinfoTypeKanEndres]), men
+     * utføres her innenfor skrivetransaksjonen slik at en samtidig økonomigodkjenning —
+     * som kan endre både status og gjeldende prisinfo mellom BFF-sjekken og skrivingen —
+     * ikke kan omgå regelen (TOCTOU).
+     *
+     * Rene verdiendringer innenfor samme type er alltid tillatt.
+     *
+     * @throws IllegalArgumentException hvis typen endres og status ikke tillater det
+     */
+    fun validerPrisinfoTypeKanEndres(
+        gjennomforingId: UUID,
+        nyPrisinformasjon: PrisinformasjonDto,
+        deltakerStatus: DeltakerStatus.Type,
+    ) {
+        val gjeldendePrisinfo = hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE) ?: return
+
+        val endrerType = gjeldendePrisinfo::class != nyPrisinformasjon::class
+        if (!endrerType) return
+
+        require(
+            deltakerStatus in setOf(
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+                DeltakerStatus.Type.SOKT_INN,
+            ),
+        ) {
+            "Kan ikke endre type prisinformasjon når deltakelsen har status $deltakerStatus"
+        }
+    }
+
+    /**
      * Tilbakekaller prisinfo som er pending totrinnskontroll ved å fjerne
-     * record fra mellomlagringstabellen `deltakerliste_2_prisinformasjon`.
+     * record fra mellomlagringstabellen `prisinformasjon_gjennomforing_link`.
      *
      * @param gjennomforingId Deltakerliste-ID
      * @return ID for prisinfo som er tilbakekalt
      */
     fun tilbakekallPrisinfoEndring(gjennomforingId: UUID): UUID {
-        val prisinformasjonId = Deltakerliste2PrisinfoRepository
+        val prisinformasjonId = PrisinfoGjennomforingLinkRepository
             .hentPrisinformasjonIdForEndring(gjennomforingId)
             ?: throw IllegalArgumentException("Fant ingen prisinformasjon som venter på godkjenning")
 
         // fjern kopling mellom deltakerliste og prisinfo
-        Deltakerliste2PrisinfoRepository.delete(
+        PrisinfoGjennomforingLinkRepository.delete(
             gjennomforingId = gjennomforingId,
             prisinformasjonId = prisinformasjonId,
             rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -303,7 +348,7 @@ object PrisinfoRepoAdapter {
     internal fun PrisinformasjonDto.toPrisinfoDbo(
         prisinfoId: UUID,
         gjennomforingId: UUID,
-        status: PrisinfoDbo.PrisinfoStatus = PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST,
+        status: PrisinfoDbo.TotrinnskontrollStatus = PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST,
         begrunnelse: String? = null,
     ): PrisinfoDbo = when (this) {
         is Anskaffelse -> PrisinfoDbo(
@@ -352,7 +397,7 @@ object PrisinfoRepoAdapter {
             .hentPrisinfo(
                 gjennomforingId = gjennomforingId,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
-            )?.takeUnless { it.status == PrisinfoDbo.PrisinfoStatus.RETURNERT }
+            )?.takeUnless { it.status == PrisinfoDbo.TotrinnskontrollStatus.RETURNERT }
             ?.hentBelopOgKonverterTilDto()
             ?: hentPrisinfo(
                 gjennomforingId = gjennomforingId,

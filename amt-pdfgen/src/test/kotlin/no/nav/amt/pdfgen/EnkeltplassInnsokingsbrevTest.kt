@@ -136,6 +136,30 @@ class EnkeltplassInnsokingsbrevTest :
                     doc.text() shouldContain "Droneoperatør"
                 }
 
+                it("Kurstype - skal ikke vise kurstypelinje i innsøkingsbrev") {
+                    // Arrange
+                    val kurstype = "Norskopplæring"
+                    val brevFraBuilder = enkeltplassPdfDto(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                        prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                    )
+                    val brevUtenInnhold = brevFraBuilder.copy(
+                        deltakerliste = brevFraBuilder.deltakerliste.copy(tiltaksnavn = kurstype),
+                    )
+                    val brevMedKurstype = brevUtenInnhold.copy(
+                        innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                    )
+
+                    // Act
+                    val tekstUtenInnhold = render("enkeltplass-innsokingsbrev", brevUtenInnhold).text()
+                    val tekstMedKurstype = render("enkeltplass-innsokingsbrev", brevMedKurstype).text()
+
+                    // Assert
+                    tekstUtenInnhold shouldContain kurstype
+                    tekstMedKurstype shouldBe tekstUtenInnhold
+                    tekstMedKurstype shouldNotContain "Kurstype:"
+                }
+
                 it("UtenInnhold - skal ikke vise innholdsdetaljer") {
                     val brev = enkeltplassPdfDto(
                         innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,

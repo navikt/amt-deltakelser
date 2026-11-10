@@ -6,6 +6,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -19,6 +20,7 @@ import no.nav.amt.lib.models.deltaker.INGENKOSTNADER_SUB_TYPE
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,7 +47,7 @@ class PrisinfoRepositoryTest {
             // Act
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = gjennomforingInTest.id,
                 prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -59,7 +61,7 @@ class PrisinfoRepositoryTest {
 
             assertSoftly(result.shouldNotBeNull()) {
                 gjennomforingId shouldBe gjennomforingInTest.id
-                status shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+                status shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
                 prisinfoJsonSubtype shouldBe ANSKAFFELSE_SUB_TYPE
                 anskaffelsePris shouldBe 15000
                 tilleggsopplysninger shouldBe "Standard opplysning"
@@ -81,7 +83,7 @@ class PrisinfoRepositoryTest {
             // Act
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo = prisinfoDbo)
 
-            Deltakerliste2PrisinfoRepository.upsert(
+            PrisinfoGjennomforingLinkRepository.upsert(
                 gjennomforingId = deltakerliste.id,
                 prisinformasjonId = prisinfoDbo.id,
                 rolle = PrisinfoDbo.Rolle.ENDRING,
@@ -124,7 +126,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.KLADD_UTKAST
+            result shouldBe PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
         }
 
         @Test
@@ -139,7 +141,7 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 10000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(prisinfoDbo.id, PrisinfoDbo.PrisinfoStatus.RETURNERT)
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(prisinfoDbo.id, PrisinfoDbo.TotrinnskontrollStatus.RETURNERT)
 
             // Act
             val result = PrisinfoRepository.hentPrisinfoStatus(
@@ -148,7 +150,7 @@ class PrisinfoRepositoryTest {
             )
 
             // Assert
-            result shouldBe PrisinfoDbo.PrisinfoStatus.RETURNERT
+            result shouldBe PrisinfoDbo.TotrinnskontrollStatus.RETURNERT
         }
 
         @Test
@@ -192,6 +194,106 @@ class PrisinfoRepositoryTest {
     }
 
     @Nested
+    inner class SettGodkjentTests {
+        @Test
+        fun `returnerer false og lagrer ikke godkjenner når prisinfo mangler`() {
+            // Arrange
+            val gjennomforingId = UUID.randomUUID()
+            val prisinformasjonId = UUID.randomUUID()
+
+            // Act
+            val result = PrisinfoRepository.settGodkjent(
+                gjennomforingId = gjennomforingId,
+                prisinformasjonId = prisinformasjonId,
+                godkjentAv = UUID.randomUUID(),
+                godkjentAvEnhet = UUID.randomUUID(),
+            )
+
+            // Assert
+            result shouldBe false
+        }
+
+        @Test
+        fun `returnerer false når prisinfo tilhører en annen gjennomføring`() {
+            // Arrange
+            val gjennomforing = lagDeltakerliste()
+            TestRepository.insert(gjennomforing)
+            val prisinfo = PrisinfoDbo(
+                gjennomforingId = gjennomforing.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            PrisinfoRepository.upsertPrisinfo(prisinfo)
+
+            // Act
+            val result = PrisinfoRepository.settGodkjent(
+                gjennomforingId = UUID.randomUUID(),
+                prisinformasjonId = prisinfo.id,
+                godkjentAv = UUID.randomUUID(),
+                godkjentAvEnhet = UUID.randomUUID(),
+            )
+
+            // Assert
+            result shouldBe false
+            PrisinfoRepository.hentPrisinfoStatus(gjennomforing.id, prisinfo.id) shouldBe
+                PrisinfoDbo.TotrinnskontrollStatus.KLADD_UTKAST
+        }
+
+        @Test
+        fun `oppdaterer godkjenner når prisinfo godkjennes på nytt`() {
+            // Arrange
+            val gjennomforing = lagDeltakerliste()
+            val forsteEnhet = lagNavEnhet()
+            val forsteAnsatt = lagNavAnsatt(navEnhetId = forsteEnhet.id)
+            val nyEnhet = lagNavEnhet()
+            val nyAnsatt = lagNavAnsatt(navEnhetId = nyEnhet.id)
+            TestRepository.insertAll(gjennomforing, forsteEnhet, forsteAnsatt, nyEnhet, nyAnsatt)
+            val prisinfo = PrisinfoDbo(
+                gjennomforingId = gjennomforing.id,
+                prisinfoJsonSubtype = ANSKAFFELSE_SUB_TYPE,
+                anskaffelsePris = 10000,
+            )
+            PrisinfoRepository.upsertPrisinfo(prisinfo)
+            val forsteGodkjenning = PrisinfoRepository.settGodkjent(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjonId = prisinfo.id,
+                godkjentAv = forsteAnsatt.id,
+                godkjentAvEnhet = forsteEnhet.id,
+            )
+            PrisinfoRepository.oppdaterStatusSomIkkeErGodkjent(
+                prisinformasjonId = prisinfo.id,
+                status = PrisinfoDbo.TotrinnskontrollStatus.RETURNERT,
+            )
+
+            // Act
+            val nyGodkjenning = PrisinfoRepository.settGodkjent(
+                gjennomforingId = gjennomforing.id,
+                prisinformasjonId = prisinfo.id,
+                godkjentAv = nyAnsatt.id,
+                godkjentAvEnhet = nyEnhet.id,
+            )
+            val lagretGodkjenner = Database.query { session ->
+                session.run(
+                    queryOf(
+                        """
+                        SELECT godkjent_av, godkjent_av_enhet
+                        FROM prisinformasjon_godkjenning
+                        WHERE prisinformasjon_id = ?
+                        """.trimIndent(),
+                        prisinfo.id,
+                    ).map { row -> row.uuid("godkjent_av") to row.uuid("godkjent_av_enhet") }
+                        .asSingle,
+                )
+            }
+
+            // Assert
+            forsteGodkjenning shouldBe true
+            nyGodkjenning shouldBe true
+            lagretGodkjenner shouldBe (nyAnsatt.id to nyEnhet.id)
+        }
+    }
+
+    @Nested
     inner class HentPrisinfoTests {
         @Test
         fun `returnerer null når prisinfo ikke finnes`() {
@@ -216,7 +318,7 @@ class PrisinfoRepositoryTest {
         val deltakerliste = lagDeltakerliste()
         val navAnsatt = lagNavAnsatt()
         val deltaker = lagDeltaker(
-            deltakerliste = deltakerliste,
+            gjennomforing = deltakerliste,
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         )
 
@@ -295,7 +397,12 @@ class PrisinfoRepositoryTest {
                 tilleggsopplysninger = "Opplysning",
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.settGodkjent(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinfoDbo.id,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -333,7 +440,12 @@ class PrisinfoRepositoryTest {
             )
             PrisinfoRepository.upsertPrisinfo(godkjentPrisinfo)
             PrisinfoRepository.upsertPrisinfo(kladdPrisinfo)
-            PrisinfoRepository.settGodkjent(godkjentPrisinfo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.settGodkjent(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = godkjentPrisinfo.id,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -352,7 +464,12 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 15000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.settGodkjent(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinfoDbo.id,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker.id)
@@ -368,11 +485,11 @@ class PrisinfoRepositoryTest {
             val deltakerliste2 = lagDeltakerliste()
 
             val deltaker1 = lagDeltaker(
-                deltakerliste = deltakerliste1,
+                gjennomforing = deltakerliste1,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val deltaker2 = lagDeltaker(
-                deltakerliste = deltakerliste2,
+                gjennomforing = deltakerliste2,
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
             val vedtak1 = lagVedtak(
@@ -401,7 +518,12 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 30000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.settGodkjent(
+                gjennomforingId = deltakerliste2.id,
+                prisinformasjonId = prisinfoDbo.id,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
 
             // Act
             val result = PrisinfoRepository.hentGodkjentPrisinfoForDeltakerEldsteForst(deltaker1.id)
@@ -475,7 +597,12 @@ class PrisinfoRepositoryTest {
                 anskaffelsePris = 20000,
             )
             PrisinfoRepository.upsertPrisinfo(prisinfoDbo)
-            PrisinfoRepository.settGodkjent(prisinfoDbo.id, godkjentAv = navAnsatt.id, godkjentAvEnhet = navEnhet.id)
+            PrisinfoRepository.settGodkjent(
+                gjennomforingId = deltakerliste.id,
+                prisinformasjonId = prisinfoDbo.id,
+                godkjentAv = navAnsatt.id,
+                godkjentAvEnhet = navEnhet.id,
+            )
         }
     }
 

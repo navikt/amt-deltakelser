@@ -11,7 +11,7 @@ object OpplaeringKategoriseringValgRepository {
         Database.query { session ->
             session.update(
                 queryOf(
-                    "DELETE FROM opplaering_kategorisering_valg WHERE deltakerliste_id = ?",
+                    "DELETE FROM opplaering_kategorisering_valg WHERE gjennomforing_id = ?",
                     gjennomforingId,
                 ),
             )
@@ -27,12 +27,12 @@ object OpplaeringKategoriseringValgRepository {
         val sql =
             """
             INSERT INTO opplaering_kategorisering_valg (
-                deltakerliste_id,
+                gjennomforing_id,
                 representerer,
                 kodeverk_id,
                 tekst
             ) VALUES (
-                :deltakerliste_id,
+                :gjennomforing_id,
                 :representerer,
                 :kodeverk_id,
                 :tekst
@@ -41,7 +41,7 @@ object OpplaeringKategoriseringValgRepository {
 
         val params = valg.map { valgDbo ->
             mapOf(
-                "deltakerliste_id" to gjennomforingId,
+                "gjennomforing_id" to gjennomforingId,
                 "representerer" to valgDbo.representerer.name,
                 "kodeverk_id" to valgDbo.kodeverkId,
                 "tekst" to valgDbo.tekst,
@@ -61,7 +61,7 @@ object OpplaeringKategoriseringValgRepository {
                 kodeverk_id,
                 tekst
             FROM opplaering_kategorisering_valg
-            WHERE deltakerliste_id = ?
+            WHERE gjennomforing_id = ?
             """.trimIndent()
 
         return Database.query { session ->

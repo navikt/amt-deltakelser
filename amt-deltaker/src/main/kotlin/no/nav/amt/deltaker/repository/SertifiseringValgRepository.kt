@@ -12,13 +12,13 @@ object SertifiseringValgRepository {
     ) {
         val insertSql =
             """
-            INSERT INTO deltakerliste_sertifisering_valg (
-                deltakerliste_id,
+            INSERT INTO sertifisering_valg (
+                gjennomforing_id,
                 sertifisering_id,
                 sertifisering_navn
             )
             VALUES (
-                :deltakerliste_id,
+                :gjennomforing_id,
                 :sertifisering_id,
                 :sertifisering_navn
             )
@@ -26,7 +26,7 @@ object SertifiseringValgRepository {
 
         val params = sertifiseringValg.map {
             mapOf(
-                "deltakerliste_id" to gjennomforingId,
+                "gjennomforing_id" to gjennomforingId,
                 "sertifisering_id" to it.id,
                 "sertifisering_navn" to it.navn,
             )
@@ -45,8 +45,8 @@ object SertifiseringValgRepository {
             SELECT 
                 sertifisering_id, 
                 sertifisering_navn 
-            FROM deltakerliste_sertifisering_valg 
-            WHERE deltakerliste_id = ?
+            FROM sertifisering_valg 
+            WHERE gjennomforing_id = ?
             """.trimIndent()
 
         return Database
@@ -67,7 +67,7 @@ object SertifiseringValgRepository {
         Database.query { session ->
             session.update(
                 queryOf(
-                    "DELETE FROM deltakerliste_sertifisering_valg WHERE deltakerliste_id = ?",
+                    "DELETE FROM sertifisering_valg WHERE gjennomforing_id = ?",
                     gjennomforingId,
                 ),
             )

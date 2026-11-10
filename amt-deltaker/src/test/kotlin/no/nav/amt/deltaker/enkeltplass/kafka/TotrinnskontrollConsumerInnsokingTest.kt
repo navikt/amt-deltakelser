@@ -1,18 +1,15 @@
 package no.nav.amt.deltaker.enkeltplass.kafka
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.CapturingSlot
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
-import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.model.Deltaker
-import no.nav.amt.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
-import no.nav.amt.deltaker.service.DeltakerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -23,7 +20,6 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class TotrinnskontrollConsumerInnsokingTest : TotrinnskontrollConsumerTestBase() {
@@ -40,257 +36,149 @@ class TotrinnskontrollConsumerInnsokingTest : TotrinnskontrollConsumerTestBase()
     @Test
     fun `processGodkjentInnsoking - gjør ingenting når deltaker ikke har status SOKT_INN`() = runTest {
         // Arrange
-        val deltakerInTest = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
 
         // Act
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
+        processGodkjentInnsoking(
+            consumer = consumer,
+            deltaker = deltaker,
+            prisinfoId = totrinnskontrollId,
+            navAnsatt = navAnsatt,
+            navEnhet = navEnhet,
+        )
 
         // Assert
         verify(exactly = 0) {
-            deltakerService.upsertAndProduceDeltaker(
+            deltakerService.upsertAndProduceDeltakerConditionally(
                 deltaker = any(),
-                erDeltakerSluttdatoEndret = any(),
-                forceProduce = any(),
-                nesteStatus = any(),
                 beforeUpsert = any(),
                 afterUpsert = any(),
             )
         }
-        verify(exactly = 0) { vedtakService.godkjentOkonomiFattVedtak(any(), any(), any()) }
+        verify(exactly = 0) {
+            vedtakService.godkjentOkonomiFattVedtak(
+                deltaker = any(),
+                sistEndretAv = any(),
+                sistEndretAvEnhet = any(),
+            )
+        }
     }
 
     @Test
-    fun `processGodkjentInnsoking - oppdaterer deltaker status via beforeUpsert`() = runTest {
+    fun `processGodkjentInnsoking - oppdaterer status og publiserer hendelse for aktiv prisinfo`() = runTest {
         // Arrange
-        val deltakerInTest = lagSoktInnDeltaker()
-        val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
-        stubBeforeUpsert(
-            deltakerService,
-            slot = beforeUpsertSlot,
-            result = deltakerInTest.copy(
-                vedtaksinformasjon = Vedtaksinformasjon(
-                    fattet = null,
-                    fattetAvNav = false,
-                    opprettet = LocalDateTime.now(),
-                    opprettetAv = UUID.randomUUID(),
-                    opprettetAvEnhet = UUID.randomUUID(),
-                    sistEndret = LocalDateTime.now(),
-                    sistEndretAv = UUID.randomUUID(),
-                    sistEndretAvEnhet = UUID.randomUUID(),
-                ),
-            ),
+        val deltaker = lagSoktInnDeltaker()
+        var deltakerForUpsert: Deltaker? = null
+        stubConditionalUpsert { deltakerForUpsert = it }
+
+        // Act
+        processGodkjentInnsoking(
+            consumer = consumer,
+            deltaker = deltaker,
+            prisinfoId = totrinnskontrollId,
+            navAnsatt = navAnsatt,
+            navEnhet = navEnhet,
         )
 
-        // Act
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
-
         // Assert
-        val updated = beforeUpsertSlot.captured(deltakerInTest)
-        updated.status.type shouldBe DeltakerStatus.Type.DELTAR
-        verify { vedtakService.godkjentOkonomiFattVedtak(deltakerInTest, any(), any()) }
+        deltakerForUpsert.shouldNotBeNull().status.type shouldBe DeltakerStatus.Type.DELTAR
+        verify { vedtakService.godkjentOkonomiFattVedtak(deltaker, any(), any()) }
+        verify {
+            distribuerEndringService.produceHendelseForUtkast(
+                deltaker = match { it.status.type == DeltakerStatus.Type.DELTAR },
+                navAnsatt = any(),
+                enhet = any(),
+                block = any(),
+            )
+        }
     }
 
     @Test
-    fun `processGodkjentInnsoking - skipper videre prosessering naar prisinfo ikke kan godkjennes`() = runTest {
+    fun `processGodkjentInnsoking - skipper videre prosessering for historisk prisinfo`() = runTest {
         // Arrange
-        val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
+        val deltaker = lagSoktInnDeltaker(startdato = null, sluttdato = null)
         every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
-        val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
-        stubUpsertApplyingBeforeCallback(deltakerService, beforeUpsertSlot)
+        var deltakerForUpsert: Deltaker? = null
+        stubConditionalUpsert { deltakerForUpsert = it }
 
         // Act
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
+        processGodkjentInnsoking(
+            consumer = consumer,
+            deltaker = deltaker,
+            prisinfoId = totrinnskontrollId,
+            navAnsatt = navAnsatt,
+            navEnhet = navEnhet,
+        )
 
         // Assert
-        verify(exactly = 1) {
-            deltakerService.upsertAndProduceDeltaker(
-                deltaker = any(),
-                erDeltakerSluttdatoEndret = any(),
-                forceProduce = any(),
-                nesteStatus = any(),
-                beforeUpsert = any(),
-                afterUpsert = any(),
-            )
-        }
+        deltakerForUpsert shouldBe null
         verify(exactly = 0) { vedtakService.godkjentOkonomiFattVedtak(any(), any(), any()) }
         verify(exactly = 0) { distribuerEndringService.produceHendelseForUtkast(any(), any(), any(), any()) }
     }
 
     @Test
-    fun `processGodkjentInnsoking - beforeUpsert kaster exception ved historisk prisinfo`() = runTest {
+    fun `processGodkjentInnsoking - lar feil fra prisinfo-godkjenning propagere`() = runTest {
         // Arrange
-        val deltakerInTest = lagSoktInnDeltaker(startdato = null, sluttdato = null)
-        every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } returns false
-        val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
-        stubBeforeUpsert(deltakerService, beforeUpsertSlot, deltakerInTest)
-
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
-
-        // Act
-        val exception = shouldThrow<IllegalStateException> {
-            beforeUpsertSlot.captured(deltakerInTest)
-        }
-
-        // Assert
-        exception.message shouldBe
-            "Fant ikke aktiv ENDRING-prisinfo $totrinnskontrollId for deltaker ${deltakerInTest.id}"
-    }
-
-    @Test
-    fun `processGodkjentInnsoking - afterUpsert produserer hendelse`() = runTest {
-        // Arrange
-        val sistEndretAv = UUID.randomUUID()
-        val sistEndretAvEnhet = UUID.randomUUID()
-        val vedtaksinformasjon = Vedtaksinformasjon(
-            fattet = null,
-            fattetAvNav = false,
-            opprettet = LocalDateTime.now(),
-            opprettetAv = UUID.randomUUID(),
-            opprettetAvEnhet = UUID.randomUUID(),
-            sistEndret = LocalDateTime.now(),
-            sistEndretAv = sistEndretAv,
-            sistEndretAvEnhet = sistEndretAvEnhet,
-        )
-        val deltakerInTest = lagSoktInnDeltaker(vedtaksinformasjon = vedtaksinformasjon)
-        val afterUpsertSlot = slot<(Deltaker) -> Unit>()
-        stubAfterUpsert(deltakerService, afterUpsertSlot, deltakerInTest)
-
-        // Act
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
-
-        // Assert
-        afterUpsertSlot.captured(deltakerInTest)
-        verify {
-            distribuerEndringService.produceHendelseForUtkast(
-                deltaker = deltakerInTest,
-                navAnsatt = any(),
-                enhet = any(),
-                block = any(),
-            )
-        }
-    }
-
-    @Test
-    fun `processGodkjentInnsoking - afterUpsert produserer hendelse når vedtaksinformasjon mangler`() = runTest {
-        // Arrange
-        val deltakerInTest = lagSoktInnDeltaker(vedtaksinformasjon = null)
-        val afterUpsertSlot = slot<(Deltaker) -> Unit>()
-        stubAfterUpsert(deltakerService, afterUpsertSlot, deltakerInTest)
-
-        // Act
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
-
-        // Assert
-        afterUpsertSlot.captured(deltakerInTest)
-        verify {
-            distribuerEndringService.produceHendelseForUtkast(
-                deltaker = deltakerInTest,
-                navAnsatt = any(),
-                enhet = any(),
-                block = any(),
-            )
-        }
-    }
-
-    @Test
-    fun `processGodkjentInnsoking - kaster unntak når godkjennOkonomi feiler`() = runTest {
-        // Arrange
-        val deltakerInTest = lagSoktInnDeltaker()
+        val deltaker = lagSoktInnDeltaker()
         val dbError = RuntimeException("Database error")
         every { PrisinfoRepoAdapter.godkjennOkonomi(any(), any(), any(), any()) } throws dbError
-        val beforeUpsertSlot = slot<(Deltaker) -> Deltaker>()
-        stubBeforeUpsert(deltakerService, beforeUpsertSlot, deltakerInTest)
-
-        processGodkjentInnsoking(consumer, deltakerInTest, totrinnskontrollId, navAnsatt, navEnhet)
+        stubConditionalUpsert()
 
         // Act
         val exception = shouldThrow<RuntimeException> {
-            beforeUpsertSlot.captured(deltakerInTest)
+            processGodkjentInnsoking(
+                consumer = consumer,
+                deltaker = deltaker,
+                prisinfoId = totrinnskontrollId,
+                navAnsatt = navAnsatt,
+                navEnhet = navEnhet,
+            )
         }
 
         // Assert
         exception shouldBe dbError
     }
 
-    private companion object {
-        fun lagSoktInnDeltaker(
-            startdato: LocalDate? = LocalDate.now(),
-            sluttdato: LocalDate? = LocalDate.now().plusWeeks(4),
-            vedtaksinformasjon: Vedtaksinformasjon? = null,
-        ) = lagDeltaker(
-            status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
-            startdato = startdato,
-            sluttdato = sluttdato,
-            vedtaksinformasjon = vedtaksinformasjon,
-        )
-
-        fun processGodkjentInnsoking(
-            consumer: TotrinnskontrollConsumer,
-            deltaker: Deltaker,
-            prisinfoId: UUID,
-            navAnsatt: NavAnsatt,
-            navEnhet: NavEnhet,
-        ) {
-            consumer.processGodkjentInnsoking(
-                deltaker = deltaker,
-                prisinfoId = prisinfoId,
-                behandletAvNavAnsatt = navAnsatt,
-                behandletAvNavEnhet = navEnhet,
-                godkjentAvNavAnsatt = navAnsatt,
-                godkjentAvNavEnhet = navEnhet,
+    private fun stubConditionalUpsert(captureDeltaker: (Deltaker?) -> Unit = {}) {
+        every {
+            deltakerService.upsertAndProduceDeltakerConditionally(
+                deltaker = any(),
+                beforeUpsert = any(),
+                afterUpsert = any(),
             )
-        }
-
-        fun stubBeforeUpsert(
-            deltakerService: DeltakerService,
-            slot: CapturingSlot<(Deltaker) -> Deltaker>,
-            result: Deltaker,
-        ) {
-            every {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                    forceProduce = any(),
-                    nesteStatus = any(),
-                    beforeUpsert = capture(slot),
-                    afterUpsert = any(),
-                )
-            } returns result
-        }
-
-        fun stubAfterUpsert(
-            deltakerService: DeltakerService,
-            slot: CapturingSlot<(Deltaker) -> Unit>,
-            result: Deltaker,
-        ) {
-            every {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                    forceProduce = any(),
-                    nesteStatus = any(),
-                    beforeUpsert = any(),
-                    afterUpsert = capture(slot),
-                )
-            } returns result
-        }
-
-        fun stubUpsertApplyingBeforeCallback(
-            deltakerService: DeltakerService,
-            slot: CapturingSlot<(Deltaker) -> Deltaker>,
-        ) {
-            every {
-                deltakerService.upsertAndProduceDeltaker(
-                    deltaker = any(),
-                    erDeltakerSluttdatoEndret = any(),
-                    forceProduce = any(),
-                    nesteStatus = any(),
-                    beforeUpsert = capture(slot),
-                    afterUpsert = any(),
-                )
-            } answers {
-                slot.captured(firstArg<Deltaker>())
+        } answers {
+            val deltaker = firstArg<Deltaker>()
+            val oppdatertDeltaker = secondArg<(Deltaker) -> Deltaker?>()(deltaker)
+            captureDeltaker(oppdatertDeltaker)
+            oppdatertDeltaker?.also {
+                thirdArg<(Deltaker) -> Unit>()(it)
             }
         }
+    }
+
+    private fun lagSoktInnDeltaker(
+        startdato: LocalDate? = LocalDate.now(),
+        sluttdato: LocalDate? = LocalDate.now().plusWeeks(4),
+    ) = lagDeltaker(
+        status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+        startdato = startdato,
+        sluttdato = sluttdato,
+    )
+
+    private fun processGodkjentInnsoking(
+        consumer: TotrinnskontrollConsumer,
+        deltaker: Deltaker,
+        prisinfoId: UUID,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+    ) {
+        consumer.processGodkjentInnsoking(
+            deltaker = deltaker,
+            prisinfoId = prisinfoId,
+            behandletAvNavAnsatt = navAnsatt,
+            behandletAvNavEnhet = navEnhet,
+            godkjentAvNavAnsatt = navAnsatt,
+            godkjentAvNavEnhet = navEnhet,
+        )
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.bff.utils
 
 import no.nav.amt.deltaker.bff.clients.ModelMapper
-import no.nav.amt.deltaker.bff.commonresponse.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.deltaker.bff.model.ArrangorModel
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.model.Deltakerliste
@@ -10,6 +9,7 @@ import no.nav.amt.deltaker.bff.model.NavBrukerModel
 import no.nav.amt.deltaker.bff.model.Tiltak
 import no.nav.amt.deltaker.bff.navtiltakskoordinator.auth.TiltakskoordinatorDeltakerlisteTilgang
 import no.nav.amt.internapi.deltaker.getInnholdselementer
+import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse

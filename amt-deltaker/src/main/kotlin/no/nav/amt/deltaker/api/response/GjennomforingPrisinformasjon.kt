@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.api.response
 
-import no.nav.amt.deltaker.model.Deltakerliste
+import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
@@ -13,14 +13,14 @@ object GjennomforingPrisinformasjon {
     )
 
     fun hent(
-        deltakerliste: Deltakerliste,
+        gjennomforing: Gjennomforing,
         includeOpplaringKategorisering: Boolean,
     ): PrisinformasjonData? {
-        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && deltakerliste.erNyForskriftOpplaring
+        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && gjennomforing.erNyForskriftOpplaring
 
         if (!skalHenteEnkeltplassValg) return null
 
-        return finnPrisInfo(deltakerliste.id)
+        return finnPrisInfo(gjennomforing.id)
     }
 
     /**

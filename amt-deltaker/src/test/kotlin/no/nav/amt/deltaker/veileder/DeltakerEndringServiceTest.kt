@@ -88,7 +88,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
     fun `upsertEndring - endret innhold - upserter og returnerer endring`() {
         // Arrange
         val deltaker = lagDeltaker()
-        val tiltaksinnhold = deltaker.deltakerliste.tiltakstype.innhold!!
+        val tiltaksinnhold = deltaker.gjennomforing.tiltakstype.innhold!!
             .innholdselementer[0]
         val nyttInnhold = InnholdsElementRequest(innholdskode = tiltaksinnhold.innholdskode, beskrivelse = null)
         val expectedInnhold = Innhold(
@@ -116,7 +116,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         // Assert
         assertSoftly(resultat.shouldBeInstanceOf<DeltakerEndring.Endring.EndreInnhold>()) {
             innhold shouldBe listOf(expectedInnhold)
-            ledetekst shouldBe deltaker.deltakerliste.tiltakstype.innhold!!
+            ledetekst shouldBe deltaker.gjennomforing.tiltakstype.innhold!!
                 .ledetekst
         }
 
@@ -126,7 +126,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
 
             assertSoftly(endring.shouldBeInstanceOf<DeltakerEndring.Endring.EndreInnhold>()) {
                 innhold shouldBe listOf(expectedInnhold)
-                ledetekst shouldBe deltaker.deltakerliste.tiltakstype.innhold!!
+                ledetekst shouldBe deltaker.gjennomforing.tiltakstype.innhold!!
                     .ledetekst
             }
         }
@@ -273,7 +273,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
         TestRepository.insert(deltaker)
         val prisinfo = PrisinformasjonDto.Anskaffelse(pris = 7500)
         val prisinformasjonId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-            gjennomforingId = deltaker.deltakerliste.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             prisinformasjon = prisinfo,
             begrunnelse = "Begrunnelse",
         )
