@@ -91,7 +91,7 @@ class DeltakerHistorikkService(
             if (inkluderEnkeltplassOkonomiHistorikk) {
                 utvidedeHistorikk + hentEnkeltplassOkonomiHistorikk(
                     deltakerId = deltakerId,
-                    vedtakFattet = kjernehistorikk.getVedtakFattet(),
+                    vedtakFattetTidspunkt = kjernehistorikk.getVedtakFattet(),
                 )
             } else {
                 utvidedeHistorikk
@@ -168,30 +168,43 @@ class DeltakerHistorikkService(
     )
 
     /**
-     * Henter godkjente prisinfoer og markerer førstegangsgodkjenningen.
+     * Henter godkjente prisinfoer og markerer prisinfoen som utløste vedtaket.
      *
      * Den nyeste prisoppføringen som ble endret senest da vedtaket ble fattet, markeres som
-     * førstegangsgodkjenning. Hvis vedtaket ikke har fattet-tidspunkt, markeres ingen oppføring.
+     * førstegangsgodkjenning. Hvis flere prisinfoer ble godkjent før eller samtidig med vedtaket,
+     * utelates de eldre oppføringene. Hvis vedtaket ikke har fattet-tidspunkt, beholdes alle
+     * prisinfoene uten markering.
      *
      * @param deltakerId ID-en til deltakeren
-     * @param vedtakFattet tidspunktet vedtaket ble fattet
-     * @return Godkjente prisinfoer som historikkoppføringer
+     * @param vedtakFattetTidspunkt tidspunktet vedtaket ble fattet
+     * @return Prisinfoer som skal vises i historikken
      */
     private fun hentEnkeltplassOkonomiHistorikk(
         deltakerId: UUID,
-        vedtakFattet: LocalDateTime?,
+        vedtakFattetTidspunkt: LocalDateTime?,
     ): List<DeltakerHistorikk> {
         val godkjentePrisinfoer = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId)
 
-        // Prisinfoene kommer eldste først; vedtaket knyttes til den nyeste som var endret senest da det ble fattet.
-        val forsteGodkjenningIndex = vedtakFattet?.let { fattet ->
-            godkjentePrisinfoer.indexOfLast { it.sistEndret <= fattet }
-        } ?: -1
+        // Prisinfoene kommer eldste først, så den siste før vedtaket utløste vedtaket.
+        // MERK: Flere godkjente prisinfoer før hovedvedtak er edge-case som krever
+        // innsats for å fremprovosere.
+        val (prisinfoerForVedtak, prisinfoerEtterVedtak) = godkjentePrisinfoer.partition { prisinfo ->
+            vedtakFattetTidspunkt?.let { prisinfo.sistEndret <= it } ?: false
+        }
 
-        // Bare prisinfoen på denne indeksen markeres som førstegangsgodkjenning.
-        return godkjentePrisinfoer.mapIndexed { index, prisinformasjon ->
+        // Hvis flere godkjenninger ligger før vedtaket, viser vi bare den siste fordi den utløste vedtaket.
+        val prisinfoerForHistorikk = if (prisinfoerForVedtak.size > 1) {
+            listOf(prisinfoerForVedtak.last()) + prisinfoerEtterVedtak
+        } else {
+            godkjentePrisinfoer
+        }
+
+        // Første prisinfo markeres hvis en prisinfo ble godkjent før eller samtidig med vedtaket.
+        return prisinfoerForHistorikk.mapIndexed { index, prisinformasjon ->
             DeltakerHistorikk.EnkeltplassOkonomiGodkjent(
-                prisinformasjon.copy(erForsteGodkjenning = index == forsteGodkjenningIndex),
+                prisinformasjon.copy(
+                    erForsteGodkjenning = prisinfoerForVedtak.isNotEmpty() && index == 0,
+                ),
             )
         }
     }

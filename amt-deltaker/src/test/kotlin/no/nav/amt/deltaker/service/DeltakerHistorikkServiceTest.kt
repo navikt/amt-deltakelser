@@ -111,6 +111,7 @@ class DeltakerHistorikkServiceTest {
             // Act
             val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
             val vedtakResult = historikk.first()
+
             // Assert
             historikk.size shouldBe 1
             vedtakResult.shouldBeInstanceOf<DeltakerHistorikk.Vedtak>()
@@ -119,7 +120,8 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `merker bare siste prisinfo for vedtaket som forste godkjenning`() {
+        fun `utelater eldre godkjent prisinfo for vedtaket nar flere finnes`() {
+            // Arrange
             val vedtakFattet = LocalDateTime.now()
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
                 vedtakFattet = vedtakFattet,
@@ -130,38 +132,75 @@ class DeltakerHistorikkServiceTest {
                 ),
             )
 
+            // Act
             val godkjentPrisinfo = deltakerHistorikkService
                 .getForDeltaker(deltaker)
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-
-            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
-                Anskaffelse(pris = 120, begrunnelse = "Pris 120"),
-                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
-                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
-            )
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true, false)
-
+            val v2Historikk = deltakerHistorikkService
+                .getForDeltaker(deltaker.id)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
             val gruppedeltaker = deltaker.copy(
                 gjennomforing = deltaker.gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
             )
             val utenOkonomiHistorikk = deltakerHistorikkService
                 .getForDeltaker(gruppedeltaker)
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 120, begrunnelse = "Pris 120"),
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            v2Historikk.map { it.data.prisinformasjon } shouldBe godkjentPrisinfo.map { it.data.prisinformasjon }
+            v2Historikk.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
             utenOkonomiHistorikk shouldBe emptyList()
         }
 
         @Test
-        fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
+        fun `beholder godkjent prisinfo nar bare en ligger for vedtaket`() {
+            // Arrange
+            val vedtakFattet = LocalDateTime.now()
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
-                vedtakFattet = null,
-                prisinfoTidspunkter = listOf(34 to LocalDateTime.now().minusMinutes(1)),
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.minusMinutes(1),
+                    90 to vedtakFattet.plusSeconds(1),
+                ),
             )
 
+            // Act
             val godkjentPrisinfo = deltakerHistorikkService
                 .getForDeltaker(deltaker)
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+        }
+
+        @Test
+        fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
+            // Arrange
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = null,
+                prisinfoTidspunkter = listOf(
+                    34 to LocalDateTime.now().minusMinutes(2),
+                    90 to LocalDateTime.now().minusMinutes(1),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.size shouldBe 2
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
         }
 
         @Test
