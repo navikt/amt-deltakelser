@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotliquery.queryOf
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
@@ -118,7 +119,71 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `merker bare siste godkjente prisinfo før vedtaket som forste godkjenning`() {
+        fun `merker bare siste prisinfo for vedtaket som forste godkjenning`() {
+            val vedtakFattet = LocalDateTime.now()
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.minusMinutes(3),
+                    90 to vedtakFattet.minusSeconds(1),
+                    120 to vedtakFattet.plusSeconds(1),
+                ),
+            )
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 120, begrunnelse = "Pris 120"),
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true, false)
+
+            val gruppedeltaker = deltaker.copy(
+                gjennomforing = deltaker.gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
+            )
+            val utenOkonomiHistorikk = deltakerHistorikkService
+                .getForDeltaker(gruppedeltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+            utenOkonomiHistorikk shouldBe emptyList()
+        }
+
+        @Test
+        fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = null,
+                prisinfoTidspunkter = listOf(34 to LocalDateTime.now().minusMinutes(1)),
+            )
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
+        }
+
+        @Test
+        fun `merker ingen prisinfo som forste godkjenning nar vedtak mangler`() {
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = null,
+                prisinfoTidspunkter = listOf(34 to LocalDateTime.now().minusMinutes(1)),
+                opprettVedtak = false,
+            )
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
+        }
+
+        private fun lagDeltakerMedGodkjentPrisinfo(
+            vedtakFattet: LocalDateTime?,
+            prisinfoTidspunkter: List<Pair<Int, LocalDateTime>>,
+            opprettVedtak: Boolean = true,
+        ): Deltaker {
             val navEnhet = TestData.lagNavEnhet()
             navEnhetRepository.upsert(navEnhet)
 
@@ -131,61 +196,36 @@ class DeltakerHistorikkServiceTest {
             )
             val deltaker = no.nav.amt.deltaker.utils.data.TestData
                 .lagDeltaker(gjennomforing = gjennomforing)
-            val vedtakFattet = LocalDateTime.now()
-            val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
-                deltakerId = deltaker.id,
-                deltakerVedVedtak = deltaker,
-                fattet = vedtakFattet,
-                opprettetAv = navAnsatt,
-                opprettetAvEnhet = navEnhet,
-                sistEndret = vedtakFattet,
-            )
             TestRepository.insert(deltaker)
-            TestRepository.insert(vedtak)
 
-            val eldrePrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-                gjennomforingId = gjennomforing.id,
-                prisinformasjon = Anskaffelse(pris = 34),
-                begrunnelse = "Første pris",
-            )
-            PrisinfoRepoAdapter.godkjennOkonomi(
-                gjennomforingId = gjennomforing.id,
-                prisinformasjonId = eldrePrisinfoId,
-                godkjentAv = navAnsatt.id,
-                godkjentAvEnhet = navEnhet.id,
-            )
-            settPrisinfoTidspunkt(eldrePrisinfoId, vedtakFattet.minusMinutes(3))
+            if (opprettVedtak) {
+                val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                    deltakerId = deltaker.id,
+                    deltakerVedVedtak = deltaker,
+                    fattet = vedtakFattet,
+                    opprettetAv = navAnsatt,
+                    opprettetAvEnhet = navEnhet,
+                    sistEndret = vedtakFattet ?: LocalDateTime.now(),
+                )
+                TestRepository.insert(vedtak)
+            }
 
-            val nyPrisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
-                gjennomforingId = gjennomforing.id,
-                prisinformasjon = Anskaffelse(pris = 90),
-                begrunnelse = "Prisendring",
-            )
-            PrisinfoRepoAdapter.godkjennOkonomi(
-                gjennomforingId = gjennomforing.id,
-                prisinformasjonId = nyPrisinfoId,
-                godkjentAv = navAnsatt.id,
-                godkjentAvEnhet = navEnhet.id,
-            )
-            settPrisinfoTidspunkt(nyPrisinfoId, vedtakFattet.minusSeconds(1))
+            prisinfoTidspunkter.forEach { (pris, tidspunkt) ->
+                val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                    gjennomforingId = gjennomforing.id,
+                    prisinformasjon = Anskaffelse(pris = pris),
+                    begrunnelse = "Pris $pris",
+                )
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = gjennomforing.id,
+                    prisinformasjonId = prisinfoId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
+                )
+                settPrisinfoTidspunkt(prisinfoId, tidspunkt)
+            }
 
-            val godkjentPrisinfo = deltakerHistorikkService
-                .getForDeltaker(deltaker)
-                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-
-            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
-                Anskaffelse(pris = 90, begrunnelse = "Prisendring"),
-                Anskaffelse(pris = 34, begrunnelse = "Første pris"),
-            )
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(true, false)
-
-            val gruppedeltaker = deltaker.copy(
-                gjennomforing = gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
-            )
-            val utenOkonomiHistorikk = deltakerHistorikkService
-                .getForDeltaker(gruppedeltaker)
-                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-            utenOkonomiHistorikk shouldBe emptyList()
+            return deltaker
         }
     }
 
