@@ -116,11 +116,13 @@ spec:
         databases:
           - name: amt-deltaker-bff
             envVarPrefix: DB
+{{#if database_flags}}
         flags:
 {{#each database_flags}}
           - name: {{name}}
             value: "{{value}}"
 {{/each}}
+{{/if}}
         diskAutoresize: {{database_disk_autoresize}}
         pointInTimeRecovery: {{database_point_in_time_recovery}}
   observability:
