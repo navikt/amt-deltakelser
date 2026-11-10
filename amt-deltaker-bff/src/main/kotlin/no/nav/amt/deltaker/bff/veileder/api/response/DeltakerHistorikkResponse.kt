@@ -7,6 +7,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraArrangorEndringResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraTiltakskoordinatorEndringResponse
+import no.nav.amt.internapi.deltaker.response.ForslagEndringResponse
 import no.nav.amt.internapi.deltaker.response.ForslagResponseStatus
 import no.nav.amt.internapi.deltaker.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -251,7 +252,7 @@ data class ImportertFraArenaResponse(
             sluttdato = model.deltakerVedImport.sluttdato,
             dagerPerUke = model.deltakerVedImport.dagerPerUke,
             deltakelsesprosent = model.deltakerVedImport.deltakelsesprosent,
-            status = model.deltakerVedImport.status.toDeltakerStatusResponse(),
+            status = DeltakerStatusResponse(model.deltakerVedImport.status),
         )
     }
 }

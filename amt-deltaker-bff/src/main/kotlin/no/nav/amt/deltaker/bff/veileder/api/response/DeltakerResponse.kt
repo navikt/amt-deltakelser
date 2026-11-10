@@ -45,7 +45,7 @@ data class DeltakerResponse(
                 mellomnavn = navBruker.mellomnavn,
                 etternavn = navBruker.etternavn,
                 deltakerliste = gjennomforing.let(::DeltakerlisteResponse),
-                status = status.toDeltakerStatusResponse(),
+                status = DeltakerStatusResponse(status),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,

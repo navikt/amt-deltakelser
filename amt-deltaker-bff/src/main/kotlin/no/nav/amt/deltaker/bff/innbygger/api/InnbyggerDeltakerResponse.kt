@@ -5,7 +5,6 @@ import no.nav.amt.deltaker.bff.commonresponse.ImportertFraArenaResponse
 import no.nav.amt.deltaker.bff.model.DeltakerModel
 import no.nav.amt.deltaker.bff.veileder.api.response.ForslagResponse
 import no.nav.amt.deltaker.bff.veileder.api.response.VedtaksinformasjonResponse
-import no.nav.amt.deltaker.bff.veileder.api.response.toDeltakerStatusResponse
 import no.nav.amt.felles.visningsnavn.ARRANGOR_MANGLER
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
@@ -35,7 +34,7 @@ data class InnbyggerDeltakerResponse(
             InnbyggerDeltakerResponse(
                 deltakerId = id,
                 deltakerliste = deltaker.gjennomforing.let(::DeltakerlisteResponse),
-                status = status.toDeltakerStatusResponse(),
+                status = DeltakerStatusResponse(status),
                 startdato = startdato,
                 sluttdato = sluttdato,
                 dagerPerUke = dagerPerUke,
