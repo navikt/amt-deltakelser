@@ -6,6 +6,7 @@ import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraArrangorEndringResponse
 import no.nav.amt.internapi.deltaker.response.EndringFraTiltakskoordinatorEndringResponse
+import no.nav.amt.internapi.deltaker.response.ForslagResponseStatus
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -161,7 +162,7 @@ data class ForslagHistorikkResponse(
     val begrunnelse: String?,
     val arrangorNavn: String,
     val endring: ForslagEndringResponse,
-    val status: ForslagHistorikkResponseStatus,
+    val status: ForslagResponseStatus,
 ) : DeltakerHistorikkResponse {
     constructor(model: Forslag, arrangornavn: String) : this(
         model = model,
@@ -390,39 +391,15 @@ data class EndringFraTiltakskoordinatorResponse(
     )
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-sealed interface ForslagHistorikkResponseStatus {
-    data object VenterPaSvar : ForslagHistorikkResponseStatus
-
-    data class Godkjent(
-        val godkjent: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Avvist(
-        val avvistAv: String,
-        val avvistAvEnhet: String,
-        val avvist: LocalDateTime,
-        val begrunnelseFraNav: String,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Tilbakekalt(
-        val tilbakekalt: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-
-    data class Erstattet(
-        val erstattet: LocalDateTime,
-    ) : ForslagHistorikkResponseStatus
-}
-
 private fun Forslag.getForslagResponseStatus(
     ansatte: Map<UUID, NavAnsatt>,
     enheter: Map<UUID, NavEnhet>,
-): ForslagHistorikkResponseStatus = when (val status = status) {
-    is Forslag.Status.VenterPaSvar -> ForslagHistorikkResponseStatus.VenterPaSvar
-    is Forslag.Status.Godkjent -> ForslagHistorikkResponseStatus.Godkjent(status.godkjent)
+): ForslagResponseStatus = when (val status = status) {
+    is Forslag.Status.VenterPaSvar -> ForslagResponseStatus.VenterPaSvar
+    is Forslag.Status.Godkjent -> ForslagResponseStatus.Godkjent(status.godkjent)
     is Forslag.Status.Avvist -> {
         val avvist = status
-        ForslagHistorikkResponseStatus.Avvist(
+        ForslagResponseStatus.Avvist(
             avvistAv = ansatte[avvist.avvistAv.id]!!.navn,
             avvistAvEnhet = enheter[avvist.avvistAv.enhetId]!!.navn,
             avvist = avvist.avvist,
@@ -430,6 +407,6 @@ private fun Forslag.getForslagResponseStatus(
         )
     }
 
-    is Forslag.Status.Tilbakekalt -> ForslagHistorikkResponseStatus.Tilbakekalt(status.tilbakekalt)
-    is Forslag.Status.Erstattet -> ForslagHistorikkResponseStatus.Erstattet(status.erstattet)
+    is Forslag.Status.Tilbakekalt -> ForslagResponseStatus.Tilbakekalt(status.tilbakekalt)
+    is Forslag.Status.Erstattet -> ForslagResponseStatus.Erstattet(status.erstattet)
 }

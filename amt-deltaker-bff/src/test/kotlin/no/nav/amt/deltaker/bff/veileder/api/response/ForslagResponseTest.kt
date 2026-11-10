@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
+import no.nav.amt.internapi.deltaker.response.ForslagResponseStatus
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.ForslagDecorator
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
