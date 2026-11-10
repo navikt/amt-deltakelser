@@ -199,7 +199,7 @@ class DeltakerHistorikkService(
             godkjentePrisinfoer
         }
 
-        // Første prisinfo markeres hvis en prisinfo ble godkjent før eller samtidig med vedtaket.
+        // Hvis en prisinfo utløste vedtaket, ligger den først i listen og får markeringen.
         return prisinfoerForHistorikk.mapIndexed { index, prisinformasjon ->
             DeltakerHistorikk.EnkeltplassOkonomiGodkjent(
                 prisinformasjon.copy(
