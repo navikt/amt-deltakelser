@@ -183,6 +183,32 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
+        fun `beholder alle prisinfoer når ingen ligger før vedtaket`() {
+            // Arrange
+            // Denne rekkefølgen skal ikke forekomme, siden godkjent prisinfo utløser vedtaket.
+            val vedtakFattet = LocalDateTime.now()
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.plusSeconds(1),
+                    90 to vedtakFattet.plusSeconds(2),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
+        }
+
+        @Test
         fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
             // Arrange
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
