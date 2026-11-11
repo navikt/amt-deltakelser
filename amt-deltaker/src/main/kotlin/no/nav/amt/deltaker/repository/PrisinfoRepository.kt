@@ -242,12 +242,7 @@ object PrisinfoRepository {
         true
     }
 
-    /**
-     * Henter alle godkjente prisinfo for en deltaker, sortert med eldste godkjenning først.
-     *
-     * `er_forste_godkjenning` utledes av vedtaket: den første godkjenningen er den som fattet
-     * vedtaket.
-     */
+    /** Henter alle godkjente prisinfo for en deltaker, sortert med eldste godkjenning først. */
     fun hentGodkjentPrisinfoForDeltakerEldsteForst(deltakerId: UUID): List<GodkjentPrisinfoDbo> {
         val sql =
             """
@@ -261,17 +256,18 @@ object PrisinfoRepository {
                 prisinfo.begrunnelse,
                 prisinfo.modified_at,
                 godkjenning.godkjent_av,
-                godkjenning.godkjent_av_enhet,
-                COALESCE(prisinfo.modified_at <= vedtak.fattet, FALSE) AS er_forste_godkjenning
+                godkjenning.godkjent_av_enhet
             FROM
                 deltaker                
-                JOIN vedtak ON deltaker.id = vedtak.deltaker_id
+                JOIN gjennomforing
+                    ON gjennomforing.id = deltaker.deltakerliste_id
+                    AND gjennomforing.gjennomforingstype = 'Enkeltplass'
                 JOIN prisinformasjon prisinfo ON deltaker.deltakerliste_id = prisinfo.gjennomforing_id
                 JOIN prisinformasjon_godkjenning godkjenning ON godkjenning.prisinformasjon_id = prisinfo.id
             WHERE 
                 deltaker.id = ?
                 AND prisinfo.status = 'GODKJENT'
-            ORDER BY prisinfo.modified_at                
+            ORDER BY prisinfo.modified_at, prisinfo.id
             """.trimIndent()
 
         return Database.query { session ->
@@ -283,7 +279,6 @@ object PrisinfoRepository {
                             sistEndret = row.localDateTime("modified_at"),
                             godkjentAvNavAnsattId = row.uuid("godkjent_av"),
                             godkjentAvNavEnhetId = row.uuid("godkjent_av_enhet"),
-                            erForsteGodkjenning = row.boolean("er_forste_godkjenning"),
                         )
                     }.asList,
             )

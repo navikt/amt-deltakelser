@@ -100,14 +100,15 @@ object PrisinfoRepoAdapter {
             .filter { it.prisinfoJsonSubtype == TILSKUDD_SUB_TYPE }
             .map { it.id }
 
-        val belopPerPrisinfo: Map<UUID, List<Priskomponent>> = PrisinfoBelopRepository.hentPrisinfoBelop(tilskuddIder)
+        val belopPerPrisinfo: Map<UUID, List<Priskomponent>> =
+            PrisinfoBelopRepository.hentPrisinfoBelop(tilskuddIder)
 
         return godkjente.map {
             OkonomiGodkjentForHistorikk(
                 sistEndret = it.sistEndret,
                 sistEndretAvNavAnsattId = it.godkjentAvNavAnsattId,
                 sistEndretAvNavEnhetId = it.godkjentAvNavEnhetId,
-                erForsteGodkjenning = it.erForsteGodkjenning,
+                erForsteGodkjenning = false, // settes i DeltakerHistorikkService
                 prisinformasjon = it.prisinfo
                     .toPrisinformasjonDto(belopPerPrisinfo[it.prisinfo.id].orEmpty()),
             )

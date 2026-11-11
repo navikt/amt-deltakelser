@@ -23,6 +23,7 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.IngenKostnader
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.TilskuddInfo
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
@@ -1008,7 +1009,7 @@ class PrisinfoRepoAdapterTest {
     inner class HentGodkjentPrisinfoForHistorikkTests {
         private val navEnhet = lagNavEnhet()
         private val navAnsatt = lagNavAnsatt()
-        private val deltakerliste = lagDeltakerliste()
+        private val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
         private val deltaker = lagDeltaker(
             gjennomforing = deltakerliste,
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
@@ -1126,9 +1127,7 @@ class PrisinfoRepoAdapterTest {
 
             // Assert
             result.size shouldBe 2
-            result[0].erForsteGodkjenning shouldBe true
             result[0].prisinformasjon shouldBe Anskaffelse(pris = 10000)
-            result[1].erForsteGodkjenning shouldBe false
             result[1].prisinformasjon shouldBe Anskaffelse(pris = 20000, begrunnelse = "Begrunnelse")
         }
 
@@ -1159,7 +1158,6 @@ class PrisinfoRepoAdapterTest {
             // Assert
             result.size shouldBe 1
             assertSoftly(result.first()) {
-                erForsteGodkjenning shouldBe false
                 sistEndretAvNavAnsattId shouldBe annenAnsatt.id
                 sistEndretAvNavEnhetId shouldBe annenEnhet.id
             }

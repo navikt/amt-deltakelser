@@ -96,7 +96,7 @@ fun Routing.registerVeilederApi(
             get("/historikk") {
                 val deltakerId = call.getDeltakerId()
                 val deltaker = deltakerService.getOrThrow(deltakerId)
-                val historikk = historikkService.getForDeltaker(deltakerId)
+                val historikk = historikkService.getForDeltaker(deltaker)
                 val ansatteIder = historikk.flatMap { it.navAnsatte() }.distinct().toSet()
                 val enheterIder = historikk.flatMap { it.navEnheter() }.distinct().toSet()
 

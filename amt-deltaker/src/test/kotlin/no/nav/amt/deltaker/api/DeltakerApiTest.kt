@@ -428,7 +428,9 @@ class DeltakerApiTest : IntegrationTestBase() {
 
             every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
-            every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+            every {
+                deltakerHistorikkService.getForDeltaker(deltaker)
+            } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
             every { arrangorRepository.get(arrangor.id) } returns arrangor
@@ -466,7 +468,9 @@ class DeltakerApiTest : IntegrationTestBase() {
 
             every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
-            every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+            every {
+                deltakerHistorikkService.getForDeltaker(deltaker)
+            } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
             every { arrangorRepository.get(arrangor.id) } returns arrangor
@@ -500,7 +504,9 @@ class DeltakerApiTest : IntegrationTestBase() {
 
             every { deltakerRepository.get(deltaker.id) } returns deltaker
             every { deltakerService.getOrThrow(deltaker.id) } returns deltaker
-            every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+            every {
+                deltakerHistorikkService.getForDeltaker(deltaker)
+            } returns historikk
             every { navAnsattRepository.getManyById(any()) } returns navAnsatte
             every { navEnhetRepository.getMany(any()) } returns navEnheter
             every { arrangorRepository.get(arrangor.id) } returns arrangor
@@ -524,7 +530,9 @@ class DeltakerApiTest : IntegrationTestBase() {
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
         coEvery { veilederEndringService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
-        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every {
+            deltakerHistorikkService.getForDeltaker(deltaker)
+        } returns historikk
 
         withTestApplicationContext { client ->
             val response = client.post("/deltaker/${deltaker.id}/endre-deltaker") {

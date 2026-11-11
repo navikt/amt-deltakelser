@@ -52,7 +52,7 @@ class DeltakerResponseBuilder(
         )
 
         val historikk = deltakerHistorikkService.getForDeltaker(
-            id = deltaker.id,
+            deltakerId = deltaker.id,
             inkluderFullHistorikk = false,
         )
 

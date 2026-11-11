@@ -3,11 +3,14 @@ package no.nav.amt.deltaker.service
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotliquery.queryOf
 import no.nav.amt.deltaker.extensions.toVurderingFraArrangorData
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navtiltakskoordinator.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.repository.ImportertFraArenaRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.VedtakRepository
 import no.nav.amt.deltaker.tiltaksarrangor.endring.EndringFraArrangorRepository
 import no.nav.amt.deltaker.tiltaksarrangor.forslag.ForslagRepository
@@ -21,11 +24,14 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.testing.utils.TestData
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -105,11 +111,186 @@ class DeltakerHistorikkServiceTest {
             // Act
             val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
             val vedtakResult = historikk.first()
+
             // Assert
             historikk.size shouldBe 1
             vedtakResult.shouldBeInstanceOf<DeltakerHistorikk.Vedtak>()
             vedtakResult.vedtak.deltakerVedVedtak.opplaringKategorisering shouldNotBe null
             DeltakerTestUtils.sammenlignHistorikk(vedtakResult, DeltakerHistorikk.Vedtak(vedtak))
+        }
+
+        @Test
+        fun `utelater eldre godkjent prisinfo for vedtaket nar flere finnes`() {
+            // Arrange
+            val vedtakFattet = LocalDateTime.now()
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.minusMinutes(3),
+                    90 to vedtakFattet.minusSeconds(1),
+                    120 to vedtakFattet.plusSeconds(1),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+            val v2Historikk = deltakerHistorikkService
+                .getForDeltaker(deltaker.id)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+            val gruppedeltaker = deltaker.copy(
+                gjennomforing = deltaker.gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
+            )
+            val utenOkonomiHistorikk = deltakerHistorikkService
+                .getForDeltaker(gruppedeltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 120, begrunnelse = "Pris 120"),
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            v2Historikk.map { it.data.prisinformasjon } shouldBe godkjentPrisinfo.map { it.data.prisinformasjon }
+            v2Historikk.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            utenOkonomiHistorikk shouldBe emptyList()
+        }
+
+        @Test
+        fun `beholder godkjent prisinfo nar bare en ligger for vedtaket`() {
+            // Arrange
+            val vedtakFattet = LocalDateTime.now()
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.minusMinutes(1),
+                    90 to vedtakFattet.plusSeconds(1),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+        }
+
+        @Test
+        fun `beholder alle prisinfoer når ingen ligger før vedtaket`() {
+            // Arrange
+            // Denne rekkefølgen skal ikke forekomme, siden godkjent prisinfo utløser vedtaket.
+            val vedtakFattet = LocalDateTime.now()
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.plusSeconds(1),
+                    90 to vedtakFattet.plusSeconds(2),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+                Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
+                Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
+            )
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
+        }
+
+        @Test
+        fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
+            // Arrange
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = null,
+                prisinfoTidspunkter = listOf(
+                    34 to LocalDateTime.now().minusMinutes(2),
+                    90 to LocalDateTime.now().minusMinutes(1),
+                ),
+            )
+
+            // Act
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            // Assert
+            godkjentPrisinfo.size shouldBe 2
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
+        }
+
+        @Test
+        fun `merker ingen prisinfo som forste godkjenning nar vedtak mangler`() {
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = null,
+                prisinfoTidspunkter = listOf(34 to LocalDateTime.now().minusMinutes(1)),
+                opprettVedtak = false,
+            )
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(deltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+
+            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
+        }
+
+        private fun lagDeltakerMedGodkjentPrisinfo(
+            vedtakFattet: LocalDateTime?,
+            prisinfoTidspunkter: List<Pair<Int, LocalDateTime>>,
+            opprettVedtak: Boolean = true,
+        ): Deltaker {
+            val navEnhet = TestData.lagNavEnhet()
+            navEnhetRepository.upsert(navEnhet)
+
+            val navAnsatt = TestData.lagNavAnsatt(navEnhetId = navEnhet.id)
+            TestRepository.insert(navAnsatt)
+            navAnsattRepository.upsert(navAnsatt)
+
+            val gjennomforing = no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste(
+                gjennomforingstype = GjennomforingType.Enkeltplass,
+            )
+            val deltaker = no.nav.amt.deltaker.utils.data.TestData
+                .lagDeltaker(gjennomforing = gjennomforing)
+            TestRepository.insert(deltaker)
+
+            if (opprettVedtak) {
+                val vedtak = no.nav.amt.deltaker.utils.data.TestData.lagVedtak(
+                    deltakerId = deltaker.id,
+                    deltakerVedVedtak = deltaker,
+                    fattet = vedtakFattet,
+                    opprettetAv = navAnsatt,
+                    opprettetAvEnhet = navEnhet,
+                    sistEndret = vedtakFattet ?: LocalDateTime.now(),
+                )
+                TestRepository.insert(vedtak)
+            }
+
+            prisinfoTidspunkter.forEach { (pris, tidspunkt) ->
+                val prisinfoId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
+                    gjennomforingId = gjennomforing.id,
+                    prisinformasjon = Anskaffelse(pris = pris),
+                    begrunnelse = "Pris $pris",
+                )
+                PrisinfoRepoAdapter.godkjennOkonomi(
+                    gjennomforingId = gjennomforing.id,
+                    prisinformasjonId = prisinfoId,
+                    godkjentAv = navAnsatt.id,
+                    godkjentAvEnhet = navEnhet.id,
+                )
+                settPrisinfoTidspunkt(prisinfoId, tidspunkt)
+            }
+
+            return deltaker
         }
     }
 
@@ -469,5 +650,20 @@ class DeltakerHistorikkServiceTest {
 
         // Assert
         historikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
+    }
+
+    private fun settPrisinfoTidspunkt(
+        prisinformasjonId: UUID,
+        tidspunkt: LocalDateTime,
+    ) {
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "UPDATE prisinformasjon SET modified_at = ? WHERE id = ?",
+                    tidspunkt,
+                    prisinformasjonId,
+                ),
+            )
+        }
     }
 }
