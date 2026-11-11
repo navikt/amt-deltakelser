@@ -110,6 +110,12 @@ class GjennomforingConsumer(
         }
 
         if (eksisterendeGjennomforing != null) {
+            log.debug(
+                "Eksisterende gjennomføring {} har status {}",
+                eksisterendeGjennomforing.id,
+                eksisterendeGjennomforing.status.name,
+            )
+
             if (eksisterendeGjennomforing == gjennomforing) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
                 return
