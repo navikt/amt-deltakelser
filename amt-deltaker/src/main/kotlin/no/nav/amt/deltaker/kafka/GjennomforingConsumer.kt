@@ -70,6 +70,10 @@ class GjennomforingConsumer(
 
     private suspend fun handterGjennomforing(gjennomforingPayload: GjennomforingV2KafkaPayload) {
         if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
+            log.debug(
+                "Konsumering av gjennomføring {} stanset av Unleash toggle",
+                gjennomforingPayload.id,
+            )
             return
         }
 
@@ -167,6 +171,12 @@ class GjennomforingConsumer(
                     gjennomforing.status == GjennomforingStatusType.KLADD
             )
         ) {
+            log.debug(
+                "Gjennomføring {} type {} status {} skal ikke trigge publisering av enkeltplassdeltaker",
+                gjennomforing.id,
+                gjennomforing.gjennomforingstype.name,
+                gjennomforing.status.name,
+            )
             return
         }
 
