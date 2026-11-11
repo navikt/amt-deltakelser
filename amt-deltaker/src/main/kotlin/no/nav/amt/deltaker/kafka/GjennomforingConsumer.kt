@@ -82,6 +82,13 @@ class GjennomforingConsumer(
             return
         }
 
+        log.debug(
+            "Starter prosessering av gjennomføring {} type {} status {}",
+            gjennomforingPayload.id,
+            gjennomforingPayload.gjennomforingType.name,
+            gjennomforingPayload.status.name,
+        )
+
         gjennomforingPayload.assertPameldingstypeIsValid()
 
         val arrangor = arrangorService.hentArrangor(gjennomforingPayload.arrangor.organisasjonsnummer)
@@ -108,6 +115,8 @@ class GjennomforingConsumer(
                 return
             }
 
+            log.debug("Prosesserer eksisterende gjennomforing: {}", gjennomforing.id)
+
             // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
             gjennomforingPayload.assertValidChanges(
                 antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeGjennomforing.id),
@@ -131,6 +140,8 @@ class GjennomforingConsumer(
                 publiserEnkeltplassDeltaker(eksisterendeGjennomforing)
             }
         } else {
+            log.debug("Prosesserer ny gjennomforing: {}", gjennomforing.id)
+
             Database.transaction {
                 gjennomforingRepository.upsert(gjennomforing)
                 amtGjennomforingProducer.produce(gjennomforing.toAmtGjennomforingPayload())
