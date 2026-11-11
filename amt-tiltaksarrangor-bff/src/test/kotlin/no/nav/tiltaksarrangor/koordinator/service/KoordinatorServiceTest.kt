@@ -874,14 +874,16 @@ class KoordinatorServiceTest(
                     tilgjengeligForArrangorFraOgMedDato = LocalDate.of(2023, 1, 1),
                     pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK,
                 )
+            val innsoktDato = LocalDate.of(2023, 1, 15)
+            val forsteVedtakFattet = LocalDate.of(2023, 1, 20)
             val deltaker =
                 getDeltaker(UUID.randomUUID(), deltakerliste.id).copy(
-                    innsoktDato = LocalDate.now().minusDays(2),
-                    forsteVedtakFattet = LocalDate.now(),
+                    innsoktDato = innsoktDato,
+                    forsteVedtakFattet = forsteVedtakFattet,
                 )
             val deltakerUtenForsteVedtakFattet =
                 getDeltaker(UUID.randomUUID(), deltakerliste.id).copy(
-                    innsoktDato = LocalDate.now().minusDays(2),
+                    innsoktDato = innsoktDato,
                     forsteVedtakFattet = null,
                 )
 
@@ -905,11 +907,11 @@ class KoordinatorServiceTest(
 
             koordinatorsDeltakerliste.deltakere
                 .first { d -> d.id == deltaker.id }
-                .soktInnDato shouldBe LocalDate.now().atStartOfDay()
+                .soktInnDato shouldBe forsteVedtakFattet.atStartOfDay()
 
             koordinatorsDeltakerliste.deltakere
                 .first { d -> d.id == deltakerUtenForsteVedtakFattet.id }
-                .soktInnDato shouldBe LocalDate.now().minusDays(2).atStartOfDay()
+                .soktInnDato shouldBe innsoktDato.atStartOfDay()
         }
 
         @Test

@@ -186,8 +186,8 @@ class TiltaksarrangorApiTest(
                     jsonPath("$.epost") { value(deltaker.epost) }
                     jsonPath("$.status.type") { value("DELTAR") }
                     jsonPath("$.startDato") { value("2023-02-01") }
-                    jsonPath("$.soktInnDato") { value("2023-01-15T00:00:00") }
-                    jsonPath("$.forsteVedtakFattet") { value("2023-01-20") }
+                    jsonPath("$.soktInnDato") { value("2023-01-20T00:00:00") }
+                    jsonPath("$.forsteVedtakFattet") { doesNotHaveJsonPath() }
                     jsonPath("$.dagerPerUke") { value(2.5) }
                     jsonPath("$.bestillingTekst") { value(deltaker.bestillingstekst) }
                 }
