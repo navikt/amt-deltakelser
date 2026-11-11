@@ -40,6 +40,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
 
@@ -59,6 +60,8 @@ class EnkeltplassService(
     private val distribuerEndringService: DistribuerEndringService,
     private val gjennomforingProducerService: GjennomforingProducerService,
 ) {
+    val log = LoggerFactory.getLogger(javaClass)
+
     suspend fun opprettKladd(
         tiltakskode: Tiltakskode,
         personident: String,
@@ -345,14 +348,12 @@ class EnkeltplassService(
                 }
             }
 
-            // Vi kan ikke dele deltakelser med eksterne før valp kjenner til den.
-            // Vi må dog dele internt for å opprette aktivitetskort
-            deltakerProducerService.produce(
-                deltaker = deltakerMedVedtak,
-                publiserTilDeltakerV1 = false,
-                publiserTilDeltakerEksternV1 = false,
-                publiserTilDeltakerV2 = true,
+            log.info(
+                "Publiserer deltaker på alle topics, id {}, status {}",
+                deltakerMedVedtak.id,
+                deltakerMedVedtak.status.type.name,
             )
+            deltakerProducerService.produce(deltaker = deltakerMedVedtak)
             deltakerMedVedtak
         }
     }
