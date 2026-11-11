@@ -114,7 +114,7 @@ private fun tilDeltaker(
         deltakelseProsent = deltakerDbo.prosentStilling?.toInt(),
         dagerPerUke = deltakerDbo.dagerPerUke,
         soktInnPa = deltakerliste.navn,
-        soktInnDato = deltakerDbo.getSoktInnDato(),
+        soktInnDato = deltakerDbo.vedtaksEllerInnsoktDato,
         tiltakskode = deltakerliste.tiltakskode,
         bestillingTekst = deltakerDbo.bestillingstekst,
         innhold = deltakerDbo.innhold?.let {

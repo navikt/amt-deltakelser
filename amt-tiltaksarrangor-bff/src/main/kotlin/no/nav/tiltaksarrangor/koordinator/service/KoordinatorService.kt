@@ -285,7 +285,7 @@ class KoordinatorService(
             mellomnavn = if (adressebeskyttet) null else deltaker.mellomnavn,
             etternavn = if (adressebeskyttet) "" else deltaker.etternavn,
             fodselsnummer = if (adressebeskyttet) "" else deltaker.personident,
-            soktInnDato = deltaker.getSoktInnDato(),
+            soktInnDato = deltaker.vedtaksEllerInnsoktDato,
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,
             status =

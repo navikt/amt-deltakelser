@@ -50,7 +50,7 @@ data class DeltakerDbo(
     val erManueltDeltMedArrangor: Boolean,
     val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
 ) {
-    fun getSoktInnDato(): LocalDateTime = (forsteVedtakFattet ?: innsoktDato).atStartOfDay()
+    val vedtaksEllerInnsoktDato: LocalDateTime = (forsteVedtakFattet ?: innsoktDato).atStartOfDay()
 
     fun erSkjult(): Boolean = skjultDato != null
 
