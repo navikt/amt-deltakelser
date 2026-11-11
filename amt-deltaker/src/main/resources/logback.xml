@@ -14,5 +14,6 @@
         <appender-ref ref="stdout_json_masked"/>
     </root>
 
+    <logger name="no.nav.amt.deltaker.kafka.GjennomforingConsumer" level="DEBUG"/>
     <logger name="org.apache.kafka" level="WARN"/>
 </configuration>
