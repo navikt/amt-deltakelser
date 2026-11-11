@@ -144,8 +144,12 @@ class TiltaksarrangorServiceTest(
         val deltakerliste = getDeltakerliste(arrangorId)
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.randomUUID()
+        val innsoktDato = LocalDate.of(2023, 1, 15)
+        val forsteVedtakFattet = LocalDate.of(2023, 1, 20)
         deltakerRepository.insertOrUpdateDeltaker(
             getDeltaker(deltakerId, deltakerliste.id).copy(
+                innsoktDato = innsoktDato,
+                forsteVedtakFattet = forsteVedtakFattet,
                 vurderingerFraArrangor =
                     listOf(
                         Vurdering(
@@ -189,6 +193,8 @@ class TiltaksarrangorServiceTest(
         deltaker.deltakerliste.id shouldBe deltakerliste.id
         deltaker.dagerPerUke shouldBe null
         deltaker.soktInnPa shouldBe deltakerliste.navn
+        deltaker.soktInnDato shouldBe innsoktDato.atStartOfDay()
+        deltaker.forsteVedtakFattet shouldBe forsteVedtakFattet
         deltaker.tiltakskode shouldBe deltakerliste.tiltakskode
         deltaker.aktiveEndringsmeldinger.size shouldBe 0
         deltaker.veiledere.size shouldBe 0

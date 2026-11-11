@@ -29,6 +29,7 @@ data class Deltaker(
     val dagerPerUke: Float?,
     val soktInnPa: String,
     val soktInnDato: LocalDateTime,
+    val forsteVedtakFattet: LocalDate?,
     val tiltakskode: Tiltakskode,
     val bestillingTekst: String?,
     val innhold: Deltakelsesinnhold?,

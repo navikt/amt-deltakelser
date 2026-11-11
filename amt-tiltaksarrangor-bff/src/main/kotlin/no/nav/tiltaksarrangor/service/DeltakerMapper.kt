@@ -115,6 +115,7 @@ private fun tilDeltaker(
         dagerPerUke = deltakerDbo.dagerPerUke,
         soktInnPa = deltakerliste.navn,
         soktInnDato = deltakerDbo.innsoktDato.atStartOfDay(),
+        forsteVedtakFattet = deltakerDbo.forsteVedtakFattet,
         tiltakskode = deltakerliste.tiltakskode,
         bestillingTekst = deltakerDbo.bestillingstekst,
         innhold = deltakerDbo.innhold?.let {

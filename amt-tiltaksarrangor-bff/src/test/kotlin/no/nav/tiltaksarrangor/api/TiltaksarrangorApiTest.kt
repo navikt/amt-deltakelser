@@ -152,6 +152,7 @@ class TiltaksarrangorApiTest(
                 startdato = LocalDate.of(2023, 2, 1),
                 dagerPerUke = 2.5f,
                 innsoktDato = LocalDate.of(2023, 1, 15),
+                forsteVedtakFattet = LocalDate.of(2023, 1, 20),
                 bestillingstekst = "Tror deltakeren vil ha nytte av dette",
                 navKontor = "Nav Oslo",
                 navVeilederId = navVeileder.id,
@@ -185,6 +186,8 @@ class TiltaksarrangorApiTest(
                     jsonPath("$.epost") { value(deltaker.epost) }
                     jsonPath("$.status.type") { value("DELTAR") }
                     jsonPath("$.startDato") { value("2023-02-01") }
+                    jsonPath("$.soktInnDato") { value("2023-01-15T00:00:00") }
+                    jsonPath("$.forsteVedtakFattet") { value("2023-01-20") }
                     jsonPath("$.dagerPerUke") { value(2.5) }
                     jsonPath("$.bestillingTekst") { value(deltaker.bestillingstekst) }
                 }
