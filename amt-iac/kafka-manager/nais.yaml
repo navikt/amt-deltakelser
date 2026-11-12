@@ -9,8 +9,6 @@ spec:
   image: europe-north1-docker.pkg.dev/nais-management-233d/poao/kafka-manager:2026.11.12-13.53-b8d2e80
   port: 8080
   webproxy: true
-  ingresses:
-    - {{ingress}}
   prometheus:
     enabled: true
     path: /internal/prometheus
@@ -28,37 +26,3 @@ spec:
     min: 1
     max: 1 # 1 instance is required since in-memory session management is used
     disableAutoScaling: true
-  resources:
-    requests:
-      cpu: 10m
-      memory: {{memory_request}}
-    limits:
-      memory: {{memory_limit}}
-  azure:
-    application:
-      enabled: true
-      tenant: nav.no
-      claims:
-        groups:
-{{#each azure_groups}}
-          - id: {{this}}
-{{/each}}
-  kafka:
-    pool: {{kafka_pool}}
-  env:
-    - name: JDK_JAVA_OPTIONS
-      value: "{{jdk_java_options}}"
-    - name: APP_CONFIG_JSON
-      value: >
-        {
-          "topics": [
-{{#each topics}}
-            {
-              "name": "{{this}}",
-              "location": "AIVEN",
-              "keyDeserializerType": "STRING",
-              "valueDeserializerType": "STRING"
-            }{{#unless @last}},{{/unless}}
-{{/each}}
-          ]
-        }
