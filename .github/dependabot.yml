@@ -51,3 +51,10 @@ updates:
       interval: weekly
     cooldown:
       default-days: 0
+
+  - package-ecosystem: "docker"
+    directory: "/amt-iac/kafka-manager"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 0
