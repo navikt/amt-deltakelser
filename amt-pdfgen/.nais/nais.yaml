@@ -37,7 +37,7 @@ spec:
         - application: amt-distribusjon
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=90.0"
+      value: "-XX:MaxRAMPercentage=70.0"
 
   observability:
     autoInstrumentation:
