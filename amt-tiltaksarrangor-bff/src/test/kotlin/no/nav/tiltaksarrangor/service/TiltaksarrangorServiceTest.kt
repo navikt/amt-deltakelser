@@ -144,8 +144,12 @@ class TiltaksarrangorServiceTest(
         val deltakerliste = getDeltakerliste(arrangorId)
         deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
         val deltakerId = UUID.randomUUID()
+        val innsoktDato = LocalDate.of(2023, 1, 15)
+        val forsteVedtakFattet = LocalDate.of(2023, 1, 20)
         deltakerRepository.insertOrUpdateDeltaker(
             getDeltaker(deltakerId, deltakerliste.id).copy(
+                innsoktDato = innsoktDato,
+                forsteVedtakFattet = forsteVedtakFattet,
                 vurderingerFraArrangor =
                     listOf(
                         Vurdering(
@@ -189,6 +193,7 @@ class TiltaksarrangorServiceTest(
         deltaker.deltakerliste.id shouldBe deltakerliste.id
         deltaker.dagerPerUke shouldBe null
         deltaker.soktInnPa shouldBe deltakerliste.navn
+        deltaker.soktInnDato shouldBe forsteVedtakFattet.atStartOfDay()
         deltaker.tiltakskode shouldBe deltakerliste.tiltakskode
         deltaker.aktiveEndringsmeldinger.size shouldBe 0
         deltaker.veiledere.size shouldBe 0
@@ -199,6 +204,38 @@ class TiltaksarrangorServiceTest(
         deltaker.adresse?.adressenavn shouldBe "Gate 1"
         deltaker.gjeldendeVurderingFraArrangor?.vurderingstype shouldBe Vurderingstype.OPPFYLLER_KRAVENE
         deltaker.adressebeskyttet shouldBe false
+    }
+
+    @Test
+    fun `getDeltaker - mangler forste vedtaksdato - bruker innsoktdato`() {
+        val personIdent = "12345678910"
+        val arrangorId = UUID.randomUUID()
+        val deltakerliste = getDeltakerliste(arrangorId)
+        deltakerlisteRepository.insertOrUpdateDeltakerliste(deltakerliste)
+        val deltakerId = UUID.randomUUID()
+        val innsoktDato = LocalDate.of(2023, 1, 15)
+        deltakerRepository.insertOrUpdateDeltaker(
+            getDeltaker(deltakerId, deltakerliste.id).copy(
+                innsoktDato = innsoktDato,
+                forsteVedtakFattet = null,
+            ),
+        )
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
+            AnsattDbo(
+                id = UUID.randomUUID(),
+                personIdent = personIdent,
+                fornavn = "Fornavn",
+                mellomnavn = null,
+                etternavn = "Etternavn",
+                roller = listOf(AnsattRolleDbo(arrangorId, AnsattRolle.KOORDINATOR)),
+                deltakerlister = listOf(KoordinatorDeltakerlisteDbo(deltakerliste.id)),
+                veilederDeltakere = emptyList(),
+            ),
+        )
+
+        val deltaker = tiltaksarrangorService.getDeltaker(personIdent, deltakerId)
+
+        deltaker.soktInnDato shouldBe innsoktDato.atStartOfDay()
     }
 
     @Test

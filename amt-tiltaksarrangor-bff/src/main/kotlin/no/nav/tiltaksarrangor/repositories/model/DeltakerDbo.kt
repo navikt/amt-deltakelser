@@ -50,6 +50,12 @@ data class DeltakerDbo(
     val erManueltDeltMedArrangor: Boolean,
     val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
 ) {
+    /*
+Når man går inn på en deltaker i tiltaksarrangør-flate ønsker vi å vise dato vedtaket ble fattet (tidspunktet brukere godkjente utkastet).
+Se https://trello.com/c/w4KFdOWF/2877-viser-feil-s%C3%B8kt-inn-dato-inne-p%C3%A5-deltaker-i-arrang%C3%B8rflate
+     */
+    val vedtaksEllerInnsoktDato: LocalDateTime = (forsteVedtakFattet ?: innsoktDato).atStartOfDay()
+
     fun erSkjult(): Boolean = skjultDato != null
 
     fun skalFjernesDato(): LocalDateTime? = if (status in STATUSER_SOM_KAN_SKJULES) {
