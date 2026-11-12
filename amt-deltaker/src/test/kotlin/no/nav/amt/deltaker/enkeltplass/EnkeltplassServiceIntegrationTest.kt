@@ -9,9 +9,12 @@ import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
+import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
+import no.nav.amt.deltaker.utils.assertNotProduced
 import no.nav.amt.deltaker.utils.assertProduced
 import no.nav.amt.deltaker.utils.assertProducedHendelse
 import no.nav.amt.deltaker.utils.data.TestData
@@ -348,6 +351,15 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 decoratedRequest = decoratedRequest,
             )
 
+            outboxService.assertNotProduced<DeltakerV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_V1_TOPIC,
+            )
+            outboxService.assertNotProduced<DeltakerEksternV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
+            )
+
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             assertSoftly(oppdatertDeltaker) {
@@ -614,7 +626,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 decoratedRequest = decoratedRequest,
             )
 
-            // Assert - verify no event was published to DELTAKER_V2 since gjennomforing is KLADD
+            // Kontroller at ingen hendelse publiseres til DELTAKER_V2 når gjennomføringen er KLADD
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
@@ -651,7 +663,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 decoratedRequest = decoratedRequest,
             )
 
-            // Assert - verify deltaker was published since gjennomforing is now not KLADD
+            // Kontroller at deltakeren publiseres når gjennomføringen ikke lenger er KLADD
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
@@ -722,13 +734,31 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 navBrukerInTest.personident,
             )
 
-            // First transition to UTKAST_TIL_PAMELDING
+            // Sett først deltakeren til UTKAST_TIL_PAMELDING
             enkeltplassService.delUtkastMedInnbygger(
                 deltakerId = deltakerInTest.id,
                 decoratedRequest = decoratedRequest,
             )
+            outboxService.assertNotProduced<DeltakerV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_V1_TOPIC,
+            )
+            outboxService.assertNotProduced<DeltakerEksternV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
+            )
+            coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } answers {
+                gjennomforingRepository.upsert(
+                    deltakerInTest.gjennomforing.copy(status = GjennomforingStatusType.GJENNOMFORES),
+                )
+                OpplaringKategoriseringResponse(
+                    tiltakskode = tiltakInTest.tiltakskode,
+                    alternativer = emptyList(),
+                    sertifiseringValg = emptySet(),
+                )
+            }
 
-            // Now call meldPaaDirekte - should work from UTKAST_TIL_PAMELDING status
+            // Kall deretter meldPaaDirekte fra status UTKAST_TIL_PAMELDING
             // Act
             enkeltplassService.meldPaaDirekte(
                 deltakerId = deltakerInTest.id,
@@ -738,6 +768,14 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
             // Assert
             val oppdatertDeltaker = deltakerRepository.get(deltakerInTest.id).shouldNotBeNull()
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+            outboxService.assertProduced<DeltakerV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_V1_TOPIC,
+            )
+            outboxService.assertProduced<DeltakerEksternV1Dto>(
+                deltakerInTest.id,
+                Environment.DELTAKER_EKSTERN_V1_TOPIC,
+            )
         }
     }
 

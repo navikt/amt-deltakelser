@@ -259,7 +259,7 @@ class EnkeltplassService(
      * Lagrer oppdateringer til deltaker og gjennomføring i én transaksjon,
      * oppretter/oppdaterer vedtak og publiserer gjennomføringsrequest til Kafka.
      * OBS: Denne kan ikke brukes for andre endringer på deltakelse i dette formatet
-     * Fordi det må ikke publiseres flere meldinger av
+     * Fordi det må ikke publiseres flere meldinger av TODO
      *
      * Brukes av: delUtkastMedInnbygger (kladd->utkast) og meldPaaDirekte (utkast->søkt inn)
      */
@@ -345,12 +345,14 @@ class EnkeltplassService(
                 }
             }
 
-            // Vi kan ikke dele deltakelser med eksterne før valp kjenner til den.
+            // Vi kan ikke dele deltakelse med eksterne før Valp kjenner til den.
             // Vi må dog dele internt for å opprette aktivitetskort
+            // GjennomforingConsumer vil håndtere publisering for slike.
+            val skalPubliseresEksternt = deltakerMedVedtak.gjennomforing.erDeltMedValp
             deltakerProducerService.produce(
                 deltaker = deltakerMedVedtak,
-                publiserTilDeltakerV1 = false,
-                publiserTilDeltakerEksternV1 = false,
+                publiserTilDeltakerV1 = skalPubliseresEksternt,
+                publiserTilDeltakerEksternV1 = skalPubliseresEksternt,
                 publiserTilDeltakerV2 = true,
             )
             deltakerMedVedtak

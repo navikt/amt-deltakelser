@@ -70,6 +70,10 @@ class GjennomforingConsumer(
 
     private suspend fun handterGjennomforing(gjennomforingPayload: GjennomforingV2KafkaPayload) {
         if (!unleashToggle.skalLeseGjennomforing(gjennomforingPayload.tiltakskode.name)) {
+            log.debug(
+                "Konsumering av gjennomføring {} stanset av Unleash toggle",
+                gjennomforingPayload.id,
+            )
             return
         }
 
@@ -90,6 +94,16 @@ class GjennomforingConsumer(
         )
 
         val eksisterendeGjennomforing = gjennomforingRepository.get(gjennomforingPayload.id)
+        val erUendret = eksisterendeGjennomforing == gjennomforing
+
+        log.debug(
+            "Gjennomføring {} type {}: mottatt status {}, lagret status {}, uendret {}",
+            gjennomforing.id,
+            gjennomforing.gjennomforingstype.name,
+            gjennomforing.status.name,
+            eksisterendeGjennomforing?.status?.name ?: "ingen",
+            erUendret,
+        )
 
         if (gjennomforing.status == GjennomforingStatusType.AVLYST || gjennomforing.status == GjennomforingStatusType.AVBRUTT) {
             val kladderSomSkalSlettes = deltakerRepository.getKladderForDeltakerliste(gjennomforingPayload.id)
@@ -99,7 +113,7 @@ class GjennomforingConsumer(
         }
 
         if (eksisterendeGjennomforing != null) {
-            if (eksisterendeGjennomforing == gjennomforing) {
+            if (erUendret) {
                 log.info("Deltakerliste med id ${gjennomforing.id} er uendret.")
                 return
             }
@@ -167,6 +181,12 @@ class GjennomforingConsumer(
                     gjennomforing.status == GjennomforingStatusType.KLADD
             )
         ) {
+            log.debug(
+                "Gjennomføring {} type {} status {} skal ikke trigge publisering av enkeltplassdeltaker",
+                gjennomforing.id,
+                gjennomforing.gjennomforingstype.name,
+                gjennomforing.status.name,
+            )
             return
         }
 
