@@ -178,7 +178,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
-                deltakerlisteId = deltakerliste.id,
+                gjennomforingId = deltakerliste.id,
                 personident = "~personident~",
             )
 
@@ -194,7 +194,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
-                deltakerlisteId = deltakerliste.id,
+                gjennomforingId = deltakerliste.id,
                 personident = deltaker.navBruker.personident,
             )
 
@@ -276,7 +276,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltakerliste)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
-                deltakerlisteId = deltakerliste.id,
+                gjennomforingId = deltakerliste.id,
                 personident = "~personident~",
             )
 
@@ -292,7 +292,7 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
 
             val kladdResult = deltakerRepository.getKladdForDeltakerliste(
-                deltakerlisteId = deltakerliste.id,
+                gjennomforingId = deltakerliste.id,
                 personident = deltaker.navBruker.personident,
             )
 

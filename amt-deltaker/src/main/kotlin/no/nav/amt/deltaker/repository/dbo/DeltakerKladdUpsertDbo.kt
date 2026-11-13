@@ -7,7 +7,7 @@ import java.util.UUID
 data class DeltakerKladdUpsertDbo(
     val id: UUID,
     val navBrukerId: UUID,
-    val deltakerlisteId: UUID,
+    val gjennomforingId: UUID,
     val dagerPerUke: Float? = null,
     val deltakelsesprosent: Float? = null,
     val bakgrunnsinformasjon: String?,
