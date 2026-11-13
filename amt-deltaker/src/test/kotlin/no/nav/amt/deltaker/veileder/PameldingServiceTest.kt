@@ -114,7 +114,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 id shouldBe deltakerRepository
                     .getFlereForPerson(
                         personIdent = navBruker.personident,
-                        deltakerlisteId = deltakerListe.id,
+                        gjennomforingId = deltakerListe.id,
                     ).first()
                     .id
 
@@ -162,7 +162,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 id shouldBe deltakerRepository
                     .getFlereForPerson(
                         personIdent = navBruker.personident,
-                        deltakerlisteId = deltakerListe.id,
+                        gjennomforingId = deltakerListe.id,
                     ).first()
                     .id
                 it.gjennomforing.id shouldBe deltakerListe.id
