@@ -7,6 +7,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
@@ -31,6 +32,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagImportertFraArena
 import no.nav.amt.lib.testing.utils.TestData.lagNavAnsatt
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
 import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -459,18 +461,27 @@ class DeltakerRepositoryTest {
     inner class UpsertTests {
         @Test
         fun `ny deltaker - insertes`() {
+            // Arrange
             val expectedDeltaker = lagDeltaker()
             TestRepository.insertAll(expectedDeltaker.gjennomforing, expectedDeltaker.navBruker)
 
-            deltakerRepository.upsert(expectedDeltaker)
-            DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
-
+            // Act
+            val currentTimestamp = Database.transaction {
+                val timestamp = getCurrentTimestamp()
+                deltakerRepository.upsert(expectedDeltaker.copy(sistEndret = LocalDateTime.now()))
+                DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
+                timestamp
+            }
             val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldNotBeNull()
+
+            // Assert
+            deltakerFromDb.sistEndret shouldBe currentTimestamp
             assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
         @Test
         fun `oppdatert deltaker - oppdaterer`() {
+            // Arrange
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
@@ -481,12 +492,32 @@ class DeltakerRepositoryTest {
                 deltakelsesprosent = 20F,
             )
 
-            deltakerRepository.upsert(oppdatertDeltaker)
+            // Act
+            val currentTimestamp = Database.transaction {
+                val timestamp = getCurrentTimestamp()
+                deltakerRepository.upsert(oppdatertDeltaker.copy(sistEndret = LocalDateTime.now()))
+                timestamp
+            }
+            val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
 
-            assertDeltakereAreEqual(
-                deltakerRepository.get(deltaker.id).shouldNotBeNull(),
-                oppdatertDeltaker,
-            )
+            // Assert
+            deltakerFromDb.sistEndret shouldBe currentTimestamp
+            assertDeltakereAreEqual(deltakerFromDb, oppdatertDeltaker)
+        }
+
+        @Test
+        fun `historisk sistEndret bevares ved oppdatering`() {
+            // Arrange
+            val deltaker = lagDeltaker()
+            TestRepository.insert(deltaker)
+            val historiskSistEndret = LocalDateTime.of(2020, 1, 2, 3, 4, 5, 123_456_000)
+
+            // Act
+            deltakerRepository.upsert(deltaker.copy(sistEndret = historiskSistEndret))
+            val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
+
+            // Assert
+            deltakerFromDb.sistEndret shouldBe historiskSistEndret
         }
     }
 
@@ -1028,6 +1059,14 @@ class DeltakerRepositoryTest {
                 status.opprettet shouldBeCloseTo second.status.opprettet
                 sistEndret shouldBeCloseTo second.sistEndret
             }
+        }
+
+        private fun getCurrentTimestamp() = Database.query { session ->
+            session.run(
+                queryOf("SELECT CURRENT_TIMESTAMP AS current_timestamp")
+                    .map { it.localDateTime("current_timestamp") }
+                    .asSingle,
+            ) ?: error("Database did not return CURRENT_TIMESTAMP")
         }
     }
 }
