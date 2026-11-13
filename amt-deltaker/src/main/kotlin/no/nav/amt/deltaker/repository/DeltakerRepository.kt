@@ -77,7 +77,7 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getKladdForDeltakerliste",
             """
-            d.gjennomforing_id = :deltakerliste_id
+            d.gjennomforing_id = :gjennomforing_id
             AND nb.personident = :personident
             AND ds.type = 'KLADD'
             """.trimIndent(),
@@ -88,7 +88,7 @@ class DeltakerRepository {
                 queryOf(
                     sql,
                     mapOf(
-                        "deltakerliste_id" to deltakerlisteId,
+                        "gjennomforing_id" to deltakerlisteId,
                         "personident" to personident,
                     ),
                 ).map(::deltakerRowMapper).asSingle,
@@ -142,8 +142,8 @@ class DeltakerRepository {
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(
-                "SELECT COUNT(*) FROM deltaker WHERE gjennomforing_id = :deltakerliste_id",
-                mapOf("deltakerliste_id" to deltakerlisteId),
+                "SELECT COUNT(*) FROM deltaker WHERE gjennomforing_id = :gjennomforing_id",
+                mapOf("gjennomforing_id" to deltakerlisteId),
             ).map { it.int(1) }.asSingle,
         ) ?: 0
     }
@@ -341,10 +341,10 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     methodName = "getEnkeltplassdeltakerOrThrow",
-                    whereClause = "d.gjennomforing_id = :deltakerliste_id AND dl.gjennomforingstype = 'Enkeltplass'",
+                    whereClause = "d.gjennomforing_id = :gjennomforing_id AND dl.gjennomforingstype = 'Enkeltplass'",
                     limit = 1,
                 ),
-                mapOf("deltakerliste_id" to deltakerlisteId),
+                mapOf("gjennomforing_id" to deltakerlisteId),
             ).map(::deltakerRowMapper).asSingle,
         ) ?: throw NoSuchElementException("Ingen enkeltplassdeltaker for deltakerliste $deltakerlisteId")
     }
@@ -392,11 +392,11 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     "getFlereForPersonDeltakerliste",
-                    "nb.personident = :personident AND d.gjennomforing_id = :deltakerliste_id",
+                    "nb.personident = :personident AND d.gjennomforing_id = :gjennomforing_id",
                 ),
                 mapOf(
                     "personident" to personIdent,
-                    "deltakerliste_id" to deltakerlisteId,
+                    "gjennomforing_id" to deltakerlisteId,
                 ),
             ).map(::deltakerRowMapper).asList,
         )
@@ -442,7 +442,7 @@ class DeltakerRepository {
                 LEFT JOIN importert_fra_arena ifa ON ifa.deltaker_id = d.id
             WHERE 
                 nb.personident = ANY(:personidenter)
-                AND d.gjennomforing_id = :deltakerliste_id
+                AND d.gjennomforing_id = :gjennomforing_id
             """.trimIndent()
 
         return Database
@@ -452,7 +452,7 @@ class DeltakerRepository {
                         sql,
                         mapOf(
                             "personidenter" to personIdenter.toTypedArray(),
-                            "deltakerliste_id" to gjennomforingId,
+                            "gjennomforing_id" to gjennomforingId,
                         ),
                     ).map { row ->
                         DeltakelseLaaseInfo(
@@ -529,14 +529,14 @@ class DeltakerRepository {
                     methodName = "getDeltakerHvorSluttdatoSkalEndres",
                     whereClause =
                         """
-                        d.gjennomforing_id = :deltakerliste_id 
+                        d.gjennomforing_id = :gjennomforing_id 
                         AND ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
                         AND d.sluttdato IS NOT NULL
                         AND dl.slutt_dato IS NOT NULL
                         AND d.sluttdato > dl.slutt_dato
                         """.trimIndent(),
                 ),
-                mapOf("deltakerliste_id" to deltakerlisteId),
+                mapOf("gjennomforing_id" to deltakerlisteId),
             ).map(::deltakerRowMapper).asList,
         )
     }
@@ -546,10 +546,10 @@ class DeltakerRepository {
             queryOf(
                 buildDeltakerSql(
                     methodName = "getDeltakereForAvbruttDeltakerliste",
-                    whereClause = "d.gjennomforing_id = :deltakerliste_id AND ds.type != '${DeltakerStatus.Type.KLADD.name}'",
+                    whereClause = "d.gjennomforing_id = :gjennomforing_id AND ds.type != '${DeltakerStatus.Type.KLADD.name}'",
                     limit = 5_000, // enkelte deltakerlister kan inneholde mange deltakere
                 ),
-                mapOf("deltakerliste_id" to deltakerListeId),
+                mapOf("gjennomforing_id" to deltakerListeId),
             ).map(::deltakerRowMapper).asList,
         )
     }
