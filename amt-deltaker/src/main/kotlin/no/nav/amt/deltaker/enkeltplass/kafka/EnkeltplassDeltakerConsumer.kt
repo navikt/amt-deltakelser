@@ -82,7 +82,9 @@ class EnkeltplassDeltakerConsumer(
                 deltaker = deltaker,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
                 afterDeltakerUpsert = { deltaker ->
-                    importertFraArenaRepository.upsert(deltaker.toImportertData())
+                    importertFraArenaRepository.upsert(
+                        deltaker.toImportertData(deltakerPayload.registrertDato),
+                    )
                     deltakerProducerService.produce(deltaker)
                     deltaker
                 },
@@ -93,9 +95,9 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun Deltaker.toImportertData() = ImportertFraArena(
+    private fun Deltaker.toImportertData(registrertDato: LocalDateTime) = ImportertFraArena(
         deltakerId = id,
         importertDato = LocalDateTime.now(), // Bruker current_timestamp i db
-        deltakerVedImport = this.toDeltakerVedImport(opprettet.toLocalDate()),
+        deltakerVedImport = this.toDeltakerVedImport(registrertDato.toLocalDate()),
     )
 }

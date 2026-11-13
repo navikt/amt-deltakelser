@@ -145,6 +145,7 @@ class EnkeltplassDeltakerConsumerTest {
         TestRepository.insert(deltakerListe)
 
         val deltaker = lagArenaDeltaker(gjennomforing = deltakerListe)
+        val registrertDato = LocalDateTime.now().minusYears(5)
         TestRepository.insert(deltaker.navBruker)
 
         val importertFraArena = lagImportertFraArenaHistorikk(deltaker)
@@ -153,7 +154,12 @@ class EnkeltplassDeltakerConsumerTest {
 
         // Act
         runTest {
-            consumer.consumeDeltaker(toPayload(deltaker))
+            consumer.consumeDeltaker(
+                toPayload(
+                    deltaker = deltaker,
+                    registrertDato = registrertDato,
+                ),
+            )
         }
 
         // Assert - at consumer faktisk behandlet deltakeren
@@ -174,6 +180,7 @@ class EnkeltplassDeltakerConsumerTest {
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         assertSoftly(importertFraArenaFromDb.shouldNotBeNull()) {
             deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+            deltakerVedImport.innsoktDato shouldBe registrertDato.toLocalDate()
             deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
             deltakerVedImport.status.opprettet shouldBe deltakerFromDb.status.opprettet
             importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
