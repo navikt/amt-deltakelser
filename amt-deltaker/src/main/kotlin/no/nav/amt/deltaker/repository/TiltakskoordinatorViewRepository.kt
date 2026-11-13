@@ -54,7 +54,7 @@ class TiltakskoordinatorViewRepository {
                 queryOf(
                     DELTAKERE_COUNT_SQL,
                     mapOf(
-                        "deltakerliste_id" to request.gjennomforingId,
+                        "gjennomforing_id" to request.gjennomforingId,
                         "statuser" to request.statuser.map { it.name }.toTypedArray(),
                     ),
                 ).map { row ->
@@ -202,7 +202,7 @@ class TiltakskoordinatorViewRepository {
             WITH d AS (
                 SELECT id
                 FROM deltaker
-                WHERE gjennomforing_id = :deltakerliste_id
+                WHERE gjennomforing_id = :gjennomforing_id
             ),
             uh_flags AS (
                 SELECT
