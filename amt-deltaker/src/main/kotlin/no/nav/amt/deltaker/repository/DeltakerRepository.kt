@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.enkeltplass.EnkeltplassDeltakerUpdateDbo
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.repository.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.repository.DbUtils.sqlPlaceholders
-import no.nav.amt.deltaker.repository.DeltakerRepository.Companion.buildDeltakerSql
 import no.nav.amt.deltaker.repository.dbo.DeltakerKladdUpsertDbo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -195,8 +195,8 @@ class DeltakerRepository {
                 bakgrunnsinformasjon, 
                 innhold, 
                 kilde, 
-                modified_at,
-                er_manuelt_delt_med_arrangor
+                er_manuelt_delt_med_arrangor,
+                modified_at
             )
             VALUES (
                 :id, 
@@ -208,21 +208,21 @@ class DeltakerRepository {
                 :deltakelsesprosent, 
                 :bakgrunnsinformasjon, 
                 :innhold, 
-                :kilde, 
-                :modified_at,
-                :er_manuelt_delt_med_arrangor
+                :kilde,
+                :er_manuelt_delt_med_arrangor,
+                COALESCE(:modified_at, CURRENT_TIMESTAMP)
             )
             ON CONFLICT (id) DO UPDATE SET 
-                person_id            = :person_id,
-                startdato            = :startdato,
-                sluttdato            = :sluttdato,
-                dager_per_uke        = :dagerPerUke,
-                deltakelsesprosent   = :deltakelsesprosent,
-                bakgrunnsinformasjon = :bakgrunnsinformasjon,
-                innhold              = :innhold,
-                kilde                = :kilde,
-                modified_at          = :modified_at,
-                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor
+                person_id            = EXCLUDED.person_id,
+                startdato            = EXCLUDED.startdato,
+                sluttdato            = EXCLUDED.sluttdato,
+                dager_per_uke        = EXCLUDED.dager_per_uke,
+                deltakelsesprosent   = EXCLUDED.deltakelsesprosent,
+                bakgrunnsinformasjon = EXCLUDED.bakgrunnsinformasjon,
+                innhold              = EXCLUDED.innhold,
+                kilde                = EXCLUDED.kilde,
+                er_manuelt_delt_med_arrangor = EXCLUDED.er_manuelt_delt_med_arrangor,
+                modified_at          = EXCLUDED.modified_at
             """.trimIndent()
 
         val parameters = mapOf(
@@ -236,11 +236,13 @@ class DeltakerRepository {
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to deltaker.deltakelsesinnhold?.let { objectMapper.toPGObject(it) },
             "kilde" to deltaker.kilde.name,
-            "modified_at" to deltaker.sistEndret,
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
+            "modified_at" to nullWhenNearNow(deltaker.sistEndret),
         )
 
-        Database.query { session -> session.update(queryOf(sql, parameters)) }
+        Database.query { session ->
+            session.update(queryOf(sql, parameters))
+        }
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
@@ -475,10 +477,10 @@ class DeltakerRepository {
 
     /**
      * Bulk-variant for henting av "søkt inn"-dato. Erstatter 3 sekvensielle DB-oppslag per deltaker
-     * ([ImportertFraArenaRepository.getForDeltaker], [InnsokRepository.getForDeltaker]
+     * ([ImportertFraArenaRepository.getForDeltaker], [no.nav.amt.deltaker.veileder.InnsokRepository.getForDeltaker]
      * og [VedtakRepository.getForDeltaker]) med **ett** kall som returnerer datoen for alle deltakere.
      *
-     * Speiler prioriteten i [DeltakerHistorikkService.getSoktInnDato]:
+     * Speiler prioriteten i [getSoktInnDato]:
      *   1. `importert_fra_arena.deltaker_ved_import.innsoktDato` (JSONB)
      *   2. `innsok.innsokt::date`
      *   3. `vedtak.created_at::date`
@@ -630,15 +632,15 @@ class DeltakerRepository {
         }
     }
 
-    companion object {
-        private val IKKE_AVSLUTTENDE_STATUSER_DELIMITED = IKKE_AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
+    private companion object {
+        val IKKE_AVSLUTTENDE_STATUSER_DELIMITED = IKKE_AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
 
-        private val SLUTTDATO_PASSERT_STATUSER_DELIMITED = setOf(
+        val SLUTTDATO_PASSERT_STATUSER_DELIMITED = setOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART,
             DeltakerStatus.Type.DELTAR,
         ).joinToString { "'${it.name}'" }
 
-        private val AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED = setOf(
+        val AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED = setOf(
             GjennomforingStatusType.AVSLUTTET,
             GjennomforingStatusType.AVBRUTT,
             GjennomforingStatusType.AVLYST,
@@ -646,13 +648,13 @@ class DeltakerRepository {
 
         // Arena-enkeltplasstiltakene har 1-1 mellom gjennomforing og deltaker.
         // Statusen på gjennomforingen i Arena skal ikke styre deltakerstatus.
-        private val ARENA_ENKELTPLASS_TILTAKSKODER_DELIMITED = setOf(
+        val ARENA_ENKELTPLASS_TILTAKSKODER_DELIMITED = setOf(
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_UTDANNING,
         ).joinToString { "'${it.name}'" }
 
-        private fun deltakerRowMapper(row: Row): Deltaker {
+        fun deltakerRowMapper(row: Row): Deltaker {
             val status = DeltakerStatus.Type.valueOf(row.string("ds.type"))
             val deltakerliste = GjennomforingRepository.rowMapper(row)
             val deltaker = Deltaker(
@@ -720,7 +722,7 @@ class DeltakerRepository {
             }
         }
 
-        private fun buildDeltakerSql(
+        fun buildDeltakerSql(
             methodName: String,
             whereClause: String,
             limit: Int? = 500,
