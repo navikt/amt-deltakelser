@@ -229,7 +229,7 @@ class VeilederEndringService(
 
     private fun slettKladdIfExists(deltaker: Deltaker) {
         val kladd = deltakerRepository.getKladdForDeltakerliste(
-            deltakerlisteId = deltaker.gjennomforing.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             personident = deltaker.navBruker.personident,
         ) ?: return
         deltakerService.deleteDeltaker(kladd.id)

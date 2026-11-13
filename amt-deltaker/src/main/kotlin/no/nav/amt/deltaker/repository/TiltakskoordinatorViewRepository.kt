@@ -30,8 +30,8 @@ class TiltakskoordinatorViewRepository {
     fun getDeltakere(request: TiltaksKoordinatorDeltakerlisteRequest): List<TiltakskoordinatorDeltakerRow> = Database.query { session ->
         session.run(
             queryOf(
-                deltakereSelectSql(statuser = request.statuser, where = "d.deltakerliste_id = :deltakerliste_id"),
-                mapOf("deltakerliste_id" to request.gjennomforingId)
+                deltakereSelectSql(statuser = request.statuser, where = "d.gjennomforing_id = :gjennomforing_id"),
+                mapOf("gjennomforing_id" to request.gjennomforingId)
                     .plus(statusFilterParams(request)),
             ).map(::deltakerRowMapper).asList,
         )
@@ -54,7 +54,7 @@ class TiltakskoordinatorViewRepository {
                 queryOf(
                     DELTAKERE_COUNT_SQL,
                     mapOf(
-                        "deltakerliste_id" to request.gjennomforingId,
+                        "gjennomforing_id" to request.gjennomforingId,
                         "statuser" to request.statuser.map { it.name }.toTypedArray(),
                     ),
                 ).map { row ->
@@ -202,7 +202,7 @@ class TiltakskoordinatorViewRepository {
             WITH d AS (
                 SELECT id
                 FROM deltaker
-                WHERE deltakerliste_id = :deltakerliste_id
+                WHERE gjennomforing_id = :gjennomforing_id
             ),
             uh_flags AS (
                 SELECT
