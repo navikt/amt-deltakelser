@@ -11,6 +11,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.innbygger.NavBrukerService
 import no.nav.amt.deltaker.kafka.DeltakerEksternV1Producer
@@ -37,6 +39,7 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeEqualTo
 import no.nav.amt.lib.testing.utils.TestData.lagNavBruker
@@ -95,12 +98,20 @@ class EnkeltplassDeltakerConsumerTest {
         every { deltakerEksternV1Producer.produce(any()) } just Runs
         every { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
         every { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
-        every { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
+        every { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } answers {
+            val deltaker = firstArg<Deltaker>()
+            mockk<DeltakerKafkaPayload> {
+                every { sistEndret } returns deltaker.sistEndret
+            }
+        }
     }
 
     private fun mockArenaFlagsAndNavBruker(deltaker: Deltaker) {
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+        every { arrangorService.getFunksjonellArrangorForGjennomforing(any()) } answers {
+            firstArg<Gjennomforing>().arrangor
+        }
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
     }
 
@@ -149,6 +160,10 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) { navBrukerService.get(deltaker.navBruker.personident) }
 
         val deltakerFromDb = deltakerRepository.get(deltaker.id).shouldNotBeNull()
+        val publishedPayload = slot<DeltakerKafkaPayload>()
+        verify(exactly = 1) { deltakerProducer.produce(capture(publishedPayload)) }
+        publishedPayload.captured.sistEndret shouldBe deltakerFromDb.sistEndret
+
         assertSoftly(deltakerFromDb) {
             id shouldBe deltaker.id
             gjennomforing.id shouldBe deltaker.gjennomforing.id
@@ -160,6 +175,7 @@ class EnkeltplassDeltakerConsumerTest {
         assertSoftly(importertFraArenaFromDb.shouldNotBeNull()) {
             deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
             deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+            deltakerVedImport.status.opprettet shouldBe deltakerFromDb.status.opprettet
             importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
         }
     }

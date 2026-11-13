@@ -81,7 +81,7 @@ class EnkeltplassDeltakerConsumer(
             .transactionalDeltakerUpsert(
                 deltaker = deltaker,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
-                afterDeltakerUpsert = {
+                afterDeltakerUpsert = { deltaker ->
                     importertFraArenaRepository.upsert(deltaker.toImportertData())
                     deltakerProducerService.produce(deltaker)
                     deltaker
