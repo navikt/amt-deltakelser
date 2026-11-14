@@ -31,8 +31,7 @@ class EndringsvedtakTest :
                 }
 
                 it("viser tekst for TRENGER_GODKJENNING oppstart") {
-                    val doc =
-                        renderEndringsvedtak(endringsvedtak(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING))
+                    val doc = renderEndringsvedtak(endringsvedtak(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING))
                     doc.text() shouldContain "Du ble søkt inn på arbeidsmarkedstiltaket"
                 }
             }
@@ -147,19 +146,18 @@ class EndringsvedtakTest :
 
                         kurstyper.forEach { kurstype ->
                             // Arrange
-                            val payload =
-                                endringsvedtak(
-                                    endringer =
-                                        listOf(
-                                            EndringDto.EnkeltplassEndreOpplaringKategorisering(
-                                                tittel = "Innholdet er endret",
-                                                innholdFritekst = "Fritekst om hva opplæringen inneholder",
-                                                innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
-                                                erEnkeltplassinnhold = true,
-                                                pavirkerPris = false,
-                                            ),
+                            val payload = endringsvedtak(
+                                endringer =
+                                    listOf(
+                                        EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                            tittel = "Innholdet er endret",
+                                            innholdFritekst = "Fritekst om hva opplæringen inneholder",
+                                            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                                            erEnkeltplassinnhold = true,
+                                            pavirkerPris = false,
                                         ),
-                                )
+                                    ),
+                            )
 
                             // Act
                             val doc = renderEndringsvedtak(payload)
@@ -182,19 +180,17 @@ class EndringsvedtakTest :
                     it("HTML-escaper kurstype") {
                         // Arrange
                         val kurstype = "Norskopplæring & <språk>"
-                        val payload =
-                            endringsvedtak(
-                                endringer =
-                                    listOf(
-                                        EndringDto.EnkeltplassEndreOpplaringKategorisering(
-                                            tittel = "Innholdet er endret",
-                                            innholdFritekst = "Fritekst",
-                                            innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
-                                            erEnkeltplassinnhold = true,
-                                            pavirkerPris = false,
-                                        ),
-                                    ),
-                            )
+                        val payload = endringsvedtak(
+                            endringer = listOf(
+                                EndringDto.EnkeltplassEndreOpplaringKategorisering(
+                                    tittel = "Innholdet er endret",
+                                    innholdFritekst = "Fritekst",
+                                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.Kurstype(kurstype),
+                                    erEnkeltplassinnhold = true,
+                                    pavirkerPris = false,
+                                ),
+                            ),
+                        )
 
                         // Act
                         val doc = renderEndringsvedtak(payload)
@@ -210,14 +206,13 @@ class EndringsvedtakTest :
                     it("viser standard innholdsliste når flagget ikke er med i data") {
                         val doc = renderEndringsvedtak(
                             endringsvedtak(
-                                endringer =
-                                    listOf(
-                                        EndringDto.EndreInnhold(
-                                            innhold = listOf("Innhold 1", "Innhold 2"),
-                                            innholdBeskrivelse = null,
-                                            tittel = "Innholdet er endret",
-                                        ),
+                                endringer = listOf(
+                                    EndringDto.EndreInnhold(
+                                        innhold = listOf("Innhold 1", "Innhold 2"),
+                                        innholdBeskrivelse = null,
+                                        tittel = "Innholdet er endret",
                                     ),
+                                ),
                             ),
                         )
 
