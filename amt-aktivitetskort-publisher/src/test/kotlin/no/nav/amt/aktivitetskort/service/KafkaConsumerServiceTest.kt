@@ -1,10 +1,12 @@
 package no.nav.amt.aktivitetskort.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
 import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
@@ -48,6 +50,7 @@ class KafkaConsumerServiceTest(
     private val transactionTemplate = mockk<TransactionTemplate>()
 
     private val ctx: TestData.MockContext = TestData.MockContext()
+    private val forberedtMelding = AktivitetskortService.ForberedtMelding.Klar(ctx.melding, TestData.oppfolgingsperiode())
 
     private val offset: Long = 0
 
@@ -70,6 +73,8 @@ class KafkaConsumerServiceTest(
             (firstArg() as Consumer<TransactionStatus>).accept(SimpleTransactionStatus())
         }
         every { deltakerRepository.getAntallDeltakereForDeltakerliste(any()) } returns 0
+        every { deltakerRepository.skalOppdatere(any(), any(), any()) } returns true
+        every { aktivitetskortService.forberedMelding(any()) } returns forberedtMelding
     }
 
     private fun TestData.MockContext.stubDeltakerFraAmtDeltaker(
@@ -96,7 +101,7 @@ class KafkaConsumerServiceTest(
             // Arrange
             every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.Modified(ctx.deltaker)
             ctx.stubDeltakerFraAmtDeltaker()
-            every { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == ctx.deltaker.id }) } returns ctx.aktivitetskort
+            every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns ctx.aktivitetskort
 
             // Act
             kafkaConsumerService.handleDeltaker(
@@ -107,7 +112,13 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == ctx.deltaker.id }) }
+            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskort(forberedtMelding) }
+            verifyOrder {
+                aktivitetskortService.forberedMelding(any())
+                transactionTemplate.executeWithoutResult(any())
+                deltakerRepository.upsert(ctx.deltaker, offset)
+                aktivitetskortService.lagreAktivitetskort(forberedtMelding)
+            }
         }
 
         @Test
@@ -115,7 +126,7 @@ class KafkaConsumerServiceTest(
             // Arrange
             every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.Created(ctx.deltaker)
             ctx.stubDeltakerFraAmtDeltaker()
-            every { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == ctx.deltaker.id }) } returns ctx.aktivitetskort
+            every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns ctx.aktivitetskort
 
             // Act
             kafkaConsumerService.handleDeltaker(
@@ -126,14 +137,14 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == ctx.deltaker.id }) }
+            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskort(forberedtMelding) }
         }
 
         @Test
         fun `deltaker har ingen forandring - ikke publiser melding`() {
             // Arrange
             ctx.stubDeltakerFraAmtDeltaker()
-            every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.NoChange()
+            every { deltakerRepository.skalOppdatere(ctx.deltaker, offset) } returns false
 
             // Act
             kafkaConsumerService.handleDeltaker(
@@ -143,8 +154,9 @@ class KafkaConsumerServiceTest(
             )
 
             // Assert
-            verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
-            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(any<Deltaker>()) }
+            verify(exactly = 0) { deltakerRepository.upsert(any(), any(), any()) }
+            verify(exactly = 0) { aktivitetskortService.forberedMelding(any()) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
         }
 
         @Test
@@ -155,7 +167,7 @@ class KafkaConsumerServiceTest(
             )
             ctx.stubDeltakerFraAmtDeltaker(mockDeltaker)
 
-            every { deltakerRepository.upsert(mockDeltaker, offset) } returns RepositoryResult.NoChange()
+            every { deltakerRepository.skalOppdatere(mockDeltaker, offset) } returns false
 
             // Act
             kafkaConsumerService.handleDeltaker(
@@ -165,8 +177,9 @@ class KafkaConsumerServiceTest(
             )
 
             // Assert
-            verify(exactly = 1) { deltakerRepository.upsert(mockDeltaker, offset) }
-            verify(exactly = 0) { aktivitetskortService.lagAktivitetskort(any<Deltaker>()) }
+            verify(exactly = 0) { deltakerRepository.upsert(any(), any(), any()) }
+            verify(exactly = 0) { aktivitetskortService.forberedMelding(any()) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
         }
 
         @Test
@@ -178,7 +191,7 @@ class KafkaConsumerServiceTest(
             ctx.stubDeltakerFraAmtDeltaker(mockDeltaker)
 
             every { deltakerRepository.upsert(mockDeltaker, offset) } returns RepositoryResult.Modified(mockDeltaker)
-            every { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == mockDeltaker.id }) } returns mockAktivitetskort
+            every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns mockAktivitetskort
 
             // Act
             kafkaConsumerService.handleDeltaker(
@@ -189,7 +202,31 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { deltakerRepository.upsert(mockDeltaker, offset) }
-            verify(exactly = 1) { aktivitetskortService.lagAktivitetskort(match<Deltaker> { it.id == mockDeltaker.id }) }
+            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskort(forberedtMelding) }
+        }
+
+        @Test
+        fun `NoChange ved siste sjekk forkaster forberedt melding`() {
+            ctx.stubDeltakerFraAmtDeltaker()
+            every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.NoChange()
+
+            kafkaConsumerService.handleDeltaker(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
+
+            verify(exactly = 1) { aktivitetskortService.forberedMelding(any()) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
+        }
+
+        @Test
+        fun `teknisk feil ved forberedelse starter ikke transaksjon`() {
+            ctx.stubDeltakerFraAmtDeltaker()
+            every { aktivitetskortService.forberedMelding(any()) } throws IllegalStateException("API-feil")
+
+            shouldThrow<IllegalStateException> {
+                kafkaConsumerService.handleDeltaker(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
+            }
+
+            verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+            verify(exactly = 0) { deltakerRepository.upsert(any(), any(), any()) }
         }
     }
 

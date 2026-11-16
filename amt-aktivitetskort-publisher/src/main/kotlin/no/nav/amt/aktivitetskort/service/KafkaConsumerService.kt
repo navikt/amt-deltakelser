@@ -53,17 +53,25 @@ class KafkaConsumerService(
         val deltaker = amtDeltakerClient
             .getDeltaker(deltakerPayload.id)
             .let { Deltaker.fromDeltakerResponse(it) }
+        val deltakerDbo = deltakerPayload.toDbo()
+        val buyPassEqualityCheck = deltaker.gjennomforing.tiltakstype.erOpplaeringstiltak && deltaker.kilde == Kilde.KOMET
+        if (!deltakerRepository.skalOppdatere(deltakerDbo, offset, buyPassEqualityCheck)) {
+            log.info("Ny hendelse for deltaker ${deltaker.id}: Ingen endring")
+            log.info("Konsumerte melding med deltaker $id, offset $offset")
+            return
+        }
+        val forberedtMelding = aktivitetskortService.forberedMelding(deltaker)
 
         transactionTemplate.executeWithoutResult {
             val deltakerUpsertResult = deltakerRepository.upsert(
-                deltaker = deltakerPayload.toDbo(),
+                deltaker = deltakerDbo,
                 offset = offset,
-                buyPassEqualityCheck = deltaker.gjennomforing.tiltakstype.erOpplaeringstiltak && deltaker.kilde == Kilde.KOMET,
+                buyPassEqualityCheck = buyPassEqualityCheck,
             )
             when (deltakerUpsertResult) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltaker ${deltakerPayload.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
+                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
                         return@executeWithoutResult
@@ -72,7 +80,7 @@ class KafkaConsumerService(
 
                 is RepositoryResult.Created -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Opprettelse")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
+                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
                         return@executeWithoutResult

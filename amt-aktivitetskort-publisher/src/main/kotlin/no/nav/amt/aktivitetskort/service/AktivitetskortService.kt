@@ -65,13 +65,16 @@ class AktivitetskortService(
         .getByDeltakerId(deltakerId)
         .maxByOrNull { it.createdAt }
 
-    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker)?.aktivitetskort
+    fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker.id) { opprettMelding(deltaker) }?.aktivitetskort
 
     fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? = amtDeltakerClient
         .getDeltaker(deltakerId)
         .let { deltakerResponse ->
-            tryOpprettMelding(Deltaker.fromDeltakerResponse(deltakerResponse))?.aktivitetskort
+            lagAktivitetskort(Deltaker.fromDeltakerResponse(deltakerResponse))
         }
+
+    fun lagreAktivitetskort(forberedtMelding: ForberedtMelding): Aktivitetskort? =
+        tryOpprettMelding(forberedtMelding.deltakerId) { lagreOgPubliser(forberedtMelding) }?.aktivitetskort
 
     /**
      * Avbryter aktivitetskortet for en slettet deltaker, publiserer endringen og sletter den lokale deltakeren.
@@ -182,27 +185,26 @@ class AktivitetskortService(
     ) {
         val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
 
-        tryOpprettMelding(
-            deltaker = Deltaker.fromDeltakerResponse(deltakerResponse),
-            meldingId = meldingId,
-        )
+        tryOpprettMelding(deltakerId) {
+            opprettMelding(
+                deltaker = Deltaker.fromDeltakerResponse(deltakerResponse),
+                meldingId = meldingId,
+            )
+        }
     }
 
     private fun tryOpprettMelding(
-        deltaker: Deltaker,
-        meldingId: UUID? = null,
+        deltakerId: UUID,
+        opprett: () -> Melding,
     ): Melding? {
         try {
-            return opprettMelding(
-                deltaker = deltaker,
-                meldingId = meldingId,
-            )
+            return opprett()
         } catch (e: IngenOppfolgingsperiodeException) {
-            log.warn("Kan ikke opprette aktivitetskort for deltaker ${deltaker.id} uten oppfølgingsperiode", e)
+            log.warn("Kan ikke opprette aktivitetskort for deltaker $deltakerId uten oppfølgingsperiode", e)
         } catch (e: HistoriskArenaDeltakerException) {
-            log.error("Kan ikke opprette aktivitetskort for historisk arena deltaker ${deltaker.id}", e)
+            log.error("Kan ikke opprette aktivitetskort for historisk arena deltaker $deltakerId", e)
         } catch (e: FeilOppfolgingsperiodeException) {
-            log.info("Kan ikke opprette aktivitetskort for deltaker ${deltaker.id}", e)
+            log.info("Kan ikke opprette aktivitetskort for deltaker $deltakerId", e)
         }
         return null
     }
@@ -210,10 +212,18 @@ class AktivitetskortService(
     fun opprettMelding(
         deltaker: Deltaker,
         meldingId: UUID? = null,
-    ): Melding {
+    ): Melding = lagreOgPubliser(forberedMelding(deltaker, meldingId))
+
+    fun forberedMelding(
+        deltaker: Deltaker,
+        meldingId: UUID? = null,
+    ): ForberedtMelding {
         val oppfolgingsperiode = veilarboppfolgingClient.hentOppfolgingperiode(deltaker.personident)
-            ?: throw IngenOppfolgingsperiodeException(
-                "Kan ikke opprette aktivitetskort på deltaker ${deltaker.id} som ikke er under oppfølging",
+            ?: return ForberedtMelding.Avvist(
+                deltakerId = deltaker.id,
+                feil = IngenOppfolgingsperiodeException(
+                    "Kan ikke opprette aktivitetskort på deltaker ${deltaker.id} som ikke er under oppfølging",
+                ),
             )
 
         val nyesteAktivitetskortForDeltaker = getSisteMeldingForDeltaker(deltaker.id)
@@ -223,19 +233,25 @@ class AktivitetskortService(
             deltaker.status.type in avsluttendeStatuser &&
             deltaker.status.gyldigFra?.isBefore(oppfolgingsperiode.startDato) == true
         ) {
-            oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
-
-            throw FeilOppfolgingsperiodeException(
-                "Lager ikke aktivitetskort for ukjent arenadeltaker i oppfølgingsperiode: ${oppfolgingsperiode.id}" +
-                    "deltaker ${deltaker.id} er avsluttet ${deltaker.status.gyldigFra} " +
-                    "før nåværende oppfølgingsperiode startet ${oppfolgingsperiode.startDato}",
+            return ForberedtMelding.Avvist(
+                deltakerId = deltaker.id,
+                feil = FeilOppfolgingsperiodeException(
+                    "Lager ikke aktivitetskort for ukjent arenadeltaker i oppfølgingsperiode: ${oppfolgingsperiode.id}" +
+                        "deltaker ${deltaker.id} er avsluttet ${deltaker.status.gyldigFra} " +
+                        "før nåværende oppfølgingsperiode startet ${oppfolgingsperiode.startDato}",
+                ),
+                oppfolgingsperiode = oppfolgingsperiode,
             )
         }
 
-        val aktivitetskortId = meldingId ?: getAktivitetskortId(
-            deltaker = deltaker,
-            oppfolgingsperiode = oppfolgingsperiode,
-        )
+        val aktivitetskortId = try {
+            meldingId ?: getAktivitetskortId(
+                deltaker = deltaker,
+                oppfolgingsperiode = oppfolgingsperiode,
+            )
+        } catch (e: HistoriskArenaDeltakerException) {
+            return ForberedtMelding.Avvist(deltakerId = deltaker.id, feil = e)
+        }
 
         val aktivitetskort = lagAktivitetskort(
             id = aktivitetskortId,
@@ -251,14 +267,46 @@ class AktivitetskortService(
             oppfolgingperiode = oppfolgingsperiode.id,
         )
 
-        transactionTemplate.executeWithoutResult {
-            oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
-            meldingRepository.upsert(melding)
-            aktivitetskortProducer.send(melding.aktivitetskort)
+        return ForberedtMelding.Klar(melding, oppfolgingsperiode)
+    }
+
+    private fun lagreOgPubliser(forberedtMelding: ForberedtMelding): Melding {
+        when (forberedtMelding) {
+            is ForberedtMelding.Avvist -> {
+                forberedtMelding.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
+                throw forberedtMelding.feil
+            }
+
+            is ForberedtMelding.Klar -> {
+                transactionTemplate.executeWithoutResult {
+                    oppfolgingsperiodeRepository.upsert(forberedtMelding.oppfolgingsperiode)
+                    meldingRepository.upsert(forberedtMelding.melding)
+                    aktivitetskortProducer.send(forberedtMelding.melding.aktivitetskort)
+                }
+
+                log.info(
+                    "Opprettet nytt aktivitetskort: ${forberedtMelding.melding.aktivitetskort.id} for deltaker: ${forberedtMelding.deltakerId}",
+                )
+                return forberedtMelding.melding
+            }
+        }
+    }
+
+    sealed interface ForberedtMelding {
+        val deltakerId: UUID
+
+        data class Klar(
+            val melding: Melding,
+            val oppfolgingsperiode: Oppfolgingsperiode,
+        ) : ForberedtMelding {
+            override val deltakerId: UUID get() = melding.deltakerId
         }
 
-        log.info("Opprettet nytt aktivitetskort: ${melding.aktivitetskort.id} for deltaker: ${deltaker.id}")
-        return melding
+        data class Avvist(
+            override val deltakerId: UUID,
+            val feil: RuntimeException,
+            val oppfolgingsperiode: Oppfolgingsperiode? = null,
+        ) : ForberedtMelding
     }
 
     fun opprettMelding(

@@ -10,6 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerRepositoryTest(
@@ -41,6 +42,8 @@ class DeltakerRepositoryTest(
         val deltaker = TestData
             .lagDeltaker()
             .also { testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = it.deltakerlisteId)) }
+        deltakerRepository.skalOppdatere(deltaker, 0) shouldBe true
+        deltakerRepository.get(deltaker.id) shouldBe null
         when (val result = deltakerRepository.upsert(deltaker, 0)) {
             is RepositoryResult.Created -> result.data shouldBe deltaker
             else -> fail("Should be Created, was $result")
@@ -56,6 +59,7 @@ class DeltakerRepositoryTest(
             .also { testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = it.deltakerlisteId)) }
             .also { deltakerRepository.upsert(it, 0) }
 
+        deltakerRepository.skalOppdatere(deltaker, 1) shouldBe false
         when (val result = deltakerRepository.upsert(deltaker, 1)) {
             is RepositoryResult.Created -> {
                 fail("Should be NoChange, was $result")
@@ -77,6 +81,7 @@ class DeltakerRepositoryTest(
             .also { testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = it.deltakerlisteId)) }
             .also { deltakerRepository.upsert(it, 0) }
 
+        deltakerRepository.skalOppdatere(deltaker, 1) shouldBe true
         when (val result = deltakerRepository.upsert(deltaker, 1)) {
             is RepositoryResult.Created -> {
                 fail("Should be Modified, was $result")
@@ -101,6 +106,8 @@ class DeltakerRepositoryTest(
             personident = "UPDATED",
         )
 
+        deltakerRepository.skalOppdatere(updatedDeltaker, 1) shouldBe true
+        deltakerRepository.get(initialDeltaker.id) shouldBe initialDeltaker
         when (val result = deltakerRepository.upsert(updatedDeltaker, 1)) {
             is RepositoryResult.Modified -> result.data shouldBe updatedDeltaker
             else -> fail("Should be Modified, was $result")
@@ -120,6 +127,7 @@ class DeltakerRepositoryTest(
             personident = "UTDATERT",
         )
 
+        deltakerRepository.skalOppdatere(tidligereVersjonAvDeltaker, 0) shouldBe false
         when (val result = deltakerRepository.upsert(tidligereVersjonAvDeltaker, 0)) {
             is RepositoryResult.Created -> {
                 fail("Should be NoChange, was $result")
@@ -181,6 +189,7 @@ class DeltakerRepositoryTest(
             .lagDeltaker()
             .copy(status = DeltakerStatusModel(DeltakerStatus.Type.FEILREGISTRERT, null))
             .also { testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = it.deltakerlisteId)) }
+        deltakerRepository.skalOppdatere(deltaker, 0) shouldBe false
         when (val result = deltakerRepository.upsert(deltaker, 0)) {
             is RepositoryResult.NoChange -> {}
 
@@ -219,6 +228,7 @@ class DeltakerRepositoryTest(
                 sluttdato = LocalDate.of(2017, 11, 30),
                 status = DeltakerStatusModel(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Aarsak.Type.FATT_JOBB),
             ).also { testDatabase.insertDeltakerliste(TestData.lagDeltakerliste(id = it.deltakerlisteId)) }
+        deltakerRepository.skalOppdatere(deltaker, 0) shouldBe false
         when (val result = deltakerRepository.upsert(deltaker, 0)) {
             is RepositoryResult.NoChange -> {}
 
@@ -246,11 +256,32 @@ class DeltakerRepositoryTest(
             status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, DeltakerStatus.Aarsak.Type.ANNET),
         )
 
+        deltakerRepository.skalOppdatere(updatedDeltaker, 1) shouldBe true
         when (val result = deltakerRepository.upsert(updatedDeltaker, 1)) {
             is RepositoryResult.Modified -> result.data shouldBe updatedDeltaker
             else -> fail("Should be Modified, was $result")
         }
 
         deltakerRepository.get(initialDeltaker.id) shouldBe updatedDeltaker
+    }
+
+    @Test
+    fun `upsert - bypass oppdaterer uendret deltaker men ignorerer eldre offset`() {
+        val deltaker = testDatabase.insertDeltaker(offset = 2)
+
+        deltakerRepository.skalOppdatere(deltaker, 2, buyPassEqualityCheck = true) shouldBe true
+        deltakerRepository.skalOppdatere(deltaker, 1, buyPassEqualityCheck = true) shouldBe false
+        (deltakerRepository.upsert(deltaker, 2, buyPassEqualityCheck = true) is RepositoryResult.Modified) shouldBe true
+        (deltakerRepository.upsert(deltaker, 1, buyPassEqualityCheck = true) is RepositoryResult.NoChange) shouldBe true
+    }
+
+    @Test
+    fun `upsert - bare gyldigFra er endret - returnerer NoChange`() {
+        val deltaker = testDatabase.insertDeltaker()
+        val endret = deltaker.copy(status = deltaker.status.copy(gyldigFra = LocalDateTime.now().plusDays(1)))
+
+        deltakerRepository.skalOppdatere(endret, 1) shouldBe false
+        (deltakerRepository.upsert(endret, 1) is RepositoryResult.NoChange) shouldBe true
+        deltakerRepository.get(deltaker.id) shouldBe deltaker
     }
 }
