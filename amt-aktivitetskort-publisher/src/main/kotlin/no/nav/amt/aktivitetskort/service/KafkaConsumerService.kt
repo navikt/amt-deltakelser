@@ -134,12 +134,27 @@ class KafkaConsumerService(
             ?: hentOgLagreArrangorFraAmtArrangor(payload.arrangor.organisasjonsnummer)
 
         val deltakerlisteModel = payload.toDeltakerliste(arrangor.id)
+        val lagretDeltakerliste = deltakerlisteRepository.get(deltakerlisteModel.id)
+        if (lagretDeltakerliste == deltakerlisteModel) {
+            log.info("Ny hendelse for deltakerliste ${payload.id}: Ingen endring")
+            log.info("Konsumerte melding med deltakerliste ${payload.id}")
+            return
+        }
+        val forberedteMeldinger = if (lagretDeltakerliste != null) {
+            aktivitetskortService.forberedAktivitetskort(deltakerlisteModel.id)
+        } else {
+            emptyList()
+        }
 
         transactionTemplate.executeWithoutResult {
-            when (val result = deltakerlisteRepository.upsert(deltakerlisteModel)) {
+            when (deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
+                    check(lagretDeltakerliste != null) {
+                        "Deltakerliste ${payload.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt."
+                    }
                     log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
-                    aktivitetskortService.oppdaterAktivitetskort(result.data.id)
+                    forberedteMeldinger.forEach { aktivitetskortService.lagreAktivitetskort(it) }
+                    log.info("Opprettet nye aktivitetskort for deltakerliste: ${payload.id}")
                 }
 
                 is RepositoryResult.Created -> {

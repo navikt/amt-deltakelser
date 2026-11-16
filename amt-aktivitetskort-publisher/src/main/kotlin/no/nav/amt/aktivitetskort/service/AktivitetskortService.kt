@@ -112,13 +112,12 @@ class AktivitetskortService(
         }
     }
 
-    fun oppdaterAktivitetskort(gjennomforingId: UUID) {
-        meldingRepository
-            .getByDeltakerlisteId(gjennomforingId)
-            .forEach { oppdaterAktivitetskort(it.deltakerId, it.id) }
-
-        log.info("Opprettet nye aktivitetskort for deltakerliste: $gjennomforingId")
-    }
+    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtMelding> = meldingRepository
+        .getByDeltakerlisteId(gjennomforingId)
+        .map {
+            val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(it.deltakerId))
+            forberedMelding(deltaker, meldingId = it.id)
+        }
 
     /**
      * En oppdatering på en arrangør skal medføre at:
