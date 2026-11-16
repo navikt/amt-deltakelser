@@ -5,6 +5,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -442,29 +443,43 @@ class AktivitetskortServiceTest {
     }
 
     @Nested
-    inner class OppdaterAktivitetskortDeltakerliste {
+    inner class ForberedAktivitetskortDeltakerliste {
         @Test
-        fun `oppdaterAktivitetskort(deltakerliste) - meldinger finnes - lager nye aktivitetskort`() {
+        fun `meldinger finnes - forbereder kort med eksisterende ID uten a lagre`() {
             // Arrange
             val ctx = TestData.MockContext()
             ctx.stubDeltakerFraAmtDeltaker()
 
             every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returns listOf(ctx.melding)
-            every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker
             every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
-            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
-            every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
             every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
-            val lagredeMeldinger = mutableListOf<Melding>()
-            every { meldingRepository.upsert(capture(lagredeMeldinger)) } returns Unit
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id)
+            val forberedt = aktivitetskortService
+                .forberedAktivitetskort(ctx.deltakerliste.id)
+                .single()
+                .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            forberedt.melding.aktivitetskort shouldBe ctx.aktivitetskort
+            forberedt.melding.id shouldBe ctx.melding.id
+            forberedt.oppfolgingsperiode shouldBe nyPeriode
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+            verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
+        }
 
-            lagredeMeldinger.map { it.aktivitetskort } shouldBe listOf(ctx.aktivitetskort)
+        @Test
+        fun `ingen meldinger - ingen API-kall`() {
+            val gjennomforingId = UUID.randomUUID()
+            every { meldingRepository.getByDeltakerlisteId(gjennomforingId) } returns emptyList()
+
+            aktivitetskortService.forberedAktivitetskort(gjennomforingId) shouldBe emptyList()
+
+            verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
+            verify(exactly = 0) { veilarboppfolgingClient.hentOppfolgingperiode(any()) }
         }
     }
 

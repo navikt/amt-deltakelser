@@ -313,8 +313,10 @@ class KafkaConsumerServiceTest(
         fun `deltakerliste modifisert - publiser melding`() {
             // Arrange
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Modified(ctx.deltakerliste)
-            justRun { aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id) }
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns ctx.aktivitetskort
 
             // Act
             kafkaConsumerService.handleGjennomforing(
@@ -324,13 +326,19 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
-            verify(exactly = 1) { aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id) }
+            verifyOrder {
+                aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+                transactionTemplate.executeWithoutResult(any())
+                deltakerlisteRepository.upsert(ctx.deltakerliste)
+                aktivitetskortService.lagreAktivitetskort(forberedtMelding)
+            }
         }
 
         @Test
         fun `deltakerliste lagd - ikke publiser melding`() {
             // Arrange
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns null
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Created(ctx.deltakerliste)
 
             // Act
@@ -341,14 +349,15 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
-            verify(exactly = 0) { aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id) }
+            verify(exactly = 0) { aktivitetskortService.forberedAktivitetskort(any()) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
         }
 
         @Test
         fun `deltakerliste har ingen forandring - ikke publiser melding`() {
             // Arrange
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
-            every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.NoChange()
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
 
             // Act
             kafkaConsumerService.handleGjennomforing(
@@ -357,8 +366,58 @@ class KafkaConsumerServiceTest(
             )
 
             // Assert
-            verify(exactly = 1) { deltakerlisteRepository.upsert(ctx.deltakerliste) }
-            verify(exactly = 0) { aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id) }
+            verify(exactly = 0) { deltakerlisteRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortService.forberedAktivitetskort(any()) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
+        }
+
+        @Test
+        fun `deltakerliste uendret ved siste sjekk - forkast forberedte meldinger`() {
+            every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.NoChange()
+
+            kafkaConsumerService.handleGjennomforing(
+                ctx.deltakerliste.id,
+                objectMapper.writeValueAsString(ctx.amtGjennomforingPayload),
+            )
+
+            verify(exactly = 1) { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) }
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
+        }
+
+        @Test
+        fun `deltakerliste opprettet under forberedelse - feil fremfor a hoppe over kortoppdatering`() {
+            every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns null
+            every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Modified(ctx.deltakerliste)
+
+            shouldThrow<IllegalStateException> {
+                kafkaConsumerService.handleGjennomforing(
+                    ctx.deltakerliste.id,
+                    objectMapper.writeValueAsString(ctx.amtGjennomforingPayload),
+                )
+            }
+
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
+        }
+
+        @Test
+        fun `teknisk feil ved forberedelse av gjennomforing starter ikke transaksjon`() {
+            every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
+            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } throws IllegalStateException("API-feil")
+
+            shouldThrow<IllegalStateException> {
+                kafkaConsumerService.handleGjennomforing(
+                    ctx.deltakerliste.id,
+                    objectMapper.writeValueAsString(ctx.amtGjennomforingPayload),
+                )
+            }
+
+            verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+            verify(exactly = 0) { deltakerlisteRepository.upsert(any()) }
         }
 
         @Test
@@ -381,6 +440,7 @@ class KafkaConsumerServiceTest(
                     null,
                 )
             every { deltakerlisteRepository.upsert(deltakerlisteInTest) } returns RepositoryResult.Created(deltakerlisteInTest)
+            every { deltakerlisteRepository.get(deltakerlisteInTest.id) } returns null
 
             val deltakerlistePayload = lagAmtGjennomforingPayload(
                 arrangor = arrangorInTest,
