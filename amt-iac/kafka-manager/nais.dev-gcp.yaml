@@ -14,7 +14,7 @@ spec:
       claims:
         groups:
           - id: 0a84d77e-c8e9-4173-96af-164eb7fbb749
-          - id: f435ac2e-7dde-4579-a960-2d0378d596b3
+
   kafka:
     pool: nav-dev
   env:

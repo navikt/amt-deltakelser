@@ -14,7 +14,7 @@ spec:
       claims:
         groups:
           - id: 0a84d77e-c8e9-4173-96af-164eb7fbb749
-          - id: dfc550d0-c5bf-4208-8b2b-3542bb8b5b15 # dab skal ha midlertidig tilgang
+
   kafka:
     pool: nav-prod
   env:
