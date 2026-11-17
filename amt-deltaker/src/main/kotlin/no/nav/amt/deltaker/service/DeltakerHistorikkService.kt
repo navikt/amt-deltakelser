@@ -13,9 +13,9 @@ import no.nav.amt.deltaker.tiltaksarrangor.vurdering.VurderingRepository
 import no.nav.amt.deltaker.veileder.InnsokRepository
 import no.nav.amt.deltaker.veileder.endring.DeltakerEndringRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerHistorikkService(
@@ -91,7 +91,7 @@ class DeltakerHistorikkService(
             if (inkluderEnkeltplassOkonomiHistorikk) {
                 utvidedeHistorikk + hentEnkeltplassOkonomiHistorikk(
                     deltakerId = deltakerId,
-                    vedtakFattetTidspunkt = kjernehistorikk.getVedtakFattet(),
+                    vedtak = kjernehistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().firstOrNull()?.vedtak,
                 )
             } else {
                 utvidedeHistorikk
@@ -176,14 +176,15 @@ class DeltakerHistorikkService(
      * prisinfoene uten markering.
      *
      * @param deltakerId ID-en til deltakeren
-     * @param vedtakFattetTidspunkt tidspunktet vedtaket ble fattet
+     * @param vedtak det lagrede vedtaket som knyttes til førstegangsgodkjenningen
      * @return Prisinfoer som skal vises i historikken
      */
     private fun hentEnkeltplassOkonomiHistorikk(
         deltakerId: UUID,
-        vedtakFattetTidspunkt: LocalDateTime?,
+        vedtak: Vedtak?,
     ): List<DeltakerHistorikk> {
         val godkjentePrisinfoer = PrisinfoRepoAdapter.hentGodkjentPrisinfoForHistorikkEldsteForst(deltakerId)
+        val vedtakFattetTidspunkt = vedtak?.fattet
 
         // Prisinfoene kommer eldste først, så den siste før vedtaket utløste vedtaket.
         // MERK: Flere godkjente prisinfoer før hovedvedtak er edge-case som krever
@@ -201,22 +202,13 @@ class DeltakerHistorikkService(
 
         // Hvis en prisinfo utløste vedtaket, ligger den først i listen og får markeringen.
         return prisinfoerForHistorikk.mapIndexed { index, prisinformasjon ->
+            val erForsteGodkjenning = prisinfoerForVedtak.isNotEmpty() && index == 0
             DeltakerHistorikk.EnkeltplassOkonomiGodkjent(
                 prisinformasjon.copy(
-                    erForsteGodkjenning = prisinfoerForVedtak.isNotEmpty() && index == 0,
+                    erForsteGodkjenning = erForsteGodkjenning,
+                    vedtak = if (erForsteGodkjenning) vedtak else null,
                 ),
             )
         }
     }
-
-    /**
-     * Henter fattet-tidspunktet fra deltakerens første vedtaksoppføring.
-     *
-     * @receiver Historikkoppføringene som skal undersøkes
-     * @return Fattet-tidspunktet, eller `null` hvis historikken mangler vedtak eller tidspunkt
-     */
-    private fun List<DeltakerHistorikk>.getVedtakFattet(): LocalDateTime? = filterIsInstance<DeltakerHistorikk.Vedtak>()
-        .firstOrNull()
-        ?.vedtak
-        ?.fattet
 }

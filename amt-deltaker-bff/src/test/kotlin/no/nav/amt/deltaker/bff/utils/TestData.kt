@@ -33,6 +33,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.FALLBACK_DELTAKELSESPROSENT
@@ -685,6 +688,53 @@ object TestData {
         .flatMap { it.navAnsatte() }
         .distinct()
         .map { lagNavAnsatt(id = it) }
+
+    fun lagEnkeltplassHistorikkMedVedtak(): List<DeltakerHistorikk> {
+        val vedtak = lagVedtak(fattet = LocalDateTime.parse("2026-10-15T12:00:00")).let {
+            it.copy(
+                deltakerVedVedtak = it.deltakerVedVedtak.copy(
+                    startdato = LocalDate.parse("2026-11-01"),
+                    sluttdato = LocalDate.parse("2027-06-30"),
+                    dagerPerUke = 3f,
+                    deltakelsesprosent = 60f,
+                    bakgrunnsinformasjon = "Bakgrunn ved vedtak",
+                    deltakelsesinnhold = Deltakelsesinnhold(
+                        ledetekst = "Innhold ved vedtak",
+                        innhold = listOf(Innhold("Annet", "annet", true, "Historisk opplæring")),
+                    ),
+                    opplaringKategorisering = OpplaringKategoriseringValg(
+                        valgteKategoriseringer = setOf(
+                            OpplaringKategoriseringValg.ValgteFelt(
+                                representerer = OpplaringKategoriseringType.UTDANNINGSPROGRAM_ID,
+                                valg = mapOf(UUID.fromString("8288c03d-94cd-4ac2-8d28-6db590b19c71") to "Historisk utdanningsprogram"),
+                            ),
+                        ),
+                        valgteSertifiseringer = emptySet(),
+                    ),
+                ),
+            )
+        }
+        val godkjenning = OkonomiGodkjentForHistorikk(
+            sistEndret = LocalDateTime.parse("2026-10-15T11:59:59"),
+            sistEndretAvNavAnsattId = vedtak.sistEndretAv,
+            sistEndretAvNavEnhetId = vedtak.sistEndretAvEnhet,
+            erForsteGodkjenning = true,
+            prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 20000),
+            vedtak = vedtak,
+        )
+        return listOf(
+            DeltakerHistorikk.EnkeltplassOkonomiGodkjent(
+                godkjenning.copy(
+                    sistEndret = LocalDateTime.parse("2026-11-10T12:00:00"),
+                    erForsteGodkjenning = false,
+                    prisinformasjon = PrisinformasjonDto.Anskaffelse(pris = 35000),
+                    vedtak = null,
+                ),
+            ),
+            DeltakerHistorikk.EnkeltplassOkonomiGodkjent(godkjenning),
+            DeltakerHistorikk.Vedtak(vedtak),
+        )
+    }
 
     fun lagNavEnheterForHistorikk(historikk: List<DeltakerHistorikk>) = historikk
         .flatMap { it.navEnheter() }

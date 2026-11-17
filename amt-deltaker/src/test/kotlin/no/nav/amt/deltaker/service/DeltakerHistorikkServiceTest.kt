@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.service
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -152,8 +153,10 @@ class DeltakerHistorikkServiceTest {
                 Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
             )
             godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
             v2Historikk.map { it.data.prisinformasjon } shouldBe godkjentPrisinfo.map { it.data.prisinformasjon }
             v2Historikk.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            v2Historikk.map { it.data.vedtak } shouldBe godkjentPrisinfo.map { it.data.vedtak }
             utenOkonomiHistorikk shouldBe emptyList()
         }
 
@@ -180,6 +183,7 @@ class DeltakerHistorikkServiceTest {
                 Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
             )
             godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
+            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
         }
 
         @Test
@@ -206,6 +210,7 @@ class DeltakerHistorikkServiceTest {
                 Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
             )
             godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
+            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, null)
         }
 
         @Test
@@ -227,6 +232,7 @@ class DeltakerHistorikkServiceTest {
             // Assert
             godkjentPrisinfo.size shouldBe 2
             godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
+            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, null)
         }
 
         @Test
@@ -242,6 +248,53 @@ class DeltakerHistorikkServiceTest {
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
             godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
+            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null)
+        }
+
+        @Test
+        fun `første godkjenning beholder lagret vedtak etter senere deltakerendringer`() {
+            val vedtakFattet = LocalDateTime.now().minusDays(2)
+            val deltaker = lagDeltakerMedGodkjentPrisinfo(
+                vedtakFattet = vedtakFattet,
+                prisinfoTidspunkter = listOf(
+                    34 to vedtakFattet.minusSeconds(1),
+                    90 to vedtakFattet.plusDays(1),
+                ),
+            )
+            val lagretVedtak = VedtakRepository().getForDeltaker(deltaker.id).shouldNotBeNull()
+            val endretDeltaker = deltaker.copy(
+                startdato = LocalDate.parse("2027-01-15"),
+                sluttdato = LocalDate.parse("2027-12-15"),
+                dagerPerUke = 2f,
+                deltakelsesprosent = 40f,
+                bakgrunnsinformasjon = "Oppdatert etter vedtak",
+                deltakelsesinnhold = deltaker.deltakelsesinnhold?.copy(ledetekst = "Oppdatert innhold etter vedtak"),
+                gjennomforing = deltaker.gjennomforing.copy(
+                    opplaringKategorisering = OpplaringKategoriseringValg(
+                        valgteKategoriseringer = setOf(
+                            OpplaringKategoriseringValg.ValgteFelt(
+                                representerer = OpplaringKategoriseringType.BRANSJE_ID,
+                                valg = mapOf(UUID.randomUUID() to "Oppdatert bransje etter vedtak"),
+                            ),
+                        ),
+                        valgteSertifiseringer = emptySet(),
+                    ),
+                ),
+            )
+            TestRepository.insert(endretDeltaker)
+
+            val godkjentPrisinfo = deltakerHistorikkService
+                .getForDeltaker(endretDeltaker)
+                .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+            val forsteGodkjenning = godkjentPrisinfo.single { it.data.erForsteGodkjenning }
+            val historiskVedtak = forsteGodkjenning.data.vedtak.shouldNotBeNull()
+
+            historiskVedtak shouldBe lagretVedtak
+            historiskVedtak.deltakerVedVedtak.bakgrunnsinformasjon shouldNotBe "Oppdatert etter vedtak"
+            historiskVedtak.deltakerVedVedtak.opplaringKategorisering shouldNotBe
+                endretDeltaker.gjennomforing.opplaringKategorisering
+            forsteGodkjenning.data.prisinformasjon shouldBe Anskaffelse(pris = 34, begrunnelse = "Pris 34")
+            godkjentPrisinfo.single { !it.data.erForsteGodkjenning }.data.vedtak shouldBe null
         }
 
         private fun lagDeltakerMedGodkjentPrisinfo(

@@ -12,4 +12,5 @@ data class OkonomiGodkjentForHistorikk(
     val sistEndretAvNavEnhetId: UUID,
     val erForsteGodkjenning: Boolean = false,
     val prisinformasjon: PrisinformasjonDto? = null,
+    val vedtak: Vedtak? = null,
 )
