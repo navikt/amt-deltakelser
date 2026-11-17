@@ -72,13 +72,7 @@ jobs:
       # --parallel og Gradle build-cache gir ~30-50% raskere bygg enn --no-build-cache.
       - name: Build project
         run: |
-          ./gradlew classes \
-            -x test \
-            -x javadocJar \
-            -x sourcesJar \
-            --no-daemon \
-            --no-configuration-cache \
-            --parallel
+          ./gradlew assemble --no-daemon -Pkotlin.daemon.jvmargs=-Xmx4g
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
