@@ -1,11 +1,16 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.amt.deltaker.bff.commonresponse.PrisinformasjonResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.bff.utils.TestData.lagEnkeltplassHistorikkMedVedtak
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavAnsatteForHistorikk
 import no.nav.amt.deltaker.bff.utils.TestData.lagNavEnheterForHistorikk
-import no.nav.amt.deltaker.bff.utils.TestData.lagVedtak
+import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse
+import no.nav.amt.internapi.deltaker.response.OpplaringKategoriseringValgResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.OkonomiGodkjentForHistorikk
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
@@ -18,160 +23,100 @@ import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 class DeltakerHistorikkResponseTest {
-    @Test
-    fun `første godkjenning viser vedtaksdetaljer selv om separat vedtak filtreres bort`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak()
-        val avbruttUtkast = DeltakerHistorikk.Vedtak(lagVedtak())
-
-        val response = tilJson(listOf(avbruttUtkast) + historikk)
-
-        response.size() shouldBe 2
-        val senere = response[0]
-        senere["type"].asText() shouldBe "EnkeltplassOkonomiGodkjent"
-        senere["erForsteGodkjenning"].asBoolean() shouldBe false
-        senere["vedtaksdetaljer"].isNull shouldBe true
-        senere["prisinformasjon"]["pris"].asInt() shouldBe 35000
-
-        val forste = response[1]
-        forste["erForsteGodkjenning"].asBoolean() shouldBe true
-        forste["prisinformasjon"]["pris"].asInt() shouldBe 20000
-        val detaljer = forste["vedtaksdetaljer"]
-        detaljer["type"].asText() shouldBe "Vedtak"
-        detaljer["fattet"].asText() shouldBe "2026-10-15T12:00:00"
-        detaljer["startdato"].asText() shouldBe "2026-11-01"
-        detaljer["sluttdato"].asText() shouldBe "2027-06-30"
-        detaljer["dagerPerUke"].asDouble() shouldBe 3.0
-        detaljer["deltakelsesprosent"].asDouble() shouldBe 60.0
-        detaljer["bakgrunnsinformasjon"].asText() shouldBe "Bakgrunn ved vedtak"
-        detaljer["deltakelsesinnhold"]["ledetekst"].asText() shouldBe "Innhold ved vedtak"
-        detaljer["deltakelsesinnhold"]["innhold"][0]["beskrivelse"].asText() shouldBe "Historisk opplæring"
-        detaljer["opplaringKategorisering"]["valgteKategoriseringer"][0]["type"].asText() shouldBe "UTDANNINGSPROGRAM_ID"
-        detaljer["opplaringKategorisering"]["valgteKategoriseringer"][0]["valgteElementer"][0]["visningsnavn"]
-            .asText() shouldBe "Historisk utdanningsprogram"
-    }
+    private val historikk = lagEnkeltplassHistorikkMedVedtak()
+    private val godkjenning = historikk
+        .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
+        .single { it.data.erForsteGodkjenning }
+        .data
+    private val vedtak = godkjenning.vedtak.shouldNotBeNull()
 
     @Test
-    fun `vedtaksdetaljer kommer fra godkjenningen uten eget vedtaksinnslag`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak()
-            .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-            .map {
-                it.copy(
-                    data = it.data.copy(
-                        sistEndretAvNavAnsattId = UUID.randomUUID(),
-                        sistEndretAvNavEnhetId = UUID.randomUUID(),
-                    ),
-                )
-            }
+    fun `opplæring godkjent viser opprinnelige vedtaksdetaljer og pris etter senere endringer`() {
+        // For enkeltplasser vises vedtaket under «Opplæring godkjent», ikke som et eget historikkinnslag.
+        // Detaljene og prisen må være de som gjaldt da vedtaket ble fattet, selv om deltakeren eller prisen endres senere.
+        val response = tilResponse(historikk + DeltakerHistorikk.Endring(lagDeltakerEndring()))
+        val godkjenninger = response.filterIsInstance<EnkeltplassOkonomiGodkjentResponse>()
+        val forste = godkjenninger.single { it.erForsteGodkjenning }
+        val senere = godkjenninger.single { !it.erForsteGodkjenning }
 
-        val response = tilJson(historikk)
-
-        response[1]["vedtaksdetaljer"]["bakgrunnsinformasjon"].asText() shouldBe "Bakgrunn ved vedtak"
-        response[1]["vedtaksdetaljer"]["opprettetAv"].isTextual shouldBe true
-        response[1]["vedtaksdetaljer"]["opprettetAvEnhet"].isTextual shouldBe true
-        response[1]["prisinformasjon"]["pris"].asInt() shouldBe 20000
-    }
-
-    @Test
-    fun `manglende vedtak på godkjenningen erstattes ikke med et annet historikkinnslag`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak().map {
-            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent) {
-                it.copy(data = it.data.copy(vedtak = null))
-            } else {
-                it
-            }
+        response.size shouldBe 3
+        forste.prisinformasjon shouldBe PrisinformasjonResponse.Anskaffelse(20000, null)
+        senere.prisinformasjon shouldBe PrisinformasjonResponse.Anskaffelse(35000, null)
+        senere.vedtaksdetaljer shouldBe null
+        assertSoftly(forste.vedtaksdetaljer.shouldNotBeNull()) {
+            val deltaker = vedtak.deltakerVedVedtak
+            fattet shouldBe vedtak.fattet
+            startdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            dagerPerUke shouldBe deltaker.dagerPerUke
+            deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+            bakgrunnsinformasjon shouldBe "Bakgrunn ved vedtak"
+            deltakelsesinnhold shouldBe DeltakelsesinnholdResponse(deltaker.deltakelsesinnhold.shouldNotBeNull())
+            opplaringKategorisering shouldBe OpplaringKategoriseringValgResponse(deltaker.opplaringKategorisering.shouldNotBeNull())
         }
-
-        tilJson(historikk)[1]["vedtaksdetaljer"].isNull shouldBe true
     }
 
     @Test
-    fun `ikke fattet vedtak på godkjenningen brukes ikke som vedtaksgrunnlag`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak().map {
-            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent) {
-                it.copy(data = it.data.copy(vedtak = it.data.vedtak?.copy(fattet = null)))
-            } else {
-                it
-            }
-        }
+    fun `vedtaksdetaljer kan mappes uten separat vedtak og med en annen godkjenner`() {
+        val historikk = listOf(
+            DeltakerHistorikk.EnkeltplassOkonomiGodkjent(
+                godkjenning.copy(
+                    sistEndretAvNavAnsattId = UUID.randomUUID(),
+                    sistEndretAvNavEnhetId = UUID.randomUUID(),
+                ),
+            ),
+        )
 
-        tilJson(historikk)[1]["vedtaksdetaljer"].isNull shouldBe true
+        val response = tilResponse(historikk).single().shouldBeInstanceOf<EnkeltplassOkonomiGodkjentResponse>()
+
+        response.vedtaksdetaljer.shouldNotBeNull().fattet shouldBe vedtak.fattet
+    }
+
+    @Test
+    fun `manglende eller ikke fattet vedtak erstattes ikke med et annet historikkinnslag`() {
+        listOf(null, vedtak.copy(fattet = null)).forEach {
+            tilGodkjenningResponse(godkjenning.copy(vedtak = it)).vedtaksdetaljer shouldBe null
+        }
     }
 
     @Test
     fun `manglende prisinformasjon erstattes ikke med senere godkjent pris`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak().map {
-            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent && it.data.erForsteGodkjenning) {
-                it.copy(data = it.data.copy(prisinformasjon = null))
-            } else {
-                it
-            }
-        }
+        val response = tilGodkjenningResponse(godkjenning.copy(prisinformasjon = null))
 
-        val response = tilJson(historikk)
-
-        response[1]["prisinformasjon"].isNull shouldBe true
-        response[1]["vedtaksdetaljer"]["bakgrunnsinformasjon"].asText() shouldBe "Bakgrunn ved vedtak"
-    }
-
-    @Test
-    fun `senere endringer erstatter ikke innholdet i vedtaksøyeblikksbildet`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak() +
-            DeltakerHistorikk.Endring(lagDeltakerEndring())
-
-        val response = tilJson(historikk)
-
-        response[1]["vedtaksdetaljer"]["bakgrunnsinformasjon"].asText() shouldBe "Bakgrunn ved vedtak"
-        response[2]["endring"]["bakgrunnsinformasjon"].asText() shouldBe "Oppdatert bakgrunnsinformasjon"
+        response.prisinformasjon shouldBe null
+        response.vedtaksdetaljer.shouldNotBeNull().fattet shouldBe vedtak.fattet
     }
 
     @Test
     fun `valgfrie tomme felt i vedtaket forblir tomme`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak().map {
-            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent) {
-                val vedtak = it.data.vedtak
-                it.copy(
-                    data = it.data.copy(
-                        vedtak = vedtak?.copy(
-                            deltakerVedVedtak = vedtak.deltakerVedVedtak.copy(
-                                startdato = null,
-                                sluttdato = null,
-                                deltakelsesinnhold = null,
-                                opplaringKategorisering = null,
-                                dagerPerUke = null,
-                                deltakelsesprosent = null,
-                                bakgrunnsinformasjon = null,
-                            ),
-                        ),
-                    ),
-                )
-            } else {
-                it
-            }
+        val tomtVedtak = vedtak.copy(
+            deltakerVedVedtak = vedtak.deltakerVedVedtak.copy(
+                startdato = null,
+                sluttdato = null,
+                deltakelsesinnhold = null,
+                opplaringKategorisering = null,
+                dagerPerUke = null,
+                deltakelsesprosent = null,
+                bakgrunnsinformasjon = null,
+            ),
+        )
+        val detaljer = tilGodkjenningResponse(godkjenning.copy(vedtak = tomtVedtak)).vedtaksdetaljer.shouldNotBeNull()
+
+        assertSoftly(detaljer) {
+            fattet shouldBe vedtak.fattet
+            startdato shouldBe null
+            sluttdato shouldBe null
+            deltakelsesinnhold shouldBe null
+            opplaringKategorisering shouldBe null
+            dagerPerUke shouldBe null
+            deltakelsesprosent shouldBe null
+            bakgrunnsinformasjon shouldBe null
         }
-
-        val detaljer = tilJson(historikk)[1]["vedtaksdetaljer"]
-
-        detaljer["fattet"].asText() shouldBe "2026-10-15T12:00:00"
-        listOf(
-            "startdato",
-            "sluttdato",
-            "deltakelsesinnhold",
-            "opplaringKategorisering",
-            "dagerPerUke",
-            "deltakelsesprosent",
-            "bakgrunnsinformasjon",
-        ).all { detaljer[it].isNull } shouldBe true
     }
 
     @Test
     fun `godkjenning med lagret vedtak kan serialiseres og leses tilbake`() {
-        val godkjenning = lagEnkeltplassHistorikkMedVedtak()
-            .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-            .single { it.data.erForsteGodkjenning }
-            .data
-        val json = objectMapper.writeValueAsString(godkjenning)
-
-        objectMapper.readValue<OkonomiGodkjentForHistorikk>(json) shouldBe godkjenning
+        objectMapper.readValue<OkonomiGodkjentForHistorikk>(objectMapper.writeValueAsString(godkjenning)) shouldBe godkjenning
     }
 
     @Test
@@ -195,29 +140,34 @@ class DeltakerHistorikkResponseTest {
     }
 
     @Test
-    fun `direkte vedtak beholdes som eget historikkinnslag`() {
-        val historikk = lagEnkeltplassHistorikkMedVedtak()
+    fun `direkte og nøstede vedtak bruker samme respons gjennom JSON`() {
+        // I testdataene finnes vedtaket både som eget historikkinnslag («direkte»)
+        // og inne i økonomigodkjenningen («nøstet»).
+        // Begge skal beholde de samme detaljene når responsen skrives til JSON og leses tilbake.
+        val response = tilResponse(pameldingstype = GjennomforingPameldingType.DIREKTE_VEDTAK)
+        val json = objectMapper.writePolymorphicCollectionAsString(response)
+        val deserialisert = objectMapper.readValue<List<DeltakerHistorikkResponse>>(json)
 
-        val response = tilJson(historikk, GjennomforingPameldingType.DIREKTE_VEDTAK)
-
-        response.size() shouldBe 3
-        response[2]["type"].asText() shouldBe "Vedtak"
-        response[1]["vedtaksdetaljer"] shouldBe response[2]
+        deserialisert shouldBe response
+        val forste = deserialisert.filterIsInstance<EnkeltplassOkonomiGodkjentResponse>().single { it.erForsteGodkjenning }
+        forste.vedtaksdetaljer shouldBe deserialisert.filterIsInstance<VedtakResponse>().single()
     }
 
-    private fun tilJson(
-        historikk: List<DeltakerHistorikk>,
+    private fun tilGodkjenningResponse(data: OkonomiGodkjentForHistorikk) = tilResponse(
+        historikk.map {
+            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent && it.data.erForsteGodkjenning) it.copy(data = data) else it
+        },
+    ).filterIsInstance<EnkeltplassOkonomiGodkjentResponse>().single { it.erForsteGodkjenning }
+
+    private fun tilResponse(
+        historikk: List<DeltakerHistorikk> = this.historikk,
         pameldingstype: GjennomforingPameldingType? = null,
-    ) = objectMapper.readTree(
-        objectMapper.writePolymorphicCollectionAsString(
-            DeltakerHistorikkResponse.fromModels(
-                models = historikk,
-                arrangornavn = "Historisk opplæringssted",
-                oppstartstype = Oppstartstype.LOPENDE,
-                pameldingstype = pameldingstype,
-                enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id },
-                ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id },
-            ),
-        ),
+    ) = DeltakerHistorikkResponse.fromModels(
+        models = historikk,
+        arrangornavn = "Historisk opplæringssted",
+        oppstartstype = Oppstartstype.LOPENDE,
+        pameldingstype = pameldingstype,
+        enheter = lagNavEnheterForHistorikk(historikk).associateBy { it.id },
+        ansatte = lagNavAnsatteForHistorikk(historikk).associateBy { it.id },
     )
 }
