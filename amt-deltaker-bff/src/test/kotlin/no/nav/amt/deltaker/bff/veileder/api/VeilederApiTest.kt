@@ -815,7 +815,6 @@ class VeilederApiTest : IntegrationTestBase() {
         every { sporbarhetsloggService.sendAuditLog(any(), any()) } just Runs
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         coEvery { amtDistribusjonClient.digitalBruker(any()) } returns true
-        every { commonUnleashToggle.erKometMasterForTiltakstype(any<String>()) } returns true
         every { commonUnleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltaker.id) } returns
             PersonIdentResponse(deltaker.navBruker.personident).personident
