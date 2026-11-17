@@ -19,8 +19,6 @@ class CommonUnleashToggle(
     fun skalLeseGjennomforing(tiltakskode: String): Boolean =
         erKometMasterForTiltakstype(tiltakskode) || skalLeseArenaDataForTiltakstype(tiltakskode)
 
-    fun prioriterSynkronKommunikasjon(): Boolean = unleashClient.isEnabled("amt.prioriter-synkron-kommunikasjon")
-
     fun getFeaturetoggles(features: List<String>): Map<String, Boolean> = features.associateWith { unleashClient.isEnabled(it) }
 
     fun skalOppdatereUendredeAktivitetskort(): Boolean = unleashClient.isEnabled(OPPDATER_ALLE_AKTIVITETSKORT)
