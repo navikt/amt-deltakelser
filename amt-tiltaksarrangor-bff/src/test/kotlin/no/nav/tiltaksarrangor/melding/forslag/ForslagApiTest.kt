@@ -17,6 +17,7 @@ import no.nav.tiltaksarrangor.melding.forslag.request.SluttdatoRequest
 import no.nav.tiltaksarrangor.melding.forslag.request.StartdatoRequest
 import no.nav.tiltaksarrangor.testutils.DbTestDataUtils.shouldBeCloseTo
 import no.nav.tiltaksarrangor.testutils.DeltakerContext
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.HttpHeaders
@@ -185,6 +186,7 @@ class ForslagApiTest(
     }
 
     @Test
+    @DisplayName("POST /tiltaksarrangor/deltaker/{deltakerId}/forslag/sluttarsak - nytt forslag - skal returnere 200 og riktig response")
     fun `sluttårsak - nytt forslag - skal returnere 200 og riktig response`() {
         testOpprettetForslag(sluttarsakRequest) { endring ->
             endring as Forslag.Sluttarsak

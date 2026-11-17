@@ -52,6 +52,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -260,6 +261,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
+        @DisplayName("POST /deltaker/{deltakerId}/sluttarsak - har tilgang - returnerer 200")
         fun `post sluttarsak - har tilgang - returnerer 200`() {
             val sluttarsakRequest = SluttarsakRequest(
                 endretAv = randomIdent(),

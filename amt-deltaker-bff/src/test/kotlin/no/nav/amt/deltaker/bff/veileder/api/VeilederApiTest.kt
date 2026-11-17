@@ -59,6 +59,7 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -536,6 +537,7 @@ class VeilederApiTest : IntegrationTestBase() {
         // ---- sluttårsak ----
 
         @Test
+        @DisplayName("POST /deltaker/{deltakerId}/sluttarsak - har tilgang - returnerer oppdatert deltaker")
         fun `endre sluttårsak - har tilgang - returnerer oppdatert deltaker`() {
             val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             val oppdatert = deltaker.copy(

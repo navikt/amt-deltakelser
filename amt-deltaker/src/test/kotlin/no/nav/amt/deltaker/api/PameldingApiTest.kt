@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -27,6 +28,7 @@ class PameldingApiTest : IntegrationTestBase() {
     override val deltakerResponseBuilder = mockk<DeltakerResponseBuilder>()
 
     @Test
+    @DisplayName("POST /pamelding - autentisering - mangler token - returnerer 401")
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
             client.post("/pamelding/${UUID.randomUUID()}/innbygger/godkjenn-utkast") { setBody("foo") }.status shouldBe
@@ -37,6 +39,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding utkast - har tilgang - returnerer 200")
     fun `post påmelding utkast - har tilgang - returnerer 200`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
@@ -55,6 +58,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding utkast - deltaker finnes ikke - returnerer 404")
     fun `post påmelding utkast - deltaker finnes ikke - returnerer 404`() {
         val deltakerId = UUID.randomUUID()
         coEvery { pameldingService.upsertUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
@@ -70,6 +74,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding/{deltakerId}/avbryt utkast - har tilgang - returnerer 200")
     fun `post avbryt utkast - har tilgang - returnerer 200`() {
         val deltakerId = UUID.randomUUID()
         coEvery { pameldingService.avbrytUtkast(deltakerId, any()) } just Runs

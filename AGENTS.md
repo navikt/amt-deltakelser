@@ -54,6 +54,9 @@ gradle/
 
 Write Norwegian test names in backticks with correct Norwegian spelling, including
 æ, ø and å. Keep code identifiers, endpoint names and English terms unchanged.
+In API test names, use `@DisplayName` for the HTTP method and slash-prefixed path,
+preserving the route spelling, for example `POST /pamelding`. Kotlin function
+names cannot contain `/`.
 
 ### Minimal Editing
 
