@@ -68,11 +68,13 @@ jobs:
           languages: java-kotlin
           queries: security-and-quality
 
-      # Bygger kun classfiles — CodeQL trenger ikke resources, javadoc eller sources JARs.
-      # --parallel og Gradle build-cache gir ~30-50% raskere bygg enn --no-build-cache.
       - name: Build project
-        run: |
-          ./gradlew assemble --no-daemon -Pkotlin.daemon.jvmargs=-Xmx4g
+        run: >-
+          ./gradlew clean assemble
+          --no-daemon 
+          --no-configuration-cache 
+          --no-build-cache
+          -Pkotlin.daemon.jvmargs=-Xmx4g
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
