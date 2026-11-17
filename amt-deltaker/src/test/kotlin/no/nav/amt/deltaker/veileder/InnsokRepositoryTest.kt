@@ -28,7 +28,7 @@ class InnsokRepositoryTest {
     }
 
     @Test
-    fun `insert - ny innsok - inserter`() {
+    fun `insert - ny innsøk - inserter`() {
         with(DeltakerContext()) {
             medVedtak()
             val innsok = TestData.lagInnsok(deltaker)
@@ -38,7 +38,7 @@ class InnsokRepositoryTest {
     }
 
     @Test
-    fun `insert - ny innsok med opplæringkategorisering og innhold - inserter og leser alle felter korrekt`() {
+    fun `insert - ny innsøk med opplæringkategorisering og innhold - inserter og leser alle felter korrekt`() {
         with(DeltakerContext()) {
             medVedtak()
 

@@ -18,7 +18,7 @@ class ArrangorServiceTest {
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - gruppe uten overordnet arrangor - returnerer eget navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - gruppe uten overordnet arrangør - returnerer eget navn`() {
         val arrangor = lagreArrangor(navn = "Test Arrangør")
         val gjennomforing = lagDeltakerliste(
             arrangor = arrangor,
@@ -31,7 +31,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - gruppe med overordnet arrangor - returnerer overordnet navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - gruppe med overordnet arrangør - returnerer overordnet navn`() {
         val overordnetArrangor = lagreArrangor(navn = "TEST ARRANGØR")
         val underordnetArrangor = lagreArrangor(navn = "Underordnet arrangør", overordnetArrangorId = overordnetArrangor.id)
         val gjennomforing = lagDeltakerliste(
@@ -56,7 +56,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - gruppe med CAPS overordnet arrangor - formaterer navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - gruppe med CAPS overordnet arrangør - formaterer navn`() {
         val overordnetArrangor = lagreArrangor(navn = "TEST ARRANGØR")
         val underordnetArrangor = lagreArrangor(navn = "UNDERORDNET ARRANGØR", overordnetArrangorId = overordnetArrangor.id)
         val gjennomforing = lagDeltakerliste(
@@ -68,7 +68,7 @@ class ArrangorServiceTest {
     }
 
     @Test
-    fun `getFunksjonellArrangorForGjennomforing - enkeltplass med overordnet arrangor - returnerer underenhetens navn`() {
+    fun `getFunksjonellArrangorForGjennomforing - enkeltplass med overordnet arrangør - returnerer underenhetens navn`() {
         val overordnetArrangor = lagreArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagreArrangor(navn = "Underenhet Oslo", overordnetArrangorId = overordnetArrangor.id)
         val gjennomforing = lagDeltakerliste(

@@ -112,7 +112,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `enkelt-deltaker-varianten bruker samme spissede SQL-spoerring som bulk`() {
+        fun `enkelt-deltaker-varianten bruker samme spissede SQL-spørring som bulk`() {
             // Arrange
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(any(), any())
@@ -138,7 +138,7 @@ class DeltakerLaaseServiceTest {
     @Nested
     inner class ErLaastForEndringerForDeltakereTests {
         @Test
-        fun `skal returnere tom map naar deltakere er tom liste`() {
+        fun `skal returnere tom map når deltakere er tom liste`() {
             // Act
             val result = sut.erLaastForEndringerForDeltakere(
                 deltakerIdToPersonIdentMap = emptyMap(),
@@ -151,7 +151,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal returnere false naar personen kun har en deltakelse`() {
+        fun `skal returnere false når personen kun har en deltakelse`() {
             // Arrange
             every {
                 mockDeltakerRepository.getDeltakelserForLaaseSjekk(
@@ -177,7 +177,7 @@ class DeltakerLaaseServiceTest {
         // Deltakelse er avsluttet
         // kladd er opprettet - skal låse forrige
         @Test
-        fun `skal laase deltakelse når kladd er opprettet`() {
+        fun `skal låse deltakelse når kladd er opprettet`() {
             // Arrange
             val personident = deltakerInTest.navBruker.personident
             val kladd = deltakerInTest
@@ -224,7 +224,7 @@ class DeltakerLaaseServiceTest {
         }
 
         @Test
-        fun `skal laase eldre deltakelse og frigi nyeste aktive`() {
+        fun `skal låse eldre deltakelse og frigi nyeste aktive`() {
             // Arrange
             val personident = deltakerInTest.navBruker.personident
             val nyeste = deltakerInTest

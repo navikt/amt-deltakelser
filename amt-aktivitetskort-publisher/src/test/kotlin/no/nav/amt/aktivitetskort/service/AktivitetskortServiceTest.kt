@@ -445,7 +445,7 @@ class AktivitetskortServiceTest {
         }
 
         @Test
-        fun `meldinger finnes, deltaker er aktiv, arrangor har underarrangorer - lager nye aktivitetskort`() {
+        fun `meldinger finnes, deltaker er aktiv, arrangør har underarrangører - lager nye aktivitetskort`() {
             // Arrange
             val ctx = TestData.MockContext()
             val ctxUnderarrangor = TestData.MockContext()

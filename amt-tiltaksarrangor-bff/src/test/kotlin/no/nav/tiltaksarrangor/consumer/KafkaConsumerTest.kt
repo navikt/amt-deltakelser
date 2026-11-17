@@ -172,7 +172,7 @@ class KafkaConsumerTest(
     @Nested
     inner class ListenArrangorTopic {
         @Test
-        fun `listen - melding pa arrangor-topic - lagres i database`() {
+        fun `listen - melding på arrangor-topic - lagres i database`() {
             val arrangorId = UUID.randomUUID()
             val arrangorDto =
                 ArrangorDto(
@@ -195,7 +195,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `listen - tombstonemelding pa arrangor-topic - slettes i database`() {
+        fun `listen - tombstonemelding på arrangor-topic - slettes i database`() {
             val arrangorId = UUID.randomUUID()
             val arrangorDto = ArrangorDto(
                 id = arrangorId,
@@ -220,7 +220,7 @@ class KafkaConsumerTest(
     @Nested
     inner class ListenArrangorAnsattTopic {
         @Test
-        fun `listen - melding pa arrangor-ansatt-topic - lagres i database`() {
+        fun `listen - melding på arrangor-ansatt-topic - lagres i database`() {
             val deltaker = getDeltaker(UUID.randomUUID())
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             val ansattId = UUID.randomUUID()
@@ -263,7 +263,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `listen - tombstonemelding pa arrangor-ansatt-topic - slettes i database`() {
+        fun `listen - tombstonemelding på arrangor-ansatt-topic - slettes i database`() {
             val deltaker = getDeltaker(UUID.randomUUID())
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
             val ansattId = UUID.randomUUID()
@@ -310,7 +310,7 @@ class KafkaConsumerTest(
     @Nested
     inner class ListenDeltakerTopic {
         @Test
-        fun `listen - melding pa deltaker-topic - lagres i database`() {
+        fun `listen - melding på deltaker-topic - lagres i database`() {
             val enhetId = UUID.randomUUID()
             val ansattId = UUID.randomUUID()
             with(DeltakerDtoCtx()) {
@@ -357,7 +357,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `listen - tombstonemelding pa deltaker-topic - slettes i database`() {
+        fun `listen - tombstonemelding på deltaker-topic - slettes i database`() {
             val deltaker = getDeltaker(UUID.randomUUID())
 
             deltakerRepository.insertOrUpdateDeltaker(deltaker)
@@ -374,7 +374,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `listen - avsluttet deltaker-melding pa deltaker-topic og deltaker finnes i db - sletter deltaker fra db`() {
+        fun `listen - avsluttet deltaker-melding på deltaker-topic og deltaker finnes i db - sletter deltaker fra db`() {
             with(DeltakerDtoCtx()) {
                 deltakerlisteRepository.insertOrUpdateDeltakerliste(
                     getDeltakerliste(
@@ -404,7 +404,7 @@ class KafkaConsumerTest(
     @Nested
     inner class ListenEndringsmeldingTopic {
         @Test
-        fun `listen - melding pa endringsmelding-topic - lagres i database`() {
+        fun `listen - melding på endringsmelding-topic - lagres i database`() {
             val endringsmeldingId = UUID.randomUUID()
             val deltakerId = UUID.randomUUID()
             val endringsmeldingDto =
@@ -434,7 +434,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `listen - tombstonemelding pa endringsmelding-topic - slettes i database`() {
+        fun `listen - tombstonemelding på endringsmelding-topic - slettes i database`() {
             val endringsmeldingId = UUID.randomUUID()
             val deltakerId = UUID.randomUUID()
             val endringsmeldingDto =
@@ -463,7 +463,7 @@ class KafkaConsumerTest(
         }
 
         @Test
-        fun `utfort endringsmelding-melding pa endringmelding-topic og endringsmelding finnes i db - oppdaterer endringsmelding i db`() {
+        fun `utført endringsmelding-melding på endringmelding-topic og endringsmelding finnes i db - oppdaterer endringsmelding i db`() {
             val endringsmeldingId = UUID.randomUUID()
             val endringsmeldingDto =
                 EndringsmeldingDto(

@@ -18,7 +18,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() = runTest {
+    fun `consumeArrangor - ny arrangør - upserter`() = runTest {
         val arrangor = lagArrangor()
 
         arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
@@ -27,7 +27,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() = runTest {
+    fun `consumeArrangor - oppdatert arrangør - upserter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -39,7 +39,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - tombstonet arrangor - sletter`() = runTest {
+    fun `consumeArrangor - tombstonet arrangør - sletter`() = runTest {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 

@@ -40,7 +40,7 @@ class AvsluttDeltakelseRequestTest {
     @Nested
     inner class HarFullfort {
         @Test
-        fun `harFullfort - deltaker har fullfort = null - returnerer true`() {
+        fun `harFullfort - deltaker har fullført = null - returnerer true`() {
             val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
                 harFullfort = null,
             )
@@ -49,7 +49,7 @@ class AvsluttDeltakelseRequestTest {
 
         @ParameterizedTest
         @ValueSource(booleans = [true, false])
-        fun `harFullfort - deltaker har fullfort`(harFullfort: Boolean) {
+        fun `harFullfort - deltaker har fullført`(harFullfort: Boolean) {
             val avsluttDeltakelseRequest = avsluttDeltakelseRequestInTest.copy(
                 harFullfort = harFullfort,
             )
@@ -150,7 +150,7 @@ class AvsluttDeltakelseRequestTest {
         }
 
         @Test
-        fun `valider - deltaker har annen sluttaarsak - ok`() {
+        fun `valider - deltaker har annen sluttårsak - ok`() {
             val deltaker = deltakerInTest.copy(sluttdato = yesterday.minusDays(1))
 
             val request = avsluttDeltakelseRequestInTest.copy(

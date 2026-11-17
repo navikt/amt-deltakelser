@@ -50,6 +50,11 @@ gradle/
 
 ## Code Style
 
+### Kotlin test names
+
+Write Norwegian test names in backticks with correct Norwegian spelling, including
+æ, ø and å. Keep code identifiers, endpoint names and English terms unchanged.
+
 ### Minimal Editing
 
 When fixing a bug or implementing a feature, change only what is necessary.

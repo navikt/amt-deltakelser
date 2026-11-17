@@ -47,7 +47,7 @@ class DeltakerUtilsTest {
     }
 
     @Test
-    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`() = runTest {
+    fun `sjekkEndringUtfall - mangler oppfølgingsperiode - returnerer failure`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
                 navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
@@ -132,7 +132,7 @@ class DeltakerUtilsTest {
     }
 
     @Test
-    fun `sjekkEndringUtfall - tildel plass - lopende oppstart setter ikke datoer`() = runTest {
+    fun `sjekkEndringUtfall - tildel plass - løpende oppstart setter ikke datoer`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
                 gjennomforing = lagDeltakerliste(

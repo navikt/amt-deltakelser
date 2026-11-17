@@ -54,7 +54,7 @@ class EndringsvedtakJobTest {
     }
 
     @Test
-    fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
+    fun `journalforEndringsvedtak - journalfører og distribuerer endringsvedtak når nyeste hendelse er eldre enn graceperiode`() =
         runTest {
             val deltakerIdA = UUID.randomUUID()
             val deltakerIdB = UUID.randomUUID()
@@ -87,7 +87,7 @@ class EndringsvedtakJobTest {
         }
 
     @Test
-    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalfores som endringsvedtak`() = runTest {
+    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalføres som endringsvedtak`() = runTest {
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -187,7 +187,7 @@ class EndringsvedtakJobTest {
     }
 
     @Test
-    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalforing feiler for en deltaker`() = runTest {
+    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalføring feiler for en deltaker`() = runTest {
         val deltakerIdA = UUID.randomUUID()
         val deltakerIdB = UUID.randomUUID()
 

@@ -57,7 +57,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `getOrThrow - gruppe med overordnet arrangor - returnerer deltaker med overordnet navn men samme arrangoridentitet`() {
+    fun `getOrThrow - gruppe med overordnet arrangør - returnerer deltaker med overordnet navn men samme arrangøridentitet`() {
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
             navn = "Underenhet Oslo",
@@ -93,7 +93,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `getFlereForPerson - gruppe med overordnet arrangor - returnerer deltakere med overordnet navn men samme arrangoridentitet`() {
+    fun `getFlereForPerson - gruppe med overordnet arrangør - returnerer deltakere med overordnet navn men samme arrangøridentitet`() {
         val personident = "12345678910"
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val underordnetArrangor = lagArrangor(
@@ -123,7 +123,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `getFlereForPerson - enkeltplass - beholder arrangoridentitet men oppdaterer visningsnavn`() {
+    fun `getFlereForPerson - enkeltplass - beholder arrangøridentitet men oppdaterer visningsnavn`() {
         val personident = "10987654321"
         val overordnetArrangor = lagArrangor(navn = "Overordnet Arrangør")
         val arrangor = lagArrangor(
@@ -404,7 +404,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
     @Nested
     inner class SkalHaStatusDeltar {
         @Test
-        fun `venter pa oppstart, startdato passer - returnerer deltaker`() = runTest {
+        fun `venter på oppstart, startdato passer - returnerer deltaker`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
@@ -433,7 +433,7 @@ class DeltakerServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `venter pa oppstart, mangler startdato - returnerer ikke deltaker`() = runTest {
+        fun `venter på oppstart, mangler startdato - returnerer ikke deltaker`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),

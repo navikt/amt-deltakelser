@@ -304,7 +304,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `oppdaterDeltakerStatuser - deltakerliste avlyst, status DELTAR - setter status HAR_SLUTTET med sluttarsak`() = runTest {
+    fun `oppdaterDeltakerStatuser - deltakerliste avlyst, status DELTAR - setter status HAR_SLUTTET med sluttårsak`() = runTest {
         // Arrange
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -337,7 +337,7 @@ class DeltakerStatusOppdateringTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status VENTER_PA_OPPSTART - setter status IKKE_AKTUELL med sluttarsak`() =
+    fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status VENTER_PA_OPPSTART - setter status IKKE_AKTUELL med sluttårsak`() =
         runTest {
             // Arrange
             val deltaker = lagDeltaker(

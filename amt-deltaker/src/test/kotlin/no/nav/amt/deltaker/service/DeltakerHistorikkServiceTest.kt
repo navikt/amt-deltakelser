@@ -120,7 +120,7 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `utelater eldre godkjent prisinfo for vedtaket nar flere finnes`() {
+        fun `utelater eldre godkjent prisinfo for vedtaket når flere finnes`() {
             // Arrange
             val vedtakFattet = LocalDateTime.now()
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
@@ -158,7 +158,7 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `beholder godkjent prisinfo nar bare en ligger for vedtaket`() {
+        fun `beholder godkjent prisinfo når bare en ligger for vedtaket`() {
             // Arrange
             val vedtakFattet = LocalDateTime.now()
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
@@ -209,7 +209,7 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `merker ingen prisinfo som forste godkjenning nar vedtaket ikke er fattet`() {
+        fun `merker ingen prisinfo som første godkjenning når vedtaket ikke er fattet`() {
             // Arrange
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
                 vedtakFattet = null,
@@ -230,7 +230,7 @@ class DeltakerHistorikkServiceTest {
         }
 
         @Test
-        fun `merker ingen prisinfo som forste godkjenning nar vedtak mangler`() {
+        fun `merker ingen prisinfo som første godkjenning når vedtak mangler`() {
             val deltaker = lagDeltakerMedGodkjentPrisinfo(
                 vedtakFattet = null,
                 prisinfoTidspunkter = listOf(34 to LocalDateTime.now().minusMinutes(1)),
@@ -443,7 +443,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
+    fun `getInnsoktDato - har innsøk - returnerer riktig dato`() {
         // Arrange
         val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
@@ -556,7 +556,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getInnsoktDato via kjernehistorikk - innsok paa felles oppstart - returnerer innsoktDato`() {
+    fun `getInnsoktDato via kjernehistorikk - innsøk på felles oppstart - returnerer innsoktDato`() {
         // Arrange
         val innsoktDato = LocalDateTime.now().minusMonths(1)
         val deltaker = no.nav.amt.deltaker.utils.data.TestData
@@ -583,7 +583,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getInnsoktDato via kjernehistorikk - vedtak uten arena eller innsok - returnerer vedtak opprettet dato`() {
+    fun `getInnsoktDato via kjernehistorikk - vedtak uten arena eller innsøk - returnerer vedtak opprettet dato`() {
         // Arrange
         val navEnhet = TestData.lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
@@ -610,7 +610,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getInnsoktDato via kjernehistorikk - importert fra arena prioriteres over innsok og vedtak`() {
+    fun `getInnsoktDato via kjernehistorikk - importert fra arena prioriteres over innsøk og vedtak`() {
         // Arrange
         val innsoktDato = LocalDate.now().minusMonths(3)
         val navEnhet = TestData.lagNavEnhet()

@@ -35,7 +35,7 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         private val urlString = "/tiltakskoordinator/deltaker/${UUID.randomUUID()}"
 
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             val response = withTestApplicationContext { httpClient -> httpClient.get(urlString) }
 
             response.status shouldBe HttpStatusCode.Unauthorized
@@ -81,14 +81,14 @@ class TiltakskoordinatorDeltakerApiTest : IntegrationTestBase() {
         private val urlString = "/tiltakskoordinator/deltaker/${UUID.randomUUID()}/historikk"
 
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             val response = withTestApplicationContext { httpClient -> httpClient.get(urlString) }
 
             response.status shouldBe HttpStatusCode.Unauthorized
         }
 
         @Test
-        fun `skal returnere Forbidden nar ikke tilgang til bruker`() {
+        fun `skal returnere Forbidden når ikke tilgang til bruker`() {
             coEvery { amtDeltakerClient.getDeltaker(any()) } returns deltakerResponse
             coEvery {
                 tiltakskoordinatorTilgangskontrollService.kontrollerTilgangTilBruker(

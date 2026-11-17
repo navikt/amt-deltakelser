@@ -78,7 +78,7 @@ class VeilederServiceTest(
         }
 
         @Test
-        fun `ansatt er veileder for tre deltakere hos to arrangorer - returnerer riktige deltakere med endringsmeldinger`() {
+        fun `ansatt er veileder for tre deltakere hos to arrangører - returnerer riktige deltakere med endringsmeldinger`() {
             val personIdent = "12345678910"
             val ansattId = UUID.randomUUID()
             val arrangorId = UUID.randomUUID()
@@ -220,7 +220,7 @@ class VeilederServiceTest(
         }
 
         @Test
-        fun `getMineDeltakere - ansatt har veilederrolle hos en arrangor og er veileder for deltakere - returnerer riktige deltakere`() {
+        fun `getMineDeltakere - ansatt har veilederrolle hos en arrangør og er veileder for deltakere - returnerer riktige deltakere`() {
             val personIdent = "12345678910"
             val arrangorId = UUID.randomUUID()
             val arrangorId2 = UUID.randomUUID()
@@ -364,7 +364,7 @@ class VeilederServiceTest(
         }
 
         @Test
-        fun `getMineDeltakere - ansatt har veilederrolle hos en arrangor, deltakerliste ikke tilgjengelig - filtrerer bort deltakere`() {
+        fun `getMineDeltakere - ansatt har veilederrolle hos en arrangør, deltakerliste ikke tilgjengelig - filtrerer bort deltakere`() {
             val personIdent = "12345678910"
             val arrangorId = UUID.randomUUID()
             val deltakerliste = getDeltakerliste(arrangorId)

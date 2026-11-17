@@ -89,7 +89,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerV1Record - deltaker med pa tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`(): Unit =
+    fun `buildDeltakerV1Record - deltaker med på tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`(): Unit =
         Tiltakskode.entries
             .filter {
                 it !in setOf(
@@ -109,7 +109,7 @@ class DeltakerKafkaPayloadBuilderTest {
             }
 
     @Test
-    fun `buildDeltakerV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
+    fun `buildDeltakerV1Record - deltakelsesmengde gyldig fra skal ikke være før startdato`() {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
@@ -216,7 +216,7 @@ class DeltakerKafkaPayloadBuilderTest {
     }
 
     @Test
-    fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
+    fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke være før startdato`() {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)

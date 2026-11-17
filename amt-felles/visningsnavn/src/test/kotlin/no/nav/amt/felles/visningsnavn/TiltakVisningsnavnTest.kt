@@ -101,7 +101,7 @@ class TiltakVisningsnavnTest {
     }
 
     @Test
-    fun `lagTittel bruker fallback for manglende arrangor`() {
+    fun `lagTittel bruker fallback for manglende arrangør`() {
         val tittel = TiltakVisningsnavn.lagTittel(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             tiltaksnavn = "Arbeidsforberedende trening",

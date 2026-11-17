@@ -200,7 +200,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toEnkeltplassInnhold skal inkludere forerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
+        fun `toEnkeltplassInnhold skal inkludere førerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -518,7 +518,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `lagEnkeltplassInnsokingsbrevPdfDto skal kaste feil naar prisinformasjon mangler`() {
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal kaste feil når prisinformasjon mangler`() {
             // Arrange
             val gyldigDeltaker = createValidDeltaker()
             val deltakerUtenPrisinformasjon = gyldigDeltaker.copy(

@@ -38,7 +38,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post digital - ikke manuell oppfolging, SDP - bruker er digital`() {
+    fun `post digital - ikke manuell oppfølging, SDP - bruker er digital`() {
         withTestApplicationContext { client ->
             client.post("/digital") { postRequest(DigitalBrukerRequest(personident)) }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -48,7 +48,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post digital - ikke manuell oppfolging, print - bruker er ikke digital`() {
+    fun `post digital - ikke manuell oppfølging, print - bruker er ikke digital`() {
         withTestApplicationContext { client ->
             coEvery { dokdistkanalClient.bestemDistribusjonskanal(personident) } returns Distribusjonskanal.PRINT
 
@@ -60,7 +60,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post digital - manuell oppfolging, SDP - bruker er ikke digital`() {
+    fun `post digital - manuell oppfølging, SDP - bruker er ikke digital`() {
         coEvery { veilarboppfolgingClient.erUnderManuellOppfolging(personident) } returns true
 
         withTestApplicationContext { client ->

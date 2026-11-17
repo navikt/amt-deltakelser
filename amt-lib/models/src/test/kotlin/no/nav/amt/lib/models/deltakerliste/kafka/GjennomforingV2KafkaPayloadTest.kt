@@ -20,7 +20,7 @@ class GjennomforingV2KafkaPayloadTest {
     @Nested
     inner class AssertValidChangesTests {
         @Test
-        fun `gruppe, skal kaste unntak nar oppstartstype endres for deltakerliste med deltakere`() {
+        fun `gruppe, skal kaste unntak når oppstartstype endres for deltakerliste med deltakere`() {
             val thrown =
                 shouldThrow<IllegalArgumentException> {
                     gruppeGjennomforing.assertValidChanges(
@@ -34,7 +34,7 @@ class GjennomforingV2KafkaPayloadTest {
         }
 
         @Test
-        fun `gruppe, skal ikke kaste unntak nar antall deltaker er 0`() {
+        fun `gruppe, skal ikke kaste unntak når antall deltaker er 0`() {
             shouldNotThrowAny {
                 gruppeGjennomforing.assertValidChanges(
                     antallDeltakere = 0,
@@ -45,7 +45,7 @@ class GjennomforingV2KafkaPayloadTest {
         }
 
         @Test
-        fun `gruppe, skal kaste unntak nar pameldingstype endres for deltakerliste med deltakere`() {
+        fun `gruppe, skal kaste unntak når påmeldingstype endres for deltakerliste med deltakere`() {
             val thrown =
                 shouldThrow<IllegalArgumentException> {
                     gruppeGjennomforing.assertValidChanges(
@@ -59,7 +59,7 @@ class GjennomforingV2KafkaPayloadTest {
         }
 
         @Test
-        fun `enkeltplass, skal kaste unntak nar pameldingstype endres for deltakerliste med deltakere`() {
+        fun `enkeltplass, skal kaste unntak når påmeldingstype endres for deltakerliste med deltakere`() {
             val thrown =
                 shouldThrow<IllegalArgumentException> {
                     enkeltplassGjennoforing.assertValidChanges(
@@ -73,7 +73,7 @@ class GjennomforingV2KafkaPayloadTest {
         }
 
         @Test
-        fun `enkeltplass, skal ikke kaste unntak nar antall deltaker er 0`() {
+        fun `enkeltplass, skal ikke kaste unntak når antall deltaker er 0`() {
             shouldNotThrowAny {
                 enkeltplassGjennoforing.assertValidChanges(
                     antallDeltakere = 0,
@@ -157,7 +157,7 @@ class GjennomforingV2KafkaPayloadTest {
                 "GRUPPE_ARBEIDSMARKEDSOPPLAERING", "GRUPPE_FAG_OG_YRKESOPPLAERING",
             ],
         )
-        fun `gruppetiltak, lopende oppstart skal validere`(tiltakskode: Tiltakskode) {
+        fun `gruppetiltak, løpende oppstart skal validere`(tiltakskode: Tiltakskode) {
             shouldNotThrowAny {
                 gruppeGjennomforing
                     .copy(
@@ -169,7 +169,7 @@ class GjennomforingV2KafkaPayloadTest {
         }
 
         @Test
-        fun `gruppetiltak, lopende oppstart skal ikke validere`() {
+        fun `gruppetiltak, løpende oppstart skal ikke validere`() {
             val thrown =
                 shouldThrow<IllegalArgumentException> {
                     gruppeGjennomforing
@@ -190,7 +190,7 @@ class GjennomforingV2KafkaPayloadTest {
                 "JOBBKLUBB",
             ],
         )
-        fun `jobbklubb, lopende oppstart skal validere`(tiltakskode: Tiltakskode) {
+        fun `jobbklubb, løpende oppstart skal validere`(tiltakskode: Tiltakskode) {
             shouldNotThrowAny {
                 gruppeGjennomforing
                     .copy(

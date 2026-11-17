@@ -378,7 +378,7 @@ class EndreStartdatoRequestTest {
         }
 
         @Test
-        fun `valider - enkeltplass med startdato for gjennomforingens startdato - skal ikke kaste exception`() {
+        fun `valider - enkeltplass med startdato før gjennomføringens startdato - skal ikke kaste exception`() {
             val gjennomforingStartDato = LocalDate.now().minusMonths(3)
 
             val deltaker = lagDeltakerModel(
@@ -402,7 +402,7 @@ class EndreStartdatoRequestTest {
         }
 
         @Test
-        fun `valider - enkeltplass med sluttdato etter gjennomforingens sluttdato - skal kaste exception`() {
+        fun `valider - enkeltplass med sluttdato etter gjennomføringens sluttdato - skal kaste exception`() {
             val gjennomforingSluttDato = LocalDate.now().plusMonths(6)
             val deltaker = lagDeltakerModel(
                 startdato = LocalDate.now().minusMonths(1),

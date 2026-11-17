@@ -47,7 +47,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast - journalforer hovedvedtak`() = runTest {
+    fun `handleHendelse - InnbyggerGodkjennUtkast - journalfører hovedvedtak`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
 
@@ -64,7 +64,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() = runTest {
+    fun `handleHendelse - InnbyggerGodkjennUtkast, er allerede journalført, skal ikke sende brev - ignorerer hendelse`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.innbyggerGodkjennUtkast())
 
@@ -95,7 +95,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - NavGodkjennUtkast, er journalfort, ikke sendt brev - sender brev`() = runTest {
+    fun `handleHendelse - NavGodkjennUtkast, er journalført, ikke sendt brev - sender brev`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(
             payload = HendelseTypeData.navGodkjennUtkast(),
@@ -121,7 +121,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - NavGodkjennUtkast, manuell oppfolging - sender brev`() = runTest {
+    fun `handleHendelse - NavGodkjennUtkast, manuell oppfølging - sender brev`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(
             HendelseTypeData.navGodkjennUtkast(),
@@ -171,7 +171,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, skal ikke sende brev - ignorerer hendelse`() = runTest {
+    fun `handleHendelse - AvsluttDeltakelse, er allerede journalført, skal ikke sende brev - ignorerer hendelse`() = runTest {
         // Arrange
         val journalpostId = "12345"
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
@@ -198,7 +198,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - AvsluttDeltakelse, er allerede journalfort, kan ikke sende brev - ignorerer hendelse`() = runTest {
+    fun `handleHendelse - AvsluttDeltakelse, er allerede journalført, kan ikke sende brev - ignorerer hendelse`() = runTest {
         // Arrange
         val journalpostId = "12345"
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.avsluttDeltakelse())
@@ -225,7 +225,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - InnbyggerGodkjennUtkast, har ikke aktiv oppfolgingsperiode - feiler`() = runTest {
+    fun `handleHendelse - InnbyggerGodkjennUtkast, har ikke aktiv oppfølgingsperiode - feiler`() = runTest {
         val navBruker = Persondata.lagNavBruker(
             oppfolgingsperioder = listOf(
                 Persondata.lagOppfolgingsperiode(
@@ -245,7 +245,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - EndreSluttarsak - journalforer ikke`() = runTest {
+    fun `handleHendelse - EndreSluttarsak - journalfører ikke`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.endreSluttarsak())
 
@@ -257,7 +257,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever ikke godkjenning - lagrer endringsvedtak for journalforing`() = runTest {
+    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever ikke godkjenning - lagrer endringsvedtak for journalføring`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = false))
 
@@ -269,7 +269,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever godkjenning - journalforer ikke`() = runTest {
+    fun `handleHendelse - EnkeltplassEndrePrisinfo, krever godkjenning - journalfører ikke`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.enkeltplassEndrePrisinfo(kreverGodkjenning = true))
 
@@ -281,7 +281,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - deltakelsesmengde og forleng - journalforer endringsvedtak`() = runTest {
+    fun `journalforOgDistribuerEndringsvedtak - deltakelsesmengde og forleng - journalfører endringsvedtak`() = runTest {
         // Arrange
         val deltaker = Hendelsesdata.lagDeltaker()
 
@@ -337,7 +337,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - to endringer, en allerede journalfort - journalforer 1, distribuerer 2`() = runTest {
+    fun `journalforOgDistribuerEndringsvedtak - to endringer, en allerede journalført - journalfører 1, distribuerer 2`() = runTest {
         // Arrange
         val deltaker = Hendelsesdata.lagDeltaker()
 
@@ -413,7 +413,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - falsk identitet - journalforer ikke eller distribuerer`() = runTest {
+    fun `journalforOgDistribuerEndringsvedtak - falsk identitet - journalfører ikke eller distribuerer`() = runTest {
         // Arrange
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.forlengDeltakelse())
         hendelseRepository.insert(hendelse)
@@ -451,7 +451,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - avslutt deltakelse, ikke under oppfolging - journalforer endringsvedtak`() = runTest {
+    fun `journalforOgDistribuerEndringsvedtak - avslutt deltakelse, ikke under oppfølging - journalfører endringsvedtak`() = runTest {
         // Arrange
         val navBruker = Persondata.lagNavBruker(
             oppfolgingsperioder = listOf(
@@ -483,7 +483,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `journalforOgDistribuerEndringsvedtak - forleng deltakelse, ikke under oppfolging - feiler`() = runTest {
+    fun `journalforOgDistribuerEndringsvedtak - forleng deltakelse, ikke under oppfølging - feiler`() = runTest {
         val navBruker = Persondata.lagNavBruker(
             oppfolgingsperioder = listOf(
                 Persondata.lagOppfolgingsperiode(

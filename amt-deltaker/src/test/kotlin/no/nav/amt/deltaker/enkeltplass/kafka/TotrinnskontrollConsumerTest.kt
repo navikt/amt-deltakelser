@@ -90,7 +90,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
 
         @Test
-        fun `consume - ignorerer ukjent type uten aa kaste unntak`() = runTest {
+        fun `consume - ignorerer ukjent type uten å kaste unntak`() = runTest {
             // Arrange
             val rawJson =
                 """
@@ -281,7 +281,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
 
         @Test
-        fun `consume - godkjent ENKELTPLASS_PRISENDRING for SOKT_INN prosesseres som innsoking`() = runTest {
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING for SOKT_INN prosesseres som innsøking`() = runTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(
                 DeltakerStatus.Type.SOKT_INN,
@@ -351,7 +351,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
 
         @Test
-        fun `consume - godkjent ENKELTPLASS_OKONOMI skipper naar prisinfo allerede er godkjent`() = runTest {
+        fun `consume - godkjent ENKELTPLASS_OKONOMI skipper når prisinfo allerede er godkjent`() = runTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(
                 DeltakerStatus.Type.SOKT_INN,
@@ -385,7 +385,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
 
         @Test
-        fun `consume - godkjent ENKELTPLASS_PRISENDRING skipper naar prisinfoSomVenter er false`() = runTest {
+        fun `consume - godkjent ENKELTPLASS_PRISENDRING skipper når prisinfoSomVenter er false`() = runTest {
             // Arrange
             val deltakerInTest = lagEnkeltplassDeltaker(
                 DeltakerStatus.Type.VENTER_PA_OPPSTART,
@@ -474,7 +474,7 @@ class TotrinnskontrollConsumerTest : TotrinnskontrollConsumerTestBase() {
         }
 
         @Test
-        fun `returnerer false naar type mangler`() {
+        fun `returnerer false når type mangler`() {
             // Arrange
             val payload = """{"status": "GODKJENT"}"""
 

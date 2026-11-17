@@ -421,7 +421,7 @@ class DeltakerEndringServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `behandleLagretEndring - endringen er utfort pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - endringen er utført pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
         // Arrange
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),

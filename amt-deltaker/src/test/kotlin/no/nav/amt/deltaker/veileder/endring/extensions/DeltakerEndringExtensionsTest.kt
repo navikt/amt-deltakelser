@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 
 class DeltakerEndringExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() {
+    fun `oppdaterDeltaker - reaktiver deltakelse løpende oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             gjennomforing = TestData.lagDeltakerlisteMedDirekteVedtak(),
@@ -82,7 +82,7 @@ class DeltakerEndringExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - ikke aktuell naar allerede ikke aktuell med samme aarsak - returnerer feil`() {
+    fun `oppdaterDeltaker - ikke aktuell når allerede ikke aktuell med samme årsak - returnerer feil`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,

@@ -73,7 +73,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltakerliste ikke apen for pamelding - skal returnere Invalid`() = runTest {
+    fun `validateRequest - deltakerliste ikke åpen for påmelding - skal returnere Invalid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste(apentForPamelding = false)
 
         val validationResult = sut.validateRequest(requestInTest)
@@ -183,7 +183,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltaker 18 ar - skal returnere Invalid`() = runTest {
+    fun `validateRequest - deltaker 18 år - skal returnere Invalid`() = runTest {
         coEvery {
             personServiceClient.hentNavBrukerFodselsar(any())
         } returns Year.now().minusYears(18).value
@@ -195,7 +195,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltaker 18 ar - skal returnere Valid`() = runTest {
+    fun `validateRequest - deltaker 18 år - skal returnere Valid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype())
         coEvery {
             personServiceClient.hentNavBrukerFodselsar(any())

@@ -328,7 +328,7 @@ class PrisinformasjonDtoTest {
     @Nested
     inner class TilskuddValidateTest {
         @Test
-        fun `skal returnere feil naar tilskudd mangler ved validate()`() {
+        fun `skal returnere feil når tilskudd mangler ved validate()`() {
             // Arrange
             val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = emptyList(),
@@ -344,7 +344,7 @@ class PrisinformasjonDtoTest {
         }
 
         @Test
-        fun `skal returnere feil naar duplikate tilskudd ved validate()`() {
+        fun `skal returnere feil når duplikate tilskudd ved validate()`() {
             // Arrange
             val tilskudd = PrisinformasjonDto.Tilskudd(
                 tilskudd = listOf(

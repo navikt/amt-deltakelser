@@ -20,7 +20,7 @@ import java.util.UUID
 
 class PdfgenClientTest {
     @Test
-    fun `skal returnere ByteArray nar genererHovedvedtak kalles med gyldig respons`() = runTest {
+    fun `skal returnere ByteArray når genererHovedvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL,
             responseBody = expectedResponse,
@@ -32,7 +32,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar genererHovedvedtak returnerer feilkode`() = runTest {
+    fun `skal kaste feil når genererHovedvedtak returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_INDIVIDUELL_OPPFOLGING_URL,
             statusCode = HttpStatusCode.BadGateway,
@@ -46,7 +46,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererHovedvedtakFellesOppstart kalles med gyldig respons`() = runTest {
+    fun `skal returnere ByteArray når genererHovedvedtakFellesOppstart kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL,
             responseBody = expectedResponse,
@@ -58,7 +58,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar genererHovedvedtakFellesOppstart returnerer feilkode`() = runTest {
+    fun `skal kaste feil når genererHovedvedtakFellesOppstart returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_HOVEDVEDTAK_TILDEL_LOEPENDE_OPPSTART_URL,
             statusCode = HttpStatusCode.BadGateway,
@@ -72,7 +72,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererInnsokingsbrevPDF kalles med gyldig respons`() = runTest {
+    fun `skal returnere ByteArray når genererInnsokingsbrevPDF kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_INNSOKINGSBREV_PDF_URL,
             responseBody = expectedResponse,
@@ -84,7 +84,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar genererInnsokingsbrevPDF returnerer feilkode`() = runTest {
+    fun `skal kaste feil når genererInnsokingsbrevPDF returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_INNSOKINGSBREV_PDF_URL,
             statusCode = HttpStatusCode.BadGateway,
@@ -98,7 +98,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal returnere ByteArray nar genererVentelistebrevPDF kalles med gyldig respons`() = runTest {
+    fun `skal returnere ByteArray når genererVentelistebrevPDF kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_VENTELISTEBREV_PDF_URL,
             responseBody = expectedResponse,
@@ -110,7 +110,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar genererVentelistebrevPDF returnerer feilkode`() = runTest {
+    fun `skal kaste feil når genererVentelistebrevPDF returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = GENERER_VENTELISTEBREV_PDF_URL,
             statusCode = HttpStatusCode.BadGateway,
@@ -124,7 +124,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal returnere ByteArray nar endringsvedtak kalles med gyldig respons`() = runTest {
+    fun `skal returnere ByteArray når endringsvedtak kalles med gyldig respons`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = ENDRINGSVEDTAK_URL,
             responseBody = expectedResponse,
@@ -136,7 +136,7 @@ class PdfgenClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar endringsvedtak returnerer feilkode`() = runTest {
+    fun `skal kaste feil når endringsvedtak returnerer feilkode`() = runTest {
         val sut = createPdfgenClient(
             expectedUrl = ENDRINGSVEDTAK_URL,
             statusCode = HttpStatusCode.BadGateway,

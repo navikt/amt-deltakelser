@@ -17,7 +17,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() {
+    fun `consumeArrangor - ny arrangør - upserter`() {
         val arrangor = lagArrangor()
         val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
@@ -29,7 +29,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() {
+    fun `consumeArrangor - oppdatert arrangør - upserter`() {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -45,7 +45,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - tombstonet arrangor - sletter`() {
+    fun `consumeArrangor - tombstonet arrangør - sletter`() {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 

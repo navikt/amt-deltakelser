@@ -451,7 +451,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer pameldingstype TRENGER_GODKJENNING`() {
+        fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer påmeldingstype TRENGER_GODKJENNING`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
@@ -487,7 +487,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer pameldingstype DIREKTE_VEDTAK`() {
+        fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer påmeldingstype DIREKTE_VEDTAK`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,

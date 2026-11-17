@@ -32,7 +32,7 @@ class HentArrangorClientTest(
     @Nested
     inner class GetArrangorTests {
         @Test
-        fun `getArrangor - returnerer arrangor med overordnet arrangor ved suksess`() {
+        fun `getArrangor - returnerer arrangør med overordnet arrangør ved suksess`() {
             val orgnummer = "123456789"
             val arrangorId = UUID.randomUUID()
             val overordnetArrangorId = UUID.randomUUID()
@@ -74,7 +74,7 @@ class HentArrangorClientTest(
         }
 
         @Test
-        fun `getArrangor - returnerer arrangor uten overordnet arrangor`() {
+        fun `getArrangor - returnerer arrangør uten overordnet arrangør`() {
             val orgnummer = "123456789"
             val arrangorId = UUID.randomUUID()
 

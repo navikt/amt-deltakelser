@@ -127,7 +127,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for deltakere som ikke er sokt inn`() {
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for deltakere som ikke er søkt inn`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
@@ -146,7 +146,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for status sokt inn med ikke-aktuell endring`() {
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er true for status søkt inn med ikke-aktuell endring`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
             )
@@ -174,7 +174,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er false for sokt inn uten ikke-aktuell endring`() {
+        fun `lagEndringsvedtakPdfDto - visVedtakOgKlage er false for søkt inn uten ikke-aktuell endring`() {
             val deltaker = Hendelsesdata.lagDeltaker().copy(
                 status = Hendelsesdata.lagDeltakerStatus(statusType = DeltakerStatus.Type.SOKT_INN),
             )
@@ -193,7 +193,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - IkkeAktuell - inneholder arsak som string`() {
+        fun `lagEndringsvedtakPdfDto - IkkeAktuell - inneholder årsak som string`() {
             val deltaker = Hendelsesdata.lagDeltaker()
             val navBruker = Persondata.lagNavBruker()
             val ansvarligNavVeileder = Hendelsesdata.ansvarligNavVeileder()
@@ -354,7 +354,7 @@ class PdfUtilsTest {
         }
 
         @Test
-        fun `lagEndringsvedtakPdfDto - EndreDeltakelsesmengde for gruppe viser prosent fordelt pa dager`() {
+        fun `lagEndringsvedtakPdfDto - EndreDeltakelsesmengde for gruppe viser prosent fordelt på dager`() {
             val deltakerliste = Hendelsesdata.lagDeltakerliste().copy(erEnkeltplass = false)
             val deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste)
             val navBruker = Persondata.lagNavBruker()

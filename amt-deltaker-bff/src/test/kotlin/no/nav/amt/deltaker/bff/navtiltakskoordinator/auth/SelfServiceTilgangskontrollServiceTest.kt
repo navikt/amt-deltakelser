@@ -54,7 +54,7 @@ class SelfServiceTilgangskontrollServiceTest {
     @Nested
     inner class LeggTilTiltakskoordinatorTilgang {
         @Test
-        fun `har ikke tilgang fra for - returnerer success`() = runTest {
+        fun `har ikke tilgang fra før - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 val actual = selfServiceTilgangService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
 
@@ -66,7 +66,7 @@ class SelfServiceTilgangskontrollServiceTest {
         }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer success`() = runTest {
+        fun `med inaktiv tilgang fra før - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
 
@@ -79,7 +79,7 @@ class SelfServiceTilgangskontrollServiceTest {
         }
 
         @Test
-        fun `har tilgang fra for - returnerer failure`() = runTest {
+        fun `har tilgang fra før - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val actual = selfServiceTilgangService.leggTilTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -117,7 +117,7 @@ class SelfServiceTilgangskontrollServiceTest {
     @Nested
     inner class FjernTiltakskoordinatorTilgang {
         @Test
-        fun `har tilgang fra for - returnerer success`() = runTest {
+        fun `har tilgang fra før - returnerer success`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 val actual = selfServiceTilgangService.fjernTiltakskoordinatorTilgang(navAnsatt.navIdent, deltakerliste.id)
@@ -129,7 +129,7 @@ class SelfServiceTilgangskontrollServiceTest {
         }
 
         @Test
-        fun `har ikke tilgang fra for - returnerer failure`() = runTest {
+        fun `har ikke tilgang fra før - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 val actual = selfServiceTilgangService.fjernTiltakskoordinatorTilgang(
                     navIdent = navAnsatt.navIdent,
@@ -140,7 +140,7 @@ class SelfServiceTilgangskontrollServiceTest {
         }
 
         @Test
-        fun `med inaktiv tilgang fra for - returnerer failure`() = runTest {
+        fun `med inaktiv tilgang fra før - returnerer failure`() = runTest {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
                 val actual = selfServiceTilgangService.fjernTiltakskoordinatorTilgang(
@@ -277,7 +277,7 @@ class SelfServiceTilgangskontrollServiceTest {
         }
 
         @Test
-        fun `stengTiltakskoordinatorTilgang - ikke aktiv tilgang - tilgang stenges ikke pa nytt`() {
+        fun `stengTiltakskoordinatorTilgang - ikke aktiv tilgang - tilgang stenges ikke på nytt`() {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
                 val resultat = selfServiceTilgangService.stengTiltakskoordinatorTilgang(secondTilgang.id)

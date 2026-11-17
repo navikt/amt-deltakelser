@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 class AktivOppfolgingsperiodeTest {
     @Test
-    fun `getAktivOppfolgingsperiode - har ingen oppfolgingsperioder - returnerer null`() {
+    fun `getAktivOppfolgingsperiode - har ingen oppfølgingsperioder - returnerer null`() {
         val navBruker = Persondata.lagNavBruker(oppfolgingsperioder = emptyList())
 
         navBruker.getAktivOppfolgingsperiode() shouldBe null
@@ -25,7 +25,7 @@ class AktivOppfolgingsperiodeTest {
     }
 
     @Test
-    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato null - returnerer oppfolgingsperiode`() {
+    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato null - returnerer oppfølgingsperiode`() {
         val oppfolgingsperiode = Persondata.lagOppfolgingsperiode(
             startdato = LocalDateTime.now().minusDays(2),
             sluttdato = null,
@@ -36,7 +36,7 @@ class AktivOppfolgingsperiodeTest {
     }
 
     @Test
-    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato om en uke - returnerer oppfolgingsperiode`() {
+    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato om en uke - returnerer oppfølgingsperiode`() {
         val oppfolgingsperiode = Persondata.lagOppfolgingsperiode(
             startdato = LocalDateTime.now().minusDays(2),
             sluttdato = LocalDateTime.now().plusWeeks(1),
@@ -47,7 +47,7 @@ class AktivOppfolgingsperiodeTest {
     }
 
     @Test
-    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato for 25 dager siden - returnerer oppfolgingsperiode`() {
+    fun `getAktivOppfolgingsperiode - startdato passert, sluttdato for 25 dager siden - returnerer oppfølgingsperiode`() {
         val oppfolgingsperiode = Persondata.lagOppfolgingsperiode(
             startdato = LocalDateTime.now().minusYears(1),
             sluttdato = LocalDateTime.now().minusDays(25),

@@ -28,7 +28,7 @@ class OpplaringKategoriseringRepoAdapterTest {
     @Nested
     inner class HentOpplaringKategoriseringValgForMulighetsrommetTests {
         @Test
-        fun `skal returnere tom kategorisering naar ingenting er lagret`() {
+        fun `skal returnere tom kategorisering når ingenting er lagret`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -112,7 +112,7 @@ class OpplaringKategoriseringRepoAdapterTest {
     @Nested
     inner class HentOpplaringKategoriseringValgForAmtTests {
         @Test
-        fun `skal returnere tomt resultat naar ingenting er lagret`() {
+        fun `skal returnere tomt resultat når ingenting er lagret`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -278,7 +278,7 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
 
         @Test
-        fun `sletter eksisterende kategoriseringsvalg naar tom liste sendes`() {
+        fun `sletter eksisterende kategoriseringsvalg når tom liste sendes`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -370,7 +370,7 @@ class OpplaringKategoriseringRepoAdapterTest {
         }
 
         @Test
-        fun `pavirker ikke andre gjennomforinger`() {
+        fun `påvirker ikke andre gjennomføringer`() {
             // Arrange
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()

@@ -91,7 +91,7 @@ class OpplaringKategoriseringClientTest {
         }
 
         @Test
-        fun `sertifiseringSok skal returnere sokeresultat`() = runTest {
+        fun `sertifiseringSok skal returnere søkeresultat`() = runTest {
             val expectedResponse = listOf(
                 SertifiseringResponse(konseptId = 1, label = "Sertifisering 1"),
                 SertifiseringResponse(konseptId = 2, label = "Sertifisering 2"),

@@ -15,7 +15,7 @@ import java.util.UUID
 
 class DokdistkanalClientTest {
     @Test
-    fun `skal returnere DITT_NAV nar bestemDistribusjonskanal kalles med `() = runTest {
+    fun `skal returnere DITT_NAV når bestemDistribusjonskanal kalles med `() = runTest {
         val sut = createDokdistkanalClient(
             responseBody = expectedResponse,
         )
@@ -41,7 +41,7 @@ class DokdistkanalClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId != null`() = runTest {
+    fun `skal kaste feil når bestemDistribusjonskanal returnerer feilkode, deltakerId != null`() = runTest {
         val sut = createDokdistkanalClient(statusCode = HttpStatusCode.BadGateway)
 
         val thrown = shouldThrow<IllegalStateException> {
@@ -52,7 +52,7 @@ class DokdistkanalClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar bestemDistribusjonskanal returnerer feilkode, deltakerId = null`() = runTest {
+    fun `skal kaste feil når bestemDistribusjonskanal returnerer feilkode, deltakerId = null`() = runTest {
         val sut = createDokdistkanalClient(statusCode = HttpStatusCode.BadGateway)
 
         val thrown = shouldThrow<IllegalStateException> {

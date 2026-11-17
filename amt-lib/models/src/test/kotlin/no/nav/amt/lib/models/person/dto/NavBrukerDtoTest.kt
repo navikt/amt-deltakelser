@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class NavBrukerDtoTest {
     @Test
-    fun `Skal mappe NavBrukerDto til NavBruker nar alle verdier er satt`() {
+    fun `Skal mappe NavBrukerDto til NavBruker når alle verdier er satt`() {
         val navBruker = brukerDtoInTest.toModel()
 
         assertSoftly(navBruker) {
@@ -30,7 +30,7 @@ class NavBrukerDtoTest {
     }
 
     @Test
-    fun `Skal mappe NavBrukerDto til NavBruker nar kun pakrevde felter er satt`() {
+    fun `Skal mappe NavBrukerDto til NavBruker når kun påkrevde felter er satt`() {
         val navBruker =
             brukerDtoInTest
                 .copy(

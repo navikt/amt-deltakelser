@@ -120,7 +120,7 @@ class KafkaConsumerServiceTest {
     @Nested
     inner class LagreDeltakerTests {
         @Test
-        fun `lagreDeltaker - feil gjennomforingstype - skal ikke lagre`(): Unit = runBlocking {
+        fun `lagreDeltaker - feil gjennomføringstype - skal ikke lagre`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 medStatus(DeltakerStatus.Type.DELTAR)
 
@@ -181,7 +181,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - status SOKT_INN - lagres hvis er delt med arrangor`(): Unit = runBlocking {
+        fun `lagreDeltaker - status SOKT_INN - lagres hvis er delt med arrangør`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 medErManueltDeltMedArrangor()
                 medStatus(DeltakerStatus.Type.SOKT_INN)
@@ -193,7 +193,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - status SOKT_INN - lagres ikke hvis ikke er delt med arrangor`(): Unit = runBlocking {
+        fun `lagreDeltaker - status SOKT_INN - lagres ikke hvis ikke er delt med arrangør`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 medStatus(DeltakerStatus.Type.SOKT_INN)
                 every { deltakerRepository.getDeltaker(any()) } returns null
@@ -227,7 +227,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - status IKKE_AKTUELL og deltar pa kurs og finnes ikke i db fra for - lagres ikke i db`(): Unit = runBlocking {
+        fun `lagreDeltaker - status IKKE_AKTUELL og deltar på kurs og finnes ikke i db fra før - lagres ikke i db`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 every { deltakerRepository.getDeltaker(any()) } returns null
                 medStatus(DeltakerStatus.Type.IKKE_AKTUELL)
@@ -240,7 +240,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - status IKKE_AKTUELL og deltar pa kurs og finnes i db fra for - lagres i db`(): Unit = runBlocking {
+        fun `lagreDeltaker - status IKKE_AKTUELL og deltar på kurs og finnes i db fra før - lagres i db`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 medStatus(DeltakerStatus.Type.IKKE_AKTUELL)
                 medDeltarPaKurs()
@@ -253,7 +253,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - status IKKE_AKTUELL for mer enn 40 dager siden, deltar pa kurs, finnes i db - lagres ikke i db`(): Unit =
+        fun `lagreDeltaker - status IKKE_AKTUELL for mer enn 40 dager siden, deltar på kurs, finnes i db - lagres ikke i db`(): Unit =
             runBlocking {
                 with(DeltakerDtoCtx()) {
                     medStatus(DeltakerStatus.Type.IKKE_AKTUELL, 42)
@@ -341,7 +341,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - historikk inneholder svar pa forslag som ikke finnes i db - lagrer ulest endring i db`(): Unit = runBlocking {
+        fun `lagreDeltaker - historikk inneholder svar på forslag som ikke finnes i db - lagrer ulest endring i db`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 val lagretDeltaker = deltakerDto.toDeltakerDbo()
                 val forslag = forlengDeltakelseForslag(
@@ -367,7 +367,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - historikk inneholder endring fra arrangor - lagrer ikke i db`(): Unit = runBlocking {
+        fun `lagreDeltaker - historikk inneholder endring fra arrangør - lagrer ikke i db`(): Unit = runBlocking {
             with(DeltakerDtoCtx()) {
                 val lagretDeltaker = deltakerDto.toDeltakerDbo()
                 val endringFraArrangor = DeltakerHistorikk.EndringFraArrangor(
@@ -395,7 +395,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `lagreDeltaker - historikk inneholder svar pa forslag som finnes i db - lagrer ikke endring i db`(): Unit = runBlocking {
+        fun `lagreDeltaker - historikk inneholder svar på forslag som finnes i db - lagrer ikke endring i db`(): Unit = runBlocking {
             val forslag = DeltakerHistorikk.Forslag(
                 forlengDeltakelseForslag(
                     status = Forslag.Status.Godkjent(
@@ -515,7 +515,7 @@ class KafkaConsumerServiceTest {
     @Nested
     inner class HandleForslagTests {
         @Test
-        fun `handleForslag - forslaget er aktivt - gjor ingenting`() {
+        fun `handleForslag - forslaget er aktivt - gjør ingenting`() {
             val forslag = forlengDeltakelseForslag()
 
             kafkaConsumerService.handleMelding(forslag.id, forslag)
@@ -524,7 +524,7 @@ class KafkaConsumerServiceTest {
         }
 
         @Test
-        fun `handleForslag - forslaget er tilbakekalt - gjor ingenting`() {
+        fun `handleForslag - forslaget er tilbakekalt - gjør ingenting`() {
             val forslag = forlengDeltakelseForslag(
                 status = Forslag.Status.Tilbakekalt(
                     UUID.randomUUID(),

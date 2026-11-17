@@ -72,7 +72,7 @@ class HendelseTypeTest {
     }
 
     @Test
-    fun `toHendelseEndring - prisinfo, status etter soknad (DELTAR) - kreverGodkjenning true`() {
+    fun `toHendelseEndring - prisinfo, status etter søknad (DELTAR) - kreverGodkjenning true`() {
         val hendelseEndring = endrePrisinfoEndring()
             .toHendelseEndring(deltakerStatus = DeltakerStatus.Type.DELTAR)
 

@@ -31,7 +31,7 @@ class IkkeAktuellValideringTest {
     }
 
     @Test
-    fun `valider - deltaker har annen sluttaarsak - ok`() {
+    fun `valider - deltaker har annen sluttårsak - ok`() {
         shouldNotThrow<IllegalArgumentException> {
             val deltaker = TestData.lagDeltaker(
                 status = TestData.lagDeltakerStatus(

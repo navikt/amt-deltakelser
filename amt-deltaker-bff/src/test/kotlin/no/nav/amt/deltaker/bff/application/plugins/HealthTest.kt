@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class HealthTest : IntegrationTestBase() {
     @Test
-    fun `liveness-endepunktet skal returnere 200 OK naar app er i live`() {
+    fun `liveness-endepunktet skal returnere 200 OK når app er i live`() {
         withTestApplicationContext { httpClient ->
             val httpResponse: HttpResponse = httpClient.get("/internal/health/liveness")
             httpResponse.status shouldBe HttpStatusCode.OK
@@ -17,7 +17,7 @@ class HealthTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `readiness-endepunktet skal returnere 503 ServiceUnavailable naar app ikke er klar`() {
+    fun `readiness-endepunktet skal returnere 503 ServiceUnavailable når app ikke er klar`() {
         withTestApplicationContext(appIsReady = false) { httpClient ->
             val response = httpClient.get("/internal/health/readiness")
             response.status shouldBe HttpStatusCode.ServiceUnavailable
@@ -25,7 +25,7 @@ class HealthTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `readiness-endepunktet skal returnere 200 OK naar app er klar`() {
+    fun `readiness-endepunktet skal returnere 200 OK når app er klar`() {
         withTestApplicationContext { httpClient ->
             val response = httpClient.get("/internal/health/readiness")
             response.status shouldBe HttpStatusCode.OK

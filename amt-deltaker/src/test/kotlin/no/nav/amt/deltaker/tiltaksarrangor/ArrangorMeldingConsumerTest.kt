@@ -33,7 +33,7 @@ class ArrangorMeldingConsumerTest {
     )
 
     @Test
-    fun `ignorerer vurdering naar deltaker ikke finnes`() {
+    fun `ignorerer vurdering når deltaker ikke finnes`() {
         // Arrange
         val vurdering = vurdering()
         every { forslagRepository.kanLagres(vurdering.deltakerId) } returns false

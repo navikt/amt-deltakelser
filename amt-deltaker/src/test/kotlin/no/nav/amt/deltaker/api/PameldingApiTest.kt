@@ -37,7 +37,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post pamelding utkast - har tilgang - returnerer 200`() {
+    fun `post påmelding utkast - har tilgang - returnerer 200`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val deltakerResponse = TestData.lagDeltakerResponse(deltaker)
         coEvery { deltakerResponseBuilder.buildDeltakerResponse(deltaker) } returns deltakerResponse
@@ -55,7 +55,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post pamelding utkast - deltaker finnes ikke - returnerer 404`() {
+    fun `post påmelding utkast - deltaker finnes ikke - returnerer 404`() {
         val deltakerId = UUID.randomUUID()
         coEvery { pameldingService.upsertUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
 

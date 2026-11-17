@@ -15,7 +15,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `upsert - ny arrangor - inserter`() {
+    fun `upsert - ny arrangør - inserter`() {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -23,7 +23,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `upsert - eksisterende arrangor - oppdaterer`() {
+    fun `upsert - eksisterende arrangør - oppdaterer`() {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 
@@ -34,7 +34,7 @@ class ArrangorRepositoryTest {
     }
 
     @Test
-    fun `delete - eksisterende arrangor - sletter`() {
+    fun `delete - eksisterende arrangør - sletter`() {
         val arrangor = lagArrangor()
         arrangorRepository.upsert(arrangor)
 

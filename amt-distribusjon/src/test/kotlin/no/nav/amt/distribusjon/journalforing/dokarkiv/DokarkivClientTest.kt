@@ -17,7 +17,7 @@ import java.util.UUID
 
 class DokarkivClientTest {
     @Test
-    fun `skal returnere journalpostId nar opprettJournalpost kalles med gyldig respons`() = runTest {
+    fun `skal returnere journalpostId når opprettJournalpost kalles med gyldig respons`() = runTest {
         val sut = createDokarkivClient(
             responseBody = expectedResponse,
         )
@@ -28,7 +28,7 @@ class DokarkivClientTest {
     }
 
     @Test
-    fun `skal skrive warning til loggene nar journalpost for hendelseId allerede er opprettet`() = runTest {
+    fun `skal skrive warning til loggene når journalpost for hendelseId allerede er opprettet`() = runTest {
         val sut = createDokarkivClient(
             statusCode = HttpStatusCode.Conflict,
             responseBody = expectedResponse,
@@ -44,7 +44,7 @@ class DokarkivClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar opprettJournalpost returnerer feilkode`() = runTest {
+    fun `skal kaste feil når opprettJournalpost returnerer feilkode`() = runTest {
         val sut = createDokarkivClient(
             HttpStatusCode.BadRequest,
         )

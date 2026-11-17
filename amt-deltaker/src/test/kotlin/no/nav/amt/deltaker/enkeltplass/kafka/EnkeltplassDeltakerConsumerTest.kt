@@ -139,7 +139,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomforing er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
+    fun `consumeDeltaker - gjennomføring er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
         // Arrange
         val deltakerListe = lagEnkeltplassDeltakerliste()
         TestRepository.insert(deltakerListe)
@@ -188,7 +188,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - kaster exception`() {
+    fun `consumeDeltaker - gjennomføring eksisterer ikke i db - kaster exception`() {
         // Arrange
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),

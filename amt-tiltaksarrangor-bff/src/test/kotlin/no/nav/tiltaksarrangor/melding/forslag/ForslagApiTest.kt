@@ -185,7 +185,7 @@ class ForslagApiTest(
     }
 
     @Test
-    fun `sluttarsak - nytt forslag - skal returnere 200 og riktig response`() {
+    fun `sluttårsak - nytt forslag - skal returnere 200 og riktig response`() {
         testOpprettetForslag(sluttarsakRequest) { endring ->
             endring as Forslag.Sluttarsak
             endring.aarsak shouldBe sluttarsakRequest.aarsak

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 class TiltakskoderTest {
     @Test
-    fun `skal lagre nar system-felt mangler`() {
+    fun `skal lagre når system-felt mangler`() {
         // Arrange
         val tiltakAsJson = """{"id":"123","navn":"Tiltak uten system"}"""
 
@@ -19,7 +19,7 @@ class TiltakskoderTest {
     }
 
     @Test
-    fun `skal lagre nar system er null`() {
+    fun `skal lagre når system er null`() {
         // Arrange
         val tiltakAsJson = """{"id":"123","system":null}"""
 
@@ -31,7 +31,7 @@ class TiltakskoderTest {
     }
 
     @Test
-    fun `skal lagre nar system er TILTAKSADMINISTRASJON`() {
+    fun `skal lagre når system er TILTAKSADMINISTRASJON`() {
         // Arrange
         val tiltakAsJson = """{"id":"123","system":"TILTAKSADMINISTRASJON"}"""
 
@@ -43,7 +43,7 @@ class TiltakskoderTest {
     }
 
     @Test
-    fun `skal ikke lagre nar system er ARENA`() {
+    fun `skal ikke lagre når system er ARENA`() {
         // Arrange
         val tiltakAsJson = """{"id":"123","system":"ARENA"}"""
 

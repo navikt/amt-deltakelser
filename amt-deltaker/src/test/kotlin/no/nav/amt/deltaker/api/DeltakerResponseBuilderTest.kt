@@ -175,7 +175,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `buildGjennomforingResponse - arrangernavn med caps formateres i respons`() {
+    fun `buildGjennomforingResponse - arrangørnavn med caps formateres i respons`() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = TestData.lagArrangor(navn = "TEST ARRANGØR"),
@@ -701,7 +701,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `to fremtidige endringer - nesteGjeldende er naermeste, sisteDeltakelsesmengde er sist i tid`() = runTest {
+        fun `to fremtidige endringer - nesteGjeldende er nærmeste, sisteDeltakelsesmengde er sist i tid`() = runTest {
             // Arrange
             val navAnsatt = TestData.lagNavAnsatt()
             val navEnhet = TestData.lagNavEnhet()

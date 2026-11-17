@@ -36,7 +36,7 @@ class PartitionBackoffManagerTest {
     }
 
     @Test
-    fun `resetRetryCount pa en uregistrert partisjon kaster ikke feil`() {
+    fun `resetRetryCount på en uregistrert partisjon kaster ikke feil`() {
         shouldNotThrowAny {
             sut.resetRetryCount(topicPartition1)
         }
@@ -94,7 +94,7 @@ class PartitionBackoffManagerTest {
         }
 
         @Test
-        fun `calculateBackoffUntilMs aldri storre enn MAX_DELAY`() {
+        fun `calculateBackoffUntilMs aldri større enn MAX_DELAY`() {
             val backoff = sut.calculateBackoffUntilMs(1000)
             val now = System.currentTimeMillis()
 
