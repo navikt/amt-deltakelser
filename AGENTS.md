@@ -4,9 +4,33 @@
 
 ## Build & Test Commands
 
+Use JDK 25 and a running Docker daemon for Testcontainers. Copilot cloud sessions
+prepare these and run baseline checks through `.github/workflows/copilot-setup-steps.yml`.
+If Java 25 is missing in another environment, install it and set `JAVA_HOME` and
+`PATH` before running Gradle. Do not change the project's Java target to bypass this.
+
 ```bash
-# TODO: Add build and test commands
+# All Gradle modules: the same checks as CI, including tests and ktlint
+./gradlew check --no-daemon --no-configuration-cache
+
+# One changed application, for example amt-distribusjon
+./gradlew check -p amt-distribusjon --no-daemon --no-configuration-cache
+
+# Fix Kotlin formatting, then rerun check
+./gradlew ktlintFormat -p amt-distribusjon --no-daemon --no-configuration-cache
 ```
+
+Before creating or updating a PR, run `check` on the final changes for every
+affected module. Run the full command for changes to shared modules (`amt-felles`,
+`amt-lib`), `buildSrc`, or Gradle configuration. `test` alone is not sufficient:
+it does not run ktlint, which also checks test source formatting. Test-name-only
+changes still require `check`.
+
+Setup checks run before edits and do not replace validation of the final diff.
+Fix failures and rerun the checks before handing off. Do not skip tasks with `-x`
+or weaken checks to get a passing result. If validation remains blocked, report
+the exact command and blocker in the PR description and final response, and do
+not claim validation passed.
 
 ## Project Structure
 
