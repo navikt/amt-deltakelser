@@ -261,8 +261,8 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        @DisplayName("POST /deltaker/{deltakerId}/sluttarsak - har tilgang - returnerer 200")
-        fun `post sluttarsak - har tilgang - returnerer 200`() {
+        @DisplayName("POST /deltaker/{deltakerId}/endre-deltaker - har tilgang - returnerer 200")
+        fun `post endre-deltaker - har tilgang - returnerer 200`() {
             val sluttarsakRequest = SluttarsakRequest(
                 endretAv = randomIdent(),
                 endretAvEnhet = randomEnhetsnummer(),
