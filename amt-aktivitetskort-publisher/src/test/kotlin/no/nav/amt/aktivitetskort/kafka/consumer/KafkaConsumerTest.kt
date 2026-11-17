@@ -29,20 +29,26 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.queryForObject
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class KafkaConsumerTest(
     private val arrangorRepository: ArrangorRepository,
@@ -52,6 +58,7 @@ class KafkaConsumerTest(
     private val kafkaConsumer: KafkaConsumer,
     private val jdbcTemplate: JdbcTemplate,
     private val unleashClient: FakeUnleash,
+    private val transactionTemplate: TransactionTemplate,
 ) : IntegrationTestBase() {
     private val offset: Long = 0
     private val ack: Acknowledgment = mockk(relaxed = true)
@@ -649,6 +656,91 @@ class KafkaConsumerTest(
         antallPerioder(periodeId) shouldBe 1
         antallOutbox(ctx.aktivitetskortId) shouldBe 1
         verify(exactly = 1) { acknowledgment.acknowledge() }
+    }
+
+    @ParameterizedTest
+    @CsvSource("false,false", "false,true", "true,false", "true,true")
+    fun `overlappende leveringer ruller tilbake utdatert kort og gjenlevering gjenbruker ID`(
+        tidligerePeriode: Boolean,
+        sammeOffset: Boolean,
+    ) {
+        val periode = TestData.oppfolgingsperiode()
+        val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        val gammelDeltaker = ctx.deltaker.copy(sluttdato = LocalDate.now())
+        arrangorRepository.upsert(ctx.arrangor)
+        deltakerlisteRepository.upsert(ctx.deltakerliste)
+        if (tidligerePeriode) {
+            deltakerRepository.upsert(gammelDeltaker, -1)
+            val gammelPeriodeId = UUID.randomUUID()
+            testDatabase.insertAktivOppfolgingsperiode(gammelPeriodeId)
+            meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = gammelPeriodeId))
+        }
+        every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            TestData.lagDeltakerResponse(ctx.deltaker, ctx.deltakerliste, ctx.arrangor)
+        }
+        every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            periode
+        }
+        val records = (1L..2L).map {
+            ConsumerRecord(
+                DELTAKER_TOPIC,
+                0,
+                if (sammeOffset) 1L else it,
+                ctx.deltaker.id.toString(),
+                objectMapper.writeValueAsString(ctx.deltaker.toDto()),
+            )
+        }
+        val acknowledgments = records.map { mockk<Acknowledgment>(relaxed = true) }
+
+        Executors.newFixedThreadPool(2).use { executor ->
+            val leveringer = transactionTemplate
+                .execute {
+                    jdbcTemplate.execute("LOCK TABLE deltaker IN SHARE MODE")
+                    records
+                        .mapIndexed { index, record ->
+                            executor.submit(
+                                Callable { runCatching { kafkaConsumer.listen(record, acknowledgments[index]) } },
+                            )
+                        }.also {
+                            await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+                                jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
+                                jdbcTemplate.queryForObject<Int>(
+                                    """
+                                    SELECT count(*) FROM pg_stat_activity
+                                    WHERE wait_event_type = 'Lock' AND query LIKE '%insert into deltaker(%'
+                                    """.trimIndent(),
+                                ) shouldBe 2
+                            }
+                        }
+                }.shouldNotBeNull()
+            val resultater = leveringer.map { it.get(10, TimeUnit.SECONDS) }
+            meldingRepository.getByDeltakerId(ctx.deltaker.id).count { it.oppfolgingperiode == periode.id } shouldBe 1
+            resultater.count { it.isSuccess } shouldBe 1
+            val vinner = resultater.indexOfFirst { it.isSuccess }
+            val taper = 1 - vinner
+            (resultater[taper].exceptionOrNull() is ConcurrencyFailureException) shouldBe true
+            jdbcTemplate.queryForObject<Long>(
+                "SELECT kafkaoffset FROM deltaker WHERE id = ?",
+                ctx.deltaker.id,
+            ) shouldBe records[vinner].offset()
+            verify(exactly = 1) { acknowledgments[vinner].acknowledge() }
+            verify(exactly = 0) { acknowledgments[taper].acknowledge() }
+            val melding = meldingRepository.getByDeltakerId(ctx.deltaker.id).single { it.oppfolgingperiode == periode.id }
+            antallOutbox(melding.id) shouldBe 1
+            antallPerioder(periode.id) shouldBe 1
+
+            unleashClient.enableAll()
+            kafkaConsumer.listen(records.last(), ack)
+            if (!sammeOffset) kafkaConsumer.listen(records.first(), ack)
+
+            val meldinger = meldingRepository.getByDeltakerId(ctx.deltaker.id)
+            meldinger.size shouldBe if (tidligerePeriode) 2 else 1
+            meldinger.single { it.oppfolgingperiode == periode.id }.id shouldBe melding.id
+            antallOutbox(melding.id) shouldBe 2
+            deltakerRepository.get(ctx.deltaker.id) shouldBe ctx.deltaker
+        }
     }
 
     private fun deltakerRecord(ctx: TestData.MockContext) = ConsumerRecord(
