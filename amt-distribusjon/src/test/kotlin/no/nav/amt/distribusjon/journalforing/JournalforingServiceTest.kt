@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.distribusjon.IntegrationTestBase
 import no.nav.amt.distribusjon.distribusjonskanal.Distribusjonskanal
@@ -18,6 +19,15 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.veilarboppfolging.Sak
+import no.nav.amt.internapi.hendelse.HendelseType
+import no.nav.amt.internapi.hendelse.InnholdDto
+import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
+import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
+import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -61,6 +71,42 @@ class JournalforingServiceTest : IntegrationTestBase() {
             .get(hendelse.id)
             .shouldNotBeNull()
             .journalpostId shouldNotBe null
+    }
+
+    @Test
+    fun `handleHendelse - EnkeltplassOkonomiGodkjennUtkast - genererer enkeltplasshovedvedtak med forskriftskapittel`() = runTest {
+        // Arrange
+        val deltakerliste = Hendelsesdata
+            .lagDeltakerliste(
+                tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+                oppstartstype = Oppstartstype.ENKELTPLASS,
+                opplaringKategoriseringValg = OpplaringKategoriseringValg(
+                    valgteKategoriseringer = emptySet(),
+                    valgteSertifiseringer = emptySet(),
+                ),
+                prisinformasjon = PrisinformasjonDto.IngenKostnader(),
+            ).copy(erEnkeltplass = true)
+        val utkast = HendelseTypeData.utkast(
+            innhold = listOf(InnholdDto("Annet", INNHOLDSKODE_ANNET, "Beskrivelse")),
+        )
+        val hendelse = Hendelsesdata.hendelse(
+            payload = HendelseType.EnkeltplassOkonomiGodkjennUtkast(utkast),
+            deltaker = Hendelsesdata.lagDeltaker(deltakerliste = deltakerliste),
+        )
+        val navBruker = Persondata.lagNavBruker()
+        val pdfDto = slot<EnkeltplassPdfDto>()
+        coEvery { amtPersonClient.hentNavBruker(hendelse.deltaker.personident) } returns navBruker
+        coEvery { pdfgenClient.genererEnkeltplassHovedvedtakPdf(capture(pdfDto)) } returns "pdf".toByteArray()
+
+        // Act
+        journalforingService.handleHendelse(hendelse)
+
+        // Assert
+        pdfDto.captured.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_7
+        journalforingstatusRepository.get(hendelse.id).shouldNotBeNull().journalpostId shouldNotBe null
+        coVerify(exactly = 1) { pdfgenClient.genererEnkeltplassHovedvedtakPdf(any()) }
+        coVerify(exactly = 0) { pdfgenClient.genererHovedvedtakForIndividuellOppfolging(any()) }
+        coVerify(exactly = 0) { pdfgenClient.genererEnkeltplassInnsokingsbrevPdf(any()) }
     }
 
     @Test
