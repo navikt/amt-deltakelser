@@ -49,6 +49,7 @@ object EnkeltplassPdfDtoMapper {
             oppstartstype = deltaker.deltakerliste.oppstartstype ?: throw IllegalStateException(
                 "Deltakerliste ${deltaker.deltakerliste.id} må ha oppstartstype for å lage enkeltplass innsøkings-/vedtaksbrev",
             ),
+            forskriftskapittel = deltaker.deltakerliste.forskriftskapittel(),
         ),
         avsender = AvsenderDto(
             navn = veileder.navn,

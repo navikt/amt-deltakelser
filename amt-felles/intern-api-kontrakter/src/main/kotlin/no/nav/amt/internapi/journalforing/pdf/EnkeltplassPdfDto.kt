@@ -28,6 +28,7 @@ data class EnkeltplassPdfDto(
         val startdato: LocalDate,
         val sluttdato: LocalDate,
         val oppstartstype: Oppstartstype,
+        val forskriftskapittel: Forskriftskapittel,
     )
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

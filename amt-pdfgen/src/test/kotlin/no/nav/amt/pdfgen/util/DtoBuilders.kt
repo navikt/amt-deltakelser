@@ -108,7 +108,7 @@ object DtoBuilders {
         begrunnelseFraNav = "Begrunnelse",
         forslagFraArrangor = null,
         gyldigFra = fixedDate,
-        pavirkerPris = false
+        pavirkerPris = false,
     )
 
     fun endringsvedtakAvsender() = EndringsvedtakPdfDto.AvsenderDto(
@@ -197,6 +197,7 @@ object DtoBuilders {
         startdato = fixedDate,
         sluttdato = fixedDate.plusMonths(3),
         oppstartstype = Oppstartstype.ENKELTPLASS,
+        forskriftskapittel = Forskriftskapittel.KAPITTEL_7,
     )
 
     fun innsokingsbrev(
