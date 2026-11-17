@@ -11,8 +11,10 @@ import no.nav.amt.distribusjon.utils.data.HendelseTypeData
 import no.nav.amt.distribusjon.utils.data.Hendelsesdata
 import no.nav.amt.distribusjon.utils.data.Persondata
 import no.nav.amt.distribusjon.utils.formatDateWithMonthName
+import no.nav.amt.internapi.hendelse.HendelseAnsvarlig
 import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.journalforing.pdf.EndringDto
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -23,8 +25,89 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class PdfUtilsTest {
+    @Nested
+    inner class ForskriftskapittelPdfDtoTests {
+        @Test
+        fun `lagHovedvedtakPdfDto kopierer forskriftskapittel fra tiltakskode`() {
+            // Arrange
+            val deltaker = Hendelsesdata.lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+                ),
+            )
+
+            // Act
+            val pdfDto = lagHovedvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = Persondata.lagNavBruker(),
+                utkast = HendelseTypeData.utkast(),
+                veileder = Hendelsesdata.ansvarligNavVeileder(),
+                vedtaksdato = LocalDate.now(),
+                begrunnelseFraNav = null,
+            )
+
+            // Assert
+            pdfDto.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_13
+        }
+
+        @Test
+        fun `lagHovedopptakForTildeltPlass kopierer forskriftskapittel fra tiltakskode`() {
+            // Arrange
+            val deltaker = Hendelsesdata.lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+                ),
+            )
+            val ansvarlig = HendelseAnsvarlig.NavTiltakskoordinator(
+                id = UUID.randomUUID(),
+                navn = "Nav Tiltakskoordinator",
+                navIdent = "A123456",
+                enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(
+                    id = UUID.randomUUID(),
+                    enhetsnummer = "1234",
+                    navn = "Nav Oslo",
+                ),
+            )
+
+            // Act
+            val pdfDto = lagHovedopptakForTildeltPlass(
+                deltaker = deltaker,
+                navBruker = Persondata.lagNavBruker(),
+                ansvarlig = ansvarlig,
+                opprettetDato = LocalDate.now(),
+                deltakelseInnhold = null,
+            )
+
+            // Assert
+            pdfDto.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_7
+        }
+
+        @Test
+        fun `lagEndringsvedtakPdfDto kopierer forskriftskapittel fra tiltakskode`() {
+            // Arrange
+            val deltaker = Hendelsesdata.lagDeltaker(
+                deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.AVKLARING),
+                ),
+            )
+
+            // Act
+            val pdfDto = lagEndringsvedtakPdfDto(
+                deltaker = deltaker,
+                navBruker = Persondata.lagNavBruker(),
+                ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
+                hendelser = emptyList(),
+                opprettetDato = LocalDate.now(),
+            )
+
+            // Assert
+            pdfDto.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_2
+        }
+    }
+
     @Nested
     inner class ToInnholdPdfDtoTests {
         @Test

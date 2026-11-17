@@ -39,6 +39,20 @@ class EnkeltplassHovedvedtakTest :
                 doc.text() shouldContain "nav.no/klage"
             }
 
+            it("skal vise forskriftskapittelet i vedtaksseksjonen") {
+                // Arrange
+                val brev = enkeltplassPdfDto(
+                    innhold = EnkeltplassPdfDto.EnkeltplassInnhold.UtenInnhold,
+                    prisinformasjon = EnkeltplassPdfDto.Prisinformasjon.IngenKostnader(),
+                )
+
+                // Act
+                val doc = render("enkeltplass-hovedvedtak", brev)
+
+                // Assert
+                doc.text() shouldContain "forskrift om arbeidsmarkedstiltak kapittel 7"
+            }
+
             describe("Prisformatering") {
 
                 it("skal formatere pris med tusenskilletegn for Anskaffelse") {
@@ -53,7 +67,6 @@ class EnkeltplassHovedvedtakTest :
                     doc.text() shouldContain "125 000"
                     doc.text() shouldContain "Nav har kjøpt en plass hos opplæringsstedet"
                 }
-
             }
 
             describe("Innholdstyper") {
