@@ -25,9 +25,9 @@ class CommonUnleashToggle(
         const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
         const val OPPDATER_ALLE_AKTIVITETSKORT = "amt.oppdater-alle-aktivitetskort"
 
-        /*
-            Denne skal inneholde tiltakstyper som vi har tatt over og er master for
-            i både dev og prod
+        /**
+         Denne skal inneholde tiltakstyper som vi har tatt over og er master for
+         i både dev og prod
          */
         private val tiltakstyperKometErMasterFor = setOf(
             Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -47,9 +47,9 @@ class CommonUnleashToggle(
             Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
         )
 
-        /*
-            Denne skal inneholde tiltakstyper som vi jobber med å bli master for. Toggle vil da ofte være på i dev og av i prod
-            mens vi utvikler funksjonalitet for de nye typene
+        /**
+         Denne skal inneholde tiltakstyper som vi jobber med å bli master for. Toggle vil da ofte være på i dev og av i prod
+         mens vi utvikler funksjonalitet for de nye typene
          */
         internal val tiltakstyperKometKanskjeErMasterFor = setOf(
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
@@ -57,10 +57,10 @@ class CommonUnleashToggle(
             Tiltakskode.HOYERE_UTDANNING,
         )
 
-        /*
-            Denne skal inneholde tiltakstyper som vi skal lese arenadata for (og eksponere videre internt)
-            Må oppdateres når vi skal lese inn en ny tiltakstype.
-            Denne vil ofte være lik tiltakstyperKometKanskjeErMasterFor (med mindre vi både skal lese tiltakstyper og bli master for andre tiltakstyper)
+        /**
+         Denne skal inneholde tiltakstyper som vi skal lese arenadata for (og eksponere videre internt)
+         Må oppdateres når vi skal lese inn en ny tiltakstype.
+         Denne vil ofte være lik tiltakstyperKometKanskjeErMasterFor (med mindre vi både skal lese tiltakstyper og bli master for andre tiltakstyper)
          */
         private val tiltakstyperKometKanLese = tiltakstyperKometKanskjeErMasterFor
     }
