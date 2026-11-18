@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -27,6 +28,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("GET /gjennomforing/{id} - gjennomføring finnes - returnerer 200 med gjennomføring")
     fun `get gjennomforing - gjennomføring finnes - returnerer 200 med gjennomføring`() {
         val deltakerliste = lagDeltakerliste()
 
@@ -55,6 +57,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("GET /gjennomforing/{id} - gjennomføring finnes ikke - returnerer 404")
     fun `get gjennomforing - gjennomføring finnes ikke - returnerer 404`() {
         every {
             gjennomforingRepository.get(any())

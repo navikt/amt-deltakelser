@@ -35,6 +35,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -58,6 +59,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         @Test
+        @DisplayName("GET /gjennomforing/{gjennomforingId} - har tilgang - returnerer 200 med gjennomføring")
         fun `get gjennomforing - gjennomføring finnes - returnerer 200 med gjennomføring`() {
             val deltakerliste = lagDeltakerliste()
 
@@ -95,6 +97,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
         }
 
         @Test
+        @DisplayName("GET /gjennomforing/{gjennomforingId} - gjennomføring finnes ikke - returnerer 404")
         fun `get gjennomforing - gjennomføring finnes ikke - returnerer 404`() {
             every { gjennomforingRepository.get(any()) } returns null
 

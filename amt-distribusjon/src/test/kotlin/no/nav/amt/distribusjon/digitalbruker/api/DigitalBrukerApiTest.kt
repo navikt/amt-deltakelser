@@ -18,6 +18,7 @@ import no.nav.amt.internapi.distribusjon.DigitalBrukerResponse
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.readValue
 
@@ -38,6 +39,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /digital - ikke manuell oppfølging, SDP - bruker er digital")
     fun `post digital - ikke manuell oppfølging, SDP - bruker er digital`() {
         withTestApplicationContext { client ->
             client.post("/digital") { postRequest(DigitalBrukerRequest(personident)) }.apply {
@@ -48,6 +50,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /digital - ikke manuell oppfølging, print - bruker er ikke digital")
     fun `post digital - ikke manuell oppfølging, print - bruker er ikke digital`() {
         withTestApplicationContext { client ->
             coEvery { dokdistkanalClient.bestemDistribusjonskanal(personident) } returns Distribusjonskanal.PRINT
@@ -60,6 +63,7 @@ class DigitalBrukerApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /digital - manuell oppfølging, SDP - bruker er ikke digital")
     fun `post digital - manuell oppfølging, SDP - bruker er ikke digital`() {
         coEvery { veilarboppfolgingClient.erUnderManuellOppfolging(personident) } returns true
 

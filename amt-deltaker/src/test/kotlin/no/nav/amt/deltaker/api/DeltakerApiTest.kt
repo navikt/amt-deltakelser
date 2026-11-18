@@ -261,8 +261,8 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        @DisplayName("POST /deltaker/{deltakerId}/endre-deltaker - har tilgang - returnerer 200")
-        fun `post endre-deltaker - har tilgang - returnerer 200`() {
+        @DisplayName("POST /deltaker/{deltakerId}/endre-deltaker - sluttårsak - har tilgang - returnerer 200")
+        fun `post sluttårsak - har tilgang - returnerer 200`() {
             val sluttarsakRequest = SluttarsakRequest(
                 endretAv = randomIdent(),
                 endretAvEnhet = randomEnhetsnummer(),
@@ -453,6 +453,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
+        @DisplayName("GET /deltaker/{deltakerId}/historikk - TRENGER_GODKJENNING")
         fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer påmeldingstype TRENGER_GODKJENNING`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
@@ -489,6 +490,7 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
+        @DisplayName("GET /deltaker/{deltakerId}/historikk - DIREKTE_VEDTAK")
         fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer påmeldingstype DIREKTE_VEDTAK`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
