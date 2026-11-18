@@ -121,12 +121,6 @@ spec:
               "valueDeserializerType": "STRING"
             },
             {
-              "name": "amt.deltakerliste-v1",
-              "location": "AIVEN",
-              "keyDeserializerType": "STRING",
-              "valueDeserializerType": "STRING"
-            },
-            {
               "name": "amt.endringsmelding-v1",
               "location": "AIVEN",
               "keyDeserializerType": "STRING",
