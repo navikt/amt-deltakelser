@@ -6,18 +6,15 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 class CommonUnleashToggle(
     private val unleashClient: Unleash,
 ) {
-    fun erKometMasterForTiltakstype(tiltakskode: String): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
-        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
+    // Når komet er master for tiltakstype så skal det være tillatt å gjøre endringer og vi skal dele data på deltakelsene med eksterne
+    fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = tiltakstyperKometErMasterFor.any { it == tiltakskode } ||
+        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it == tiltakskode })
 
-    fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = erKometMasterForTiltakstype(tiltakskode.name)
-
-    fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
-        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
-
-    fun skalLeseArenaDataForTiltakstype(tiltakskode: Tiltakskode): Boolean = skalLeseArenaDataForTiltakstype(tiltakskode.name)
+    fun skalLeseArenaDataForTiltakstype(tiltakskode: Tiltakskode): Boolean =
+        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it == tiltakskode }
 
     fun skalLeseGjennomforing(tiltakskode: String): Boolean =
-        erKometMasterForTiltakstype(tiltakskode) || skalLeseArenaDataForTiltakstype(tiltakskode)
+        tiltakstyperKometErMasterFor.any { it.name == tiltakskode } || tiltakstyperKometKanLese.any { it.name == tiltakskode }
 
     fun getFeaturetoggles(features: List<String>): Map<String, Boolean> = features.associateWith { unleashClient.isEnabled(it) }
 
@@ -28,6 +25,10 @@ class CommonUnleashToggle(
         const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
         const val OPPDATER_ALLE_AKTIVITETSKORT = "amt.oppdater-alle-aktivitetskort"
 
+        /**
+         Denne skal inneholde tiltakstyper som vi har tatt over og er master for
+         i både dev og prod
+         */
         private val tiltakstyperKometErMasterFor = setOf(
             Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             Tiltakskode.OPPFOLGING,
@@ -46,12 +47,21 @@ class CommonUnleashToggle(
             Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER,
         )
 
-        private val tiltakstyperKometKanLese = setOf(
+        /**
+         Denne skal inneholde tiltakstyper som vi jobber med å bli master for. Toggle vil da ofte være på i dev og av i prod
+         mens vi utvikler funksjonalitet for de nye typene
+         */
+        internal val tiltakstyperKometKanskjeErMasterFor = setOf(
             Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
             Tiltakskode.HOYERE_UTDANNING,
         )
 
-        internal val tiltakstyperKometKanskjeErMasterFor = emptySet<Tiltakskode>()
+        /**
+         Denne skal inneholde tiltakstyper som vi skal lese arenadata for (og eksponere videre internt)
+         Må oppdateres når vi skal lese inn en ny tiltakstype.
+         Denne vil ofte være lik tiltakstyperKometKanskjeErMasterFor (med mindre vi både skal lese tiltakstyper og bli master for andre tiltakstyper)
+         */
+        private val tiltakstyperKometKanLese = tiltakstyperKometKanskjeErMasterFor
     }
 }

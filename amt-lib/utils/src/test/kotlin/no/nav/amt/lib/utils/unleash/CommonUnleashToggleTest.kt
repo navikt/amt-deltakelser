@@ -1,14 +1,12 @@
 package no.nav.amt.lib.utils.unleash
 
 import io.getunleash.Unleash
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.ENABLE_KOMET_DELTAKERE
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.LES_ARENA_DELTAKERE
-import no.nav.amt.lib.utils.unleash.CommonUnleashToggle.Companion.tiltakstyperKometKanskjeErMasterFor
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -44,14 +42,7 @@ class CommonUnleashToggleTest {
             ],
         )
         fun `returnerer true for tiltakstyper som Komet alltid er master for`(kode: Tiltakskode) {
-            sut.erKometMasterForTiltakstype(kode.name) shouldBe true
             sut.erKometMasterForTiltakstype(kode) shouldBe true
-        }
-
-        // midlertidig test for tom tiltakstyperKometKanskjeErMasterFor
-        @Test
-        fun `tiltakstyperKometKanskjeErMasterFor skal være tom`() {
-            tiltakstyperKometKanskjeErMasterFor.shouldBeEmpty()
         }
 
         @Disabled("tiltakstyperKometKanskjeErMasterFor er for øyeblikket tom")
@@ -63,7 +54,6 @@ class CommonUnleashToggleTest {
         fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er pa for kanskje-master-typer`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) } returns true
 
-            sut.erKometMasterForTiltakstype(kode.name) shouldBe true
             sut.erKometMasterForTiltakstype(kode) shouldBe true
         }
 
@@ -79,7 +69,6 @@ class CommonUnleashToggleTest {
         fun `returnerer false hvis toggle ENABLE_KOMET_DELTAKERE er av for kanskje-master-typer`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) } returns false
 
-            sut.erKometMasterForTiltakstype(kode.name) shouldBe false
             sut.erKometMasterForTiltakstype(kode) shouldBe false
         }
     }
@@ -98,7 +87,6 @@ class CommonUnleashToggleTest {
         fun `returnerer true nar toggle LES_ARENA_DELTAKERE er pa og tiltakstype er lesbar`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns true
 
-            sut.skalLeseArenaDataForTiltakstype(kode.name) shouldBe true
             sut.skalLeseArenaDataForTiltakstype(kode) shouldBe true
         }
 
@@ -106,7 +94,6 @@ class CommonUnleashToggleTest {
         fun `returnerer false nar toggle LES_ARENA_DELTAKERE er av`() {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns false
 
-            sut.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING.name) shouldBe false
             sut.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) shouldBe false
         }
 
@@ -134,7 +121,6 @@ class CommonUnleashToggleTest {
         fun `returnerer false for tiltakstyper som ikke er lesbare selv om toggle er pa`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns true
 
-            sut.skalLeseArenaDataForTiltakstype(kode.name) shouldBe false
             sut.skalLeseArenaDataForTiltakstype(kode) shouldBe false
         }
     }
