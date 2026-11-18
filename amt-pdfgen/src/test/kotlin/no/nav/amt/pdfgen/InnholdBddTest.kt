@@ -11,16 +11,14 @@ class InnholdBddTest :
     BehaviorSpec({
         Given("sub-template innhold") {
             When("innhold rendres med ledetekst og valgte innholdselementer") {
-                val innhold =
-                    InnholdPdfDto(
-                        valgteInnholdselementer =
-                            listOf(
-                                "Innhold Pt 1",
-                                "Innhold Pt 2",
-                            ),
-                        fritekstBeskrivelse = "",
-                        ledetekst = "Avklaring ledetekst",
-                    )
+                val innhold = InnholdPdfDto(
+                    valgteInnholdselementer = listOf(
+                        "Innhold Pt 1",
+                        "Innhold Pt 2",
+                    ),
+                    fritekstBeskrivelse = "",
+                    ledetekst = "Avklaring ledetekst",
+                )
 
                 val doc = renderSection("innhold", FakeVedtakContainer(innhold))
 
@@ -39,12 +37,12 @@ class InnholdBddTest :
             }
         }
     }) {
-    companion object {
-        private data class FakeDeltakerContainer(
+    private companion object {
+        data class FakeDeltakerContainer(
             val innhold: InnholdPdfDto?,
         )
 
-        private data class FakeVedtakContainer(
+        data class FakeVedtakContainer(
             val deltaker: FakeDeltakerContainer,
         ) {
             constructor(innhold: InnholdPdfDto?) : this(FakeDeltakerContainer(innhold))

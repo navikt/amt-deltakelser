@@ -33,12 +33,14 @@ sealed interface DeltakerEndringEndringResponse {
         val dagerPerUke: Float?,
         val gyldigFra: LocalDate?,
         val begrunnelse: String?,
+        val pavirkerPris: Boolean = false,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreDeltakelsesmengde) : this(
             deltakelsesprosent = model.deltakelsesprosent,
             dagerPerUke = model.dagerPerUke,
             gyldigFra = model.gyldigFra,
             begrunnelse = model.begrunnelse,
+            pavirkerPris = model.pavirkerPris,
         )
     }
 
@@ -46,11 +48,13 @@ sealed interface DeltakerEndringEndringResponse {
         val startdato: LocalDate?,
         val sluttdato: LocalDate?,
         val begrunnelse: String?,
+        val pavirkerPris: Boolean = false,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreStartdato) : this(
             startdato = model.startdato,
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
+            pavirkerPris = model.pavirkerPris,
         )
     }
 
@@ -67,10 +71,12 @@ sealed interface DeltakerEndringEndringResponse {
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
         val begrunnelse: String?,
+        val pavirkerPris: Boolean = false,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.ForlengDeltakelse) : this(
             sluttdato = model.sluttdato,
             begrunnelse = model.begrunnelse,
+            pavirkerPris = model.pavirkerPris,
         )
     }
 
@@ -171,10 +177,12 @@ sealed interface DeltakerEndringEndringResponse {
     data class EndreOpplaringKategorisering(
         val opplaringKategoriseringValg: OpplaringKategoriseringValgResponse,
         val beskrivelse: String,
+        val pavirkerPris: Boolean = false,
     ) : DeltakerEndringEndringResponse {
         constructor(model: DeltakerEndring.Endring.EndreOpplaringKategorisering) : this(
             opplaringKategoriseringValg = OpplaringKategoriseringValgResponse.fromModel(model.opplaringKategoriseringValg),
             beskrivelse = model.beskrivelse,
+            pavirkerPris = model.pavirkerPris,
         )
     }
 

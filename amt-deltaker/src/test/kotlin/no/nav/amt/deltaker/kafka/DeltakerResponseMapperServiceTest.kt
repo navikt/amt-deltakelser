@@ -78,7 +78,7 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`() = runTest {
+    fun `tilDeltakerV2Dto - utkast til påmelding - returnerer riktig DeltakerV2Dto`() = runTest {
         val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(

@@ -97,7 +97,7 @@ class DeltakerlisteConsumerServiceTest {
     }
 
     @Test
-    fun `handleGjennomforing - ikke stottet gjennomforingstype - lagres ikke i db `() {
+    fun `handleGjennomforing - ikke støttet gjennomføringstype - lagres ikke i db `() {
         val gjennomforingPayload = gjennomforingPayloadInTest.copy(
             type = GjennomforingType.Enkeltplass,
         )

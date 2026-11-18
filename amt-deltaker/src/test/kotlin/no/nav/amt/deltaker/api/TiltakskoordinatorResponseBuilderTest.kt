@@ -60,7 +60,7 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     @Test
-    fun `buildResponse - gjennomforing finnes ikke - returnerer tom respons`() = runTest {
+    fun `buildResponse - gjennomføring finnes ikke - returnerer tom respons`() = runTest {
         // Arrange
         every {
             gjennomforingRepository.get(gjennomforingId)
@@ -75,7 +75,7 @@ class TiltakskoordinatorResponseBuilderTest {
     }
 
     @Test
-    fun `buildResponse - feil ved henting av gjennomforing kastes videre`() = runTest {
+    fun `buildResponse - feil ved henting av gjennomføring kastes videre`() = runTest {
         // Arrange
         val databaseFeil = IllegalStateException("Database er utilgjengelig")
         every {

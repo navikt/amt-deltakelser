@@ -101,7 +101,7 @@ class EndrePrisinfoRequestTest {
     @Nested
     inner class ValiderPrisinfoTypeKanEndres {
         @Test
-        fun `endrer type etter at okonomi er godkjent - status DELTAR - skal kaste exception`() {
+        fun `endrer type etter at økonomi er godkjent - status DELTAR - skal kaste exception`() {
             // Arrange
             val deltaker = lagDeltakerMedGjeldendePrisinfo(
                 gjeldendePrisinformasjon = anskaffelse(),

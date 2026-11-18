@@ -39,7 +39,7 @@ class DeltakerHistorikkExtensionsTest {
         }
 
         @Test
-        fun `flere ImportertFraArena med samme innsoktDato - returnerer samme resultat uavhengig av rekkefolge`() {
+        fun `flere ImportertFraArena med samme innsoktDato - returnerer samme resultat uavhengig av rekkefølge`() {
             val innsoktDato = LocalDate.now().minusMonths(2)
             val historikk = listOf(
                 lagArenaHistorikk(innsoktDato = innsoktDato),
@@ -52,7 +52,7 @@ class DeltakerHistorikkExtensionsTest {
         }
 
         @Test
-        fun `InnsokPaaFellesOppstart - returnerer innsokt`() {
+        fun `InnsokPaaFellesOppstart - returnerer innsøkt`() {
             val innsokt = LocalDateTime.now().minusDays(7)
             val historikk = listOf(lagInnsokHistorikk(innsokt = innsokt))
 
@@ -60,7 +60,7 @@ class DeltakerHistorikkExtensionsTest {
         }
 
         @Test
-        fun `flere InnsokPaaFellesOppstart - returnerer tidligste innsokt uavhengig av rekkefolge`() {
+        fun `flere InnsokPaaFellesOppstart - returnerer tidligste innsøkt uavhengig av rekkefølge`() {
             val tidligsteInnsokt = LocalDateTime.now().minusDays(30)
             val senesteInnsokt = LocalDateTime.now().minusDays(2)
             val historikkMedTidligsteForst = listOf(

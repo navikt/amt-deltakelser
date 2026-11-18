@@ -25,7 +25,7 @@ class AktivitetskortTest {
     )
 
     @Test
-    fun `lagDeltakerResponse - deltakerliste og arrangor - lager riktig tittel basert på type tiltak`() {
+    fun `lagDeltakerResponse - deltakerliste og arrangør - lager riktig tittel basert på type tiltak`() {
         val arrangor = TestData.lagArrangor()
         val deltakerlister =
             Tiltakskode.entries

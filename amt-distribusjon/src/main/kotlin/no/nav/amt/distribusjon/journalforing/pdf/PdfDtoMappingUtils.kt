@@ -65,9 +65,10 @@ fun HendelseDeltaker.Deltakerliste.forskriftskapittel(): Forskriftskapittel = wh
     Tiltakskode.STUDIESPESIALISERING,
     Tiltakskode.FAG_OG_YRKESOPPLAERING,
     Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+    Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+    Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+    Tiltakskode.HOYERE_UTDANNING,
     -> Forskriftskapittel.KAPITTEL_7
-
-    else -> throw IllegalArgumentException("Ukjent tiltakstype: ${this.tiltak.tiltakskode}")
 }
 
 fun HendelseDeltaker.Deltakerliste.visningsnavn() = TiltakVisningsnavn.lagVisningsnavn(

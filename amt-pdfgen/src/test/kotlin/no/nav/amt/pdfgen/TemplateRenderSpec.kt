@@ -7,6 +7,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import no.nav.pdfgen.core.Environment
 import no.nav.pdfgen.core.PDFGenCore
 import no.nav.pdfgen.core.pdf.createHtml
@@ -29,9 +31,9 @@ class TemplateRenderSpec :
             val dataDir = Path.of("data/amt")
             val objectMapper = jacksonObjectMapper()
 
-            Files
-                .list(templatesDir)
-                .filter { it.toString().endsWith(".hbs") }
+            withContext(Dispatchers.IO) {
+                Files.list(templatesDir)
+            }.filter { it.toString().endsWith(".hbs") }
                 .forEach { templatePath ->
 
                     val templateName = templatePath.fileName.toString().removeSuffix(".hbs")
@@ -45,12 +47,11 @@ class TemplateRenderSpec :
                             objectMapper.createObjectNode()
                         }
 
-                    val html =
-                        createHtml(
-                            template = templateName,
-                            directoryName = "amt",
-                            jsonPayload = jsonNode,
-                        )
+                    val html = createHtml(
+                        template = templateName,
+                        directoryName = "amt",
+                        jsonPayload = jsonNode,
+                    )
 
                     html.shouldNotBeNull()
                     html.shouldNotContain("{{")

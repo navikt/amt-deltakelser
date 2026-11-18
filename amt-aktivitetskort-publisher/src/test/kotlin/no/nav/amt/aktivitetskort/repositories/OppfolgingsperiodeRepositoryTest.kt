@@ -51,7 +51,7 @@ class OppfolgingsperiodeRepositoryTest(
     }
 
     @Test
-    fun `upsert - eksisterende periode kan fa fjernet sluttdato`() {
+    fun `upsert - eksisterende periode kan få fjernet sluttdato`() {
         val expected = createExpected(true)
 
         var actual = oppfolgingsperiodeRepository.upsert(expected)

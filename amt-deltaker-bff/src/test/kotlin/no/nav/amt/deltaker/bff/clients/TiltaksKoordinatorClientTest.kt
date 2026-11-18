@@ -173,7 +173,7 @@ class TiltaksKoordinatorClientTest {
         }
 
         @Test
-        fun `skal returnere deltakere for gjennomforing`() {
+        fun `skal returnere deltakere for gjennomføring`() {
             runHappyPathTest(
                 expectedUrl,
                 lagPaginatedTiltakskoordinatorDeltakere(),

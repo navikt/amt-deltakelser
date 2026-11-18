@@ -67,7 +67,7 @@ class DeltakerlisteAdminServiceTest(
     }
 
     @Test
-    fun `getAlleDeltakerlister - ansatt er koordinator for flere arrangorer - returnerer deltakerlister`() {
+    fun `getAlleDeltakerlister - ansatt er koordinator for flere arrangører - returnerer deltakerlister`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         arrangorRepository.insertOrUpdateArrangor(
@@ -228,7 +228,7 @@ class DeltakerlisteAdminServiceTest(
     }
 
     @Test
-    fun `leggTilDeltakerliste - ansatt er ikke koordinator hos arrangor - returnerer unauthorized`() {
+    fun `leggTilDeltakerliste - ansatt er ikke koordinator hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(
@@ -398,7 +398,7 @@ class DeltakerlisteAdminServiceTest(
     }
 
     @Test
-    fun `fjernDeltakerliste - ansatt er ikke koordinator hos arrangor - returnerer unauthorized`() {
+    fun `fjernDeltakerliste - ansatt er ikke koordinator hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(

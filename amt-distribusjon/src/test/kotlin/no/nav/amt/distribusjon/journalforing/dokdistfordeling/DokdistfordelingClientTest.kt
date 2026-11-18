@@ -15,7 +15,7 @@ import java.util.UUID
 
 class DokdistfordelingClientTest {
     @Test
-    fun `skal returnere bestillingsId nar distribuerJournalpost kalles med gyldig respons`() = runTest {
+    fun `skal returnere bestillingsId når distribuerJournalpost kalles med gyldig respons`() = runTest {
         val sut = createDokdistfordelingClient(
             responseBody = expectedResponse,
         )
@@ -26,7 +26,7 @@ class DokdistfordelingClientTest {
     }
 
     @Test
-    fun `skal returnere bestillingsId og logge warning nar distribuerJournalpost kalles med respons som returnerer 409 Conflict`() =
+    fun `skal returnere bestillingsId og logge warning når distribuerJournalpost kalles med respons som returnerer 409 Conflict`() =
         runTest {
             val sut = createDokdistfordelingClient(
                 HttpStatusCode.Conflict,
@@ -43,7 +43,7 @@ class DokdistfordelingClientTest {
         }
 
     @Test
-    fun `skal returnere null og logge warning nar distribuerJournalpost kalles med respons som returnerer 410 Gone`() = runTest {
+    fun `skal returnere null og logge warning når distribuerJournalpost kalles med respons som returnerer 410 Gone`() = runTest {
         val sut = createDokdistfordelingClient(
             HttpStatusCode.Gone,
             responseBody = expectedResponse,
@@ -61,7 +61,7 @@ class DokdistfordelingClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar distribuerJournalpost kalles med response som returnerer feilkode forskjellig fra 409 og 410`() = runTest {
+    fun `skal kaste feil når distribuerJournalpost kalles med response som returnerer feilkode forskjellig fra 409 og 410`() = runTest {
         val sut = createDokdistfordelingClient(
             HttpStatusCode.BadGateway,
         )

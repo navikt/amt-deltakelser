@@ -11,6 +11,13 @@
 
 <!-- TODO: List technologies used -->
 
+## Validation before pull requests
+
+Follow the build and validation instructions in `AGENTS.md`. Run Gradle `check`
+on the final changes before creating or updating a PR, including test-name-only
+changes. `test` does not run the ktlint checks required by CI. Resolve missing
+Java 25 or Docker prerequisites instead of skipping validation.
+
 ## Key Patterns
 
 <!-- TODO: Document project-specific patterns, e.g.:

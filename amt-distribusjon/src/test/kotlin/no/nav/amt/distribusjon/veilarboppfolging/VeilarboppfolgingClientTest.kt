@@ -18,7 +18,7 @@ class VeilarboppfolgingClientTest {
     @Nested
     inner class OpprettEllerHentSakTests {
         @Test
-        fun `skal returnere sak nar opprettEllerHentSak kalles med gyldig respons`() = runTest {
+        fun `skal returnere sak når opprettEllerHentSak kalles med gyldig respons`() = runTest {
             val expectedSak = Sak(oppfolgingsperiodeId, sakId = 42, fagsaksystem = "~fagsaksystem~")
 
             val sut = createVeilarboppfolgingClient(
@@ -32,7 +32,7 @@ class VeilarboppfolgingClientTest {
         }
 
         @Test
-        fun `skal kaste feil nar opprettEllerHentSak returnerer feilkode`() = runTest {
+        fun `skal kaste feil når opprettEllerHentSak returnerer feilkode`() = runTest {
             val sut = createVeilarboppfolgingClient(
                 expectedUrl = opprettEllerHentSakUrl,
                 statusCode = HttpStatusCode.BadRequest,
@@ -50,7 +50,7 @@ class VeilarboppfolgingClientTest {
     @Nested
     inner class ErUnderManuellOppfolgingTests {
         @Test
-        fun `skal returnere true nar bruker er under manuell oppfolging`() = runTest {
+        fun `skal returnere true når bruker er under manuell oppfølging`() = runTest {
             val sut = createVeilarboppfolgingClient(
                 expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
                 responseBody = ManuellV2Response(true),
@@ -62,7 +62,7 @@ class VeilarboppfolgingClientTest {
         }
 
         @Test
-        fun `skal returnere false nar bruker ikke er under manuell oppfolging`() = runTest {
+        fun `skal returnere false når bruker ikke er under manuell oppfølging`() = runTest {
             val sut = createVeilarboppfolgingClient(
                 expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
                 responseBody = ManuellV2Response(false),
@@ -90,7 +90,7 @@ class VeilarboppfolgingClientTest {
         }
 
         @Test
-        fun `skal kaste feil nar erUnderManuellOppfolging returnerer feilkode`() = runTest {
+        fun `skal kaste feil når erUnderManuellOppfolging returnerer feilkode`() = runTest {
             val sut = createVeilarboppfolgingClient(
                 expectedUrl = ER_UNDER_MANUELL_OPPFOLGING_URL,
                 responseBody = null,

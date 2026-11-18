@@ -59,7 +59,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `navGodkjennUtkast - innbyggers er under manuell oppfolging - oppretter ikke varsel`() {
+        fun `navGodkjennUtkast - innbyggers er under manuell oppfølging - oppretter ikke varsel`() {
             // Arrange
             val hendelse = Hendelsesdata.hendelse(
                 HendelseTypeData.navGodkjennUtkast(),
@@ -340,7 +340,7 @@ class VarselServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `endreUtkast - arrangor er endret - oppretter ny oppgave uten ekstern varsling`() {
+        fun `endreUtkast - arrangør er endret - oppretter ny oppgave uten ekstern varsling`() {
             // Arrange
             val gammelHendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
             val oppdatertDeltaker = gammelHendelse.deltaker.copy(

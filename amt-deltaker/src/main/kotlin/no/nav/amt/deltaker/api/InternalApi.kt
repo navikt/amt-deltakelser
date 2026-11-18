@@ -251,7 +251,7 @@ fun Routing.registerInternalApi(
         Brukes til å opprette manglende gjennomføringer hos valp for enkeltplasser.
         Finner de manglende gjennomføringene i db slik:
             SELECT dl.id from deltaker d
-            join gjennomforing dl on d.deltakerliste_id=dl.id
+            join gjennomforing dl on d.gjennomforing_id=dl.id
             join deltaker_status ds on d.id=ds.deltaker_id
             WHERE ds.type='UTKAST_TIL_PAMELDING'
             AND ds.gyldig_til IS NULL

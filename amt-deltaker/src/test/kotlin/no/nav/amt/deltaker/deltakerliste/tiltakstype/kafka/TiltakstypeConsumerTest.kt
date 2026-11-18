@@ -55,7 +55,7 @@ class TiltakstypeConsumerTest {
     }
 
     @Test
-    fun `consumeTiltakstype - ny tiltakstype uten eksisterende - reproduserer ingen gjennomforinger`() = runTest {
+    fun `consumeTiltakstype - ny tiltakstype uten eksisterende - reproduserer ingen gjennomføringer`() = runTest {
         val tiltakstype = TestData.lagTiltakstype()
 
         consumer.consume(tiltakstype.id, objectMapper.writeValueAsString(lagTiltakstypePayload(tiltakstype)))
@@ -64,7 +64,7 @@ class TiltakstypeConsumerTest {
     }
 
     @Test
-    fun `consumeTiltakstype - navn endres - reproduserer tilknyttede gjennomforinger med nytt navn`() = runTest {
+    fun `consumeTiltakstype - navn endres - reproduserer tilknyttede gjennomføringer med nytt navn`() = runTest {
         val tiltakstype = TestData.lagTiltakstype(navn = "Opprinnelig navn")
         val gjennomforingId = lagreGjennomforing(tiltakstype)
 
@@ -79,7 +79,7 @@ class TiltakstypeConsumerTest {
     }
 
     @Test
-    fun `consumeTiltakstype - tiltakstype uendret - reproduserer ingen gjennomforinger`() = runTest {
+    fun `consumeTiltakstype - tiltakstype uendret - reproduserer ingen gjennomføringer`() = runTest {
         val tiltakstype = TestData.lagTiltakstype()
         lagreGjennomforing(tiltakstype)
 

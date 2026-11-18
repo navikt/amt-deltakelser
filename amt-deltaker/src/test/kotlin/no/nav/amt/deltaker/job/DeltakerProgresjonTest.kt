@@ -38,7 +38,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() {
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt på opplæring - status fullført`() {
         val yesterday = LocalDate.now().minusDays(1)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
@@ -67,7 +67,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() {
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt på løpende oppstart - status har sluttet`() {
         val yesterday = LocalDate.now().minusDays(1)
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
@@ -97,7 +97,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
+    fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - får riktig status og årsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             gjennomforing = deltakerliste,
@@ -120,7 +120,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
+    fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - får riktig status og årsak`() {
         val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             gjennomforing = deltakerliste,

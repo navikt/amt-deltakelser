@@ -12,7 +12,7 @@ class StringUtilsKtTest {
     }
 
     @Test
-    fun `toTitleCase - et ord, bare sma bokstaver - skal ha stor forbokstav og resten lower case`() {
+    fun `toTitleCase - et ord, bare små bokstaver - skal ha stor forbokstav og resten lower case`() {
         val storeBokstaver = "lowercase"
 
         toTitleCase(storeBokstaver) shouldBe "Lowercase"

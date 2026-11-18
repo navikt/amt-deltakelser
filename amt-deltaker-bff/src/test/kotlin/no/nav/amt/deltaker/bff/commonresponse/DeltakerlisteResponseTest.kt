@@ -105,7 +105,7 @@ class DeltakerlisteResponseTest {
     }
 
     @Test
-    fun `fromModel - arrangor er null - setter arrangorNavn til Ukjent arrangør`() {
+    fun `fromModel - arrangør er null - setter arrangorNavn til Ukjent arrangør`() {
         val model = lagGjennomforingModel(arrangor = null)
 
         val response = DeltakerlisteResponse(model)
@@ -115,7 +115,7 @@ class DeltakerlisteResponseTest {
     }
 
     @Test
-    fun `fromModel - har arrangor - mapper arrangor korrekt`() {
+    fun `fromModel - har arrangør - mapper arrangør korrekt`() {
         val model = lagGjennomforingModel(
             arrangor = ArrangorModel(navn = "Test Arrangør AS", organisasjonsnummer = "987654321"),
         )
@@ -130,7 +130,7 @@ class DeltakerlisteResponseTest {
     }
 
     @Test
-    fun `fromModel - pameldingstype er null - bruker TRENGER_GODKJENNING som default`() {
+    fun `fromModel - påmeldingstype er null - bruker TRENGER_GODKJENNING som default`() {
         val model = lagGjennomforingModel(pameldingstype = null)
 
         val response = DeltakerlisteResponse(model)

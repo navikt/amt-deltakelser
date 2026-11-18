@@ -57,7 +57,7 @@ class TiltakskoordinatorViewRepositoryTest {
     @Nested
     inner class GetDeltakereCountPerStatusTests {
         @Test
-        fun `skal kaste IllegalArgumentException nar statuser er tomme`() {
+        fun `skal kaste IllegalArgumentException når statuser er tomme`() {
             val exception = shouldThrow<IllegalArgumentException> {
                 viewRepository.getDeltakereCountPerStatus(
                     TiltaksKoordinatorDeltakerlisteRequest(
@@ -71,7 +71,7 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
-        fun `skal returnere tomme counts nar ingen deltakere finnes`() {
+        fun `skal returnere tomme counts når ingen deltakere finnes`() {
             val deltakerliste = lagDeltakerliste()
 
             val result = viewRepository.getDeltakereCountPerStatus(
@@ -118,7 +118,7 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
-        fun `skal filtrere pa spesifiserte statuser`() {
+        fun `skal filtrere på spesifiserte statuser`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker1 = lagDeltaker(gjennomforing = deltakerliste, status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
             val deltaker2 =
@@ -253,7 +253,7 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
-        fun `skal kun telle aktiv status nar deltaker har statushistorikk`() {
+        fun `skal kun telle aktiv status når deltaker har statushistorikk`() {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
                 gjennomforing = deltakerliste,
@@ -386,7 +386,7 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
-        fun `skal ikke telle handlingCounts fra annen gjennomforing`() {
+        fun `skal ikke telle handlingCounts fra annen gjennomføring`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
             val deltaker1 = lagDeltaker(
@@ -423,7 +423,7 @@ class TiltakskoordinatorViewRepositoryTest {
         }
 
         @Test
-        fun `skal ikke telle statusCounts fra annen gjennomforing`() {
+        fun `skal ikke telle statusCounts fra annen gjennomføring`() {
             val deltakerliste1 = lagDeltakerliste()
             val deltakerliste2 = lagDeltakerliste()
             val deltaker1 = lagDeltaker(

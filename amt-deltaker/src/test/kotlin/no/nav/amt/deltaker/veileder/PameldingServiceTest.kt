@@ -114,7 +114,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 id shouldBe deltakerRepository
                     .getFlereForPerson(
                         personIdent = navBruker.personident,
-                        deltakerlisteId = deltakerListe.id,
+                        gjennomforingId = deltakerListe.id,
                     ).first()
                     .id
 
@@ -162,7 +162,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
                 id shouldBe deltakerRepository
                     .getFlereForPerson(
                         personIdent = navBruker.personident,
-                        deltakerlisteId = deltakerListe.id,
+                        gjennomforingId = deltakerListe.id,
                     ).first()
                     .id
                 it.gjennomforing.id shouldBe deltakerListe.id
@@ -427,7 +427,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `innbyggerGodkjennUtkast - returnerer deltaker med formatert arrangornavn`() = runTest {
+        fun `innbyggerGodkjennUtkast - returnerer deltaker med formatert arrangørnavn`() = runTest {
             // Arrange
             val arrangor = lagArrangor(navn = "TEST ARRANGØR")
             val deltaker = lagDeltaker(
@@ -449,7 +449,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
+        fun `deltaker med løpende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 gjennomforing = lagDeltakerlisteMedDirekteVedtak(),
@@ -476,7 +476,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
+        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er søkt inn`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 gjennomforing = lagDeltakerlisteMedTrengerGodkjenning(),
@@ -507,7 +507,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `innbyggerGodkjennUtkast - enkeltplass - vedtak fattes og gjennomforing publiseres`() = runTest {
+        fun `innbyggerGodkjennUtkast - enkeltplass - vedtak fattes og gjennomføring publiseres`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 gjennomforing = lagDeltakerlisteMedTrengerGodkjenning()
@@ -572,7 +572,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
     @Nested
     inner class GetOppdatertStatusTests {
         @Test
-        fun `getOppdatertStatus() - pameldingstype TRENGER_GODKJENNING - status SOKT_INN`() {
+        fun `getOppdatertStatus() - påmeldingstype TRENGER_GODKJENNING - status SOKT_INN`() {
             // Arrange
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
@@ -594,7 +594,7 @@ class PameldingServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `getOppdatertStatus() - pameldingstype DIREKTE_VEDTAK - status VENTER_PA_OPPSTART`() {
+        fun `getOppdatertStatus() - påmeldingstype DIREKTE_VEDTAK - status VENTER_PA_OPPSTART`() {
             // Arrange
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,

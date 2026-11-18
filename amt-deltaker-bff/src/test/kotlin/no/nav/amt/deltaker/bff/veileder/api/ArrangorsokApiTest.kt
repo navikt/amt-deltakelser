@@ -20,7 +20,7 @@ class ArrangorsokApiTest : IntegrationTestBase() {
     @Nested
     inner class UnderenhetSokTests {
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.get("/arrangor/underenhet/sok/firma")
@@ -31,7 +31,7 @@ class ArrangorsokApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere sokeresultat`() = runTest {
+        fun `skal returnere søkeresultat`() = runTest {
             // Arrange
             val expectedResponse = listOf(
                 EnhetResponse(

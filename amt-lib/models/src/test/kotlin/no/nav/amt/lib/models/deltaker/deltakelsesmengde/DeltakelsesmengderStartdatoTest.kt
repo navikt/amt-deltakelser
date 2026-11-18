@@ -270,7 +270,7 @@ class DeltakelsesmengderStartdatoTest {
     }
 
     @Test
-    fun `startdato fjernet og lagt til pa nytt - mengde justeres til ny startdato`() {
+    fun `startdato fjernet og lagt til på nytt - mengde justeres til ny startdato`() {
         // Scenario: mengde uten startdato (gyldigFra = opprettelsesdato), startdato settes,
         // fjernes (FjernOppstartsdato), og settes igjen – resultatet skal ha gyldigFra = ny startdato
         val vedtak = TestData.lagVedtak(fattet = "2024-10-15".toDateTime())

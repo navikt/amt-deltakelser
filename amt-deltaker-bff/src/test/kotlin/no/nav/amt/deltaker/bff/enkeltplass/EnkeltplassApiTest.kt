@@ -66,7 +66,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     @Nested
     inner class SertifiseringSokTests {
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.get("/enkeltplass/kodeverk-sertifiseringer/sok/foo")
@@ -77,7 +77,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere sokeresultat`() = runTest {
+        fun `skal returnere søkeresultat`() = runTest {
             // Arrange
             val expectedResponse = listOf(
                 SertifiseringResponse(konseptId = 1, label = "Sertifisering 1"),
@@ -101,7 +101,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
     @Nested
     inner class KodeverkForDeltakerTests {
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             val response = withTestApplicationContext { client ->
                 client.get("/enkeltplass/kodeverk/${deltakerInTest.id}")
             }
@@ -110,7 +110,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere Forbidden nar veileder ikke har lesetilgang til bruker`() {
+        fun `skal returnere Forbidden når veileder ikke har lesetilgang til bruker`() {
             every { tilgangskontrollService.verifiserLesetilgang(any(), any()) } throws AuthorizationException("")
 
             val response = withTestApplicationContext { client ->
@@ -193,7 +193,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             val url = "/enkeltplass/opprett-kladd"
 
             @Test
-            fun `skal returnere Unauthorized nar tilgang mangler`() {
+            fun `skal returnere Unauthorized når tilgang mangler`() {
                 // Act
                 val response = withTestApplicationContext { client ->
                     client.post(url)
@@ -204,7 +204,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            fun `skal returnere Forbidden når veileder ikke har tilgang til bruker`() {
                 // Arrange
                 every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -220,7 +220,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere OK nar kladd er opprettet`() = runTest {
+            fun `skal returnere OK når kladd er opprettet`() = runTest {
                 // Arrange
                 coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
                     tiltakskode = requestInTest.tiltakskode,
@@ -250,7 +250,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             )
 
             @Test
-            fun `skal returnere Unauthorized nar tilgang mangler`() {
+            fun `skal returnere Unauthorized når tilgang mangler`() {
                 // Act
                 val response = withTestApplicationContext { client ->
                     client.post(url)
@@ -261,7 +261,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+            fun `skal returnere Forbidden når veileder ikke har tilgang til bruker`() {
                 // Arrange
                 every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -277,7 +277,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `skal returnere OK nar kladd er oppdatert`() = runTest {
+            fun `skal returnere OK når kladd er oppdatert`() = runTest {
                 // Act
                 val response = withTestApplicationContext { client ->
                     client.post(url) {
@@ -296,7 +296,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         val utkastUrlInTest = "/enkeltplass/utkast/${deltakerInTest.id}"
 
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(utkastUrlInTest)
@@ -307,7 +307,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+        fun `skal returnere Forbidden når veileder ikke har tilgang til bruker`() {
             // Arrange
             every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -336,7 +336,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere OK nar utkast er oppdatert`() = runTest {
+        fun `skal returnere OK når utkast er oppdatert`() = runTest {
             // Arrange
             coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(any()) } returns OpplaringKategoriseringResponse(
                 tiltakskode = deltakerInTest.gjennomforing.tiltak.tiltakskode,
@@ -360,7 +360,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         val url = "/enkeltplass/utkast/${deltakerInTest.id}/meld-paa-direkte"
 
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url)
@@ -371,7 +371,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+        fun `skal returnere Forbidden når veileder ikke har tilgang til bruker`() {
             // Arrange
             every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
@@ -403,7 +403,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere OK nar deltaker er meldt paa direkte`() = runTest {
+        fun `skal returnere OK når deltaker er meldt på direkte`() = runTest {
             // Act
             val response = withTestApplicationContext { client ->
                 client.post(url) {
@@ -416,7 +416,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere BadRequest nar sluttdato er for startdato`() = runTest {
+        fun `skal returnere BadRequest når sluttdato er før startdato`() = runTest {
             // Arrange
             // Bygger en ugyldig JSON-body (sluttdato før startdato) fordi
             // EnkeltplassPameldingRequest sin init-blokk hindrer oss i å konstruere den direkte.
@@ -442,7 +442,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         val url = "/enkeltplass/tilbakekall-prisendring/${deltakerInTest.id}"
 
         @Test
-        fun `skal returnere Unauthorized nar tilgang mangler`() {
+        fun `skal returnere Unauthorized når tilgang mangler`() {
             val response = withTestApplicationContext { client ->
                 client.post(url)
             }
@@ -451,7 +451,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere Forbidden nar veileder ikke har tilgang til bruker`() {
+        fun `skal returnere Forbidden når veileder ikke har tilgang til bruker`() {
             every { tilgangskontrollService.verifiserSkrivetilgang(any(), any()) } throws AuthorizationException("")
 
             val response = withTestApplicationContext { client ->
@@ -464,7 +464,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal returnere OK nar prisendring er tilbakekalt`() {
+        fun `skal returnere OK når prisendring er tilbakekalt`() {
             val deltaker = lagDeltakerOld(
                 id = deltakerInTest.id,
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),

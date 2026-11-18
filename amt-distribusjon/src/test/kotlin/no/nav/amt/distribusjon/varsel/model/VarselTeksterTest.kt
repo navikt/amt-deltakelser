@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class VarselTeksterTest {
     @Test
-    fun `oppgaveTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
+    fun `oppgaveTekst - bruker riktig tekst, tiltaksnavn og arrangørnavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
         val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.navn
@@ -18,7 +18,7 @@ class VarselTeksterTest {
     }
 
     @Test
-    fun `oppgaveTekst - bruker felles oppstart-tekst, tiltaksnavn og arrangornavn når felles oppstart`() {
+    fun `oppgaveTekst - bruker felles oppstart-tekst, tiltaksnavn og arrangørnavn når felles oppstart`() {
         val hendelse = Hendelsesdata.hendelse(
             HendelseTypeData.opprettUtkast(),
             deltaker = Hendelsesdata.lagDeltaker(
@@ -35,7 +35,7 @@ class VarselTeksterTest {
     }
 
     @Test
-    fun `beskjedTekst - bruker riktig tekst, tiltaksnavn og arrangornavn`() {
+    fun `beskjedTekst - bruker riktig tekst, tiltaksnavn og arrangørnavn`() {
         val hendelse = Hendelsesdata.hendelse(HendelseTypeData.opprettUtkast())
         val tiltakNavn = hendelse.deltaker.deltakerliste.tiltak.navn
         val arrangorNavn = hendelse.deltaker.deltakerliste.arrangor.navn

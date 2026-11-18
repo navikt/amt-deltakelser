@@ -12,6 +12,7 @@ import no.nav.amt.internapi.hendelse.InnholdDto
 import no.nav.amt.internapi.hendelse.UtkastDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnhold
+import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
 import no.nav.amt.lib.models.deltaker.Innhold.Companion.INNHOLDSKODE_ANNET
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
@@ -153,6 +154,46 @@ class EnkeltplassPdfDtoMapperTest {
     }
 
     @Nested
+    inner class ForskriftskapittelTests {
+        @Test
+        fun `forskriftskapittel skal være riktig for alle tiltakskoder`() {
+            // Arrange
+            val forventedeKapitler = mapOf(
+                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING to Forskriftskapittel.KAPITTEL_13,
+                Tiltakskode.ARBEIDSRETTET_REHABILITERING to Forskriftskapittel.KAPITTEL_12,
+                Tiltakskode.AVKLARING to Forskriftskapittel.KAPITTEL_2,
+                Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK to Forskriftskapittel.KAPITTEL_4,
+                Tiltakskode.JOBBKLUBB to Forskriftskapittel.KAPITTEL_4,
+                Tiltakskode.OPPFOLGING to Forskriftskapittel.KAPITTEL_4,
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET to Forskriftskapittel.KAPITTEL_14,
+                Tiltakskode.TILRETTELAGT_ARBEID_ORDINAER to Forskriftskapittel.KAPITTEL_14A,
+                Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.ARBEIDSMARKEDSOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.STUDIESPESIALISERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.FAG_OG_YRKESOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING to Forskriftskapittel.KAPITTEL_7,
+                Tiltakskode.HOYERE_UTDANNING to Forskriftskapittel.KAPITTEL_7,
+            )
+
+            // Act
+            val faktiskeKapitler = forventedeKapitler.keys.associateWith { tiltakskode ->
+                val deltakerliste = Hendelsesdata.lagDeltakerliste(
+                    tiltak = Hendelsesdata.tiltak(tiltakskode = tiltakskode),
+                )
+                deltakerliste.forskriftskapittel()
+            }
+
+            // Assert
+            forventedeKapitler.keys shouldBe Tiltakskode.entries.toSet()
+            faktiskeKapitler shouldBe forventedeKapitler
+        }
+    }
+
+    @Nested
     inner class ToInnholdTests {
         @Test
         fun `toEnkeltplassInnhold skal returnere valgt kurstype når KURSTYPE_ID finnes`() {
@@ -200,7 +241,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `toEnkeltplassInnhold skal inkludere forerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
+        fun `toEnkeltplassInnhold skal inkludere førerkort og sertifiseringer i Arbeidsmarkedsopplaering`() {
             val opplaringKategoriseringValg = OpplaringKategoriseringValg(
                 valgteKategoriseringer = setOf(
                     OpplaringKategoriseringValg.ValgteFelt(
@@ -468,6 +509,7 @@ class EnkeltplassPdfDtoMapperTest {
             assertSoftly(enkeltplassPdfDto) {
                 it.deltaker.fornavn shouldBe navBruker.fornavn
                 it.deltaker.personident shouldBe deltaker.personident
+                it.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_7
 
                 assertSoftly(it.innhold.shouldBeInstanceOf<EnkeltplassInnhold.Arbeidsmarkedsopplaering>()) {
                     bransje shouldBe "~bransje~"
@@ -518,7 +560,7 @@ class EnkeltplassPdfDtoMapperTest {
         }
 
         @Test
-        fun `lagEnkeltplassInnsokingsbrevPdfDto skal kaste feil naar prisinformasjon mangler`() {
+        fun `lagEnkeltplassInnsokingsbrevPdfDto skal kaste feil når prisinformasjon mangler`() {
             // Arrange
             val gyldigDeltaker = createValidDeltaker()
             val deltakerUtenPrisinformasjon = gyldigDeltaker.copy(

@@ -194,7 +194,7 @@ class AmtPersonServiceClientTest {
         }
 
         @Test
-        fun `skal returnere fodselsar`() = runTest {
+        fun `skal returnere fødselsår`() = runTest {
             val brukerFodselsarDto = NavBrukerFodselsarDto(Year.now().value - 20)
             runHappyPathTest(
                 expectedUrl = expectedUrl,

@@ -56,7 +56,7 @@ class OppfolgingsperiodeTest {
     }
 
     @Test
-    fun `erAktiv - pa sluttdato`() {
+    fun `erAktiv - på sluttdato`() {
         val periode =
             oppfolgingsperiodeInTest.copy(
                 startdato = now.minusDays(5),

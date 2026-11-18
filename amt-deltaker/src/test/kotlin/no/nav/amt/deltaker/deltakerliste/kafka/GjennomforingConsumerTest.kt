@@ -111,7 +111,7 @@ class GjennomforingConsumerTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `skal produsere deltaker pa topic`() = runTest {
+        fun `skal produsere deltaker på topic`() = runTest {
             // Arrange
             arrange()
             val enkeltplassPayloadInTest = lagEnkeltplassDeltakerlistePayload(
@@ -284,7 +284,7 @@ class GjennomforingConsumerTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() = runTest {
+    fun `consumeDeltakerliste - ny liste og arrangør - lagrer deltakerliste`() = runTest {
         // Arrange
         val tiltakstype = lagTiltakstype()
         tiltakRepository.upsert(tiltakstype)
@@ -372,7 +372,7 @@ class GjennomforingConsumerTest : IntegrationTestWithDbBase() {
     }
 
     @Test
-    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() = runTest {
+    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato på deltakere`() = runTest {
         // Arrange
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
@@ -399,7 +399,7 @@ class GjennomforingConsumerTest : IntegrationTestWithDbBase() {
         private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
 
         @Test
-        fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() = runTest {
+        fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttårsak`() = runTest {
             // Arrange
             navEnhetRepository.upsert(sistEndretAvNavEnhet)
             navAnsattRepository.upsert(sistEndretAvNavAnsatt)

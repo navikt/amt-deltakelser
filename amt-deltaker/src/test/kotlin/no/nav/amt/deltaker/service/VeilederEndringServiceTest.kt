@@ -822,7 +822,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `uten aktiv oppfolging kaster feil`() = runTest {
+        fun `uten aktiv oppfølging kaster feil`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
@@ -1065,7 +1065,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
     @Nested
     inner class Oppfolgingsperiode {
         @Test
-        fun `aktiv oppfolging med endring som krever oppfolging utforer endring`() = runTest {
+        fun `aktiv oppfølging med endring som krever oppfølging utfører endring`() = runTest {
             // Arrange
             val navBruker = lagNavBruker(
                 oppfolgingsperioder = listOf(
@@ -1108,7 +1108,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `ingen aktiv oppfolging med endring som krever oppfolging kaster feil`() = runTest {
+        fun `ingen aktiv oppfølging med endring som krever oppfølging kaster feil`() = runTest {
             // Arrange
             val navBruker = lagNavBruker(
                 oppfolgingsperioder = listOf(
@@ -1148,7 +1148,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `ingen aktiv oppfolging med endring som kan iverksettes uten utforer endring`() = runTest {
+        fun `ingen aktiv oppfølging med endring som kan iverksettes uten utfører endring`() = runTest {
             // Arrange
             val navBruker = lagNavBruker(
                 oppfolgingsperioder = listOf(
@@ -1198,7 +1198,7 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
     @Nested
     inner class Validering {
         @Test
-        fun `gyldigFra for startdato kaster feil`() = runTest {
+        fun `gyldigFra før startdato kaster feil`() = runTest {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),

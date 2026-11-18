@@ -87,7 +87,7 @@ class DeltakerService(
             val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
 
             deltakerRepository.upsert(deltakerToUpsert)
-            val gjeldendeDeltakerStatus = lagreDeltakerStatus(
+            lagreDeltakerStatus(
                 deltakerId = deltakerToUpsert.id,
                 nyDeltakerStatus = deltakerToUpsert.status,
                 erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
@@ -97,9 +97,7 @@ class DeltakerService(
                 DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
             }
 
-            afterDeltakerUpsert(
-                deltakerToUpsert.copy(status = gjeldendeDeltakerStatus),
-            )
+            afterDeltakerUpsert(getOrThrow(deltaker.id))
         }
     }
 
@@ -115,13 +113,12 @@ class DeltakerService(
         erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
         nesteStatus = nesteStatus,
         beforeDeltakerUpsert = beforeUpsert,
-        afterDeltakerUpsert = { deltaker ->
-            val oppdatertDeltaker = getOrThrow(deltaker.id)
-            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forceProduce)
-            log.info("Oppdatert deltaker ${deltaker.id}")
+        afterDeltakerUpsert = { deltakerFromDb ->
+            deltakerProducerService.produce(deltakerFromDb, forcedUpdate = forceProduce)
+            log.info("Oppdatert deltaker ${deltakerFromDb.id}")
 
-            afterUpsert(oppdatertDeltaker)
-            oppdatertDeltaker
+            afterUpsert(deltakerFromDb)
+            deltakerFromDb
         },
     ).getOrThrow()
 

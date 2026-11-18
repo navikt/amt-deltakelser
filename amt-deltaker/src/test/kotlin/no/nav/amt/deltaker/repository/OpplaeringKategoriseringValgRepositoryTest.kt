@@ -96,7 +96,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
         }
 
         @Test
-        fun `ulike gjennomforinger - lagres separat`() {
+        fun `ulike gjennomføringer - lagres separat`() {
             // Arrange
             val gjennomforing1 = lagDeltakerliste()
             TestRepository.insert(gjennomforing1)
@@ -146,7 +146,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
         }
 
         @Test
-        fun `henter kun for angitt gjennomforing`() {
+        fun `henter kun for angitt gjennomføring`() {
             // Arrange
             val gjennomforing1 = lagDeltakerliste()
             val gjennomforing2 = lagDeltakerliste()
@@ -176,7 +176,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
         }
 
         @Test
-        fun `returnerer alle valg for gjennomforing`() {
+        fun `returnerer alle valg for gjennomføring`() {
             // Arrange
             val gjennomforing = lagDeltakerliste()
             TestRepository.insert(gjennomforing)
@@ -212,7 +212,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
     @Nested
     inner class DeleteForGjennomforing {
         @Test
-        fun `sletter alle valg for gjennomforing`() {
+        fun `sletter alle valg for gjennomføring`() {
             // Arrange
             val gjennomforing = lagDeltakerliste()
             TestRepository.insert(gjennomforing)
@@ -240,7 +240,7 @@ class OpplaeringKategoriseringValgRepositoryTest {
         }
 
         @Test
-        fun `sletter ikke valg for andre gjennomforinger`() {
+        fun `sletter ikke valg for andre gjennomføringer`() {
             // Arrange
             val gjennomforing1 = lagDeltakerliste()
             val gjennomforing2 = lagDeltakerliste()

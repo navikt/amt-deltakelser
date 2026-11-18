@@ -129,7 +129,7 @@ class GjennomforingConsumerTest {
     @Nested
     inner class PubliserEnkeltplassDeltakerTest {
         @Test
-        fun `skal produsere deltaker når gjennomforing er enkeltplass i KLADD`() {
+        fun `skal produsere deltaker når gjennomføring er enkeltplass i KLADD`() {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste()
             val deltaker = lagDeltaker(
@@ -145,7 +145,7 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `skal ikke hente eller produsere deltaker nar gjennomforing ikke er KLADD`() {
+        fun `skal ikke hente eller produsere deltaker når gjennomføring ikke er KLADD`() {
             // Arrange
             val enkeltplassDeltakerliste = lagEnkeltplassDeltakerliste(GjennomforingStatusType.GJENNOMFORES)
 
@@ -267,7 +267,7 @@ class GjennomforingConsumerTest {
     @Nested
     inner class UnchangedGjennomforingTest {
         @Test
-        fun `skal ikke handtere deltakere hvis deltakerlisten er uendret`() = runTest {
+        fun `skal ikke håndtere deltakere hvis deltakerlisten er uendret`() = runTest {
             // Arrange
             val deltakerliste = lagGruppeDeltakerliste()
 
@@ -395,7 +395,7 @@ class GjennomforingConsumerTest {
     @Nested
     inner class AmtGjennomforingProducerTest {
         @Test
-        fun `produserer riktig payload for ny gruppegjennomforing`() = runTest {
+        fun `produserer riktig payload for ny gruppegjennomføring`() = runTest {
             // Arrange
             val gjennomforing = lagGruppeDeltakerliste()
             every { gjennomforingRepository.get(gjennomforing.id) } returns null
@@ -420,7 +420,7 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `produserer nar eksisterende gjennomforing endres`() = runTest {
+        fun `produserer når eksisterende gjennomføring endres`() = runTest {
             // Arrange
             val eksisterende = lagGruppeDeltakerliste()
             val endret = eksisterende.copy(navn = "Nytt navn på gjennomføring")
@@ -439,7 +439,7 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `produserer ikke nar gjennomforing er uendret`() = runTest {
+        fun `produserer ikke når gjennomføring er uendret`() = runTest {
             // Arrange
             val gjennomforing = lagGruppeDeltakerliste().copy(antallPlasser = 10)
             stubEksisterendeDeltakerliste(gjennomforing)
@@ -452,7 +452,7 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `produserer tombstone nar gjennomforing slettes`() = runTest {
+        fun `produserer tombstone når gjennomføring slettes`() = runTest {
             // Arrange
             val id = UUID.randomUUID()
             every { deltakerRepository.getAntallDeltakereForDeltakerliste(id) } returns 0
@@ -467,7 +467,7 @@ class GjennomforingConsumerTest {
         }
 
         @Test
-        fun `produserer ikke tombstone nar gjennomforing fortsatt har deltakere`() = runTest {
+        fun `produserer ikke tombstone når gjennomføring fortsatt har deltakere`() = runTest {
             // Arrange
             val id = UUID.randomUUID()
             every { deltakerRepository.getAntallDeltakereForDeltakerliste(id) } returns 3

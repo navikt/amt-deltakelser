@@ -11,7 +11,7 @@ class ArrangorRepositoryTest(
     private val arrangorRepository: ArrangorRepository,
 ) : RepositoryTestBase() {
     @Test
-    fun `get(uuid) - finnes - returnerer arrangor`() {
+    fun `get(uuid) - finnes - returnerer arrangør`() {
         val arrangor = TestData.lagArrangor()
         testDatabase.insertArrangor(arrangor)
         arrangorRepository.get(arrangor.id) shouldBe arrangor
@@ -23,7 +23,7 @@ class ArrangorRepositoryTest(
     }
 
     @Test
-    fun `get(orgnr) - finnes - returnerer arrangor`() {
+    fun `get(orgnr) - finnes - returnerer arrangør`() {
         val arrangor = TestData.lagArrangor()
         testDatabase.insertArrangor(arrangor)
         arrangorRepository.get(arrangor.organisasjonsnummer) shouldBe arrangor

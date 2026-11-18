@@ -135,23 +135,21 @@ class TiltakskoordinatorService(
             .transactionalDeltakerUpsert(
                 deltaker = deltakerToUpdate,
                 erDeltakerSluttdatoEndret = (deltaker.sluttdato != deltakerToUpdate.sluttdato),
-                afterDeltakerUpsert = {
+                afterDeltakerUpsert = { deltaker ->
                     endringFraTiltakskoordinatorRepository.insert(listOf(endring))
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
                         vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
                     }
 
-                    val deltakerFromDb = deltakerService.getOrThrow(deltakerToUpdate.id)
-
-                    deltakerProducerService.produce(deltakerFromDb)
+                    deltakerProducerService.produce(deltaker)
                     distribuerEndringService.produserHendelseFraTiltaksansvarlig(
-                        deltaker = deltakerFromDb,
+                        deltaker = deltaker,
                         navAnsatt = endretAv,
                         navEnhet = endretAvEnhet,
                         endringsType = endringsType,
                     )
 
-                    deltakerFromDb
+                    deltaker
                 },
             ).getOrElse { throwable ->
                 return DeltakerOppdateringResult(

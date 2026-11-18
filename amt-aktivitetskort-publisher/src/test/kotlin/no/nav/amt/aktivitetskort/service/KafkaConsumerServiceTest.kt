@@ -275,7 +275,7 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
-        fun `arrangor er ikke lagret - skal hente arrangor fra amt-arrangor`() {
+        fun `arrangør er ikke lagret - skal hente arrangør fra amt-arrangor`() {
             // Arrange
             val arrangorInTest = lagArrangor()
             val deltakerlisteInTest =
@@ -316,7 +316,7 @@ class KafkaConsumerServiceTest(
     @Nested
     inner class ArrangorHendelse {
         @Test
-        fun `arrangor modifisert - publiser melding`() {
+        fun `arrangør modifisert - publiser melding`() {
             // Arrange
             every { arrangorRepository.upsert(ctx.arrangor) } returns RepositoryResult.Modified(ctx.arrangor)
             justRun { aktivitetskortService.oppdaterAktivitetskort(ctx.arrangor) }
@@ -333,7 +333,7 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
-        fun `arrangor lagd - ikke publiser melding`() {
+        fun `arrangør lagd - ikke publiser melding`() {
             // Arrange
             every { arrangorRepository.upsert(ctx.arrangor) } returns RepositoryResult.Created(ctx.arrangor)
 
@@ -349,7 +349,7 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
-        fun `arrangor har ingen forandring - ikke publiser melding`() {
+        fun `arrangør har ingen forandring - ikke publiser melding`() {
             // Arrange
             every { arrangorRepository.upsert(ctx.arrangor) } returns RepositoryResult.NoChange()
 

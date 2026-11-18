@@ -33,12 +33,12 @@ class NavBrukerTest {
     @Nested
     inner class ErAdressebeskyttet {
         @Test
-        fun `erAdressebeskyttet skal returnere false nar adressebeskyttelse er null`() {
+        fun `erAdressebeskyttet skal returnere false når adressebeskyttelse er null`() {
             brukerInTest.erAdressebeskyttet.shouldBeFalse()
         }
 
         @Test
-        fun `erAdressebeskyttet skal returnere true nar adressebeskyttelse ikke er null`() {
+        fun `erAdressebeskyttet skal returnere true når adressebeskyttelse ikke er null`() {
             val bruker = brukerInTest.copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG)
             bruker.erAdressebeskyttet.shouldBeTrue()
         }
@@ -47,7 +47,7 @@ class NavBrukerTest {
     @Nested
     inner class GetBeskyttelsesmarkeringer {
         @Test
-        fun `getBeskyttelsesmarkeringer skal returnere tom liste nar adressebeskyttelse er null`() {
+        fun `getBeskyttelsesmarkeringer skal returnere tom liste når adressebeskyttelse er null`() {
             brukerInTest.beskyttelsesmarkeringer shouldBe emptyList()
         }
 
@@ -101,7 +101,7 @@ class NavBrukerTest {
         }
 
         @Test
-        fun `getVisningsnavn skal returnere visningsnavn nar erAdressebeskyttet og tilgangTilBruker`() {
+        fun `getVisningsnavn skal returnere visningsnavn når erAdressebeskyttet og tilgangTilBruker`() {
             val visningsnavn =
                 brukerInTest
                     .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
@@ -116,7 +116,7 @@ class NavBrukerTest {
         }
 
         @Test
-        fun `getVisningsnavn skal returnere Adressebeskyttet nar erAdressebeskyttet og ikke tilgangTilBruker`() {
+        fun `getVisningsnavn skal returnere Adressebeskyttet når erAdressebeskyttet og ikke tilgangTilBruker`() {
             val visningsnavn =
                 brukerInTest
                     .copy(adressebeskyttelse = Adressebeskyttelse.FORTROLIG)
@@ -131,7 +131,7 @@ class NavBrukerTest {
         }
 
         @Test
-        fun `getVisningsnavn skal returnere visningsnavn nar erSkjermet og tilgangTilBruker`() {
+        fun `getVisningsnavn skal returnere visningsnavn når erSkjermet og tilgangTilBruker`() {
             val visningsnavn =
                 brukerInTest
                     .copy(erSkjermet = true)
@@ -146,7 +146,7 @@ class NavBrukerTest {
         }
 
         @Test
-        fun `getVisningsnavn skal returnere Skjermet person nar erSkjermet og ikke tilgangTilBruker`() {
+        fun `getVisningsnavn skal returnere Skjermet person når erSkjermet og ikke tilgangTilBruker`() {
             val visningsnavn =
                 brukerInTest
                     .copy(erSkjermet = true)
@@ -164,12 +164,12 @@ class NavBrukerTest {
     @Nested
     inner class HarAktivOppfolgingsperiode {
         @Test
-        fun `harAktivOppfolgingsperiode skal returnere false nar oppfolgingsperioder er tom`() {
+        fun `harAktivOppfolgingsperiode skal returnere false når oppfølgingsperioder er tom`() {
             brukerInTest.harAktivOppfolgingsperiode.shouldBeFalse()
         }
 
         @Test
-        fun `harAktivOppfolgingsperiode skal returnere true nar aktiv oppfolgingsperiode`() {
+        fun `harAktivOppfolgingsperiode skal returnere true når aktiv oppfølgingsperiode`() {
             brukerInTest
                 .copy(oppfolgingsperioder = listOf(oppfolgingsperiodeInTest))
                 .harAktivOppfolgingsperiode
@@ -177,7 +177,7 @@ class NavBrukerTest {
         }
 
         @Test
-        fun `harAktivOppfolgingsperiode skal returnere false nar inaktiv oppfolgingsperiode`() {
+        fun `harAktivOppfolgingsperiode skal returnere false når inaktiv oppfølgingsperiode`() {
             val oppfolgingsperiode = oppfolgingsperiodeInTest.copy(sluttdato = LocalDateTime.now())
 
             brukerInTest

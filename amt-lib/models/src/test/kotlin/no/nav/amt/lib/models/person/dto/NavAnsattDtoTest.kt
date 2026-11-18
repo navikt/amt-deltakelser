@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class NavAnsattDtoTest {
     @Test
-    fun `Skal kunne mappe en NavAnsattDto til NavAnsatt nar alle verdier er satt`() {
+    fun `Skal kunne mappe en NavAnsattDto til NavAnsatt når alle verdier er satt`() {
         val navAnsatt = ansattDtoInTest.toModel()
 
         assertSoftly(navAnsatt) {
@@ -22,7 +22,7 @@ class NavAnsattDtoTest {
     }
 
     @Test
-    fun `Skal kunne mappe en NavAnsattDto til NavAnsatt nar epost og telefon er null`() {
+    fun `Skal kunne mappe en NavAnsattDto til NavAnsatt når epost og telefon er null`() {
         val navAnsatt =
             ansattDtoInTest
                 .copy(

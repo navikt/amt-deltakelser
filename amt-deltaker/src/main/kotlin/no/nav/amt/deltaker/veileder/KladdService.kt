@@ -129,7 +129,7 @@ class KladdService(
         ) = DeltakerKladdUpsertDbo(
             id = deltaker.id,
             navBrukerId = deltaker.navBruker.personId,
-            deltakerlisteId = deltaker.gjennomforing.id,
+            gjennomforingId = deltaker.gjennomforing.id,
             bakgrunnsinformasjon = bakgrunnsinformasjon,
             deltakelsesprosent = deltakelsesprosent?.toFloat(),
             dagerPerUke = dagerPerUke?.toFloat(),

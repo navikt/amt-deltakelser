@@ -90,7 +90,7 @@ class EnkeltplassService(
         val kladdDbo = DeltakerKladdUpsertDbo(
             id = UUID.randomUUID(),
             navBrukerId = navBruker.personId,
-            deltakerlisteId = gjennomforing.id,
+            gjennomforingId = gjennomforing.id,
             bakgrunnsinformasjon = null,
             deltakelsesinnhold = Deltakelsesinnhold(tiltakstype.innhold?.ledetekst, emptyList()),
             kilde = Kilde.KOMET,

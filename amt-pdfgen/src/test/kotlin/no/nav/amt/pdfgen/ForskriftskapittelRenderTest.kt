@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.amt.internapi.journalforing.pdf.Forskriftskapittel
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.pdfgen.util.DtoBuilders.endringsvedtak
 import no.nav.amt.pdfgen.util.DtoBuilders.hovedvedtak
@@ -155,6 +156,24 @@ class ForskriftskapittelRenderTest :
                     val vedtak = hovedvedtakVedTildeltPlass(forskriftskapittel = kapittel)
                     val doc = render("hovedvedtak-tildelt-plass-felles-oppstart", vedtak)
 
+                    doc.text() shouldContain "forskrift om arbeidsmarkedstiltak kapittel ${kapittel.verdi}"
+                }
+            }
+        }
+
+        describe("Hovedvedtak ved tildelt plass med løpende oppstart og Forskriftskapittel") {
+            Forskriftskapittel.entries.forEach { kapittel ->
+                it("skal rendre hovedvedtak ved tildelt plass med $kapittel") {
+                    // Arrange
+                    val vedtak = hovedvedtakVedTildeltPlass(
+                        oppstartstype = Oppstartstype.LOPENDE,
+                        forskriftskapittel = kapittel,
+                    )
+
+                    // Act
+                    val doc = render("hovedvedtak-tildelt-plass-loepende-oppstart", vedtak)
+
+                    // Assert
                     doc.text() shouldContain "forskrift om arbeidsmarkedstiltak kapittel ${kapittel.verdi}"
                 }
             }

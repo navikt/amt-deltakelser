@@ -149,7 +149,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `skal returnere null naar prisinfo ikke finnes`() {
+        fun `skal returnere null når prisinfo ikke finnes`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -528,7 +528,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `godkjennOkonomi returnerer false for historisk prisinformasjonId og lar mappinger vaere uendret`() {
+        fun `godkjennOkonomi returnerer false for historisk prisinformasjonId og lar mappinger være uendret`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -627,7 +627,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `lagrer Tilskudd prisinfo med belop`() {
+        fun `lagrer Tilskudd prisinfo med beløp`() {
             // Arrange
             TestRepository.insert(gjennomforingInTest)
 
@@ -705,7 +705,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `lagrer Tilskudd prisinfo med belop`() {
+        fun `lagrer Tilskudd prisinfo med beløp`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -890,7 +890,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `kaster exception naar ingen ENDRING finnes`() {
+        fun `kaster exception når ingen ENDRING finnes`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -902,7 +902,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `paavirker ikke GJELDENDE naar ENDRING tilbakekalles`() {
+        fun `påvirker ikke GJELDENDE når ENDRING tilbakekalles`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
@@ -1035,7 +1035,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `mapper godkjent tilskudd med belop til prisinformasjon`() {
+        fun `mapper godkjent tilskudd med beløp til prisinformasjon`() {
             // Arrange
             val tilskudd = Tilskudd(
                 tilleggsopplysninger = "Tilskuddsinformasjon",
@@ -1065,7 +1065,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `mapper flere godkjente tilskudd med riktige belop i ett kall`() {
+        fun `mapper flere godkjente tilskudd med riktige beløp i ett kall`() {
             // Arrange - forste tilskudd godkjennes for vedtaket fattes
             val forsteTilskudd = Tilskudd(
                 tilleggsopplysninger = "Forste",
@@ -1104,7 +1104,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `skiller forste godkjenning fra senere prisendring`() {
+        fun `skiller første godkjenning fra senere prisendring`() {
             // Arrange - forste godkjenning skjedde da vedtaket ble fattet
             val forsteId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = deltakerliste.id,
@@ -1164,7 +1164,7 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `returnerer godkjenner nar godkjenning er lagret`() {
+        fun `returnerer godkjenner når godkjenning er lagret`() {
             // Arrange
             val endringId = PrisinfoRepoAdapter.lagrePrisinfoEndring(
                 gjennomforingId = deltakerliste.id,

@@ -387,7 +387,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `legg til tilgang - har ikke tilgang fra for - returnerer 200`() {
+    fun `legg til tilgang - har ikke tilgang fra før - returnerer 200`() {
         coEvery {
             selfServiceTilgangskontrollService.leggTilTiltakskoordinatorTilgang(
                 any(),
@@ -405,7 +405,7 @@ class TiltakskoordinatorDeltakerlisteApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `legg til tilgang - har tilgang fra for - returnerer 400`() {
+    fun `legg til tilgang - har tilgang fra før - returnerer 400`() {
         coEvery {
             selfServiceTilgangskontrollService.leggTilTiltakskoordinatorTilgang(
                 any(),

@@ -77,7 +77,7 @@ class DeltakerlisteRepositoryTest {
     }
 
     @Test
-    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() {
+    fun `get - deltakerliste og arrangør finnes - henter deltakerliste`() {
         val overordnetArrangor = lagArrangor()
         arrangorRepository.upsert(overordnetArrangor)
 
