@@ -35,7 +35,7 @@ class VeilarboppfolgingClientTest(
 ) : RestClientTestBase(VEILARBOPPFOLGING_CLIENT_ID) {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `hentOppfolgingperiode - returnerer gyldig oppfolgingsperiode`(useEndDate: Boolean) {
+    fun `hentOppfolgingperiode - returnerer gyldig oppfølgingsperiode`(useEndDate: Boolean) {
         val uuid = UUID.randomUUID()
         val startDatoUtc = ZonedDateTime.now(ZoneOffset.UTC)
         val sluttDatoUtc = if (useEndDate) startDatoUtc.plusDays(1) else null

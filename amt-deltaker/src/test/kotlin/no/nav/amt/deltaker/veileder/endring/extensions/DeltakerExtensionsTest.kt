@@ -224,7 +224,7 @@ class DeltakerExtensionsTest {
     }
 
     @Test
-    fun `endreDeltakersOppstart - beholder status nar statusen ikke endres`() {
+    fun `endreDeltakersOppstart - beholder status når statusen ikke endres`() {
         val status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR)
         val startdato = LocalDate.now().minusDays(1)
         val deltaker = TestData.lagDeltaker(

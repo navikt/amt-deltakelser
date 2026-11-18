@@ -107,7 +107,7 @@ class DeltakerlisteRepositoryTest(
         }
 
         @Test
-        fun `endret arrangor - returnerer Modified Result og oppdaterer database`() {
+        fun `endret arrangør - returnerer Modified Result og oppdaterer database`() {
             val initialDeltakerliste = lagDeltakerliste()
                 .also { testDatabase.insertArrangor(lagArrangor(it.arrangorId)) }
                 .also { deltakerlisteRepository.upsert(it) }

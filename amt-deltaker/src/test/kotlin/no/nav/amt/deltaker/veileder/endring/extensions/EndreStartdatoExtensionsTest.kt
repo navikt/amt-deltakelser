@@ -92,7 +92,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter på oppstart - deltaker blir har sluttet`() {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endringsrequest = StartdatoRequest(
@@ -120,7 +120,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`() {
+    fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter på oppstart - blir ikke aktuell`() {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endringsrequest = StartdatoRequest(
@@ -175,7 +175,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`() {
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, fullført - deltaker blir venter på oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             startdato = LocalDate.now().minusWeeks(10),
@@ -206,7 +206,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - startdato i morgen og sluttdato i fremtid, deltar - blir venter pa oppstart`() {
+    fun `oppdaterDeltaker - startdato i morgen og sluttdato i fremtid, deltar - blir venter på oppstart`() {
         val idag = LocalDate.now()
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val endringsrequest = StartdatoRequest(
@@ -303,7 +303,7 @@ class EndreStartdatoExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - manglende startdato og sluttdato i fremtid - deltaker blir venter pa oppstart`() {
+    fun `oppdaterDeltaker - manglende startdato og sluttdato i fremtid - deltaker blir venter på oppstart`() {
         val idag = LocalDate.now()
         val nySluttdato = idag.plusWeeks(6)
         val deltaker = TestData.lagDeltaker(

@@ -258,7 +258,7 @@ class InputvalideringTest {
     }
 
     @Test
-    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er foer startdato, status VENTER_PA_OPPSTART - kaster exception`() {
+    fun `EndreDeltakelsesmengdeRequest valider - gyldigFra er før startdato, status VENTER_PA_OPPSTART - kaster exception`() {
         val startdato = LocalDate.now().plusDays(10)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -622,21 +622,21 @@ class InputvalideringTest {
     @Nested
     inner class HarEndretSluttaarsakTest {
         @Test
-        fun `harEndretSluttaarsak - ulike aarsaker - returnerer true`() {
+        fun `harEndretSluttaarsak - ulike årsaker - returnerer true`() {
             val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
             val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.SYK, null)
             harEndretSluttaarsak(opprinnelig, ny) shouldBe true
         }
 
         @Test
-        fun `harEndretSluttaarsak - like aarsaker - returnerer false`() {
+        fun `harEndretSluttaarsak - like årsaker - returnerer false`() {
             val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
             val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null)
             harEndretSluttaarsak(opprinnelig, ny) shouldBe false
         }
 
         @Test
-        fun `harEndretSluttaarsak - ny aarsak er null, opprinnelig finnes - returnerer true`() {
+        fun `harEndretSluttaarsak - ny årsak er null, opprinnelig finnes - returnerer true`() {
             val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.FATT_JOBB, null)
             harEndretSluttaarsak(opprinnelig, null) shouldBe true
         }
@@ -653,14 +653,14 @@ class InputvalideringTest {
         }
 
         @Test
-        fun `harEndretSluttaarsak - like aarsaker med ulik beskrivelse - returnerer true`() {
+        fun `harEndretSluttaarsak - like årsaker med ulik beskrivelse - returnerer true`() {
             val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.ANNET, "beskrivelse1")
             val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, "beskrivelse2")
             harEndretSluttaarsak(opprinnelig, ny) shouldBe true
         }
 
         @Test
-        fun `harEndretSluttaarsak - like aarsaker med lik beskrivelse - returnerer false`() {
+        fun `harEndretSluttaarsak - like årsaker med lik beskrivelse - returnerer false`() {
             val opprinnelig = DeltakerStatus.Aarsak(DeltakerStatus.Aarsak.Type.ANNET, "beskrivelse")
             val ny = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, "beskrivelse")
             harEndretSluttaarsak(opprinnelig, ny) shouldBe false

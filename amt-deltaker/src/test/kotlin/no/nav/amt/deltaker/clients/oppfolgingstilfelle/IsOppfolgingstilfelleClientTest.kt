@@ -27,7 +27,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - ingen oppfolgingstilfeller - returnerer false`() = runTest {
+    fun `erSykmeldtMedArbeidsgiver - ingen oppfølgingstilfeller - returnerer false`() = runTest {
         runHappyPathTest(
             responseBody = OppfolgingstilfellePersonResponse(emptyList()),
             expectedResult = false,
@@ -35,7 +35,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle, ikke arbeidsgiver - returnerer false`() = runTest {
+    fun `erSykmeldtMedArbeidsgiver - har oppfølgingstilfelle, ikke arbeidsgiver - returnerer false`() = runTest {
         runHappyPathTest(
             responseBody = OppfolgingstilfellePersonResponse(
                 listOf(
@@ -51,7 +51,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - oppfolgingstilfelle avsluttet - returnerer false`() = runTest {
+    fun `erSykmeldtMedArbeidsgiver - oppfølgingstilfelle avsluttet - returnerer false`() = runTest {
         runHappyPathTest(
             responseBody = OppfolgingstilfellePersonResponse(
                 listOf(
@@ -67,7 +67,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle og arbeidsgiver - returnerer true`() = runTest {
+    fun `erSykmeldtMedArbeidsgiver - har oppfølgingstilfelle og arbeidsgiver - returnerer true`() = runTest {
         runHappyPathTest(
             responseBody = OppfolgingstilfellePersonResponse(
                 listOf(

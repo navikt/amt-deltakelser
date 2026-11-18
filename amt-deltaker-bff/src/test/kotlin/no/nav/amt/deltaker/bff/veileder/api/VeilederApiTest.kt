@@ -59,6 +59,7 @@ import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -439,7 +440,7 @@ class VeilederApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `oppdater prisinfo - endrer type etter at okonomi er godkjent - returnerer 400`() {
+            fun `oppdater prisinfo - endrer type etter at økonomi er godkjent - returnerer 400`() {
                 // gjeldende prisinfo er Anskaffelse, request er IngenKostnader (typeendring)
                 // status VENTER_PA_OPPSTART er for sent til å endre type
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
@@ -458,7 +459,7 @@ class VeilederApiTest : IntegrationTestBase() {
             }
 
             @Test
-            fun `oppdater prisinfo - endrer type ved status sokt inn - returnerer deltaker`() {
+            fun `oppdater prisinfo - endrer type ved status søkt inn - returnerer deltaker`() {
                 // typeendring (Anskaffelse -> IngenKostnader) er lov ved status SOKT_INN
                 val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN))
                 val expected = setupMocksLocal(deltaker, deltaker)
@@ -536,7 +537,8 @@ class VeilederApiTest : IntegrationTestBase() {
         // ---- sluttårsak ----
 
         @Test
-        fun `endre sluttarsak - har tilgang - returnerer oppdatert deltaker`() {
+        @DisplayName("POST /deltaker/{deltakerId}/sluttarsak - har tilgang - returnerer oppdatert deltaker")
+        fun `endre sluttårsak - har tilgang - returnerer oppdatert deltaker`() {
             val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET))
             val oppdatert = deltaker.copy(
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, sluttarsakRequest.aarsak.toDeltakerStatusAarsak()),

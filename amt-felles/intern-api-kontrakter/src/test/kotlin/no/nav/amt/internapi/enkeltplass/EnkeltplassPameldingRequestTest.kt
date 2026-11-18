@@ -39,7 +39,7 @@ class EnkeltplassPameldingRequestTest {
     }
 
     @Test
-    fun `kaster exception naar sluttdato er for startdato`() {
+    fun `kaster exception når sluttdato er før startdato`() {
         shouldThrow<IllegalArgumentException> {
             EnkeltplassPameldingRequest(
                 beskrivelse = "Beskrivelse",

@@ -136,7 +136,7 @@ class ForslagServiceTest {
         }
 
         @Test
-        fun `avvisForslag - setter avvist tidspunkt til naa`() = runTest {
+        fun `avvisForslag - setter avvist tidspunkt til nå`() = runTest {
             // Arrange
             val deltaker = TestData.lagDeltaker()
             TestRepository.insert(deltaker)
@@ -205,7 +205,7 @@ class ForslagServiceTest {
         }
 
         @Test
-        fun `godkjennForslag - setter godkjent tidspunkt til naa`() = runTest {
+        fun `godkjennForslag - setter godkjent tidspunkt til nå`() = runTest {
             // Arrange
             val deltaker = TestData.lagDeltaker()
             TestRepository.insert(deltaker)

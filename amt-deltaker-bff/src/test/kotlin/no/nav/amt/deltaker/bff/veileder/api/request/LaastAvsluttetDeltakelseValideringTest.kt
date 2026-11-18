@@ -221,7 +221,7 @@ class LaastAvsluttetDeltakelseValideringTest {
     @Nested
     inner class EndreSluttarsakValideringLaastDeltaker {
         @Test
-        fun `skal tillate endring av sluttarsak for låst nylig avsluttet deltaker`() {
+        fun `skal tillate endring av sluttårsak for låst nylig avsluttet deltaker`() {
             val request = EndreSluttarsakRequest(
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = "begrunnelse",

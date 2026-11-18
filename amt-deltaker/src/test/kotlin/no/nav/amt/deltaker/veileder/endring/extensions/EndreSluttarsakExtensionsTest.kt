@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class EndreSluttarsakExtensionsTest {
     @Test
-    fun `endret sluttarsak`() {
+    fun `endret sluttårsak`() {
         val resultat = endringsrequest
             .toEndring()
             .anvendPaaDeltaker(

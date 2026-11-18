@@ -101,7 +101,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
+    fun `toDeltakelserResponse - venter på oppstart - returnerer riktig aktiv deltakelse`() {
         val deltaker = lagDeltaker(
             gjennomforing = lagDeltakerliste(
                 tiltakstype = lagTiltakstype(
@@ -422,7 +422,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
+    fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse først`() {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
                 tiltakskode = Tiltakskode.OPPFOLGING,
@@ -481,7 +481,7 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
+    fun `toDeltakelserResponse - påbegynt registrering - returnerer tomme lister`() {
         val deltaker = lagDeltaker(
             gjennomforing = lagDeltakerliste(
                 arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),

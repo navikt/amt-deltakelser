@@ -656,7 +656,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `oppdaterDeltakere - deltakere paa ulik deltakerliste - kaster AuthorizationException`() = runTest {
+        fun `oppdaterDeltakere - deltakere på ulik deltakerliste - kaster AuthorizationException`() = runTest {
             // Arrange
             val laastDeltaker = lagDeltaker()
             val deltaker2 = lagDeltaker()
@@ -965,7 +965,7 @@ class TiltakskoordinatorServiceTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `giAvslag - aarsak ANNET med beskrivelse - lagrer beskrivelse`() = runTest {
+        fun `giAvslag - årsak ANNET med beskrivelse - lagrer beskrivelse`() = runTest {
             with(EndringFraTiltakskoordinatorCtx()) {
                 // Arrange
                 medInnsok()

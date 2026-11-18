@@ -156,7 +156,7 @@ class InnsokServiceTest {
     }
 
     @Test
-    fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter dager per uke ved innsok`() {
+    fun `nyttInnsokUtkastGodkjentAvNav - enkeltplass setter dager per uke ved innsøk`() {
         mockkObject(PrisinfoRepoAdapter)
         every { PrisinfoRepoAdapter.hentPrisinfo(any()) } returns Anskaffelse(pris = 1000)
         val deltaker = lagDeltaker(

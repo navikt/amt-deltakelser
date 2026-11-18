@@ -85,7 +85,7 @@ class DeltakerStatusRepositoryTest {
     @Nested
     inner class GetAvsluttendeDeltakerStatuserForOppdatering {
         @Test
-        fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() {
+        fun `returnerer tom liste når ingen deltaker har aktiv DELTAR-status`() {
             // Arrange
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(

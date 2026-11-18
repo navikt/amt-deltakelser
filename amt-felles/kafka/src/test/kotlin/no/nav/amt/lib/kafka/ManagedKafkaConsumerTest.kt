@@ -166,7 +166,7 @@ class ManagedKafkaConsumerTest {
     }
 
     @Test
-    fun `ManagedKafkaConsumer - filtrerer records og skipper dem uten aa kalle consume`() = runTest {
+    fun `ManagedKafkaConsumer - filtrerer records og skipper dem uten å kalle consume`() = runTest {
         val key1 = "skip-me"
         val key2 = "process-me-1"
         val key3 = "skip-me"

@@ -78,7 +78,7 @@ class TiltaksarrangorServiceTest(
     }
 
     @Test
-    fun `getDeltaker - ansatt har ikke rolle hos arrangor - returnerer unauthorized`() {
+    fun `getDeltaker - ansatt har ikke rolle hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         val deltakerliste = getDeltakerliste(arrangorId)
@@ -207,7 +207,7 @@ class TiltaksarrangorServiceTest(
     }
 
     @Test
-    fun `getDeltaker - mangler forste vedtaksdato - bruker innsoktdato`() {
+    fun `getDeltaker - mangler første vedtaksdato - bruker innsøkingsdato`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         val deltakerliste = getDeltakerliste(arrangorId)
@@ -628,7 +628,7 @@ class TiltaksarrangorServiceTest(
     }
 
     @Test
-    fun `fjernDeltaker - ansatt har ikke rolle hos arrangor - returnerer unauthorized`() {
+    fun `fjernDeltaker - ansatt har ikke rolle hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         val deltakerliste = getDeltakerliste(arrangorId)
@@ -690,7 +690,7 @@ class TiltaksarrangorServiceTest(
     }
 
     @Test
-    fun `fjernDeltaker - deltaker venter pa oppstart og ansatt har tilgang - returnerer illegal state exception`() {
+    fun `fjernDeltaker - deltaker venter på oppstart og ansatt har tilgang - returnerer illegal state exception`() {
         val personIdent = "12345678910"
         val arrangorId = UUID.randomUUID()
         val deltakerliste = getDeltakerliste(arrangorId)
@@ -727,7 +727,7 @@ class TiltaksarrangorServiceTest(
     @Nested
     inner class RegistrerVurderingTests {
         @Test
-        fun `registrerVurdering - ansatt har ikke rolle hos arrangor - returnerer unauthorized`() {
+        fun `registrerVurdering - ansatt har ikke rolle hos arrangør - returnerer unauthorized`() {
             val personIdent = "12345678910"
             val arrangorId = UUID.randomUUID()
             val deltakerliste = getDeltakerliste(arrangorId)
@@ -811,7 +811,7 @@ class TiltaksarrangorServiceTest(
         }
 
         @Test
-        fun `registrerVurdering - deltaker venter pa oppstart og ansatt har tilgang - returnerer illegal state exception`() {
+        fun `registrerVurdering - deltaker venter på oppstart og ansatt har tilgang - returnerer illegal state exception`() {
             val personIdent = "12345678910"
             val arrangorId = UUID.randomUUID()
             val deltakerliste = getDeltakerliste(arrangorId)

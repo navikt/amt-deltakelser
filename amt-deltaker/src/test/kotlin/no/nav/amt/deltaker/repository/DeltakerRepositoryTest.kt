@@ -412,7 +412,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `skal returnere deltakere med sluttdato storre enn deltakerliste sluttdato`() {
+        fun `skal returnere deltakere med sluttdato større enn deltakerliste sluttdato`() {
             setOf(
                 LocalDate.now().plusDays(1), // skal returneres
                 LocalDate.now().minusDays(2),
@@ -546,7 +546,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `venter pa oppstart, sluttdato mangler - returnerer ikke deltaker`() {
+        fun `venter på oppstart, sluttdato mangler - returnerer ikke deltaker`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().minusDays(10),
@@ -763,7 +763,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `inkluderer vedtak_fattet naar gyldig vedtak finnes`() {
+        fun `inkluderer vedtak_fattet når gyldig vedtak finnes`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
@@ -821,7 +821,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `filtrerer paa deltakerlisteId - deltakelser i andre lister ignoreres`() {
+        fun `filtrerer på deltakerlisteId - deltakelser i andre lister ignoreres`() {
             // Arrange — samme person med deltakelse i to ulike lister
             val bruker = lagNavBruker()
             val annenListe = lagDeltakerliste()
@@ -841,7 +841,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `flere deltakelser paa samme person i samme liste - alle returneres`() {
+        fun `flere deltakelser på samme person i samme liste - alle returneres`() {
             // Arrange — én bruker har to deltakelser i samme deltakerliste (tidligere + aktiv)
             val bruker = lagNavBruker()
             val deltakerliste = lagDeltakerliste()
@@ -888,7 +888,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `deltaker uten arena-import, innsok eller vedtak - returnerer null`() {
+        fun `deltaker uten arena-import, innsøk eller vedtak - returnerer null`() {
             // Arrange
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
@@ -920,7 +920,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `deltaker med innsok paa felles oppstart - bruker innsokt-dato`() {
+        fun `deltaker med innsøk på felles oppstart - bruker innsøkt-dato`() {
             // Arrange
             val ansatt = lagNavAnsatt()
             val enhet = lagNavEnhet()
@@ -968,7 +968,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `arena-import prioriteres over innsok og vedtak`() {
+        fun `arena-import prioriteres over innsøk og vedtak`() {
             // Arrange
             val deltaker = lagDeltaker()
             val ansatt = lagNavAnsatt()
@@ -1003,7 +1003,7 @@ class DeltakerRepositoryTest {
         }
 
         @Test
-        fun `innsok prioriteres over vedtak naar arena-import mangler`() {
+        fun `innsøk prioriteres over vedtak når arena-import mangler`() {
             // Arrange
             val deltaker = lagDeltaker()
             val ansatt = lagNavAnsatt()

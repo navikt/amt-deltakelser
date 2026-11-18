@@ -257,7 +257,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal melde pa deltaker direkte`() = runTest {
+        fun `skal melde på deltaker direkte`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker()
 
@@ -304,7 +304,7 @@ class EnkeltplassApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sluttdato for startdato gir BadRequest`() = runTest {
+        fun `sluttdato før startdato gir BadRequest`() = runTest {
             // Arrange
             val deltakerInTest = lagDeltaker()
             val validRequest = EnkeltplassPameldingDecoratedRequest(

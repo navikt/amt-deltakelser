@@ -19,7 +19,7 @@ class GenericCacheTest {
     }
 
     @Test
-    fun `getOrThrow - skal kaste feil hvis nokkel ikke finnes i cache`() {
+    fun `getOrThrow - skal kaste feil hvis nøkkel ikke finnes i cache`() {
         shouldThrow<NoSuchElementException> {
             cache.getOrThrow(UUID.randomUUID())
         }

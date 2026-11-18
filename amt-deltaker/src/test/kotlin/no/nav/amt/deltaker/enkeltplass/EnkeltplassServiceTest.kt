@@ -155,7 +155,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         )
 
         @Test
-        fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
+        fun `skal kaste exception for gjennomføring som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
                 gjennomforing = kladdDeltakerInTest.gjennomforing.copy(gjennomforingstype = GjennomforingType.Gruppe),
@@ -214,7 +214,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sertifiseringValg tomt sett - sletter eksisterende uten aa lagre nye`() = runTest {
+        fun `sertifiseringValg tomt sett - sletter eksisterende uten å lagre nye`() = runTest {
             // Arrange
             every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
@@ -262,7 +262,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal ikke lagre prisinformasjon naar den er null`() = runTest {
+        fun `skal ikke lagre prisinformasjon når den er null`() = runTest {
             // Arrange
             every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
@@ -280,7 +280,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal oppdatere prisinformasjon naar gitt`() = runTest {
+        fun `skal oppdatere prisinformasjon når gitt`() = runTest {
             // Arrange
             every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
@@ -305,7 +305,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal oppdatere dato-felter naar gitt`() = runTest {
+        fun `skal oppdatere dato-felter når gitt`() = runTest {
             // Arrange
             every { gjennomforingRepository.update(any()) } just Runs
             every { deltakerRepository.updateEnkeltplass(any()) } just Runs
@@ -382,7 +382,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         // Complex tests that require database access are in EnkeltplassServiceIntegrationTest
 
         @Test
-        fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
+        fun `skal kaste exception for gjennomføring som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
                 gjennomforing = kladdDeltakerInTest.gjennomforing.copy(
@@ -419,7 +419,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
     @Nested
     inner class OppdaterUtkastTests {
         @Test
-        fun `skal oppdatere deltaker og vedtak uten aa endre status`() = runTest {
+        fun `skal oppdatere deltaker og vedtak uten å endre status`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
                 status = kladdDeltakerInTest.status.copy(
@@ -460,7 +460,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal kaste exception for gjennomforing som ikke er enkeltplass`() = runTest {
+        fun `skal kaste exception for gjennomføring som ikke er enkeltplass`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
                 gjennomforing = kladdDeltakerInTest.gjennomforing.copy(
@@ -477,7 +477,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `skal kaste exception for gjennomforing som ikke er i KLADD status`() = runTest {
+        fun `skal kaste exception for gjennomføring som ikke er i KLADD status`() = runTest {
             // Arrange
             val deltaker = kladdDeltakerInTest.copy(
                 gjennomforing = kladdDeltakerInTest.gjennomforing.copy(status = GjennomforingStatusType.GJENNOMFORES),

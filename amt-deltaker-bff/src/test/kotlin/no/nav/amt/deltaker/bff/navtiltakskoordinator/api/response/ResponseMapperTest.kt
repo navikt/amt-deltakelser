@@ -21,7 +21,7 @@ class ResponseMapperTest {
     @Nested
     inner class BuildDeltakerDetaljerResponse {
         @Test
-        fun `skal bruke delte typer for veileder, vurdering og statusarsak`() {
+        fun `skal bruke delte typer for veileder, vurdering og statusårsak`() {
             val veileder = NavVeilederResponse("Veileder", "12345678", "veileder@nav.no")
             val vurdering = VurderingResponse(Vurderingstype.OPPFYLLER_IKKE_KRAVENE, "Begrunnelse")
             val deltaker = TestData
@@ -43,7 +43,7 @@ class ResponseMapperTest {
         }
 
         @Test
-        fun `skal gi tom veileder, ingen vurdering og ingen statusarsak nar de mangler`() {
+        fun `skal gi tom veileder, ingen vurdering og ingen statusårsak når de mangler`() {
             val deltaker = TestData
                 .lagDeltakerModel()
                 .let { it.copy(navBruker = it.navBruker.copy(navVeileder = null), sisteVurdering = null) }
@@ -63,12 +63,12 @@ class ResponseMapperTest {
         }
 
         @Test
-        fun `skal returnere null hvis pameldingstype er null`() {
+        fun `skal returnere null hvis påmeldingstype er null`() {
             getDeltakelsesinnholdAnnet(true, null, null) shouldBe null
         }
 
         @Test
-        fun `skal returnere null hvis pameldingstype er DIREKTE_VEDTAK`() {
+        fun `skal returnere null hvis påmeldingstype er DIREKTE_VEDTAK`() {
             getDeltakelsesinnholdAnnet(true, GjennomforingPameldingType.DIREKTE_VEDTAK, null) shouldBe null
         }
 

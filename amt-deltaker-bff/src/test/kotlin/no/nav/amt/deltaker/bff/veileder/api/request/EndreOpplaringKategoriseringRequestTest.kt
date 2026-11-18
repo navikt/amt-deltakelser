@@ -22,7 +22,7 @@ class EndreOpplaringKategoriseringRequestTest {
     @Nested
     inner class ValiderTest {
         @Test
-        fun `valider - status fra og med sokt inn - skal ikke kaste exception`() {
+        fun `valider - status fra og med søkt inn - skal ikke kaste exception`() {
             // Arrange
             val deltaker = TestData.lagDeltakerModel(
                 gjennomforingResponse = TestData.lagGjennomforingResponse().copy(type = GjennomforingType.Enkeltplass),

@@ -76,7 +76,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut bransje og forerkort`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - flater ut bransje og førerkort`() {
         // Arrange
         val valgtBransjeId = UUID.randomUUID()
         val valgtForerkortId = UUID.randomUUID()
@@ -193,7 +193,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `tilvalgteKategoriseringerOgSertifiseringer - tomt resultat nar ingenting er valgt`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer - tomt resultat når ingenting er valgt`() {
         val opplaringKategoriseringResponse = OpplaringKategoriseringResponse(
             tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             alternativer = listOf(
@@ -346,7 +346,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - kun larefag valgt - returnerer utdanningsprogram og larefag`() {
+    fun `tilvalgteKategoriseringerOgSertifiseringer for UtdanningGruppe - kun lærefag valgt - returnerer utdanningsprogram og lærefag`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId1 = UUID.randomUUID()
         val valgtLaerefagId2 = UUID.randomUUID()
@@ -415,7 +415,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `flere utdanninger men kun en har valgt larefag - returnerer riktig`() {
+    fun `flere utdanninger men kun en har valgt lærefag - returnerer riktig`() {
         val valgtUtdanningsprogramId1 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
@@ -490,7 +490,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `larefag valgt i andre utdanning mens forste ikke har noe valgt - returnerer andre`() {
+    fun `lærefag valgt i andre utdanning mens første ikke har noe valgt - returnerer andre`() {
         val valgtUtdanningsprogramId2 = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 
@@ -564,7 +564,7 @@ class OpplaringKategoriseringResponseExtensionsTest {
     }
 
     @Test
-    fun `både utdanning og larefag valgt - returnerer begge`() {
+    fun `både utdanning og lærefag valgt - returnerer begge`() {
         val valgtUtdanningsprogramId = UUID.randomUUID()
         val valgtLaerefagId = UUID.randomUUID()
 

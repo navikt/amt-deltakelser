@@ -54,40 +54,39 @@ class EndringsvedtakJobTest {
     }
 
     @Test
-    fun `journalforEndringsvedtak - journalforer og distribuerer endringsvedtak naar nyeste hendelse er eldre enn graceperiode`() =
-        runTest {
-            val deltakerIdA = UUID.randomUUID()
-            val deltakerIdB = UUID.randomUUID()
+    fun `journalforEndringsvedtak - journalfører og distribuerer endringsvedtak når nyeste hendelse er eldre enn graceperiode`() = runTest {
+        val deltakerIdA = UUID.randomUUID()
+        val deltakerIdB = UUID.randomUUID()
 
-            val hendelser = listOf(
-                // Deltaker A: to endringsvedtak, begge eldre enn graceperiode => skal behandles samlet
-                hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(60)),
-                hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(40)),
-                // Deltaker B: endringsvedtak men nyeste er innenfor graceperiode => skal ikke behandles
-                hendelseMedStatus(deltakerId = deltakerIdB, opprettet = LocalDateTime.now().minusMinutes(10)),
-                // Ikke-endringsvedtak (utkast) skal filtreres bort
-                hendelseMedStatus(
-                    deltakerId = deltakerIdA,
-                    opprettet = LocalDateTime.now().minusMinutes(70),
-                    payload = HendelseTypeData.opprettUtkast(),
-                ),
+        val hendelser = listOf(
+            // Deltaker A: to endringsvedtak, begge eldre enn graceperiode => skal behandles samlet
+            hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(60)),
+            hendelseMedStatus(deltakerId = deltakerIdA, opprettet = LocalDateTime.now().minusMinutes(40)),
+            // Deltaker B: endringsvedtak men nyeste er innenfor graceperiode => skal ikke behandles
+            hendelseMedStatus(deltakerId = deltakerIdB, opprettet = LocalDateTime.now().minusMinutes(10)),
+            // Ikke-endringsvedtak (utkast) skal filtreres bort
+            hendelseMedStatus(
+                deltakerId = deltakerIdA,
+                opprettet = LocalDateTime.now().minusMinutes(70),
+                payload = HendelseTypeData.opprettUtkast(),
+            ),
+        )
+
+        val test = testSetup(hendelser)
+
+        test.job.journalforEndringsvedtak()
+
+        coVerify(exactly = 1) {
+            test.journalforingService.journalforOgDistribuerEndringsvedtak(
+                match { liste ->
+                    liste.size == 2 && liste.all { it.hendelse.deltaker.id == deltakerIdA }
+                },
             )
-
-            val test = testSetup(hendelser)
-
-            test.job.journalforEndringsvedtak()
-
-            coVerify(exactly = 1) {
-                test.journalforingService.journalforOgDistribuerEndringsvedtak(
-                    match { liste ->
-                        liste.size == 2 && liste.all { it.hendelse.deltaker.id == deltakerIdA }
-                    },
-                )
-            }
         }
+    }
 
     @Test
-    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalfores som endringsvedtak`() = runTest {
+    fun `journalforEndringsvedtak - EnkeltplassEndrePrisinfo eldre enn graceperiode - journalføres som endringsvedtak`() = runTest {
         val deltakerId = UUID.randomUUID()
 
         val hendelser = listOf(
@@ -187,7 +186,7 @@ class EndringsvedtakJobTest {
     }
 
     @Test
-    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalforing feiler for en deltaker`() = runTest {
+    fun `journalforEndringsvedtak - fortsetter med neste deltaker hvis journalføring feiler for en deltaker`() = runTest {
         val deltakerIdA = UUID.randomUUID()
         val deltakerIdB = UUID.randomUUID()
 

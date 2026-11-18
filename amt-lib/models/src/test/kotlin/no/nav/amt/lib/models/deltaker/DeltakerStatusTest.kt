@@ -37,7 +37,7 @@ class DeltakerStatusTest {
         }
 
         @Test
-        fun `forskjellig aarsak - skal returnere false`() {
+        fun `forskjellig årsak - skal returnere false`() {
             val otherDeltakerStatus = deltakerStatusInTest.copy(
                 id = UUID.randomUUID(),
                 aarsak = Aarsak(

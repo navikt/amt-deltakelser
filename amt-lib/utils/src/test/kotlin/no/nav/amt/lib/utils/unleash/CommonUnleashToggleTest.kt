@@ -51,7 +51,7 @@ class CommonUnleashToggleTest {
             value = Tiltakskode::class,
             names = [],
         )
-        fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er pa for kanskje-master-typer`(kode: Tiltakskode) {
+        fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er på for kanskje-master-typer`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) } returns true
 
             sut.erKometMasterForTiltakstype(kode) shouldBe true
@@ -84,14 +84,14 @@ class CommonUnleashToggleTest {
                 "HOYERE_UTDANNING",
             ],
         )
-        fun `returnerer true nar toggle LES_ARENA_DELTAKERE er pa og tiltakstype er lesbar`(kode: Tiltakskode) {
+        fun `returnerer true når toggle LES_ARENA_DELTAKERE er på og tiltakstype er lesbar`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns true
 
             sut.skalLeseArenaDataForTiltakstype(kode) shouldBe true
         }
 
         @Test
-        fun `returnerer false nar toggle LES_ARENA_DELTAKERE er av`() {
+        fun `returnerer false når toggle LES_ARENA_DELTAKERE er av`() {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns false
 
             sut.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) shouldBe false
@@ -118,7 +118,7 @@ class CommonUnleashToggleTest {
                 "HOYERE_YRKESFAGLIG_UTDANNING",
             ],
         )
-        fun `returnerer false for tiltakstyper som ikke er lesbare selv om toggle er pa`(kode: Tiltakskode) {
+        fun `returnerer false for tiltakstyper som ikke er lesbare selv om toggle er på`(kode: Tiltakskode) {
             every { unleashClient.isEnabled(LES_ARENA_DELTAKERE) } returns true
 
             sut.skalLeseArenaDataForTiltakstype(kode) shouldBe false

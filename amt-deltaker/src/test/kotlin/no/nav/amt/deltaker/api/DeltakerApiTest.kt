@@ -52,6 +52,7 @@ import no.nav.amt.lib.testing.utils.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.utils.TestData.randomEnhetsnummer
 import no.nav.amt.lib.testing.utils.TestData.randomIdent
 import no.nav.amt.lib.utils.objectMapper
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -260,7 +261,8 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `post sluttarsak - har tilgang - returnerer 200`() {
+        @DisplayName("POST /deltaker/{deltakerId}/endre-deltaker - sluttårsak - har tilgang - returnerer 200")
+        fun `post sluttårsak - har tilgang - returnerer 200`() {
             val sluttarsakRequest = SluttarsakRequest(
                 endretAv = randomIdent(),
                 endretAvEnhet = randomEnhetsnummer(),
@@ -451,7 +453,8 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer pameldingstype TRENGER_GODKJENNING`() {
+        @DisplayName("GET /deltaker/{deltakerId}/historikk - TRENGER_GODKJENNING")
+        fun `get historikk - deltakerliste med TRENGER_GODKJENNING - returnerer påmeldingstype TRENGER_GODKJENNING`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
@@ -487,7 +490,8 @@ class DeltakerApiTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer pameldingstype DIREKTE_VEDTAK`() {
+        @DisplayName("GET /deltaker/{deltakerId}/historikk - DIREKTE_VEDTAK")
+        fun `get historikk - deltakerliste med DIREKTE_VEDTAK - returnerer påmeldingstype DIREKTE_VEDTAK`() {
             val arrangor = lagArrangor()
             val deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,

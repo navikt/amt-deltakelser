@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 
 class AmtPersonClientTest {
     @Test
-    fun `skal returnere NavBruker nar hentNavBruker kalles med gyldig respons`() = runTest {
+    fun `skal returnere NavBruker når hentNavBruker kalles med gyldig respons`() = runTest {
         val expectedResponse = lagNavBruker()
 
         val sut: AmtPersonClient = createAmtPersonClient(
@@ -26,7 +26,7 @@ class AmtPersonClientTest {
     }
 
     @Test
-    fun `skal kaste feil nar hentNavBruker returnerer feilkode`() = runTest {
+    fun `skal kaste feil når hentNavBruker returnerer feilkode`() = runTest {
         val sut = createAmtPersonClient(
             responseBody = null,
             statusCode = HttpStatusCode.BadRequest,

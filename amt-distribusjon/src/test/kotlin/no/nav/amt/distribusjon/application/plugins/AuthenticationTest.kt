@@ -16,14 +16,14 @@ import org.junit.jupiter.api.Test
 
 class AuthenticationTest : IntegrationTestBase() {
     @Test
-    fun `skal returnere Unauthorized naar bearer token mangler ved POST til digital`() {
+    fun `skal returnere Unauthorized når bearer token mangler ved POST til digital`() {
         val response = performPost()
 
         response.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
-    fun `skal returnere OK naar gyldig bearer token brukes ved POST til digital`() {
+    fun `skal returnere OK når gyldig bearer token brukes ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
                 consumerClientId = "amt-deltaker-bff",
@@ -35,7 +35,7 @@ class AuthenticationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Unauthorized naar oid er forskjellig fra sub i token ved POST til digital`() {
+    fun `skal returnere Unauthorized når oid er forskjellig fra sub i token ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
                 consumerClientId = "amt-deltaker-bff",
@@ -48,7 +48,7 @@ class AuthenticationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Unauthorized naar azp-claim mangler i token ved POST til digital`() {
+    fun `skal returnere Unauthorized når azp-claim mangler i token ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
                 audience = "amt-distribusjon",
@@ -59,7 +59,7 @@ class AuthenticationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Unauthorized naar azp ikke finnes i preauthorized-apps ved POST til digital`() {
+    fun `skal returnere Unauthorized når azp ikke finnes i preauthorized-apps ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
                 consumerClientId = "ukjent-app",
@@ -71,7 +71,7 @@ class AuthenticationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `skal returnere Unauthorized naar audience i token er ugyldig ved POST til digital`() {
+    fun `skal returnere Unauthorized når audience i token er ugyldig ved POST til digital`() {
         val response = performPost(
             bearerToken = generateJWT(
                 consumerClientId = "amt-deltaker-bff",

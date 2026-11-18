@@ -70,7 +70,7 @@ class DigitalBrukerCacheRepositoryTest {
     }
 
     @Test
-    fun `upsertBatch - tom liste - gjor ingenting`() {
+    fun `upsertBatch - tom liste - gjør ingenting`() {
         DigitalBrukerCacheRepository.upsertBatch(emptyList())
 
         DigitalBrukerCacheRepository.hentForPersonidenter(setOf("11111111111")) shouldBe emptyMap()

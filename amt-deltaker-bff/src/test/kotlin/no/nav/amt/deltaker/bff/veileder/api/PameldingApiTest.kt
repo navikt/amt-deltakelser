@@ -26,6 +26,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -34,6 +35,7 @@ import java.util.UUID
 class PameldingApiTest : IntegrationTestBase() {
     @ParameterizedTest
     @MethodSource("tiltakMedBakgrunnsinfo")
+    @DisplayName("POST /pamelding - tiltak med bakgrunnsinfo krever utfylt tekst - returnerer 400 uten å sende utkast")
     fun `tiltak med bakgrunnsinfo krever utfylt tekst - returnerer 400 uten å sende utkast`(tiltakskode: Tiltakskode) {
         val deltaker = lagDeltakerOld(
             status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
@@ -65,6 +67,7 @@ class PameldingApiTest : IntegrationTestBase() {
 
     @ParameterizedTest
     @MethodSource("tiltakUtenBakgrunnsinfo")
+    @DisplayName("POST /pamelding - påmelding uten bakgrunnsinfo tillates for tiltak uten feltet")
     fun `påmelding uten bakgrunnsinfo tillates for tiltak uten feltet`(tiltakskode: Tiltakskode) {
         val deltaker = lagDeltakerOld(
             status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
@@ -90,6 +93,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding - meld på direkte og avbryt utkast - har ikke tilgang - returnerer 403")
     fun `meld på direkte og avbryt utkast - har ikke tilgang - returnerer 403`() {
         val deltaker = lagDeltakerResponse(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
@@ -116,6 +120,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding - autentisering - mangler token - returnerer 401")
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { httpClient ->
             httpClient.post("/pamelding/${UUID.randomUUID()}/utenGodkjenning") { setBody("foo") }.status shouldBe
@@ -125,6 +130,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding utkast - har tilgang - oppretter utkast og returnerer deltaker")
     fun `post utkast - har tilgang - oppretter utkast og returnerer deltaker`() {
         val deltaker = lagDeltakerOld(status = lagDeltakerStatus(DeltakerStatus.Type.KLADD))
         val amtDeltakerResponse = lagDeltakerResponse(deltaker)
@@ -154,6 +160,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding utkast - deltaker finnes ikke - returnerer 404")
     fun `post utkast - deltaker finnes ikke - returnerer 404`() {
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
 
@@ -165,6 +172,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding/{deltakerId}/utenGodkjenning utkast - deltaker finnes ikke - returnerer 404")
     fun `post utkast uten godkjenning - deltaker finnes ikke - returnerer 404`() {
         coEvery { paameldingClient.utkast(any(), any()) } throws NoSuchElementException()
         coEvery { amtDeltakerClient.getDeltaker(any()) } throws NoSuchElementException()
@@ -179,6 +187,7 @@ class PameldingApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("POST /pamelding/{deltakerId}/avbryt utkast - har tilgang - avbryter utkast og returnerer 200")
     fun `avbryt utkast - har tilgang  - avbryter utkast og returnerer 200`() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
         val deltaker = lagDeltakerOld(

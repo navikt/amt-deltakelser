@@ -72,7 +72,7 @@ class GjennomforingRepositoryTest {
         }
 
         @Test
-        fun `ny deltakerliste - persisterer lopenummer og tilgjengeligForArrangorFraOgMedDato`() {
+        fun `ny deltakerliste - persisterer løpenummer og tilgjengeligForArrangorFraOgMedDato`() {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val tilgjengeligDato = LocalDate.now().minusWeeks(2)
@@ -93,7 +93,7 @@ class GjennomforingRepositoryTest {
         }
 
         @Test
-        fun `oppdatert deltakerliste - oppdaterer lopenummer og tilgjengeligForArrangorFraOgMedDato`() {
+        fun `oppdatert deltakerliste - oppdaterer løpenummer og tilgjengeligForArrangorFraOgMedDato`() {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(
@@ -225,7 +225,7 @@ class GjennomforingRepositoryTest {
     }
 
     @Test
-    fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() {
+    fun `get - deltakerliste og arrangør finnes - henter deltakerliste`() {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
@@ -241,7 +241,7 @@ class GjennomforingRepositoryTest {
     }
 
     @Test
-    fun `getManyForTiltakstype - henter kun gjennomforinger for tiltakstypen med nye kolonner`() {
+    fun `getManyForTiltakstype - henter kun gjennomføringer for tiltakstypen med nye kolonner`() {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val annenTiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
@@ -272,7 +272,7 @@ class GjennomforingRepositoryTest {
     }
 
     @Test
-    fun `getManyForTiltakstype - laster ikke opplaringskategorisering for Enkeltplass - unngar N+1`() {
+    fun `getManyForTiltakstype - laster ikke opplæringskategorisering for Enkeltplass - unngår N+1`() {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         arrangorRepository.upsert(arrangor)

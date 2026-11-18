@@ -45,7 +45,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `listen - melding om ny arrangor - arrangor upsertes`() {
+    fun `listen - melding om ny arrangør - arrangør upsertes`() {
         val arrangor = TestData.lagArrangor()
 
         kafkaConsumer.listen(
@@ -57,7 +57,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `listen - melding om ny gjennomforing - deltakerliste lagres med riktige felter`() {
+    fun `listen - melding om ny gjennomføring - deltakerliste lagres med riktige felter`() {
         val ctx = TestData.MockContext()
         arrangorRepository.upsert(ctx.arrangor)
 
@@ -86,7 +86,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `listen - melding om enkeltplass-gjennomforing - deltakerliste far tiltaksnavn som navn`() {
+    fun `listen - melding om enkeltplass-gjennomføring - deltakerliste får tiltaksnavn som navn`() {
         val ctx = TestData.MockContext()
         arrangorRepository.upsert(ctx.arrangor)
 

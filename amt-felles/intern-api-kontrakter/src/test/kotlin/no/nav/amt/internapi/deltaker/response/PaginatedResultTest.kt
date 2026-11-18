@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class PaginatedResultTest {
     @Test
-    fun `skal beregne totalPages naar totalCount gaar opp i pageSize`() {
+    fun `skal beregne totalPages når totalCount går opp i pageSize`() {
         val result = PaginatedResult(
             totalCount = 100,
             pageSize = 25,
@@ -17,7 +17,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal runde totalPages opp naar siste side ikke er full`() {
+    fun `skal runde totalPages opp når siste side ikke er full`() {
         val result = PaginatedResult(
             totalCount = 101,
             pageSize = 25,
@@ -28,7 +28,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal returnere 0 totalPages naar totalCount er 0`() {
+    fun `skal returnere 0 totalPages når totalCount er 0`() {
         val result = PaginatedResult<String>(
             totalCount = 0,
             pageSize = 25,
@@ -39,7 +39,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal tillate default pageSize naar totalCount er 0`() {
+    fun `skal tillate default pageSize når totalCount er 0`() {
         val result = PaginatedResult<String>(data = emptyList())
 
         result.totalCount shouldBe 0
@@ -48,7 +48,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal kaste exception naar totalCount er negativ`() {
+    fun `skal kaste exception når totalCount er negativ`() {
         val exception = shouldThrow<IllegalArgumentException> {
             PaginatedResult(
                 totalCount = -1,
@@ -61,7 +61,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal kaste exception naar pageSize er negativ`() {
+    fun `skal kaste exception når pageSize er negativ`() {
         val exception = shouldThrow<IllegalArgumentException> {
             PaginatedResult(
                 totalCount = 0,
@@ -74,7 +74,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal kaste exception naar pageSize er 0 og totalCount er storre enn 0`() {
+    fun `skal kaste exception når pageSize er 0 og totalCount er større enn 0`() {
         val exception = shouldThrow<IllegalArgumentException> {
             PaginatedResult(
                 totalCount = 1,
@@ -87,7 +87,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal kaste exception naar totalCount er 0 og data ikke er tom`() {
+    fun `skal kaste exception når totalCount er 0 og data ikke er tom`() {
         val exception = shouldThrow<IllegalArgumentException> {
             PaginatedResult(
                 totalCount = 0,
@@ -100,7 +100,7 @@ class PaginatedResultTest {
     }
 
     @Test
-    fun `skal kaste exception naar pageSize er 0 og totalCount er storre enn 0 selv om data er tom`() {
+    fun `skal kaste exception når pageSize er 0 og totalCount er større enn 0 selv om data er tom`() {
         val exception = shouldThrow<IllegalArgumentException> {
             PaginatedResult<String>(
                 totalCount = 1,

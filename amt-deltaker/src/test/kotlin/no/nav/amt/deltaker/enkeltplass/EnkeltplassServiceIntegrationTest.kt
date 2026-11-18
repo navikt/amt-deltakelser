@@ -127,7 +127,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `opprettKladd - det finnes allerede kladd paa samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
+        fun `opprettKladd - det finnes allerede kladd på samme enkeltplass tiltakstype - returnerer samme deltakerId`() = runTest {
             val deltaker = enkeltplassService.opprettKladd(
                 tiltakInTest.tiltakskode,
                 navBrukerInTest.personident,
@@ -335,7 +335,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `meld paa direkte - lager ferdig pamelding med status sokt inn`() = runTest {
+        fun `meld på direkte - lager ferdig påmelding med status søkt inn`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             arrangorRepository.upsert(arrangorInTest)
@@ -468,7 +468,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `oppdater utkast - endrer opplaringkategorisering - publiserer deltaker til deltaker-v2`() = runTest {
+        fun `oppdater utkast - endrer opplæringskategorisering - publiserer deltaker til deltaker-v2`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor(organisasjonsnummer = pameldingRequestInTest.arrangorUnderenhet)
             val deltaker = lagDeltaker(
@@ -596,7 +596,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `skal ikke publisere deltaker til DELTAKER_V2 naar gjennomforing er KLADD`() = runTest {
+        fun `skal ikke publisere deltaker til DELTAKER_V2 når gjennomføring er KLADD`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor()
             arrangorRepository.upsert(arrangorInTest)
@@ -632,7 +632,7 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
-        fun `skal publisere deltaker til DELTAKER_V2 naar gjennomforing ikke er KLADD`() = runTest {
+        fun `skal publisere deltaker til DELTAKER_V2 når gjennomføring ikke er KLADD`() = runTest {
             // Arrange
             val arrangorInTest = lagArrangor()
             arrangorRepository.upsert(arrangorInTest)

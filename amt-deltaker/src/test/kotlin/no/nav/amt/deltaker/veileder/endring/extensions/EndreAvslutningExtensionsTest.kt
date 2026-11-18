@@ -21,7 +21,7 @@ import java.time.LocalDate
 
 class EndreAvslutningExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - endre avslutning til fullfort`() {
+    fun `oppdaterDeltaker - endre avslutning til fullført`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),

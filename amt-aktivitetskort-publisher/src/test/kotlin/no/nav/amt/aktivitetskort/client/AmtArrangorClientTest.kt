@@ -28,7 +28,7 @@ class AmtArrangorClientTest(
     @Nested
     inner class HentArrangorByOrgnummerTests {
         @Test
-        fun `hentArrangor - arrangor finnes - parser response og returnerer arrangor`() {
+        fun `hentArrangor - arrangør finnes - parser response og returnerer arrangør`() {
             val arrangorId = UUID.randomUUID()
             val overordnetArrangorId = UUID.randomUUID()
             val orgnummer = "123456789"

@@ -238,7 +238,7 @@ class KoordinatorServiceTest(
     }
 
     @Test
-    fun `getDeltakerliste - ansatt har ikke koordinatorrolle hos arrangor - returnerer unauthorized`() {
+    fun `getDeltakerliste - ansatt har ikke koordinatorrolle hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.randomUUID()
         val arrangorId = UUID.randomUUID()
@@ -835,7 +835,7 @@ class KoordinatorServiceTest(
         }
 
         @Test
-        fun `har tilgang, deltaker har bade innsoktdato og forsteVedtakFattet, setter sokt inn til forsteVedtakFattet`() {
+        fun `har tilgang, deltaker har både innsøkingsdato og forsteVedtakFattet, setter søkt inn til forsteVedtakFattet`() {
             val personIdent = "12345678910"
             val deltakerlisteId = UUID.randomUUID()
             val overordnetArrangorId = UUID.randomUUID()
@@ -1175,7 +1175,7 @@ class KoordinatorServiceTest(
     }
 
     @Test
-    fun `getTilgjengeligeVeiledere - ansatt har ikke koordinatorrolle hos arrangor - returnerer unauthorized`() {
+    fun `getTilgjengeligeVeiledere - ansatt har ikke koordinatorrolle hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.randomUUID()
         val arrangorId = UUID.randomUUID()
@@ -1216,7 +1216,7 @@ class KoordinatorServiceTest(
     }
 
     @Test
-    fun `getTilgjengeligeVeiledere - ansatt har koordinatorrolle hos arrangor men det finnes ingen veiledere - returnerer tom liste`() {
+    fun `getTilgjengeligeVeiledere - ansatt har koordinatorrolle hos arrangør men det finnes ingen veiledere - returnerer tom liste`() {
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.randomUUID()
         val arrangorId = UUID.randomUUID()
@@ -1255,7 +1255,7 @@ class KoordinatorServiceTest(
     }
 
     @Test
-    fun `getTilgjengeligeVeiledere - ansatt har koordinatorrolle hos arrangor og det finnes veiledere - returnerer veiledere`() {
+    fun `getTilgjengeligeVeiledere - ansatt har koordinatorrolle hos arrangør og det finnes veiledere - returnerer veiledere`() {
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.randomUUID()
         val arrangorId = UUID.randomUUID()
@@ -1328,7 +1328,7 @@ class KoordinatorServiceTest(
     }
 
     @Test
-    fun `tildelVeiledereForDeltaker - ansatt har ikke koordinatorrolle hos arrangor - returnerer unauthorized`() {
+    fun `tildelVeiledereForDeltaker - ansatt har ikke koordinatorrolle hos arrangør - returnerer unauthorized`() {
         val personIdent = "12345678910"
         val deltakerlisteId = UUID.randomUUID()
         val arrangorId = UUID.randomUUID()

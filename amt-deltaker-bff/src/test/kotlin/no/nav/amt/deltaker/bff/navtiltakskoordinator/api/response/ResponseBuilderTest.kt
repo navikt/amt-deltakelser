@@ -47,7 +47,7 @@ class ResponseBuilderTest {
         }
 
         @Test
-        fun `mapper status med aarsak`() {
+        fun `mapper status med årsak`() {
             val deltaker = lagDeltakerModel(
                 status = lagDeltakerStatus(
                     statusType = DeltakerStatus.Type.HAR_SLUTTET,
@@ -61,7 +61,7 @@ class ResponseBuilderTest {
         }
 
         @Test
-        fun `mapper status uten aarsak`() {
+        fun `mapper status uten årsak`() {
             val deltaker = lagDeltakerModel(
                 status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             )
@@ -72,7 +72,7 @@ class ResponseBuilderTest {
         }
 
         @Test
-        fun `tilgangTilBruker true - viser personnavn og fodselsnummer`() {
+        fun `tilgangTilBruker true - viser personnavn og fødselsnummer`() {
             val navBruker = lagNavBrukerResponse(
                 fornavn = "Ola",
                 mellomnavn = null,
@@ -90,7 +90,7 @@ class ResponseBuilderTest {
         }
 
         @Test
-        fun `tilgangTilBruker false - skjuler fodselsnummer`() {
+        fun `tilgangTilBruker false - skjuler fødselsnummer`() {
             val deltaker = lagDeltakerModel()
             val response = ResponseMapper.buildDeltakerDetaljerResponse(deltaker, false, emptyList())
 
@@ -435,7 +435,7 @@ class ResponseBuilderTest {
         }
 
         @Test
-        fun `pameldingstype null - bruker TRENGER_GODKJENNING som default`() {
+        fun `påmeldingstype null - bruker TRENGER_GODKJENNING som default`() {
             val gjennomforing = lagGjennomforingResponse(pameldingType = null)
 
             val response = ResponseMapper.buildGjennomforing(gjennomforing, emptyList())

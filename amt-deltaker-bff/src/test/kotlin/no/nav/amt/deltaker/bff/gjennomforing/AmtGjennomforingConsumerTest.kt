@@ -50,7 +50,7 @@ class AmtGjennomforingConsumerTest {
     }
 
     @Test
-    fun `consume - ny gjennomforing - lagrer tiltak og deltakerliste`() {
+    fun `consume - ny gjennomføring - lagrer tiltak og deltakerliste`() {
         val arrangor = lagArrangor()
         val tiltakstype = TestData.lagTiltakstype()
         val payload = TestData.lagAmtGjennomforingPayload(
@@ -75,7 +75,7 @@ class AmtGjennomforingConsumerTest {
     }
 
     @Test
-    fun `consume - eksisterende gjennomforing oppdateres - upserter deltakerliste`() {
+    fun `consume - eksisterende gjennomføring oppdateres - upserter deltakerliste`() {
         val arrangor = lagArrangor()
         val tiltakstype = TestData.lagTiltakstype()
         val id = UUID.randomUUID()
@@ -130,7 +130,7 @@ class AmtGjennomforingConsumerTest {
     }
 
     @Test
-    fun `consume - aktiv gjennomforing - stenger ikke tilganger`() {
+    fun `consume - aktiv gjennomføring - stenger ikke tilganger`() {
         val arrangor = lagArrangor()
         val payload = TestData.lagAmtGjennomforingPayload(
             organisasjonsnummer = arrangor.organisasjonsnummer,

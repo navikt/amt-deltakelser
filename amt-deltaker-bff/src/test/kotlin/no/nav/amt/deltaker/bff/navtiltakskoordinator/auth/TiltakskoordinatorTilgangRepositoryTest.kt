@@ -151,7 +151,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
     @Nested
     inner class HentAktiveForDeltakerlisteTests {
         @Test
-        fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger pa deltakerliste`() {
+        fun `hentAktiveForDeltakerliste - aktiv tilgang - henter tilganger på deltakerliste`() {
             with(TiltakskoordinatorTilgangContext()) {
                 medAktivTilgang()
                 tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 1
@@ -159,7 +159,7 @@ class TiltakskoordinatorTilgangRepositoryTest {
         }
 
         @Test
-        fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger pa deltakerliste`() {
+        fun `hentAktiveForDeltakerliste - inaktiv tilgang - henter ikke tilganger på deltakerliste`() {
             with(TiltakskoordinatorTilgangContext()) {
                 medInaktivTilgang()
                 tiltakskoordinatorTilgangRepository.hentAktiveForDeltakerliste(deltakerliste.id) shouldHaveSize 0

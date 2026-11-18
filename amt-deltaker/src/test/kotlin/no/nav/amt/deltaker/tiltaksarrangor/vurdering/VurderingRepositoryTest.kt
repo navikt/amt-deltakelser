@@ -100,7 +100,7 @@ class VurderingRepositoryTest {
         }
 
         @Test
-        fun `getForDeltaker - filtrerer paa deltakerId`() {
+        fun `getForDeltaker - filtrerer på deltakerId`() {
             // Arrange
             val deltaker1 = TestData.lagDeltaker()
             val deltaker2 = TestData.lagDeltaker()

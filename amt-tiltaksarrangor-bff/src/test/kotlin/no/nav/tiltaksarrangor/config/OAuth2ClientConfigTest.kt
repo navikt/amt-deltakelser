@@ -26,7 +26,7 @@ class OAuth2ClientConfigTest {
     private val texasTokenExchangeClient = mockk<TexasTokenExchangeClient>()
 
     @Test
-    fun `skal hente token via texas ved token exchange nar toggle er pa`() {
+    fun `skal hente token via texas ved token exchange når toggle er på`() {
         val config = OAuth2ClientConfig(texasTokenExchangeClient, true)
         every {
             texasTokenExchangeClient.exchangeToken(
@@ -51,7 +51,7 @@ class OAuth2ClientConfigTest {
     }
 
     @Test
-    fun `skal bruke legacy token exchange nar toggle er av`() {
+    fun `skal bruke legacy token exchange når toggle er av`() {
         val config = OAuth2ClientConfig(texasTokenExchangeClient, false)
         val parameters = requireNotNull(
             legacyTokenExchangeParametersConverter(config).convert(
@@ -69,7 +69,7 @@ class OAuth2ClientConfigTest {
     }
 
     @Test
-    fun `skal feile nar token exchange klient ikke har nøyaktig ett scope`() {
+    fun `skal feile når token exchange klient ikke har nøyaktig ett scope`() {
         val config = OAuth2ClientConfig(texasTokenExchangeClient, true)
         val withoutScope = tokenExchangeGrantRequest(scopes = emptySet())
         val withMultipleScopes = tokenExchangeGrantRequest(scopes = setOf("scope-a", "scope-b"))

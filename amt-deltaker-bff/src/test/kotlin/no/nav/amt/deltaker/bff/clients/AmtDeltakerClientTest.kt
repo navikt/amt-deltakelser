@@ -644,7 +644,7 @@ class AmtDeltakerClientTest {
         }
 
         @Test
-        fun `skal ikke kaste feil nar sistBesokt kalles`() {
+        fun `skal ikke kaste feil når sistBesokt kalles`() {
             runHappyPathTest(
                 expectedUrl = expectedUrl,
                 expectedResponse = null,

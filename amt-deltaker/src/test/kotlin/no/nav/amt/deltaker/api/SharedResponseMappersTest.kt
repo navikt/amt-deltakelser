@@ -17,7 +17,7 @@ import java.util.UUID
 
 class SharedResponseMappersTest {
     @Test
-    fun `hentEndringsforslagVenterPaSvar - returnerer kun forslag som venter paa svar`() {
+    fun `hentEndringsforslagVenterPaSvar - returnerer kun forslag som venter på svar`() {
         // Arrange
         val deltakerId = UUID.randomUUID()
         val forslagRepository = mockk<ForslagRepository>()
@@ -48,7 +48,7 @@ class SharedResponseMappersTest {
     }
 
     @Test
-    fun `hentEndringsforslagVenterPaSvar - tomt resultat naar ingen venter`() {
+    fun `hentEndringsforslagVenterPaSvar - tomt resultat når ingen venter`() {
         // Arrange
         val deltakerId = UUID.randomUUID()
         val forslagRepository = mockk<ForslagRepository>()
@@ -62,7 +62,7 @@ class SharedResponseMappersTest {
     }
 
     @Test
-    fun `hentSisteVurdering - returnerer vurdering med hoyest gyldigFra`() {
+    fun `hentSisteVurdering - returnerer vurdering med høyest gyldigFra`() {
         // Arrange
         val deltakerId = UUID.randomUUID()
         val vurderingRepository = mockk<VurderingRepository>()
@@ -81,7 +81,7 @@ class SharedResponseMappersTest {
     }
 
     @Test
-    fun `hentSisteVurdering - returnerer null naar ingen vurderinger finnes`() {
+    fun `hentSisteVurdering - returnerer null når ingen vurderinger finnes`() {
         // Arrange
         val deltakerId = UUID.randomUUID()
         val vurderingRepository = mockk<VurderingRepository>()
