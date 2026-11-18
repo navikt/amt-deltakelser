@@ -233,7 +233,8 @@ class VeilederApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `historikk viser historiske vedtaksdetaljer for opplaering godkjent`() {
+    @DisplayName("GET /deltaker/{deltakerId}/historikk")
+    fun `historikk viser historiske vedtaksdetaljer for opplæring godkjent`() {
         val deltakerId = UUID.randomUUID()
         val historikk = lagEnkeltplassHistorikkMedVedtak()
         coEvery { amtDeltakerClient.getPersonidentForDeltaker(deltakerId) } returns PersonIdentResponse("1234").personident

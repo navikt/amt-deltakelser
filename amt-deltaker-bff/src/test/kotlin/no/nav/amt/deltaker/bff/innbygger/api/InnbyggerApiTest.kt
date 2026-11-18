@@ -25,6 +25,7 @@ import no.nav.amt.lib.utils.writePolymorphicCollectionAsString
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -159,6 +160,7 @@ class InnbyggerApiTest : IntegrationTestBase() {
     }
 
     @Test
+    @DisplayName("GET /innbygger/{deltakerId}/historikk")
     fun `historikk viser historiske vedtaksdetaljer for opplæring godkjent`() {
         val deltakerId = UUID.randomUUID()
         val historikk = TestData.lagEnkeltplassHistorikkMedVedtak()
