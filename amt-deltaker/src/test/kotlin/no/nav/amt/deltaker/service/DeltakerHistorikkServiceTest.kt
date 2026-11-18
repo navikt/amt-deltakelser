@@ -148,15 +148,15 @@ class DeltakerHistorikkServiceTest {
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
             // Assert
-            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+            godkjentPrisinfo.map { it.okonomiGodkjent.prisinformasjon } shouldBe listOf(
                 Anskaffelse(pris = 120, begrunnelse = "Pris 120"),
                 Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
             )
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
-            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
-            v2Historikk.map { it.data.prisinformasjon } shouldBe godkjentPrisinfo.map { it.data.prisinformasjon }
-            v2Historikk.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
-            v2Historikk.map { it.data.vedtak } shouldBe godkjentPrisinfo.map { it.data.vedtak }
+            godkjentPrisinfo.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false, true)
+            godkjentPrisinfo.map { it.okonomiGodkjent.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
+            v2Historikk.map { it.okonomiGodkjent.prisinformasjon } shouldBe godkjentPrisinfo.map { it.okonomiGodkjent.prisinformasjon }
+            v2Historikk.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false, true)
+            v2Historikk.map { it.okonomiGodkjent.vedtak } shouldBe godkjentPrisinfo.map { it.okonomiGodkjent.vedtak }
             utenOkonomiHistorikk shouldBe emptyList()
         }
 
@@ -178,12 +178,12 @@ class DeltakerHistorikkServiceTest {
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
             // Assert
-            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+            godkjentPrisinfo.map { it.okonomiGodkjent.prisinformasjon } shouldBe listOf(
                 Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
                 Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
             )
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, true)
-            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
+            godkjentPrisinfo.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false, true)
+            godkjentPrisinfo.map { it.okonomiGodkjent.vedtak } shouldBe listOf(null, VedtakRepository().getForDeltaker(deltaker.id))
         }
 
         @Test
@@ -205,12 +205,12 @@ class DeltakerHistorikkServiceTest {
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
             // Assert
-            godkjentPrisinfo.map { it.data.prisinformasjon } shouldBe listOf(
+            godkjentPrisinfo.map { it.okonomiGodkjent.prisinformasjon } shouldBe listOf(
                 Anskaffelse(pris = 90, begrunnelse = "Pris 90"),
                 Anskaffelse(pris = 34, begrunnelse = "Pris 34"),
             )
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
-            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, null)
+            godkjentPrisinfo.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false, false)
+            godkjentPrisinfo.map { it.okonomiGodkjent.vedtak } shouldBe listOf(null, null)
         }
 
         @Test
@@ -231,8 +231,8 @@ class DeltakerHistorikkServiceTest {
 
             // Assert
             godkjentPrisinfo.size shouldBe 2
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false, false)
-            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null, null)
+            godkjentPrisinfo.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false, false)
+            godkjentPrisinfo.map { it.okonomiGodkjent.vedtak } shouldBe listOf(null, null)
         }
 
         @Test
@@ -247,8 +247,8 @@ class DeltakerHistorikkServiceTest {
                 .getForDeltaker(deltaker)
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
-            godkjentPrisinfo.map { it.data.erForsteGodkjenning } shouldBe listOf(false)
-            godkjentPrisinfo.map { it.data.vedtak } shouldBe listOf(null)
+            godkjentPrisinfo.map { it.okonomiGodkjent.erForsteGodkjenning } shouldBe listOf(false)
+            godkjentPrisinfo.map { it.okonomiGodkjent.vedtak } shouldBe listOf(null)
         }
 
         @Test
@@ -286,15 +286,15 @@ class DeltakerHistorikkServiceTest {
             val godkjentPrisinfo = deltakerHistorikkService
                 .getForDeltaker(endretDeltaker)
                 .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-            val forsteGodkjenning = godkjentPrisinfo.single { it.data.erForsteGodkjenning }
-            val historiskVedtak = forsteGodkjenning.data.vedtak.shouldNotBeNull()
+            val forsteGodkjenning = godkjentPrisinfo.single { it.okonomiGodkjent.erForsteGodkjenning }
+            val historiskVedtak = forsteGodkjenning.okonomiGodkjent.vedtak.shouldNotBeNull()
 
             historiskVedtak shouldBe lagretVedtak
             historiskVedtak.deltakerVedVedtak.bakgrunnsinformasjon shouldNotBe "Oppdatert etter vedtak"
             historiskVedtak.deltakerVedVedtak.opplaringKategorisering shouldNotBe
                 endretDeltaker.gjennomforing.opplaringKategorisering
-            forsteGodkjenning.data.prisinformasjon shouldBe Anskaffelse(pris = 34, begrunnelse = "Pris 34")
-            godkjentPrisinfo.single { !it.data.erForsteGodkjenning }.data.vedtak shouldBe null
+            forsteGodkjenning.okonomiGodkjent.prisinformasjon shouldBe Anskaffelse(pris = 34, begrunnelse = "Pris 34")
+            godkjentPrisinfo.single { !it.okonomiGodkjent.erForsteGodkjenning }.okonomiGodkjent.vedtak shouldBe null
         }
 
         private fun lagDeltakerMedGodkjentPrisinfo(

@@ -26,8 +26,8 @@ class DeltakerHistorikkResponseTest {
     private val historikk = lagEnkeltplassHistorikkMedVedtak()
     private val godkjenning = historikk
         .filterIsInstance<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
-        .single { it.data.erForsteGodkjenning }
-        .data
+        .single { it.okonomiGodkjent.erForsteGodkjenning }
+        .okonomiGodkjent
     private val vedtak = godkjenning.vedtak.shouldNotBeNull()
 
     @Test
@@ -155,7 +155,13 @@ class DeltakerHistorikkResponseTest {
 
     private fun tilGodkjenningResponse(data: OkonomiGodkjentForHistorikk) = tilResponse(
         historikk.map {
-            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent && it.data.erForsteGodkjenning) it.copy(data = data) else it
+            if (it is DeltakerHistorikk.EnkeltplassOkonomiGodkjent &&
+                it.okonomiGodkjent.erForsteGodkjenning
+            ) {
+                it.copy(okonomiGodkjent = data)
+            } else {
+                it
+            }
         },
     ).filterIsInstance<EnkeltplassOkonomiGodkjentResponse>().single { it.erForsteGodkjenning }
 

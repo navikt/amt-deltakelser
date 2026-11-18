@@ -148,7 +148,7 @@ object DeltakerTestUtils {
             is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> {
                 second.shouldBeInstanceOf<DeltakerHistorikk.EnkeltplassOkonomiGodkjent>()
 
-                first.data shouldBe second.data
+                first.okonomiGodkjent shouldBe second.okonomiGodkjent
                 first.sistEndret shouldBe second.sistEndret
                 first.navAnsatte() shouldBe second.navAnsatte()
                 first.navEnheter() shouldBe second.navEnheter()

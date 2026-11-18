@@ -127,7 +127,7 @@ sealed interface DeltakerHistorikkResponse {
             )
 
             is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse.fromModel(
-                model = model.data,
+                model = model.okonomiGodkjent,
                 enheter = enheter,
                 ansatte = ansatte,
             )
@@ -163,7 +163,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
                 erForsteGodkjenning = model.erForsteGodkjenning,
                 prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
                 vedtaksdetaljer = model.vedtak
-                    ?.takeIf { it.fattet != null }
+                    ?.takeUnless { it.fattet == null }
                     ?.let { VedtakResponse.fromModel(it, enheter, ansatte) },
             )
         }
