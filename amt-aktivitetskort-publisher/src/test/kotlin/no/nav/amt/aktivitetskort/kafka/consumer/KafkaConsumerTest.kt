@@ -659,19 +659,20 @@ class KafkaConsumerTest(
     }
 
     @ParameterizedTest
-    @CsvSource("false,false", "false,true", "true,false", "true,true")
+    @CsvSource("false,false,false", "false,true,false", "true,false,false", "true,true,false", "false,false,true", "false,true,true")
     fun `overlappende leveringer ruller tilbake utdatert kort og gjenlevering gjenbruker ID`(
         tidligerePeriode: Boolean,
         sammeOffset: Boolean,
+        sammePeriode: Boolean,
     ) {
         val periode = TestData.oppfolgingsperiode()
         val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
         val gammelDeltaker = ctx.deltaker.copy(sluttdato = LocalDate.now())
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
-        if (tidligerePeriode) {
+        if (tidligerePeriode || sammePeriode) {
             deltakerRepository.upsert(gammelDeltaker, -1)
-            val gammelPeriodeId = UUID.randomUUID()
+            val gammelPeriodeId = if (sammePeriode) periode.id else UUID.randomUUID()
             testDatabase.insertAktivOppfolgingsperiode(gammelPeriodeId)
             meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = gammelPeriodeId))
         }
@@ -728,6 +729,7 @@ class KafkaConsumerTest(
             verify(exactly = 1) { acknowledgments[vinner].acknowledge() }
             verify(exactly = 0) { acknowledgments[taper].acknowledge() }
             val melding = meldingRepository.getByDeltakerId(ctx.deltaker.id).single { it.oppfolgingperiode == periode.id }
+            if (sammePeriode) melding.id shouldBe ctx.aktivitetskortId
             antallOutbox(melding.id) shouldBe 1
             antallPerioder(periode.id) shouldBe 1
 

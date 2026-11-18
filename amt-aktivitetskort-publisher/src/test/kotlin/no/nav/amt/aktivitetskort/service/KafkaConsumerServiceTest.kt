@@ -251,6 +251,22 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
+        fun `endret modifiedAt pa samme kort og periode forkaster forberedelsen`() {
+            ctx.stubDeltakerFraAmtDeltaker()
+            every { deltakerRepository.upsert(ctx.deltaker, offset) } returns RepositoryResult.Modified(ctx.deltaker)
+            every { aktivitetskortService.getSisteMeldingForDeltaker(ctx.deltaker.id) } returnsMany listOf(
+                ctx.melding,
+                ctx.melding.copy(modifiedAt = ctx.melding.modifiedAt.plusSeconds(1)),
+            )
+
+            shouldThrow<ConcurrencyFailureException> {
+                kafkaConsumerService.handleDeltaker(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
+            }
+
+            verify(exactly = 0) { aktivitetskortService.lagreAktivitetskort(any()) }
+        }
+
+        @Test
         fun `teknisk feil ved forberedelse starter ikke transaksjon`() {
             ctx.stubDeltakerFraAmtDeltaker()
             every { aktivitetskortService.forberedMelding(any()) } throws IllegalStateException("API-feil")

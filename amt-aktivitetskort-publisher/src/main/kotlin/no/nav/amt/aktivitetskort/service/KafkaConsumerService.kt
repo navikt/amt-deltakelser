@@ -73,7 +73,8 @@ class KafkaConsumerService(
             if (deltakerUpsertResult !is RepositoryResult.NoChange) {
                 val gjeldendeMelding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
                 if (gjeldendeMelding?.id != meldingForForberedelse?.id ||
-                    gjeldendeMelding?.oppfolgingperiode != meldingForForberedelse?.oppfolgingperiode
+                    gjeldendeMelding?.oppfolgingperiode != meldingForForberedelse?.oppfolgingperiode ||
+                    gjeldendeMelding?.modifiedAt != meldingForForberedelse?.modifiedAt
                 ) {
                     throw ConcurrencyFailureException(
                         "Meldingshistorikken for deltaker ${deltaker.id} er endret. Aktivitetskortet må forberedes på nytt.",
