@@ -72,7 +72,6 @@ spec:
         - application: amt-tiltaksarrangor-flate
     outbound:
       rules:
-        - application: amt-tiltak
         - application: amt-arrangor
         - application: amt-person-service
         - application: amt-deltaker
@@ -83,8 +82,6 @@ spec:
   env:
     - name: JDK_JAVA_OPTIONS
       value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
-    - name: AMT_TILTAK_TOKENX_CLIENT_ID
-      value: {{tiltak_tokenx_client_id}}
     - name: AMT_ARRANGOR_TOKENX_CLIENT_ID
       value: {{arrangor_tokenx_client_id}}
     - name: AMT_ARRANGOR_AAD_CLIENT_ID

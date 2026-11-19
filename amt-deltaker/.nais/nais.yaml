@@ -61,7 +61,6 @@ spec:
       rules:
         - application: amt-person-service
         - application: amt-arrangor
-        - application: amt-tiltak
         - application: amt-distribusjon
         - application: poao-tilgang
           namespace: poao
@@ -85,10 +84,6 @@ spec:
       value: api://{{cluster}}.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
-    - name: AMT_TILTAK_SCOPE
-      value: api://{{cluster}}.amt.amt-tiltak/.default
-    - name: AMT_TILTAK_URL
-      value: http://amt-tiltak
     - name: POAO_TILGANG_SCOPE
       value: api://{{cluster}}.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL

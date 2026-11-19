@@ -33,8 +33,6 @@ data class Environment(
     val unleashApiToken: String = getEnvVar(UNLEASH_SERVER_API_TOKEN),
     val isOppfolgingstilfelleUrl: String = getEnvVar(ISOPPFOLGINGSTILFELLE_URL_KEY),
     val isOppfolgingstilfelleScope: String = getEnvVar(ISOPPFOLGINGSTILFELLE_SCOPE_KEY),
-    val amtTiltakUrl: String = getEnvVar(AMT_TILTAK_URL_KEY),
-    val amtTiltakScope: String = getEnvVar(AMT_TILTAK_SCOPE_KEY),
     val mulighetsrommetApiUrl: String = getEnvVar(MULIGHETSROMMET_API_URL_KEY),
     val mulighetsrommetApiScope: String = getEnvVar(MULIGHETSROMMET_API_SCOPE_KEY),
 ) {
@@ -60,8 +58,6 @@ data class Environment(
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"
         const val AMT_ARRANGOR_URL_KEY = "AMT_ARRANGOR_URL"
         const val AMT_ARRANGOR_SCOPE_KEY = "AMT_ARRANGOR_SCOPE"
-        const val AMT_TILTAK_URL_KEY = "AMT_TILTAK_URL"
-        const val AMT_TILTAK_SCOPE_KEY = "AMT_TILTAK_SCOPE"
         const val AMT_DISTRIBUSJON_URL_KEY = "AMT_DISTRIBUSJON_URL"
         const val AMT_DISTRIBUSJON_SCOPE_KEY = "AMT_DISTRIBUSJON_SCOPE"
 
