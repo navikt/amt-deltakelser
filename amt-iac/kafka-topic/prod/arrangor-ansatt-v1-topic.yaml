@@ -27,6 +27,3 @@ spec:
     - team: amt
       application: amt-tiltaksarrangor-bff
       access: read
-    - team: amt
-      application: amt-person-service
-      access: read

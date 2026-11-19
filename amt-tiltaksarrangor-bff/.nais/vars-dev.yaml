@@ -10,5 +10,4 @@ database_instance: amt-tiltaksarrangor-bff-1
 database_tier: db-f1-micro
 database_disk_autoresize: false
 database_point_in_time_recovery: false
-tiltak_tokenx_client_id: dev-gcp:amt:amt-tiltak
 arrangor_tokenx_client_id: dev-gcp:amt:amt-arrangor
