@@ -127,7 +127,7 @@ sealed interface DeltakerHistorikkResponse {
             )
 
             is DeltakerHistorikk.EnkeltplassOkonomiGodkjent -> EnkeltplassOkonomiGodkjentResponse.fromModel(
-                model = model.data,
+                model = model.okonomiGodkjent,
                 enheter = enheter,
                 ansatte = ansatte,
             )
@@ -141,6 +141,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
     val endret: LocalDateTime,
     val erForsteGodkjenning: Boolean,
     val prisinformasjon: PrisinformasjonResponse?,
+    val vedtaksdetaljer: VedtakResponse?,
 ) : DeltakerHistorikkResponse {
     companion object {
         private val log = LoggerFactory.getLogger(javaClass)
@@ -153,7 +154,7 @@ data class EnkeltplassOkonomiGodkjentResponse(
             val endretAv = model.sistEndretAvNavAnsattId.let { ansatte[it]?.navn }
             val endretAvEnhet = model.sistEndretAvNavEnhetId.let { enheter[it]?.navn }
             if (endretAv == null || endretAvEnhet == null) {
-                log.warn("Kunne ikke slå opp forventet Nav-ansatt-info for modell: $model")
+                log.warn("Kunne ikke slå opp forventet Nav-ansatt-info for økonomigodkjenning")
             }
             return EnkeltplassOkonomiGodkjentResponse(
                 endretAv = endretAv,
@@ -161,6 +162,9 @@ data class EnkeltplassOkonomiGodkjentResponse(
                 endret = model.sistEndret,
                 erForsteGodkjenning = model.erForsteGodkjenning,
                 prisinformasjon = model.prisinformasjon?.let(PrisinformasjonResponse::fromModel),
+                vedtaksdetaljer = model.vedtak
+                    ?.takeUnless { it.fattet == null }
+                    ?.let { VedtakResponse.fromModel(it, enheter, ansatte) },
             )
         }
     }
@@ -198,6 +202,9 @@ data class VedtakResponse(
     val opprettetAv: String,
     val opprettetAvEnhet: String,
     val opprettet: LocalDateTime,
+    val startdato: LocalDate?,
+    val sluttdato: LocalDate?,
+    val opplaringKategorisering: OpplaringKategoriseringValgResponse?,
 ) : DeltakerHistorikkResponse {
     companion object {
         fun fromModel(
@@ -214,6 +221,9 @@ data class VedtakResponse(
             opprettet = model.opprettet,
             opprettetAvEnhet = enheter[model.opprettetAvEnhet]!!.navn,
             opprettetAv = ansatte[model.opprettetAv]!!.navn,
+            startdato = model.deltakerVedVedtak.startdato,
+            sluttdato = model.deltakerVedVedtak.sluttdato,
+            opplaringKategorisering = model.deltakerVedVedtak.opplaringKategorisering?.let(::OpplaringKategoriseringValgResponse),
         )
     }
 }

@@ -18,13 +18,13 @@ sealed interface DeltakerHistorikk {
     fun navEnheter(): List<UUID> = emptyList()
 
     data class EnkeltplassOkonomiGodkjent(
-        val data: OkonomiGodkjentForHistorikk,
+        val okonomiGodkjent: OkonomiGodkjentForHistorikk,
     ) : DeltakerHistorikk {
-        override val sistEndret = data.sistEndret
+        override val sistEndret = okonomiGodkjent.sistEndret
 
-        override fun navAnsatte() = listOfNotNull(data.sistEndretAvNavAnsattId)
+        override fun navAnsatte() = listOfNotNull(okonomiGodkjent.sistEndretAvNavAnsattId, okonomiGodkjent.vedtak?.opprettetAv)
 
-        override fun navEnheter() = listOfNotNull(data.sistEndretAvNavEnhetId)
+        override fun navEnheter() = listOfNotNull(okonomiGodkjent.sistEndretAvNavEnhetId, okonomiGodkjent.vedtak?.opprettetAvEnhet)
     }
 
     data class VurderingFraArrangor(
