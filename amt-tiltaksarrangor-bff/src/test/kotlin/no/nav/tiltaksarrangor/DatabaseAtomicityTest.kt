@@ -250,7 +250,7 @@ class DatabaseAtomicityTest(
     }
 
     @Test
-    fun `ny arrangor rulles tilbake hvis deltakerlisten ikke kan lagres`() {
+    fun `ny arrangør rulles tilbake hvis deltakerlisten ikke kan lagres`() {
         every { hentArrangorClient.getArrangor(arrangorInTest.organisasjonsnummer) } answers {
             TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
             arrangorInTest
