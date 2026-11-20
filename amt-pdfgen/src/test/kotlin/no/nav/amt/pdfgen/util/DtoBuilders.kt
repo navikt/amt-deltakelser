@@ -27,7 +27,7 @@ object DtoBuilders {
         vedtaksdato = fixedDate,
         sidetittel = "sidetittel: " + tiltakskode.name,
         ingressnavn = "Arbeidsforberedende trening",
-        opprettetDato = fixedDate.minusMonths(1),
+        opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
     )
 
     fun hovedvedtakDeltaker(
@@ -79,7 +79,7 @@ object DtoBuilders {
         forsteVedtakFattet = fixedDate.minusDays(10),
         sidetittel = "Endring i tiltak",
         ingressnavn = "Arbeidsforberedende trening",
-        opprettetDato = fixedDate.minusMonths(1),
+        opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
     )
 
     fun endringsvedtakDeltaker() = EndringsvedtakPdfDto.DeltakerDto(
@@ -125,7 +125,7 @@ object DtoBuilders {
         deltaker = hovedvedtakVedTildeltPlassDeltaker(),
         deltakerliste = hovedvedtakVedTildeltPlassDeltakerliste(tiltakskode, oppstartstype, forskriftskapittel, harKursetStartet),
         avsender = hovedvedtakVedTildeltPlassAvsender(),
-        opprettetDato = fixedDate.minusMonths(1),
+        opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
     )
 
     fun hovedvedtakVedTildeltPlassDeltaker() = HovedvedtakVedTildeltPlassPdfDto.DeltakerDto(
@@ -174,7 +174,7 @@ object DtoBuilders {
             arrangornavn = arrangornavn,
         ),
         avsender = innsokingsbrevAvsender(),
-        opprettetDato = fixedDate.minusMonths(1),
+        opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
         innhold = innhold,
         innholdFritekst = "Dette er en fritekst",
         deltakelsesmengdeAntallDager = deltakelsesmengdeAntallDager,
@@ -210,7 +210,7 @@ object DtoBuilders {
         avsender = innsokingsbrevAvsender(),
         sidetittel = "Innsøkingsbrev for $tiltakskode",
         ingressnavn = "Jobbklubb",
-        opprettetDato = fixedDate.minusMonths(1),
+        opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
     )
 
     fun innsokingsbrevDeltaker(innholdPdfDto: InnholdPdfDto? = null) = InnsokingsbrevPdfDto.DeltakerDto(

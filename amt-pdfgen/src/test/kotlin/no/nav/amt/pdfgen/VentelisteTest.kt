@@ -69,7 +69,7 @@ class VentelisteTest :
             deltaker = deltaker,
             deltakerliste = baseDeltakerliste(oppstartstype = oppstartstype),
             avsender = baseAvsender(),
-            opprettetDato = LocalDate.now(),
+            opprettetDato = LocalDate.now().atStartOfDay(),
         )
     }
 }

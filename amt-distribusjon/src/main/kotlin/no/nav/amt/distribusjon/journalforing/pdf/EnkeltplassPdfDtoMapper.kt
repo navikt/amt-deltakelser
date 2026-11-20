@@ -21,13 +21,14 @@ import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Tilskudd.Tilskuddstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.toTitleCase
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 object EnkeltplassPdfDtoMapper {
     fun lagEnkeltplassPdfDto(
         deltaker: HendelseDeltaker,
         navBruker: NavBruker,
         veileder: HendelseAnsvarlig.NavVeileder,
-        opprettetDato: LocalDate,
+        opprettetDato: LocalDateTime,
         utkast: UtkastDto,
     ) = EnkeltplassPdfDto(
         deltaker = DeltakerDto(

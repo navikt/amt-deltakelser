@@ -5,6 +5,7 @@ import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.EnkeltplassInnho
 import no.nav.amt.internapi.journalforing.pdf.EnkeltplassPdfDto.Prisinformasjon
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class EndringsvedtakPdfDto(
     val deltaker: DeltakerDto,
@@ -15,7 +16,7 @@ data class EndringsvedtakPdfDto(
     val forsteVedtakFattet: LocalDate?,
     val sidetittel: String,
     val ingressnavn: String,
-    val opprettetDato: LocalDate,
+    val opprettetDato: LocalDateTime,
     val visVedtakOgKlage: Boolean = true,
 ) {
     data class DeltakerDto(

@@ -456,7 +456,7 @@ class EnkeltplassPdfDtoMapperTest {
     inner class LagEnkeltplassPdfDtoTests {
         private val navBruker = Persondata.lagNavBruker()
         private val veileder = Hendelsesdata.ansvarligNavVeileder()
-        private val opprettetDato = LocalDate.now()
+        private val opprettetDato = LocalDate.now().atStartOfDay()
 
         private fun createValidDeltaker() = Hendelsesdata.lagDeltaker(
             deltakerliste = Hendelsesdata.lagDeltakerliste(
