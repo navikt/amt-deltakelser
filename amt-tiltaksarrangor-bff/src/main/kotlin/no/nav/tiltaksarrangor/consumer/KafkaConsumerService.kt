@@ -8,6 +8,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
+import no.nav.amt.lib.models.kafka.Kontaktinformasjon
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.tiltaksarrangor.client.amtperson.AmtPersonClient
@@ -18,6 +19,7 @@ import no.nav.tiltaksarrangor.consumer.model.AnsattDto
 import no.nav.tiltaksarrangor.consumer.model.ArrangorDto
 import no.nav.tiltaksarrangor.consumer.model.EndringsmeldingDto
 import no.nav.tiltaksarrangor.consumer.model.NavAnsatt
+import no.nav.tiltaksarrangor.consumer.model.NavEnhet
 import no.nav.tiltaksarrangor.consumer.model.SKJULES_ALLTID_STATUSER
 import no.nav.tiltaksarrangor.consumer.model.toAnsattDbo
 import no.nav.tiltaksarrangor.consumer.model.toArrangorDbo
@@ -115,23 +117,10 @@ class KafkaConsumerService(
         val opprinneligDeltaker = deltakerRepository.getDeltaker(deltakerId)
         val skalLagres = deltakerPayload.skalLagres(opprinneligDeltaker)
         val historikk = deltakerPayload.historikk.orEmpty()
-        val enheter = if (skalLagres) {
-            historikk.flatMap { it.navEnheter() }.distinct().mapNotNull { navEnhetService.hentNavEnhetHvisUtdatert(it) }
-        } else {
-            emptyList()
-        }
-        val ansatte = if (skalLagres) {
-            historikk.flatMap { it.navAnsatte() }.distinct().mapNotNull { navAnsattService.hentNavAnsattHvisMangler(it) }
-        } else {
-            emptyList()
-        }
+        val enheter = if (skalLagres) hentNavEnheterForHistorikk(historikk) else emptyList()
+        val ansatte = if (skalLagres) hentNavAnsatteForHistorikk(historikk) else emptyList()
         val kontaktinformasjon = if (skalLagres && opprinneligDeltaker == null) {
-            try {
-                amtPersonClient.hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
-            } catch (error: RuntimeException) {
-                log.error("Feil ved henting av oppdatert kontaktinformasjon for deltaker {}", deltakerId, error)
-                deltakerPayload.personalia.kontaktinformasjon
-            }
+            hentKontaktinformasjon(deltakerId, deltakerPayload)
         } else {
             null
         }
@@ -143,24 +132,53 @@ class KafkaConsumerService(
                 enheter.forEach { navEnhetService.upsert(it) }
                 ansatte.forEach { navAnsattRepository.upsert(it) }
 
-                if (lagretDeltaker == null) {
-                    check(kontaktinformasjon != null) { "Kontaktinformasjon er ikke forberedt for ny deltaker $deltakerId" }
-                    deltakerRepository.insertOrUpdateDeltaker(
-                        deltakerPayload
-                            .copy(personalia = deltakerPayload.personalia.copy(kontaktinformasjon = kontaktinformasjon))
-                            .toDeltakerDbo(null),
-                    )
-                    lagreNyDeltakerUlestEndring(deltakerPayload, deltakerId)
-                } else {
-                    lagreUlesteMeldinger(deltakerId, deltakerPayload, lagretDeltaker)
-                    deltakerRepository.insertOrUpdateDeltaker(deltakerPayload.toDeltakerDbo(lagretDeltaker))
-                }
+                lagreDeltakerOgUlesteEndringer(deltakerId, deltakerPayload, lagretDeltaker, kontaktinformasjon)
                 "Lagret"
             } else {
                 if (deltakerRepository.deleteDeltaker(deltakerId) > 0) "Slettet" else "Ignorert"
             }
         }
         log.info("$handling deltaker med id $deltakerId")
+    }
+
+    private fun hentNavEnheterForHistorikk(historikk: List<DeltakerHistorikk>): List<NavEnhet> = historikk
+        .flatMap { it.navEnheter() }
+        .distinct()
+        .mapNotNull { navEnhetService.hentNavEnhetHvisUtdatert(it) }
+
+    private fun hentNavAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): List<NavAnsatt> = historikk
+        .flatMap { it.navAnsatte() }
+        .distinct()
+        .mapNotNull { navAnsattService.hentNavAnsattHvisMangler(it) }
+
+    private fun hentKontaktinformasjon(
+        deltakerId: UUID,
+        deltakerPayload: DeltakerKafkaPayload,
+    ): Kontaktinformasjon = try {
+        amtPersonClient.hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
+    } catch (error: RuntimeException) {
+        log.error("Feil ved henting av oppdatert kontaktinformasjon for deltaker {}", deltakerId, error)
+        deltakerPayload.personalia.kontaktinformasjon
+    }
+
+    private fun lagreDeltakerOgUlesteEndringer(
+        deltakerId: UUID,
+        deltakerPayload: DeltakerKafkaPayload,
+        lagretDeltaker: DeltakerDbo?,
+        kontaktinformasjon: Kontaktinformasjon?,
+    ) {
+        if (lagretDeltaker == null) {
+            check(kontaktinformasjon != null) { "Kontaktinformasjon er ikke forberedt for ny deltaker $deltakerId" }
+            deltakerRepository.insertOrUpdateDeltaker(
+                deltakerPayload
+                    .copy(personalia = deltakerPayload.personalia.copy(kontaktinformasjon = kontaktinformasjon))
+                    .toDeltakerDbo(null),
+            )
+            lagreNyDeltakerUlestEndring(deltakerPayload, deltakerId)
+        } else {
+            lagreUlesteMeldinger(deltakerId, deltakerPayload, lagretDeltaker)
+            deltakerRepository.insertOrUpdateDeltaker(deltakerPayload.toDeltakerDbo(lagretDeltaker))
+        }
     }
 
     fun lagreNyDeltakerUlestEndring(
