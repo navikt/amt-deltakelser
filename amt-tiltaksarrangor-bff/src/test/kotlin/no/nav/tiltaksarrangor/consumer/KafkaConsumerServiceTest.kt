@@ -58,6 +58,8 @@ import no.nav.tiltaksarrangor.testutils.getVurderinger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -88,6 +90,7 @@ class KafkaConsumerServiceTest {
             amtPersonClient = amtPersonClient,
             navAnsattRepository = navAnsattRepository,
             objectMapper = objectMapper,
+            transactionTemplate = TransactionTemplate(mockk<PlatformTransactionManager>(relaxed = true)),
         )
 
     private val arrangor =
@@ -112,6 +115,8 @@ class KafkaConsumerServiceTest {
         every { arrangorRepository.getArrangor("88888888") } returns null
         every { arrangorRepository.insertOrUpdateArrangor(any()) } just Runs
         every { ulestEndringRepository.insert(any(), any()) } returns mockk()
+        every { navEnhetService.hentNavEnhetHvisUtdatert(any()) } returns null
+        every { navAnsattService.hentNavAnsattHvisMangler(any()) } returns null
         coEvery { hentArrangorClient.getArrangor("88888888") } returns arrangor
         every { amtPersonClient.hentOppdatertKontaktinfo(any<String>()) } throws
             RuntimeException("Oppdatert kontaktinformasjon ikke nødvendig for test")
@@ -358,8 +363,6 @@ class KafkaConsumerServiceTest {
                     historikk = listOf(DeltakerHistorikk.Forslag(forslag)),
                 )
                 every { deltakerRepository.getDeltaker(any()) } returns lagretDeltaker
-                every { navEnhetService.hentOpprettEllerOppdaterNavEnhet(any()) } returns mockk()
-                every { navAnsattService.hentEllerOpprettNavAnsatt(any()) } returns mockk()
                 kafkaConsumerService.lagreDeltaker(nyDeltaker.id, objectMapper.writeValueAsString(nyDeltaker))
 
                 verify(exactly = 1) { ulestEndringRepository.insert(any(), any()) }
@@ -386,8 +389,6 @@ class KafkaConsumerServiceTest {
                     historikk = listOf(endringFraArrangor),
                 )
                 every { deltakerRepository.getDeltaker(any()) } returns lagretDeltaker
-                every { navEnhetService.hentOpprettEllerOppdaterNavEnhet(any()) } returns mockk()
-                every { navAnsattService.hentEllerOpprettNavAnsatt(any()) } returns mockk()
                 kafkaConsumerService.lagreDeltaker(nyDeltaker.id, objectMapper.writeValueAsString(nyDeltaker))
 
                 verify(exactly = 0) { ulestEndringRepository.insert(any(), any()) }
@@ -417,8 +418,6 @@ class KafkaConsumerServiceTest {
                     historikk = listOf(forslag),
                 )
                 every { deltakerRepository.getDeltaker(any()) } returns lagretDeltaker
-                every { navEnhetService.hentOpprettEllerOppdaterNavEnhet(any()) } returns mockk()
-                every { navAnsattService.hentEllerOpprettNavAnsatt(any()) } returns mockk()
                 kafkaConsumerService.lagreDeltaker(nyDeltaker.id, objectMapper.writeValueAsString(nyDeltaker))
 
                 verify(exactly = 0) { ulestEndringRepository.insert(any(), any()) }
@@ -450,8 +449,6 @@ class KafkaConsumerServiceTest {
                 )
 
                 every { deltakerRepository.getDeltaker(any()) } returns lagretDeltaker
-                every { navEnhetService.hentOpprettEllerOppdaterNavEnhet(any()) } returns mockk()
-                every { navAnsattService.hentEllerOpprettNavAnsatt(any()) } returns mockk()
                 kafkaConsumerService.lagreDeltaker(nyDeltaker.id, objectMapper.writeValueAsString(nyDeltaker))
 
                 verify(exactly = 1) { ulestEndringRepository.insert(any(), any()) }
@@ -616,8 +613,8 @@ class KafkaConsumerServiceTest {
 
         @BeforeEach
         fun beforeEach() {
-            every { navAnsattService.hentEllerOpprettNavAnsatt(endretAv).navn } returns "Navn"
-            every { navEnhetService.hentOpprettEllerOppdaterNavEnhet(endretAvEnhet).navn } returns "EnhetNavn"
+            every { navAnsattRepository.get(endretAv) } returns getNavAnsatt().copy(id = endretAv, navn = "Navn")
+            every { navEnhetService.hentEnhet(endretAvEnhet) } returns NavEnhet(endretAvEnhet, "0000", "EnhetNavn")
         }
 
         @Test

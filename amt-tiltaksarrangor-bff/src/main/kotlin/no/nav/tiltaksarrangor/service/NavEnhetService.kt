@@ -36,6 +36,13 @@ class NavEnhetService(
         return enhet
     }
 
+    fun hentNavEnhetHvisUtdatert(id: UUID): NavEnhet? {
+        if (repository.get(id)?.sistEndret?.isAfter(LocalDateTime.now().minusMonths(1)) == true) return null
+
+        log.info("Fant ikke oppdatert Nav-enhet med nummer $id, henter fra amt-person-service")
+        return amtPersonClient.hentEnhet(id)
+    }
+
     fun hentEnheterForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavEnhet> {
         val ider = historikk.flatMap { it.navEnheter() }.distinct()
         val enheterFraDb = hentEnheter(ider)

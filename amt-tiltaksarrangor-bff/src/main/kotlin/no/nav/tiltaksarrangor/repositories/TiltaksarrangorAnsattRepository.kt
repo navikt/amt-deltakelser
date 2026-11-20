@@ -176,7 +176,10 @@ class TiltaksarrangorAnsattRepository(
         jitter = 250,
     )
     @Transactional
-    fun insertOrUpdateAnsatt(ansattDbo: AnsattDbo) {
+    fun insertOrUpdateAnsatt(
+        ansattDbo: AnsattDbo,
+        oppdaterSistInnlogget: Boolean = false,
+    ) {
         val sql =
             """
             INSERT INTO ansatt(id, personident, fornavn, mellomnavn, etternavn)
@@ -206,6 +209,9 @@ class TiltaksarrangorAnsattRepository(
         insertOrUpdateAnsattRolle(ansattDbo.id, ansattDbo.roller)
         insertOrUpdateKoordinatorDeltakerliste(ansattDbo.id, ansattDbo.deltakerlister)
         insertOrUpdateVeilederDeltaker(ansattDbo.id, ansattDbo.veilederDeltakere.distinct())
+        if (oppdaterSistInnlogget) {
+            updateSistInnlogget(ansattDbo.id)
+        }
     }
 
     private fun insertOrUpdateAnsattRolle(

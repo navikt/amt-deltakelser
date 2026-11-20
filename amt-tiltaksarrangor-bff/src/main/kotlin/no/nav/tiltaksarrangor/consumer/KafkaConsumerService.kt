@@ -39,6 +39,7 @@ import no.nav.tiltaksarrangor.service.NavEnhetService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
@@ -58,6 +59,7 @@ class KafkaConsumerService(
     private val amtPersonClient: AmtPersonClient,
     private val navAnsattRepository: NavAnsattRepository,
     private val objectMapper: ObjectMapper,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -110,38 +112,55 @@ class KafkaConsumerService(
 
         val deltakerPayload: DeltakerKafkaPayload = objectMapper.readValue(deltakerPayloadJson)
 
-        val lagretDeltaker = deltakerRepository.getDeltaker(deltakerId)
-        if (deltakerPayload.skalLagres(lagretDeltaker)) {
-            leggTilNavAnsattOgEnhetHistorikk(deltakerPayload)
-
-            if (lagretDeltaker == null) {
-                val oppdatertKontaktinformasjon = try {
-                    amtPersonClient.hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
-                } catch (error: RuntimeException) {
-                    log.error("Feil ved henting av oppdatert kontaktinformasjon for deltaker {}", deltakerId, error)
-                    deltakerPayload.personalia.kontaktinformasjon
-                }
-
-                deltakerRepository.insertOrUpdateDeltaker(
-                    deltakerPayload
-                        .copy(personalia = deltakerPayload.personalia.copy(kontaktinformasjon = oppdatertKontaktinformasjon))
-                        .toDeltakerDbo(null),
-                )
-                lagreNyDeltakerUlestEndring(deltakerPayload, deltakerId)
-            } else {
-                lagreUlesteMeldinger(deltakerId, deltakerPayload, lagretDeltaker)
-
-                deltakerRepository.insertOrUpdateDeltaker(deltakerPayload.toDeltakerDbo(lagretDeltaker))
-            }
-            log.info("Lagret deltaker med id $deltakerId")
+        val opprinneligDeltaker = deltakerRepository.getDeltaker(deltakerId)
+        val skalLagres = deltakerPayload.skalLagres(opprinneligDeltaker)
+        val historikk = deltakerPayload.historikk.orEmpty()
+        val enheter = if (skalLagres) {
+            historikk.flatMap { it.navEnheter() }.distinct().mapNotNull { navEnhetService.hentNavEnhetHvisUtdatert(it) }
         } else {
-            val antallSlettedeDeltakere = deltakerRepository.deleteDeltaker(deltakerId)
-            if (antallSlettedeDeltakere > 0) {
-                log.info("Slettet deltaker med id $deltakerId")
+            emptyList()
+        }
+        val ansatte = if (skalLagres) {
+            historikk.flatMap { it.navAnsatte() }.distinct().mapNotNull { navAnsattService.hentNavAnsattHvisMangler(it) }
+        } else {
+            emptyList()
+        }
+        val kontaktinformasjon = if (skalLagres && opprinneligDeltaker == null) {
+            try {
+                amtPersonClient.hentOppdatertKontaktinfo(deltakerPayload.personalia.personident)
+            } catch (error: RuntimeException) {
+                log.error("Feil ved henting av oppdatert kontaktinformasjon for deltaker {}", deltakerId, error)
+                deltakerPayload.personalia.kontaktinformasjon
+            }
+        } else {
+            null
+        }
+
+        val handling = transactionTemplate.execute {
+            val lagretDeltaker = deltakerRepository.getDeltaker(deltakerId)
+            if (deltakerPayload.skalLagres(lagretDeltaker)) {
+                check(skalLagres) { "Deltakergrunnlaget ble endret under forberedelse av hendelsen $deltakerId" }
+                enheter.forEach { navEnhetService.upsert(it) }
+                ansatte.forEach { navAnsattRepository.upsert(it) }
+
+                if (lagretDeltaker == null) {
+                    check(kontaktinformasjon != null) { "Kontaktinformasjon er ikke forberedt for ny deltaker $deltakerId" }
+                    deltakerRepository.insertOrUpdateDeltaker(
+                        deltakerPayload
+                            .copy(personalia = deltakerPayload.personalia.copy(kontaktinformasjon = kontaktinformasjon))
+                            .toDeltakerDbo(null),
+                    )
+                    lagreNyDeltakerUlestEndring(deltakerPayload, deltakerId)
+                } else {
+                    lagreUlesteMeldinger(deltakerId, deltakerPayload, lagretDeltaker)
+                    deltakerRepository.insertOrUpdateDeltaker(deltakerPayload.toDeltakerDbo(lagretDeltaker))
+                }
+                "Lagret"
             } else {
-                log.info("Ignorert deltaker med id $deltakerId")
+                if (deltakerRepository.deleteDeltaker(deltakerId) > 0) "Slettet" else "Ignorert"
             }
         }
+        log.info("$handling deltaker med id $deltakerId")
     }
 
     fun lagreNyDeltakerUlestEndring(
@@ -173,7 +192,7 @@ class KafkaConsumerService(
                     deltakerId,
                     Oppdatering.NyDeltaker(
                         opprettetAvNavn = navAnsattRepository.get(it.opprettetAv)?.navn,
-                        opprettetAvEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(it.opprettetAvEnhet).navn,
+                        opprettetAvEnhet = hentLagretNavEnhetNavn(it.opprettetAvEnhet),
                         opprettet = it.opprettet.toLocalDate(),
                     ),
                 )
@@ -270,48 +289,32 @@ class KafkaConsumerService(
         erNyDeltaker: Boolean,
     ): Oppdatering? = when (val e = endring.endring) {
         is EndringFraTiltakskoordinator.DelMedArrangor -> Oppdatering.DeltMedArrangor(
-            deltAvNavn = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv).navn,
-            deltAvEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(endring.endretAvEnhet).navn,
+            deltAvNavn = hentLagretNavAnsattNavn(endring.endretAv),
+            deltAvEnhet = hentLagretNavEnhetNavn(endring.endretAvEnhet),
             delt = endring.endret.toLocalDate(),
         )
 
         is EndringFraTiltakskoordinator.TildelPlass -> Oppdatering.TildeltPlass(
-            tildeltPlassAvNavn = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv).navn,
-            tildeltPlassAvEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(endring.endretAvEnhet).navn,
+            tildeltPlassAvNavn = hentLagretNavAnsattNavn(endring.endretAv),
+            tildeltPlassAvEnhet = hentLagretNavEnhetNavn(endring.endretAvEnhet),
             tildeltPlass = endring.endret.toLocalDate(),
             erNyDeltaker,
         )
 
         is EndringFraTiltakskoordinator.SettPaaVenteliste -> null
         is EndringFraTiltakskoordinator.Avslag -> Oppdatering.Avslag(
-            endretAv = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv).navn,
-            endretAvEnhet = navEnhetService.hentOpprettEllerOppdaterNavEnhet(endring.endretAvEnhet).navn,
+            endretAv = hentLagretNavAnsattNavn(endring.endretAv),
+            endretAvEnhet = hentLagretNavEnhetNavn(endring.endretAvEnhet),
             aarsak = e.aarsak.toDeltakerStatusAarsak(),
             begrunnelse = e.begrunnelse,
         )
     }
 
-    private fun leggTilNavAnsattOgEnhetHistorikk(deltakerPayload: DeltakerKafkaPayload) {
-        if (deltakerPayload.historikk.isNullOrEmpty()) {
-            return
-        }
-        lagreEnheterForHistorikk(deltakerPayload.historikk)
-        lagreAnsatteForHistorikk(deltakerPayload.historikk)
-    }
+    private fun hentLagretNavEnhetNavn(id: UUID): String =
+        checkNotNull(navEnhetService.hentEnhet(id)) { "Nav-enhet $id er ikke forberedt" }.navn
 
-    fun lagreEnheterForHistorikk(historikk: List<DeltakerHistorikk>?) {
-        historikk
-            ?.flatMap { it.navEnheter() }
-            ?.distinct()
-            ?.forEach { id -> navEnhetService.hentOpprettEllerOppdaterNavEnhet(id) }
-    }
-
-    fun lagreAnsatteForHistorikk(historikk: List<DeltakerHistorikk>?) {
-        historikk
-            ?.flatMap { it.navAnsatte() }
-            ?.distinct()
-            ?.forEach { id -> navAnsattService.hentEllerOpprettNavAnsatt(id) }
-    }
+    private fun hentLagretNavAnsattNavn(id: UUID): String =
+        checkNotNull(navAnsattRepository.get(id)) { "Nav-ansatt $id er ikke forberedt" }.navn
 
     fun lagreNavAnsatt(navAnsatt: NavAnsatt) {
         navAnsattRepository.upsert(navAnsatt)
