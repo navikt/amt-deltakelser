@@ -79,6 +79,7 @@ module "amt_deltaker_datastream" {
         { table = "importert_fra_arena" },
         { table = "innsok", columns = ["id", "deltaker_id", "innsokt"] },
         { table = "nav_bruker" },
+        { table = "opplaering_kategorisering_valg" },
         { table = "prisinformasjon" },
         { table = "prisinformasjon_belop" },
         { table = "prisinformasjon_gjennomforing_link" },
