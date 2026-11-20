@@ -7,8 +7,10 @@ import no.nav.tiltaksarrangor.consumer.ConsumerUtils.skalLagres
 import no.nav.tiltaksarrangor.consumer.ConsumerUtils.toDeltakerlisteDbo
 import no.nav.tiltaksarrangor.repositories.ArrangorRepository
 import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
+import no.nav.tiltaksarrangor.repositories.model.ArrangorDbo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
@@ -19,6 +21,7 @@ class DeltakerlisteConsumerService(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val hentArrangorClient: HentArrangorClient,
     private val objectMapper: ObjectMapper,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,11 +43,14 @@ class DeltakerlisteConsumerService(
         }
 
         if (payload.skalLagres()) {
-            deltakerlisteRepository.insertOrUpdateDeltakerliste(
-                payload.toDeltakerlisteDbo(
-                    arrangorId = hentArrangorId(payload.arrangor.organisasjonsnummer),
-                ),
-            )
+            val lagretArrangor = arrangorRepository.getArrangor(payload.arrangor.organisasjonsnummer)
+            val arrangor = lagretArrangor ?: hentArrangor(payload.arrangor.organisasjonsnummer)
+            transactionTemplate.executeWithoutResult {
+                if (lagretArrangor == null) {
+                    arrangorRepository.insertOrUpdateArrangor(arrangor)
+                }
+                deltakerlisteRepository.insertOrUpdateDeltakerliste(payload.toDeltakerlisteDbo(arrangor.id))
+            }
             log.info("Lagret deltakerliste med id $deltakerlisteId")
         } else {
             val antallSlettedeDeltakerlister = deltakerlisteRepository.deleteDeltakerlisteOgDeltakere(deltakerlisteId)
@@ -56,14 +62,11 @@ class DeltakerlisteConsumerService(
         }
     }
 
-    private fun hentArrangorId(organisasjonsnummer: String): UUID {
-        arrangorRepository.getArrangor(organisasjonsnummer)?.let { arrangor -> return arrangor.id }
-
+    private fun hentArrangor(organisasjonsnummer: String): ArrangorDbo {
         log.info("Fant ikke arrangør med orgnummer $organisasjonsnummer i databasen, henter fra amt-arrangor")
         val arrangor = hentArrangorClient.getArrangor(organisasjonsnummer)
             ?: throw RuntimeException("Kunne ikke hente arrangør med orgnummer $organisasjonsnummer")
 
-        arrangorRepository.insertOrUpdateArrangor(arrangor.toArrangorDbo())
-        return arrangor.id
+        return arrangor.toArrangorDbo()
     }
 }

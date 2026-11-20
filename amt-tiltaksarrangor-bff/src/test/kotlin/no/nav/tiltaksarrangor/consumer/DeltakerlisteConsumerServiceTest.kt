@@ -20,6 +20,8 @@ import no.nav.tiltaksarrangor.repositories.DeltakerlisteRepository
 import no.nav.tiltaksarrangor.testutils.getDeltakerliste
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 
 class DeltakerlisteConsumerServiceTest {
@@ -33,6 +35,7 @@ class DeltakerlisteConsumerServiceTest {
             deltakerlisteRepository = deltakerlisteRepository,
             hentArrangorClient = hentArrangorClient,
             objectMapper = objectMapper,
+            transactionTemplate = TransactionTemplate(mockk<PlatformTransactionManager>(relaxed = true)),
         )
 
     @BeforeEach
