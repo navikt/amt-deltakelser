@@ -53,7 +53,7 @@ class DatabaseAtomicityTest(
     private val ansattService: AnsattService,
 ) : IntegrationTestBase() {
     @Test
-    fun `deltakersletting ruller tilbake alle tilhorende data ved feil og kan gjentas`() {
+    fun `deltakersletting ruller tilbake alle tilhørende data ved feil og kan gjentas`() {
         val context = deltakerMedTilknyttedeData()
         val opprinnelig = databaseSnapshot()
 
