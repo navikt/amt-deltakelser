@@ -125,7 +125,7 @@ class DatabaseAtomicityTest(
     }
 
     @Test
-    fun `ny deltaker og referansedata rulles tilbake sammen og hendelsen kan behandles pa nytt`() {
+    fun `ny deltaker og referansedata rulles tilbake sammen og hendelsen kan behandles på nytt`() {
         val payload = deltakerMedHistorikk()
         medConstraintFeil("ulest_endring") {
             assertThrows<DataIntegrityViolationException> {
