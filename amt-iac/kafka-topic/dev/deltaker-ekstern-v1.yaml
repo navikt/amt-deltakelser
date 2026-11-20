@@ -41,6 +41,3 @@ spec:
     - team: team-mulighetsrommet
       application: tiltakshistorikk
       access: read
-    - team: tpts
-      application: tiltakspenger-saksbehandling-api
-      access: read

@@ -7,7 +7,7 @@ cpu_request: 20m
 memory_limit: 512Mi
 replicas_min: 1
 replicas_max: 1
-inbound_rules: [{application: amt-deltaker-flate}, {application: amt-deltaker-innbyggers-flate}, {application: amt-tiltakskoordinator-flate}, {application: tiltaksadministrasjon-flate, namespace: team-mulighetsrommet}, {application: veilarbpersonflate, namespace: poao}, {application: tiltakspenger-tiltak, namespace: tpts}]
+inbound_rules: [{application: amt-deltaker-flate}, {application: amt-deltaker-innbyggers-flate}, {application: amt-tiltakskoordinator-flate}, {application: tiltaksadministrasjon-flate, namespace: team-mulighetsrommet}, {application: veilarbpersonflate, namespace: poao}]
 database_instance: amt-deltaker-bff-2
 database_tier: db-f1-micro
 database_disk_autoresize: false
