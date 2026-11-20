@@ -21,6 +21,10 @@ spec:
   liveness:
     path: /internal/is_alive
 
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
+
   replicas:
     disableAutoScaling: true
     min: {{replicas}}
