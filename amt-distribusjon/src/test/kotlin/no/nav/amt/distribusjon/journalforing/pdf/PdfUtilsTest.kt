@@ -38,7 +38,6 @@ class PdfUtilsTest {
                     tiltak = Hendelsesdata.tiltak(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
                 ),
             )
-            val opprettetDato = LocalDateTime.of(2026, 11, 21, 0, 30)
 
             // Act
             val pdfDto = lagHovedvedtakPdfDto(
@@ -47,13 +46,11 @@ class PdfUtilsTest {
                 utkast = HendelseTypeData.utkast(),
                 veileder = Hendelsesdata.ansvarligNavVeileder(),
                 vedtaksdato = LocalDate.now(),
-                opprettetDato = opprettetDato,
                 begrunnelseFraNav = null,
             )
 
             // Assert
             pdfDto.deltakerliste.forskriftskapittel shouldBe Forskriftskapittel.KAPITTEL_13
-            pdfDto.opprettetDato shouldBe opprettetDato
         }
 
         @Test
@@ -80,7 +77,7 @@ class PdfUtilsTest {
                 deltaker = deltaker,
                 navBruker = Persondata.lagNavBruker(),
                 ansvarlig = ansvarlig,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
                 deltakelseInnhold = null,
             )
 
@@ -103,7 +100,7 @@ class PdfUtilsTest {
                 navBruker = Persondata.lagNavBruker(),
                 ansvarlig = Hendelsesdata.ansvarligNavVeileder(),
                 hendelser = emptyList(),
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             // Assert
@@ -203,7 +200,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -225,7 +222,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = emptyList(),
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.visVedtakOgKlage shouldBe true
@@ -253,7 +250,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.visVedtakOgKlage shouldBe true
@@ -272,7 +269,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = emptyList(),
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.visVedtakOgKlage shouldBe false
@@ -298,7 +295,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -330,7 +327,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -365,7 +362,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -400,7 +397,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -431,7 +428,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -462,7 +459,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -495,7 +492,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -529,7 +526,7 @@ class PdfUtilsTest {
                 navBruker = navBruker,
                 ansvarlig = ansvarligNavVeileder,
                 hendelser = hendelser,
-                opprettetDato = LocalDate.now().atStartOfDay(),
+                opprettetDato = LocalDate.now(),
             )
 
             pdfDto.endringer.size shouldBe 1
@@ -564,7 +561,7 @@ class PdfUtilsTest {
             navBruker = navBruker,
             ansvarlig = ansvarligNavVeileder,
             hendelser = hendelser,
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
         )
 
         pdfDto.endringer.size shouldBe 1
@@ -598,7 +595,7 @@ class PdfUtilsTest {
             navBruker = navBruker,
             ansvarlig = ansvarligNavVeileder,
             hendelser = hendelser,
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
         )
 
         pdfDto.endringer.size shouldBe 1
@@ -631,7 +628,7 @@ class PdfUtilsTest {
             navBruker = navBruker,
             ansvarlig = ansvarligNavVeileder,
             hendelser = hendelser,
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
         )
 
         pdfDto.endringer.size shouldBe 1

@@ -156,7 +156,7 @@ class JournalforingService(
                     navBruker = navBruker,
                     ansvarlig = hendelseAnsvarlig,
                     hendelser = listOf(hendelse),
-                    opprettetDato = hendelse.opprettet,
+                    opprettetDato = hendelse.opprettet.toLocalDate(),
                 ),
             )
         }
@@ -184,7 +184,7 @@ class JournalforingService(
             deltaker = hendelse.deltaker,
             navBruker = navBruker,
             ansvarlig = hendelseAnsvarlig,
-            opprettetDato = hendelse.opprettet,
+            opprettetDato = hendelse.opprettet.toLocalDate(),
             deltakelseInnhold = deltaker.deltakelsesinnhold,
         )
 
@@ -223,7 +223,7 @@ class JournalforingService(
                         deltaker = hendelse.deltaker,
                         navBruker = navBruker,
                         veileder = hendelse.ansvarlig.hentVeileder(),
-                        opprettetDato = hendelse.opprettet,
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
                         utkast = utkast,
                     ),
                 )
@@ -233,7 +233,7 @@ class JournalforingService(
                         deltaker = hendelse.deltaker,
                         navBruker = navBruker,
                         veileder = hendelse.ansvarlig.hentVeileder(),
-                        opprettetDato = hendelse.opprettet,
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
                         utkast = utkast,
                     ),
                 )
@@ -264,7 +264,7 @@ class JournalforingService(
                     deltaker = hendelse.deltaker,
                     navBruker = navBruker,
                     endretAv = tiltakskoordinator,
-                    hendelseOpprettetDato = hendelse.opprettet,
+                    hendelseOpprettetDato = hendelse.opprettet.toLocalDate(),
                 ),
             )
         }
@@ -297,7 +297,7 @@ class JournalforingService(
                         navBruker = navBruker,
                         utkast = utkast,
                         veileder = veileder,
-                        opprettetDato = hendelse.opprettet,
+                        opprettetDato = hendelse.opprettet.toLocalDate(),
                     ),
                 )
             } else {
@@ -308,7 +308,6 @@ class JournalforingService(
                         utkast = utkast,
                         veileder = veileder,
                         vedtaksdato = hendelse.opprettet.toLocalDate(),
-                        opprettetDato = hendelse.opprettet,
                         begrunnelseFraNav = hendelse.getBegrunnelseForHovedvedtak(),
                     ),
                 )
@@ -459,7 +458,7 @@ class JournalforingService(
                 navBruker,
                 ansvarlig,
                 ikkeJournalforteHendelser,
-                nyesteHendelse.opprettet,
+                nyesteHendelse.opprettet.toLocalDate(),
             ),
         )
         val journalpostId = journalfor(ikkeJournalforteHendelser, journalforendeEnhet, navBruker, pdf, DokumentType.ENDRINGSVEDTAK)

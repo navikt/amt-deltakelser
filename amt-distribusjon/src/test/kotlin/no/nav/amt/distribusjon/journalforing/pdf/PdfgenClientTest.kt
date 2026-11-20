@@ -182,7 +182,6 @@ class PdfgenClientTest {
             utkast = utkast(),
             veileder = ansvarligNavVeileder(),
             vedtaksdato = LocalDate.now(),
-            opprettetDato = LocalDate.now().atStartOfDay(),
             begrunnelseFraNav = null,
         )
 
@@ -201,7 +200,7 @@ class PdfgenClientTest {
             deltaker = lagDeltaker(),
             navBruker = Persondata.lagNavBruker(),
             ansvarlig = ansvarlig,
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
             deltakelseInnhold = Deltakelsesinnhold(
                 ledetekst = null,
                 innhold = listOf(Innhold("innhold", "innhold", true, beskrivelse = "fritekst")),
@@ -212,7 +211,7 @@ class PdfgenClientTest {
             deltaker = lagDeltaker(),
             navBruker = Persondata.lagNavBruker(),
             veileder = ansvarligNavVeileder(),
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
             utkast = utkast(),
         )
 
@@ -220,7 +219,7 @@ class PdfgenClientTest {
             deltaker = lagDeltaker(),
             navBruker = Persondata.lagNavBruker(),
             endretAv = ansvarlig,
-            hendelseOpprettetDato = LocalDate.now().atStartOfDay(),
+            hendelseOpprettetDato = LocalDate.now(),
         )
 
         private val endringsvedtakPdfDto = lagEndringsvedtakPdfDto(
@@ -228,7 +227,7 @@ class PdfgenClientTest {
             navBruker = Persondata.lagNavBruker(),
             ansvarlig = ansvarlig,
             hendelser = emptyList(),
-            opprettetDato = LocalDate.now().atStartOfDay(),
+            opprettetDato = LocalDate.now(),
         )
     }
 }

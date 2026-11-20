@@ -257,3 +257,121 @@ Spring Boot-versjonen styres der, mens Spring Boot BOM styrer versjonene på avh
 
 Dette prosjektet er lisensiert under **MIT License**.  
 Se [LICENSE](LICENSE) for fullstendig lisensinformasjon.
+
+
+```
+WITH
+  d AS (
+  SELECT
+    id
+  FROM
+    deltaker
+  WHERE
+    deltakerliste_id = $1 ),
+  uh_flags AS (
+  SELECT
+    deltaker_id,
+    BOOL_OR(hendelse->>$3 IN ($4,
+        $5)) AS er_ny_deltaker,
+    BOOL_OR(hendelse->>$6 IN ($7,
+        $8,
+        $9,
+        $10)) AS har_oppdatering_fra_nav
+  FROM
+    ulest_hendelse AS uh
+  JOIN
+    d
+  ON
+    d.id = uh.deltaker_id
+  GROUP BY
+    deltaker_id )
+SELECT
+  ds.type,
+  COUNT(*) AS count,
+  COUNT(*) FILTER (
+  WHERE
+    uh.er_ny_deltaker) AS er_ny_deltaker_count,
+  COUNT(*) FILTER (
+  WHERE
+    uh.har_oppdatering_fra_nav) AS har_oppdatering_fra_nav_count,
+  COUNT(*) FILTER (
+  WHERE
+    af.har_aktivt) AS har_aktivt_forslag_count
+FROM
+  d
+JOIN
+  deltaker_status ds
+ON
+  ds.deltaker_id = d.id
+  AND ds.gyldig_til IS NULL
+  AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+  AND ds.type = ANY($2)
+LEFT JOIN
+  uh_flags uh
+ON
+  uh.deltaker_id = d.id
+LEFT JOIN
+  LATERAL (
+  SELECT
+    $11 AS har_aktivt
+  FROM
+    forslag f
+  WHERE
+    f.deltaker_id = d.id
+    AND f.status->>$12 = $13
+  LIMIT
+    $14 ) af
+ON
+  $15
+GROUP BY
+  ds.type
+```
+
+
+```
+-- Pri 1 78 ms
+SELECT
+  d.id AS "d.id",
+  d.startdato AS "d.startdato",
+  d.sluttdato AS "d.sluttdato",
+  d.er_manuelt_delt_med_arrangor AS "d.er_manuelt_delt_med_arrangor",
+  nb.personident AS "nb.personident",
+  nb.fornavn AS "nb.fornavn",
+  nb.mellomnavn AS "nb.mellomnavn",
+  nb.etternavn AS "nb.etternavn",
+  nb.er_skjermet AS "nb.er_skjermet",
+  (nb.adresse IS NOT NULL) AS "nb.har_adresse",
+  nb.adressebeskyttelse AS "nb.adressebeskyttelse",
+  ds.id AS "ds.id",
+  ds.type AS "ds.type",
+  ds.aarsak AS "ds.aarsak",
+  ds.gyldig_fra AS "ds.gyldig_fra",
+  ds.gyldig_til AS "ds.gyldig_til",
+  ds.created_at AS "ds.created_at",
+  ne.navn AS "ne.navn",
+  COALESCE( (ifa.deltaker_ved_import->>$3)::date, ipfo.innsokt::date, v.created_at::date ) AS sokt_inn_dato,
+  COALESCE(af.har_aktivt, $4) AS har_aktivt_forslag,
+  sv.vurderingstype AS siste_vurderingstype,
+  dbc.er_digital AS "dbc.er_digital",
+  CASE
+    WHEN v.gyldig_til IS NULL THEN v.fattet
+    ELSE $5
+END
+  AS "v.fattet",
+  (ifa.deltaker_ved_import->>$6)::date AS innsoekt_dato_arena
+FROM
+  deltaker d
+JOIN
+  nav_bruker nb
+ON
+  d.person_id =
+```
+
+
+kubectl get pod -n amt amt-distribusjon-9d8fdcf84-2d5r4 -o jsonpath='
+{range .spec.containers[*]}
+Container: {.name}
+Command: {.command}
+Args: {.args}
+{range .env[?(@.name=="TZ")]}TZ: {.value}{end}
+{end}'

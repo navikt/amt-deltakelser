@@ -3,13 +3,12 @@ package no.nav.amt.internapi.journalforing.pdf
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class HovedvedtakVedTildeltPlassPdfDto(
     val deltaker: DeltakerDto,
     val deltakerliste: DeltakerlisteDto,
     val avsender: AvsenderDto,
-    val opprettetDato: LocalDateTime,
+    val opprettetDato: LocalDate,
 ) {
     data class DeltakerDto(
         val fornavn: String,

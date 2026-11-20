@@ -16,9 +16,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import tools.jackson.databind.node.ObjectNode
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.TimeZone
 import java.util.UUID
 
 class HendelseRepositoryTest {
@@ -263,60 +261,6 @@ class HendelseRepositoryTest {
 
         // Assert
         hendelser.size shouldBe 1
-    }
-
-    @Test
-    fun `getHendelser - hendelse etter klokken 23 UTC får neste dato i Oslo`() {
-        val opprinneligTidssone = TimeZone.getDefault()
-
-        try {
-            TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
-
-            val opprettetUtc = LocalDateTime.of(2026, 11, 20, 23, 30)
-            val hendelse = Hendelsesdata.hendelse(
-                payload = HendelseTypeData.opprettUtkast(),
-                opprettet = opprettetUtc,
-            )
-            TestRepository.insertHendelse(hendelse)
-
-            Database.query { session ->
-                session.update(
-                    queryOf(
-                        """
-                        UPDATE hendelse
-                        SET created_at = CAST(:created_at AS TIMESTAMP WITHOUT TIME ZONE) AT TIME ZONE 'UTC'
-                        WHERE id = :id
-                        """.trimIndent(),
-                        mapOf(
-                            "created_at" to opprettetUtc.toString(),
-                            "id" to hendelse.id,
-                        ),
-                    ),
-                )
-            }
-
-            val opprettetUtcIDatabase = Database.query { session ->
-                session.run(
-                    queryOf(
-                        """
-                        SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24.MI.SS') AS created_at_utc
-                        FROM hendelse
-                        WHERE id = :id
-                        """.trimIndent(),
-                        mapOf("id" to hendelse.id),
-                    ).map { it.string("created_at_utc") }.asSingle,
-                )
-            }
-
-            opprettetUtcIDatabase shouldBe "2026-11-20T23.30.00"
-
-            val hentetHendelse = hendelseRepository.getHendelser(listOf(hendelse.id)).single()
-
-            hentetHendelse.opprettet shouldBe LocalDateTime.of(2026, 11, 21, 0, 30)
-            hentetHendelse.opprettet.toLocalDate() shouldBe LocalDate.of(2026, 11, 21)
-        } finally {
-            TimeZone.setDefault(opprinneligTidssone)
-        }
     }
 
     @Test

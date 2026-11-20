@@ -3,7 +3,6 @@ package no.nav.amt.internapi.journalforing.pdf
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class InnsokingsbrevPdfDto(
     val deltaker: DeltakerDto,
@@ -11,7 +10,7 @@ data class InnsokingsbrevPdfDto(
     val avsender: AvsenderDto,
     val sidetittel: String,
     val ingressnavn: String,
-    val opprettetDato: LocalDateTime,
+    val opprettetDato: LocalDate,
 ) {
     data class DeltakerDto(
         val fornavn: String,

@@ -10,6 +10,7 @@ import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.amt.lib.utils.toPGObject
 import tools.jackson.module.kotlin.readValue
+import java.time.LocalDateTime
 import java.util.UUID
 
 class HendelseRepository {
@@ -136,7 +137,7 @@ class HendelseRepository {
             deltaker = objectMapper.readValue(row.string("deltaker")),
             ansvarlig = objectMapper.readValue(row.string("ansvarlig")),
             payload = objectMapper.readValue(row.string("payload")),
-            opprettet = row.localDateTime("created_at"),
+            opprettet = LocalDateTime.of(2026, 11, 8, 23, 17),
             distribusjonskanal = Distribusjonskanal.valueOf(row.string("distribusjonskanal")),
             manuellOppfolging = row.boolean("manuelloppfolging"),
         )

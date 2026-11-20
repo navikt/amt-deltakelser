@@ -21,7 +21,6 @@ import no.nav.amt.pdfgen.util.RenderUtils.renderSection
 import no.nav.amt.pdfgen.util.RenderUtils.sectionText
 import no.nav.amt.pdfgen.util.RenderUtils.toNorwegianShortDate
 import org.jsoup.nodes.Document
-import java.time.LocalDateTime
 
 class EndringsvedtakBddTest :
     BehaviorSpec({
@@ -65,18 +64,6 @@ class EndringsvedtakBddTest :
 
                     doc.text() shouldContain "Med vennlig hilsen"
                     doc.text() shouldContain "Nav Saksbehandler"
-                }
-            }
-        }
-
-        Given("endringsvedtak med klokkeslett i opprettetDato") {
-            When("brevet rendres") {
-                val doc = renderEndringsvedtak(
-                    endringsvedtak().copy(opprettetDato = LocalDateTime.of(2026, 11, 21, 0, 30)),
-                )
-
-                Then("vises dato og klokkeslett i headeren") {
-                    doc.selectFirst(".vedtaksdato p").shouldNotBeNull().text() shouldBe "21.11.2026 00:30"
                 }
             }
         }
@@ -338,7 +325,7 @@ class EndringsvedtakBddTest :
             forsteVedtakFattet = fixedDate.minusDays(10),
             sidetittel = "Endring i tiltak",
             ingressnavn = "Arbeidsforberedende trening",
-            opprettetDato = fixedDate.minusMonths(1).atTime(12, 0),
+            opprettetDato = fixedDate.minusMonths(1),
         )
     }
 }

@@ -18,7 +18,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 fun lagHovedvedtakPdfDto(
     deltaker: HendelseDeltaker,
@@ -26,7 +25,6 @@ fun lagHovedvedtakPdfDto(
     utkast: UtkastDto,
     veileder: HendelseAnsvarlig.NavVeileder,
     vedtaksdato: LocalDate,
-    opprettetDato: LocalDateTime,
     begrunnelseFraNav: String?,
 ): HovedvedtakPdfDto {
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
@@ -67,7 +65,7 @@ fun lagHovedvedtakPdfDto(
         begrunnelseFraNav = begrunnelseFraNav,
         sidetittel = visningsnavn.tittel,
         ingressnavn = visningsnavn.ingressTekst,
-        opprettetDato = opprettetDato,
+        opprettetDato = vedtaksdato,
     )
 }
 
@@ -75,7 +73,7 @@ fun lagHovedopptakForTildeltPlass(
     deltaker: HendelseDeltaker,
     navBruker: NavBruker,
     ansvarlig: HendelseAnsvarlig.NavTiltakskoordinator,
-    opprettetDato: LocalDateTime,
+    opprettetDato: LocalDate,
     deltakelseInnhold: Deltakelsesinnhold?,
 ): HovedvedtakVedTildeltPlassPdfDto {
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
@@ -113,7 +111,7 @@ fun lagInnsokingsbrevPdfDto(
     deltaker: HendelseDeltaker,
     navBruker: NavBruker,
     veileder: HendelseAnsvarlig.NavVeileder,
-    opprettetDato: LocalDateTime,
+    opprettetDato: LocalDate,
     utkast: UtkastDto,
 ): InnsokingsbrevPdfDto {
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
@@ -149,7 +147,7 @@ fun lagVentelistebrevPdfDto(
     deltaker: HendelseDeltaker,
     navBruker: NavBruker,
     endretAv: HendelseAnsvarlig.NavTiltakskoordinator,
-    hendelseOpprettetDato: LocalDateTime,
+    hendelseOpprettetDato: LocalDate,
 ): VentelistebrevPdfDto {
     val visningsnavn = deltaker.deltakerliste.visningsnavn()
     return VentelistebrevPdfDto(
@@ -182,7 +180,7 @@ fun lagEndringsvedtakPdfDto(
     navBruker: NavBruker,
     ansvarlig: HendelseAnsvarlig,
     hendelser: List<Hendelse>,
-    opprettetDato: LocalDateTime,
+    opprettetDato: LocalDate,
 ): EndringsvedtakPdfDto {
     val endringer = fjernEldreHendelserAvSammeType(hendelser).map { it.payload }
 
@@ -219,7 +217,7 @@ fun lagEndringsvedtakPdfDto(
             enhet = navBruker.navEnhet?.navn ?: "NAV",
         ),
         visVedtakOgKlage = skalViseVedtakOgKlageForEndring(deltaker.status?.type, endringer),
-        vedtaksdato = opprettetDato.toLocalDate(),
+        vedtaksdato = opprettetDato,
         forsteVedtakFattet = deltaker.forsteVedtakFattet,
         sidetittel = visningsnavn.tittel,
         ingressnavn = visningsnavn.ingressTekst,
