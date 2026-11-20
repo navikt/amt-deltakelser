@@ -63,27 +63,45 @@ class DeltakerRepository(
         offset: Long,
         buyPassEqualityCheck: Boolean = false,
     ): RepositoryResult<DeltakerDbo> {
+        val oldDeltaker = getDeltakerMedOffset(deltaker.id)
+        if (!skalOppdatere(deltaker, offset, buyPassEqualityCheck, oldDeltaker)) {
+            return RepositoryResult.NoChange()
+        }
+
+        return lagre(deltaker, offset, oldDeltaker)
+    }
+
+    fun skalOppdatere(
+        deltaker: DeltakerDbo,
+        offset: Long,
+        buyPassEqualityCheck: Boolean = false,
+    ): Boolean = skalOppdatere(deltaker, offset, buyPassEqualityCheck, getDeltakerMedOffset(deltaker.id))
+
+    private fun skalOppdatere(
+        deltaker: DeltakerDbo,
+        offset: Long,
+        buyPassEqualityCheck: Boolean,
+        oldDeltaker: DeltakerMedOffset?,
+    ): Boolean {
         // fix for å reversere endring 26.11.2025 hvor gyldigFra ble lagt til
         fun DeltakerDbo.isEqualTo(other: DeltakerDbo?): Boolean =
             this.copy(status = status.copy(gyldigFra = null)) == other?.copy(status = other.status.copy(gyldigFra = null))
 
-        val oldDeltaker = getDeltakerMedOffset(deltaker.id)
-
         // Hvorfor denne sjekken?
         if (oldDeltaker != null && oldDeltaker.offset > offset) {
             log.info("Har lagret melding med offset ${oldDeltaker.offset} for deltaker ${deltaker.id}, ignorerer offset $offset")
-            return RepositoryResult.NoChange()
+            return false
         }
 
         if (oldDeltaker == null && deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
-            return RepositoryResult.NoChange()
+            return false
         }
 
         if (deltaker.isEqualTo(oldDeltaker?.deltaker) &&
             !unleashToggle.skalOppdatereUendredeAktivitetskort() &&
             !buyPassEqualityCheck
         ) {
-            return RepositoryResult.NoChange()
+            return false
         }
 
         if (deltaker.status.type in avsluttendeStatuser &&
@@ -91,9 +109,16 @@ class DeltakerRepository(
             !skalKorrigereTidligereDeltaker(oldDeltaker?.deltaker)
         ) {
             log.info("Ignorerer deltaker som er avsluttet før aktivitetsplanen ble lansert, id ${deltaker.id}")
-            return RepositoryResult.NoChange()
+            return false
         }
+        return true
+    }
 
+    private fun lagre(
+        deltaker: DeltakerDbo,
+        offset: Long,
+        oldDeltaker: DeltakerMedOffset?,
+    ): RepositoryResult<DeltakerDbo> {
         val sql =
             """
             insert into deltaker(

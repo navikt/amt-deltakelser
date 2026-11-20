@@ -20,6 +20,7 @@ import no.nav.amt.lib.models.kafka.AmtGjennomforingPayload
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
 import no.nav.amt.lib.models.kafka.GjennomforingV2KafkaPayload.Companion.deltakerlisteTombstoneBlacklist
 import org.slf4j.LoggerFactory
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.ObjectMapper
@@ -53,17 +54,37 @@ class KafkaConsumerService(
         val deltaker = amtDeltakerClient
             .getDeltaker(deltakerPayload.id)
             .let { Deltaker.fromDeltakerResponse(it) }
+        val deltakerDbo = deltakerPayload.toDbo()
+        val buyPassEqualityCheck = deltaker.gjennomforing.tiltakstype.erOpplaeringstiltak && deltaker.kilde == Kilde.KOMET
+        if (!deltakerRepository.skalOppdatere(deltakerDbo, offset, buyPassEqualityCheck)) {
+            log.info("Ny hendelse for deltaker ${deltaker.id}: Ingen endring")
+            log.info("Konsumerte melding med deltaker $id, offset $offset")
+            return
+        }
+        val meldingForForberedelse = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
+        val forberedtMelding = aktivitetskortService.forberedMelding(deltaker)
 
         transactionTemplate.executeWithoutResult {
             val deltakerUpsertResult = deltakerRepository.upsert(
-                deltaker = deltakerPayload.toDbo(),
+                deltaker = deltakerDbo,
                 offset = offset,
-                buyPassEqualityCheck = deltaker.gjennomforing.tiltakstype.erOpplaeringstiltak && deltaker.kilde == Kilde.KOMET,
+                buyPassEqualityCheck = buyPassEqualityCheck,
             )
+            if (deltakerUpsertResult !is RepositoryResult.NoChange) {
+                val gjeldendeMelding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
+                if (gjeldendeMelding?.id != meldingForForberedelse?.id ||
+                    gjeldendeMelding?.oppfolgingperiode != meldingForForberedelse?.oppfolgingperiode ||
+                    gjeldendeMelding?.modifiedAt != meldingForForberedelse?.modifiedAt
+                ) {
+                    throw ConcurrencyFailureException(
+                        "Meldingshistorikken for deltaker ${deltaker.id} er endret. Aktivitetskortet må forberedes på nytt.",
+                    )
+                }
+            }
             when (deltakerUpsertResult) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltaker ${deltakerPayload.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
+                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
                         return@executeWithoutResult
@@ -72,7 +93,7 @@ class KafkaConsumerService(
 
                 is RepositoryResult.Created -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Opprettelse")
-                    val aktivitetskort = aktivitetskortService.lagAktivitetskort(deltaker)
+                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
                     if (aktivitetskort == null) {
                         log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
                         return@executeWithoutResult
