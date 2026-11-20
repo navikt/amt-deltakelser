@@ -15,6 +15,7 @@ import no.nav.amt.distribusjon.veilarboppfolging.Sak
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.UUID
 
 class DokarkivClient(
@@ -37,6 +38,7 @@ class DokarkivClient(
         pdf: ByteArray,
         journalforendeEnhet: String,
         journalpostNavn: String,
+        datoDokument: LocalDateTime,
     ): String {
         val request =
             lagJournalpostRequest(
@@ -46,6 +48,7 @@ class DokarkivClient(
                 pdf = pdf,
                 journalforendeEnhet = journalforendeEnhet,
                 journalpostNavn = journalpostNavn,
+                datoDokument = datoDokument,
             )
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val response =
@@ -73,6 +76,7 @@ class DokarkivClient(
         pdf: ByteArray,
         journalforendeEnhet: String,
         journalpostNavn: String,
+        datoDokument: LocalDateTime,
     ): OpprettJournalpostRequest = OpprettJournalpostRequest(
         avsenderMottaker =
             AvsenderMottaker(
@@ -101,5 +105,6 @@ class DokarkivClient(
         tema = Environment.SAF_TEMA,
         tittel = journalpostNavn,
         eksternReferanseId = hendelseId.toString(),
+        datoDokument = datoDokument,
     )
 }

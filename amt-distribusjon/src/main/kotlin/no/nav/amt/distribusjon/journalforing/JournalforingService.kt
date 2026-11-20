@@ -529,6 +529,7 @@ class JournalforingService(
             pdf = pdf,
             journalforendeEnhet = journalforendeEnhet,
             journalpostNavn = getJournalpostNavn(nyesteHendelse.deltaker.deltakerliste.tiltak, dokumentType),
+            datoDokument = nyesteHendelse.opprettet,
         )
 
         hendelse.forEach {

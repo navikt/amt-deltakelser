@@ -1,5 +1,7 @@
 package no.nav.amt.distribusjon.journalforing.dokarkiv
 
+import java.time.LocalDateTime
+
 data class OpprettJournalpostRequest(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
@@ -11,6 +13,7 @@ data class OpprettJournalpostRequest(
     val tema: String,
     val tittel: String,
     val eksternReferanseId: String,
+    val datoDokument: LocalDateTime,
 )
 
 data class AvsenderMottaker(
