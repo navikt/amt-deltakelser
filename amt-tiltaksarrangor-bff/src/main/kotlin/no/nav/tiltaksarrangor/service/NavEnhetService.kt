@@ -17,16 +17,6 @@ class NavEnhetService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun hentOpprettEllerOppdaterNavEnhet(id: UUID): NavEnhet {
-        repository
-            .get(id)
-            ?.takeIf { it.sistEndret.isAfter(LocalDateTime.now().minusMonths(1)) }
-            ?.let { return it.toNavEnhet() }
-
-        log.info("Fant ikke oppdatert Nav-enhet med nummer $id, henter fra amt-person-service")
-        return fetchEnhet(id)
-    }
-
     private fun fetchEnhet(id: UUID): NavEnhet {
         val enhet = amtPersonClient.hentEnhet(id)
 
@@ -37,11 +27,16 @@ class NavEnhetService(
     }
 
     fun hentNavEnhetHvisUtdatert(id: UUID): NavEnhet? {
-        if (repository.get(id)?.sistEndret?.isAfter(LocalDateTime.now().minusMonths(1)) == true) return null
+        if (hentOppdatertNavEnhet(id) != null) return null
 
         log.info("Fant ikke oppdatert Nav-enhet med nummer $id, henter fra amt-person-service")
         return amtPersonClient.hentEnhet(id)
     }
+
+    private fun hentOppdatertNavEnhet(id: UUID): NavEnhet? = repository
+        .get(id)
+        ?.takeIf { it.sistEndret.isAfter(LocalDateTime.now().minusMonths(1)) }
+        ?.toNavEnhet()
 
     fun hentEnheterForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavEnhet> {
         val ider = historikk.flatMap { it.navEnheter() }.distinct()
