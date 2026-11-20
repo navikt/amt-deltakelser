@@ -446,13 +446,17 @@ class KafkaConsumerTest(
             meldingRepository.upsert(it.melding)
         }
         val periodeId = UUID.randomUUID()
-        mockVeilarboppfolgingClient(periodeId)
+        every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe arrangorHendelse
+            TestData.oppfolgingsperiode(id = periodeId)
+        }
         var antallOppslag = 0
         var skalFeile = true
         every { amtDeltakerClient.getDeltaker(any()) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe arrangorHendelse
             antallOppslag++
             if (skalFeile && antallOppslag == 2) {
-                deltakere.sumOf { antallOutbox(it.aktivitetskortId) } shouldBe 1
+                deltakere.sumOf { antallOutbox(it.aktivitetskortId) } shouldBe if (arrangorHendelse) 1 else 0
                 throw IllegalStateException("Andre deltaker feiler")
             }
             val ctx = deltakere.single { it.deltaker.id == firstArg<UUID>() }
@@ -510,6 +514,129 @@ class KafkaConsumerTest(
         antallOppslag shouldBe 4
         deltakere.forEach { antallOutbox(it.aktivitetskortId) shouldBe 1 }
         verify(exactly = 2) { acknowledgment.acknowledge() }
+    }
+
+    @Test
+    fun `lagringsfeil pa andre kort ruller tilbake gjennomforing og alle kort og tillater gjenlevering`() {
+        val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        val andre = TestData.MockContext(
+            deltaker = TestData.lagDeltaker(deltakerlisteId = forste.deltakerliste.id, kilde = Kilde.KOMET),
+            deltakerliste = forste.deltakerliste,
+            arrangor = forste.arrangor,
+        )
+        val deltakere = listOf(forste, andre)
+        arrangorRepository.upsert(forste.arrangor)
+        deltakerlisteRepository.upsert(forste.deltakerliste)
+        deltakere.forEach {
+            deltakerRepository.upsert(it.deltaker, offset)
+            meldingRepository.upsert(it.melding)
+        }
+        val endretListe = forste.deltakerliste.copy(navn = "Endret navn")
+        val ugyldigListeId = UUID.randomUUID()
+        val periodeId = UUID.randomUUID()
+        mockVeilarboppfolgingClient(periodeId)
+        var antallOppslag = 0
+        var skalFeile = true
+        every { amtDeltakerClient.getDeltaker(any()) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            antallOppslag++
+            val ctx = deltakere.single { it.deltaker.id == firstArg<UUID>() }
+            TestData.lagDeltakerResponse(
+                ctx.deltaker.copy(sluttdato = LocalDate.now().plusMonths(2)),
+                if (skalFeile && antallOppslag == 2) endretListe.copy(id = ugyldigListeId) else endretListe,
+                ctx.arrangor,
+            )
+        }
+        val record = gjennomforingRecord(forste, endretListe)
+        val acknowledgment = mockk<Acknowledgment>(relaxed = true)
+
+        shouldThrow<DataIntegrityViolationException> {
+            kafkaConsumer.listen(record, acknowledgment)
+        }
+
+        antallOppslag shouldBe 2
+        deltakerlisteRepository.get(endretListe.id) shouldBe forste.deltakerliste
+        deltakere.forEach {
+            meldingRepository.getByDeltakerId(it.deltaker.id).single().aktivitetskort shouldBe it.aktivitetskort
+            antallOutbox(it.aktivitetskortId) shouldBe 0
+        }
+        antallPerioder(periodeId) shouldBe 0
+        verify(exactly = 0) { acknowledgment.acknowledge() }
+
+        skalFeile = false
+        kafkaConsumer.listen(record, acknowledgment)
+
+        deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        deltakere.forEach {
+            val melding = meldingRepository.getByDeltakerId(it.deltaker.id).single()
+            melding.id shouldBe it.melding.id
+            melding.aktivitetskort.sluttDato shouldBe LocalDate.now().plusMonths(2)
+            melding.oppfolgingperiode shouldBe periodeId
+            antallOutbox(it.aktivitetskortId) shouldBe 1
+        }
+        antallPerioder(periodeId) shouldBe 1
+        verify(exactly = 1) { acknowledgment.acknowledge() }
+    }
+
+    @Test
+    fun `gjennomforing uendret etter forberedelse forkaster alle forberedte meldinger`() {
+        val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        arrangorRepository.upsert(ctx.arrangor)
+        deltakerlisteRepository.upsert(ctx.deltakerliste)
+        deltakerRepository.upsert(ctx.deltaker, offset)
+        meldingRepository.upsert(ctx.melding)
+        val endretListe = ctx.deltakerliste.copy(navn = "Endret navn")
+        val periodeId = UUID.randomUUID()
+        mockVeilarboppfolgingClient(periodeId)
+        every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            deltakerlisteRepository.upsert(endretListe)
+            TestData.lagDeltakerResponse(ctx.deltaker, endretListe, ctx.arrangor)
+        }
+
+        kafkaConsumer.listen(gjennomforingRecord(ctx, endretListe), ack)
+
+        deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single().aktivitetskort shouldBe ctx.aktivitetskort
+        antallPerioder(periodeId) shouldBe 0
+        antallOutbox(ctx.aktivitetskortId) shouldBe 0
+    }
+
+    @Test
+    fun `manglende oppfolgingsperiode for en deltaker hindrer ikke andre kort pa gjennomforingen`() {
+        val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(personident = "forste", kilde = Kilde.ARENA))
+        val andre = TestData.MockContext(
+            deltaker = TestData.lagDeltaker(
+                personident = "andre",
+                deltakerlisteId = forste.deltakerliste.id,
+                kilde = Kilde.ARENA,
+            ),
+            deltakerliste = forste.deltakerliste,
+            arrangor = forste.arrangor,
+        )
+        arrangorRepository.upsert(forste.arrangor)
+        deltakerlisteRepository.upsert(forste.deltakerliste)
+        listOf(forste, andre).forEach {
+            deltakerRepository.upsert(it.deltaker, offset)
+            meldingRepository.upsert(it.melding)
+            mockAmtDeltakerClient(it)
+        }
+        val periode = TestData.oppfolgingsperiode()
+        every { veilarboppfolgingClient.hentOppfolgingperiode(forste.deltaker.personident) } returns null
+        every { veilarboppfolgingClient.hentOppfolgingperiode(andre.deltaker.personident) } returns periode
+        val endretListe = forste.deltakerliste.copy(navn = "Endret navn")
+
+        kafkaConsumer.listen(gjennomforingRecord(forste, endretListe), ack)
+
+        deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        meldingRepository.getByDeltakerId(forste.deltaker.id).single().aktivitetskort shouldBe forste.aktivitetskort
+        antallOutbox(forste.aktivitetskortId) shouldBe 0
+        val oppdatert = meldingRepository.getByDeltakerId(andre.deltaker.id).single()
+        oppdatert.id shouldBe andre.melding.id
+        oppdatert.oppfolgingperiode shouldBe periode.id
+        antallOutbox(andre.aktivitetskortId) shouldBe 1
+        verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
+        verify(exactly = 0) { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) }
     }
 
     @ParameterizedTest
@@ -744,6 +871,17 @@ class KafkaConsumerTest(
             deltakerRepository.get(ctx.deltaker.id) shouldBe ctx.deltaker
         }
     }
+
+    private fun gjennomforingRecord(
+        ctx: TestData.MockContext,
+        deltakerliste: no.nav.amt.aktivitetskort.domain.Deltakerliste,
+    ) = ConsumerRecord(
+        AMT_GJENNOMFORING_INTERN_TOPIC,
+        0,
+        offset,
+        deltakerliste.id.toString(),
+        objectMapper.writeValueAsString(TestData.lagAmtGjennomforingPayload(arrangor = ctx.arrangor, deltakerliste = deltakerliste)),
+    )
 
     private fun deltakerRecord(ctx: TestData.MockContext) = ConsumerRecord(
         DELTAKER_TOPIC,
