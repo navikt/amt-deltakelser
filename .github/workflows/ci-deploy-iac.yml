@@ -89,7 +89,7 @@ jobs:
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ endsWith(matrix.iac_folder, '/dev') && !startsWith(matrix.iac_folder, 'kafka-manager/') }}
-        uses: nais/deploy/actions/deploy@b1a9a40dae937091497f8f29c5ea5334cc1c0643 # v3
+        uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # v3
         env:
           CLUSTER: dev-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
@@ -97,7 +97,7 @@ jobs:
 
       - name: Deploy ${{ matrix.iac_folder }}
         if: ${{ github.ref == 'refs/heads/main' && endsWith(matrix.iac_folder, '/prod') && !startsWith(matrix.iac_folder, 'kafka-manager/') }}
-        uses: nais/deploy/actions/deploy@b1a9a40dae937091497f8f29c5ea5334cc1c0643 # v3
+        uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # v3
         env:
           CLUSTER: prod-gcp
           RESOURCE: ${{ env.RESOURCE_FILES }}
