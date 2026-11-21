@@ -44,7 +44,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
         )
 
         coEvery {
-            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns "journalpostId"
 
         coEvery {
@@ -492,7 +492,7 @@ class JournalforingServiceTest : IntegrationTestBase() {
         }
         hendelseRepository.hentIkkeJournalforteHendelser().none { it.hendelse.id == hendelse.id } shouldBe true
         coVerify(exactly = 0) { pdfgenClient.endringsvedtak(any()) }
-        coVerify(exactly = 0) { dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any(), any()) }
         coVerify(exactly = 0) { dokdistfordelingClient.distribuerJournalpost(any<String>(), any(), any()) }
     }
 

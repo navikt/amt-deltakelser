@@ -39,7 +39,7 @@ class HendelseConsumerTest : IntegrationTestBase() {
             fagsaksystem = "~fagsaksystem~",
         )
         coEvery {
-            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns "journalpostId"
     }
 
