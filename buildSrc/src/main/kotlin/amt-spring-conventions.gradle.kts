@@ -19,6 +19,10 @@ repositories {
 }
 
 dependencies {
+    constraints {
+        runtimeOnly(versionCatalog.findLibrary("logstash.encoder").get())
+    }
+
     // --- Spring Boot ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web") {
@@ -36,10 +40,9 @@ dependencies {
     runtimeOnly(versionCatalog.findLibrary("flyway.postgres").get())
     runtimeOnly(versionCatalog.findLibrary("postgresql").get())
     runtimeOnly(versionCatalog.findLibrary("micrometer.prometheus").get())
-    runtimeOnly(versionCatalog.findLibrary("logstash.encoder").get())
     implementation(versionCatalog.findLibrary("unleash").get())
 
-    // --- nav.commot ---
+    // --- nav.common ---
     runtimeOnly(versionCatalog.findLibrary("nav.common.log").get())
 
     // --- amt-lib ---
@@ -48,7 +51,9 @@ dependencies {
     implementation(project(":amt-lib:utils"))
 
     // --- Test ---
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    }
     testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")

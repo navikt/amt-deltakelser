@@ -7,6 +7,8 @@ dependencies {
         implementation(libs.jackson.core) {
             because("GHSA-72hv-8253-57qq")
         }
+
+        api(libs.prometheus.metrics.exposition.formats)
     }
 
     api(project(":amt-felles:intern-api-kontrakter"))
@@ -14,8 +16,7 @@ dependencies {
 
     // --- Metrics ---
     api(libs.micrometer.prometheus)
-    api(libs.prometheus.metrics.instrumentation)
-    api(libs.prometheus.metrics.exporter)
+    api(libs.prometheus.metrics.core)
 
     // --- Ktor ---
     implementation(platform(libs.ktor.bom))

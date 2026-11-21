@@ -254,9 +254,9 @@ class VeilederApiTest : IntegrationTestBase() {
                 response.size() shouldBe 2
                 response[0]["vedtaksdetaljer"].isNull shouldBe true
                 response[0]["prisinformasjon"]["pris"].asInt() shouldBe 35000
-                response[1]["type"].asText() shouldBe "EnkeltplassOkonomiGodkjent"
-                response[1]["vedtaksdetaljer"]["startdato"].asText() shouldBe "2026-11-01"
-                response[1]["vedtaksdetaljer"]["bakgrunnsinformasjon"].asText() shouldBe "Bakgrunn ved vedtak"
+                response[1]["type"].asString() shouldBe "EnkeltplassOkonomiGodkjent"
+                response[1]["vedtaksdetaljer"]["startdato"].asString() shouldBe "2026-11-01"
+                response[1]["vedtaksdetaljer"]["bakgrunnsinformasjon"].asString() shouldBe "Bakgrunn ved vedtak"
                 response[1]["prisinformasjon"]["pris"].asInt() shouldBe 20000
             }
         }

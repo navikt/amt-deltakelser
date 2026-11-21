@@ -6,8 +6,6 @@ dependencies {
     implementation(project(":amt-lib:models"))
     api(project(":amt-lib:utils"))
 
-    implementation(libs.logback.classic)
-
     implementation(libs.caffeine)
 
     api(libs.bundles.kotest)

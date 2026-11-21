@@ -77,8 +77,8 @@ nav-common-kafka = { module = "no.nav.common:kafka", version.ref = "nav-common-v
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients-version" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-version" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-version" }
-prometheus-metrics-instrumentation = { module = "io.prometheus:prometheus-metrics-instrumentation-jvm", version.ref = "prometheus-metrics-version" }
-prometheus-metrics-exporter = { module = "io.prometheus:prometheus-metrics-exporter-httpserver", version.ref = "prometheus-metrics-version" }
+prometheus-metrics-core = { module = "io.prometheus:prometheus-metrics-core", version.ref = "prometheus-metrics-version" }
+prometheus-metrics-exposition-formats = { module = "io.prometheus:prometheus-metrics-exposition-formats", version.ref = "prometheus-metrics-version" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
@@ -157,14 +157,6 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:org.springframe
 spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management-version" }
 kotlin-spring-gradle-plugin = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin-version" }
 
-[plugins]
-spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot-version" }
-spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management-version" }
-kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin-version" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
-ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
-
 [bundles]
 ktor-server = [
     "ktor-server-content-negotiation",
@@ -192,12 +184,6 @@ database = [
     "flyway-postgres",
     "postgresql",
     "kotliquery"
-]
-
-logging = [
-    "logback-classic",
-    "logstash-encoder",
-    "nav-common-log"
 ]
 
 ktor-test = [

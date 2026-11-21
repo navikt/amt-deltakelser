@@ -30,6 +30,9 @@ dependencies {
         implementation(versionCatalog.findLibrary("jackson.core").get()) {
             because("GHSA-72hv-8253-57qq")
         }
+
+        implementation(versionCatalog.findLibrary("logback.classic").get())
+        implementation(versionCatalog.findLibrary("logstash.encoder").get())
     }
 
     // Netty BOM — holder alle io.netty-moduler på samme versjon og fikser CVE-er samlet
@@ -41,7 +44,7 @@ dependencies {
     implementation(versionCatalog.findBundle("ktor.client").get())
 
     // --- Logging ---
-    implementation(versionCatalog.findBundle("logging").get())
+    implementation(versionCatalog.findLibrary("nav.common.log").get())
 
     // --- amt-felles, amt-felles:ktor drar inn database, models og utils
     implementation(project(":amt-felles:ktor"))
