@@ -12,8 +12,6 @@ dependencies {
     implementation(platform(libs.netty.bom))
     implementation(platform(libs.ktor.bom))
 
-    implementation(project(":amt-lib:utils"))
-
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.mock)
     implementation(libs.ktor.serialization.jackson)
