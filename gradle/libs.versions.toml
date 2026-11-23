@@ -2,7 +2,7 @@
 java-version = "25"
 kotlin-version = "2.4.21"
 ktor-version = "3.6.1"
-logback-version = "1.6.6"
+logback-version = "1.6.7"
 logstash-encoder-version = "9.0"
 micrometer-version = "1.17.2"
 ktlint-version = "14.2.0"
