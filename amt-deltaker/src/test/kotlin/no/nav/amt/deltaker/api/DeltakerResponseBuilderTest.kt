@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -44,6 +45,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -254,7 +256,10 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     @Test
     fun `buildGjennomforingResponse - setter begrunnelse på matchende prisinformasjonTilGodkjenning`() {
         // Arrange
-        val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
+        val deltakerliste = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+        )
         val gjeldendePrisinfo = Anskaffelse(pris = 10000)
         val forventetBegrunnelse = "Oppdatert etter ny dokumentasjon"
         val prisinfoTilGodkjenning = Anskaffelse(pris = 12000, begrunnelse = forventetBegrunnelse)
