@@ -14,11 +14,11 @@ object GjennomforingPrisinformasjon {
 
     fun hent(
         gjennomforing: Gjennomforing,
-        includeOpplaringKategorisering: Boolean,
+        includePrisinfo: Boolean,
     ): PrisinformasjonData? {
-        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && gjennomforing.erNyForskriftOpplaring
+        val skalHenteEnkeltplassPrisinfo = includePrisinfo && gjennomforing.erEnkeltplassOpplaring
 
-        if (!skalHenteEnkeltplassValg) return null
+        if (!skalHenteEnkeltplassPrisinfo) return null
 
         return finnPrisInfo(gjennomforing.id)
     }

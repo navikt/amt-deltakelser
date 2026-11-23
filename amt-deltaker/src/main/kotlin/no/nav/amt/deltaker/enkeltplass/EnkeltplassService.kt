@@ -202,7 +202,7 @@ class EnkeltplassService(
         afterUpdate: ((Deltaker) -> Deltaker)? = null,
     ): Deltaker {
         require(deltaker.gjennomforing.erNyForskriftOpplaring) {
-            "oppdaterKladd kan kun brukes på enkeltplass-deltakere. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.gjennomforing.gjennomforingstype}"
+            "oppdaterKladd/utkast kan kun brukes på enkeltplass-deltakere ny forskrift. Deltaker med id ${deltaker.id} har gjennomforingstype ${deltaker.gjennomforing.gjennomforingstype}"
         }
 
         // Arrangøren oppdateres bare hvis den er endret i requesten

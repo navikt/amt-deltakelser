@@ -37,7 +37,7 @@ class DeltakerResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        includeOpplaringKategorisering: Boolean = true,
+        includePrisinfo: Boolean = true,
     ): DeltakerResponse {
         val endringsforslagForDeltaker = SharedResponseMappers.hentEndringsforslagVenterPaSvar(
             forslagRepository = forslagRepository,
@@ -65,7 +65,7 @@ class DeltakerResponseBuilder(
             ),
             gjennomforing = buildGjennomforingResponse(
                 gjennomforing = deltaker.gjennomforing,
-                includeOpplaringKategorisering = includeOpplaringKategorisering,
+                includePrisinfo = includePrisinfo,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -114,11 +114,11 @@ class DeltakerResponseBuilder(
 
     internal fun buildGjennomforingResponse(
         gjennomforing: Gjennomforing,
-        includeOpplaringKategorisering: Boolean,
+        includePrisinfo: Boolean,
     ): GjennomforingResponse {
         val prisinformasjon = GjennomforingPrisinformasjon.hent(
             gjennomforing = gjennomforing,
-            includeOpplaringKategorisering = includeOpplaringKategorisering,
+            includePrisinfo = includePrisinfo,
         )
 
         return SharedResponseMappers.buildGjennomforingResponse(
