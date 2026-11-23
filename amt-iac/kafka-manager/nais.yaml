@@ -6,7 +6,7 @@ metadata:
   labels:
     team: amt
 spec:
-  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/kafka-manager:2026.11.23-10.45-99ac348
+  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/kafka-manager:2026.11.24-00.52-1d6bd69
   port: 8080
   webproxy: true
   prometheus:
