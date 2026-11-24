@@ -32,7 +32,6 @@ dependencies {
         }
 
         implementation(versionCatalog.findLibrary("logback.classic").get())
-        implementation(versionCatalog.findLibrary("logstash.encoder").get())
     }
 
     // Netty BOM — holder alle io.netty-moduler på samme versjon og fikser CVE-er samlet

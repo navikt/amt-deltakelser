@@ -12,6 +12,8 @@ plugins {
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 extra["flyway.version"] = versionCatalog.findVersion("flyway-version").get().requiredVersion
+extra["jackson-2-bom.version"] = versionCatalog.findVersion("jackson2-version").get().requiredVersion
+extra["jackson-bom.version"] = versionCatalog.findVersion("tools-jackson-version").get().requiredVersion
 
 repositories {
     mavenCentral()
@@ -19,10 +21,6 @@ repositories {
 }
 
 dependencies {
-    constraints {
-        runtimeOnly(versionCatalog.findLibrary("logstash.encoder").get())
-    }
-
     // --- Spring Boot ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web") {

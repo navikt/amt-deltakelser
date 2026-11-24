@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":amt-lib:models"))
     api(project(":amt-lib:utils"))
+    api(libs.logback.classic)
 
     implementation(libs.caffeine)
 

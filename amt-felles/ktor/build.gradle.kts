@@ -7,8 +7,6 @@ dependencies {
         implementation(libs.jackson.core) {
             because("GHSA-72hv-8253-57qq")
         }
-
-        api(libs.prometheus.metrics.exposition.formats)
     }
 
     api(project(":amt-felles:intern-api-kontrakter"))

@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.MicrometerConsumerListener
 import org.springframework.kafka.listener.ContainerProperties
 
 @Configuration(proxyBeanMethods = false)
@@ -40,7 +41,9 @@ class KafkaConfig(
             ConsumerConfig.MAX_POLL_RECORDS_CONFIG to "1",
         ).plus(commonConfig())
 
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(config)
+        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(config).apply {
+            addListener(MicrometerConsumerListener(meterRegistry))
+        }
 
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             setConsumerFactory(consumerFactory)

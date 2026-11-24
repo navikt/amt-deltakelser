@@ -3,7 +3,7 @@ java-version = "25"
 kotlin-version = "2.4.21"
 ktor-version = "3.6.1"
 logback-version = "1.6.8"
-logstash-encoder-version = "9.0"
+slf4j-version = "2.0.19"
 micrometer-version = "1.18.0"
 ktlint-version = "14.2.0"
 ktlint-cli-version = "1.8.0"
@@ -78,7 +78,6 @@ kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafk
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-version" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-version" }
 prometheus-metrics-core = { module = "io.prometheus:prometheus-metrics-core", version.ref = "prometheus-metrics-version" }
-prometheus-metrics-exposition-formats = { module = "io.prometheus:prometheus-metrics-exposition-formats", version.ref = "prometheus-metrics-version" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter-version" }
@@ -111,8 +110,8 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-version" }
 
 # --- Logging ---
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-version" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
-logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-encoder-version" }
 nav-common-log = { module = "no.nav.common:log", version.ref = "nav-common-version" }
 nav-common-rest = { module = "no.nav.common:rest", version.ref = "nav-common-version" }
 nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-common-version" }

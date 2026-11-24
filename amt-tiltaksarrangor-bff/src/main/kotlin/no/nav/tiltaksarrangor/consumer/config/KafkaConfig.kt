@@ -1,5 +1,6 @@
 package no.nav.tiltaksarrangor.consumer.config
 
+import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -11,16 +12,17 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.MicrometerConsumerListener
 import org.springframework.kafka.listener.ContainerProperties
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
 class KafkaConfig(
-    @Value($$"${KAFKA_BROKERS}") private val kafkaBrokers: String,
-    @Value($$"${KAFKA_SECURITY_PROTOCOL:SSL}") private val kafkaSecurityProtocol: String,
-    @Value($$"${KAFKA_TRUSTSTORE_PATH}") private val kafkaTruststorePath: String,
-    @Value($$"${KAFKA_CREDSTORE_PASSWORD}") private val kafkaCredstorePassword: String,
-    @Value($$"${KAFKA_KEYSTORE_PATH}") private val kafkaKeystorePath: String,
+    @Value($$"${KAFKA_BROKERS}") kafkaBrokers: String,
+    @Value($$"${KAFKA_SECURITY_PROTOCOL:SSL}") kafkaSecurityProtocol: String,
+    @Value($$"${KAFKA_TRUSTSTORE_PATH}") kafkaTruststorePath: String,
+    @Value($$"${KAFKA_CREDSTORE_PASSWORD}") kafkaCredstorePassword: String,
+    @Value($$"${KAFKA_KEYSTORE_PATH}") kafkaKeystorePath: String,
     @Value($$"${kafka.auto-offset-reset}") private val kafkaAutoOffsetReset: String,
 ) {
     private val securityConfig = mapOf(
@@ -41,7 +43,10 @@ class KafkaConfig(
     ) + securityConfig
 
     @Bean
-    fun kafkaListenerContainerFactory(kafkaErrorHandler: KafkaErrorHandler): ConcurrentKafkaListenerContainerFactory<String, String> {
+    fun kafkaListenerContainerFactory(
+        kafkaErrorHandler: KafkaErrorHandler,
+        meterRegistry: MeterRegistry,
+    ): ConcurrentKafkaListenerContainerFactory<String, String> {
         val config =
             mapOf(
                 ConsumerConfig.GROUP_ID_CONFIG to "amt-tiltaksarrangor-bff-consumer",
@@ -52,7 +57,9 @@ class KafkaConfig(
                 ConsumerConfig.MAX_POLL_RECORDS_CONFIG to "1",
             ) + commonKafkaConfig
 
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(config)
+        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(config).apply {
+            addListener(MicrometerConsumerListener(meterRegistry))
+        }
 
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             setConsumerFactory(consumerFactory)
