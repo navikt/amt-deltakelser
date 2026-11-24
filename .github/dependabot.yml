@@ -15,7 +15,7 @@ updates:
       time: "03:00"
       timezone: Europe/Oslo
     cooldown:
-      default-days: 7
+      default-days: 4
       exclude:
         - "no.nav*"
     open-pull-requests-limit: 10
@@ -38,7 +38,7 @@ updates:
       time: "03:00"
       timezone: Europe/Oslo
     cooldown:
-      default-days: 7
+      default-days: 4
     open-pull-requests-limit: 10
     groups:
       github-actions:
