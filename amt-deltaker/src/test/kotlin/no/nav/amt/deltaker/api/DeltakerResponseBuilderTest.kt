@@ -35,6 +35,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
@@ -928,18 +929,39 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Funnet(endring, null)`() {
+        fun `kun ENDRING finnes med status UTKAST_TIL_PAMELDING - returnerer endringen som aktiv prisinfo`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
             } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(
+                gjennomforingId,
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            )
 
             // Assert
             funnet?.aktiv shouldBe endringPrisinfo
             funnet?.tilGodkjenning shouldBe null
+        }
+
+        @Test
+        fun `kun ENDRING finnes, deltakerstatus DELTAR - returnerer endringen til godkjenning`() {
+            // Arrange
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
+            } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
+
+            // Act
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(
+                gjennomforingId,
+                DeltakerStatus.Type.DELTAR,
+            )
+
+            // Assert
+            funnet?.aktiv shouldBe null
+            funnet?.tilGodkjenning shouldBe endringPrisinfo
         }
 
         @Test

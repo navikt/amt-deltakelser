@@ -6,9 +6,14 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.amt.deltaker.bff.utils.TestData
 import no.nav.amt.deltaker.bff.veileder.api.utils.MAX_BEGRUNNELSE_LENGDE
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedImport
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 
 class EndrePrisinfoRequestTest {
     @Nested
@@ -164,11 +169,30 @@ class EndrePrisinfoRequestTest {
         }
 
         @Test
-        fun `ingen gjeldende prisinfo - status DELTAR - skal ikke kaste exception`() {
+        fun `arenadeltaker uten gjeldende pris og med aktivt forslag, status DELTAR - skal ikke kastes exception`() {
             // Arrange
+            val deltakerId = UUID.randomUUID()
+            val arenaStatus = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR)
+            val deltakerVedImport = DeltakerVedImport(
+                deltakerId = deltakerId,
+                innsoktDato = LocalDate.now().minusMonths(1),
+                startdato = LocalDate.now(),
+                sluttdato = null,
+                dagerPerUke = 5F,
+                deltakelsesprosent = 100F,
+                status = arenaStatus,
+            )
             val deltaker = lagDeltakerMedGjeldendePrisinfo(
                 gjeldendePrisinformasjon = null,
                 status = DeltakerStatus.Type.DELTAR,
+            ).copy(
+                id = deltakerId,
+                importertFraArena = ImportertFraArena(
+                    deltakerId = deltakerId,
+                    importertDato = LocalDateTime.now(),
+                    deltakerVedImport = deltakerVedImport,
+                ),
+                endringsforslagFraArrangor = listOf(TestData.lagForslag(deltakerId = deltakerId)),
             )
             val request = lagRequest(prisinformasjon = tilskudd())
 
