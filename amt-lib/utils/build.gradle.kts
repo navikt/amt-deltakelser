@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation(project(":amt-lib:models"))
 
-    api(libs.logback.classic)
+    implementation(libs.slf4j.api)
 
     api(libs.tools.jackson.module.kotlin)
     api(libs.postgresql)
