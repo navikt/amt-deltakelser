@@ -67,6 +67,7 @@ jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson2-version" }
 
 # spring-boot spesifikt
+tools-jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "tools-jackson-version" }
 tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "tools-jackson-version" }
 shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock-spring-version" }
 shedlock-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock-spring-version" }
