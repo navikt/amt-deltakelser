@@ -20,6 +20,8 @@ tools:
 
 Reviews Kotlin, Dockerfiles, Nais manifests, and GitHub Actions for bugs, security vulnerabilities, and violations of Nav conventions. Reports findings; does not fix code itself.
 
+Use Low effort when the client supports effort selection. On 30 September 2026, Low found every planted defect on the correct line in 10/10 runs; the earlier High recommendation rested on an invalid measurement (see https://github.com/navikt/copilot/blob/main/docs/modellvalg.md). Verify every reported line against the diff.
+
 ## Commands
 
 Run from the repository root:
