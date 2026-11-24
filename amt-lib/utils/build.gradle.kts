@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-lib:models"))
+    api(project(":amt-lib:models"))
 
     implementation(libs.slf4j.api)
 
@@ -17,7 +17,7 @@ dependencies {
             because("CVE-2023-3635: upgrade OkHttp to fix vulnerability")
         }
     }
-    implementation(libs.unleash)
+    api(libs.unleash)
 
     testImplementation(project(":amt-lib:testing"))
 }
