@@ -61,7 +61,7 @@ class MeldingRepository(
 
     fun laasMeldingshistorikk(deltakerId: UUID) {
         template.query(
-            "SELECT pg_advisory_xact_lock(hashtextextended(CAST(:deltaker_id AS text), 0))",
+            "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:meldingshistorikk:' || CAST(:deltaker_id AS text), 0))",
             sqlParameters("deltaker_id" to deltakerId),
         ) { _ -> }
     }
