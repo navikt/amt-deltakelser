@@ -16,6 +16,9 @@ class MeldingRepositoryTest(
         shouldThrow<IllegalTransactionStateException> {
             meldingRepository.laasMeldingshistorikk(UUID.randomUUID())
         }
+        shouldThrow<IllegalTransactionStateException> {
+            meldingRepository.laasGruppeutvalg()
+        }
     }
 
     @Test

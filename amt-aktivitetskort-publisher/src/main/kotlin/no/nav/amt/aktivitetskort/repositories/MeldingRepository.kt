@@ -66,8 +66,20 @@ class MeldingRepository(
     @Transactional(propagation = Propagation.MANDATORY)
     fun laasMeldingshistorikk(deltakerId: UUID) {
         template.query(
+            "SELECT pg_advisory_xact_lock_shared(hashtextextended('aktivitetskort:gruppeutvalg', 0))",
+            emptyMap<String, Any>(),
+        ) { _ -> }
+        template.query(
             "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:meldingshistorikk:' || CAST(:deltaker_id AS text), 0))",
             sqlParameters("deltaker_id" to deltakerId),
+        ) { _ -> }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun laasGruppeutvalg() {
+        template.query(
+            "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:gruppeutvalg', 0))",
+            emptyMap<String, Any>(),
         ) { _ -> }
     }
 

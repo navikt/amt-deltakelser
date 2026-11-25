@@ -79,9 +79,19 @@ class AktivitetskortService(
     fun lagreAktivitetskort(forberedtMelding: ForberedtMelding): Aktivitetskort? =
         tryOpprettMelding(forberedtMelding.deltakerId) { lagreOgPubliser(forberedtMelding) }?.aktivitetskort
 
-    fun lagreAktivitetskortGruppe(forberedteMeldinger: List<ForberedtMelding>) {
-        lagreMeldinger(forberedteMeldinger)
-        forberedteMeldinger.forEach { forberedt ->
+    fun lagreAktivitetskortGruppe(gruppe: ForberedtGruppe) {
+        transactionTemplate.executeWithoutResult {
+            laasAktivitetskortGruppe(gruppe)
+            val gjeldende = hentGruppeutvalg(gruppe.utvalg).groupBy { it.deltakerId }
+            val opprinnelige = gruppe.utvalgteMeldinger.groupBy { it.deltakerId }
+            if (opprinnelige.keys != gjeldende.keys ||
+                opprinnelige.any { (id, meldinger) -> !Meldingshistorikk(id, meldinger).erLik(gjeldende.getValue(id)) }
+            ) {
+                throw ConcurrencyFailureException("Gruppeutvalget er endret. Aktivitetskortene må forberedes på nytt.")
+            }
+            lagreMeldinger(gruppe.meldinger)
+        }
+        gruppe.meldinger.forEach { forberedt ->
             tryOpprettMelding(forberedt.deltakerId) { meldingEllerFeil(forberedt) }
         }
     }
@@ -135,22 +145,27 @@ class AktivitetskortService(
         aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
     }
 
-    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtMelding> =
-        forberedAktivitetskort(meldingRepository.getByDeltakerlisteId(gjennomforingId)) { it.deltakerlisteId }
+    fun forberedAktivitetskort(gjennomforingId: UUID): ForberedtGruppe =
+        forberedAktivitetskort(Gruppeutvalg.Deltakerliste(gjennomforingId)) { it.deltakerlisteId }
 
-    fun forberedAktivitetskortForArrangor(arrangor: Arrangor): List<ForberedtMelding> {
-        val arrangorer = listOf(arrangor) + arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
-        return forberedAktivitetskort(
-            arrangorer.flatMap { meldingRepository.getByArrangorId(it.id) }.filter { it.aktivitetskort.erAktivDeltaker() },
-        ) { it.arrangorId }
+    fun forberedAktivitetskortForArrangor(arrangor: Arrangor): ForberedtGruppe =
+        forberedAktivitetskort(Gruppeutvalg.Arrangor(arrangor.id)) { it.arrangorId }
+
+    private fun hentGruppeutvalg(utvalg: Gruppeutvalg): List<Melding> = when (utvalg) {
+        is Gruppeutvalg.Deltakerliste -> meldingRepository.getByDeltakerlisteId(utvalg.id)
+        is Gruppeutvalg.Arrangor -> {
+            val arrangorIder = listOf(utvalg.id) + arrangorRepository.getUnderordnedeArrangorer(utvalg.id).map { it.id }
+            arrangorIder.flatMap { meldingRepository.getByArrangorId(it) }.filter { it.aktivitetskort.erAktivDeltaker() }
+        }
     }
 
     private fun forberedAktivitetskort(
-        meldinger: List<Melding>,
+        utvalg: Gruppeutvalg,
         gruppeId: (Melding) -> UUID,
-    ): List<ForberedtMelding> {
+    ): ForberedtGruppe {
+        val meldinger = hentGruppeutvalg(utvalg)
         val historikk = meldinger.map { it.deltakerId }.distinct().associateWith { hentMeldingshistorikk(it) }
-        return meldinger.map { melding ->
+        val forberedteMeldinger = meldinger.map { melding ->
             val deltakerHistorikk = historikk.getValue(melding.deltakerId)
             val valgt = deltakerHistorikk.meldinger.filter { gruppeId(it) == gruppeId(melding) }.maxByOrNull { it.createdAt }
             if (valgt?.id != melding.id || !deltakerHistorikk.inneholder(melding)) {
@@ -159,9 +174,31 @@ class AktivitetskortService(
             val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(melding.deltakerId))
             forberedMelding(deltaker, meldingId = melding.id, historikk = deltakerHistorikk)
         }
+        return ForberedtGruppe(utvalg, meldinger, forberedteMeldinger)
     }
 
+    sealed interface Gruppeutvalg {
+        data class Deltakerliste(
+            val id: UUID,
+        ) : Gruppeutvalg
+
+        data class Arrangor(
+            val id: UUID,
+        ) : Gruppeutvalg
+    }
+
+    data class ForberedtGruppe(
+        val utvalg: Gruppeutvalg,
+        val utvalgteMeldinger: List<Melding>,
+        val meldinger: List<ForberedtMelding>,
+    )
+
     fun hentMeldingshistorikk(deltakerId: UUID) = Meldingshistorikk(deltakerId, meldingRepository.getByDeltakerId(deltakerId))
+
+    fun laasAktivitetskortGruppe(gruppe: ForberedtGruppe?) {
+        meldingRepository.laasGruppeutvalg()
+        laasMeldingshistorikkForGruppe(gruppe?.meldinger.orEmpty())
+    }
 
     fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
         // En arrangørendring og en listeendring kan berøre de samme deltakerne.

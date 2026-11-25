@@ -181,7 +181,12 @@ class KafkaOutboxTransactionTest(
                 Deltaker.fromDeltakerResponse(TestData.lagDeltakerResponse(it.deltaker, it.deltakerliste, it.arrangor)),
             )
         }
-        val grupper = listOf(listOf(forberedte[1], forberedte[0]), listOf(forberedte[2], forberedte[1]))
+        val gruppe = AktivitetskortService.ForberedtGruppe(
+            AktivitetskortService.Gruppeutvalg.Deltakerliste(forste.deltakerliste.id),
+            meldingRepository.getByDeltakerlisteId(forste.deltakerliste.id),
+            forberedte,
+        )
+        val grupper = listOf(gruppe, gruppe.copy(meldinger = forberedte.reversed()))
         val start = CyclicBarrier(2)
 
         Executors.newFixedThreadPool(2).use { executor ->
@@ -199,8 +204,8 @@ class KafkaOutboxTransactionTest(
             resultater.count { it.exceptionOrNull() is ConcurrencyFailureException } shouldBe 1
         }
 
-        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 2
-        deltakere.count { meldingRepository.getByDeltakerId(it.deltaker.id).single().oppfolgingperiode != null } shouldBe 2
+        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 3
+        deltakere.count { meldingRepository.getByDeltakerId(it.deltaker.id).single().oppfolgingperiode != null } shouldBe 3
     }
 
     @Test
@@ -217,6 +222,67 @@ class KafkaOutboxTransactionTest(
         }
 
         meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.melding.id
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `første kort venter til validert gruppeutvalg er ferdig eller angret`(angre: Boolean) {
+        val ctx = TestData.MockContext()
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        val gruppe = aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            val skriving = transactionTemplate
+                .execute { status ->
+                    aktivitetskortService.lagreAktivitetskortGruppe(gruppe)
+                    executor.submit { meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null)) }.also {
+                        await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+                            jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
+                            jdbcTemplate.queryForObject<Int>(
+                                "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
+                            ) shouldBe 1
+                        }
+                        it.isDone shouldBe false
+                        meldingRepository.getByDeltakerId(ctx.deltaker.id) shouldBe emptyList()
+                        if (angre) status.setRollbackOnly()
+                    }
+                }.shouldNotBeNull()
+            skriving.get(10, TimeUnit.SECONDS)
+        }
+
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.melding.id
+    }
+
+    @Test
+    fun `gruppevalidering venter på pågående førstegangsskriving og oppdager nytt medlem`() {
+        val ctx = TestData.MockContext()
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        val gruppe = aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            val lagring = transactionTemplate
+                .execute {
+                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    executor
+                        .submit(Callable { runCatching { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) } })
+                        .also {
+                            await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+                                jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
+                                jdbcTemplate.queryForObject<Int>(
+                                    "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
+                                ) shouldBe 1
+                            }
+                            it.isDone shouldBe false
+                            meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null))
+                        }
+                }.shouldNotBeNull()
+            (lagring.get(10, TimeUnit.SECONDS).exceptionOrNull() is ConcurrencyFailureException) shouldBe true
+        }
+
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.melding.id
+        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 0
     }
 
     @Nested

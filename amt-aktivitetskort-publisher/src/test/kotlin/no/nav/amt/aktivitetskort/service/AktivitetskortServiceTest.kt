@@ -463,6 +463,7 @@ class AktivitetskortServiceTest {
             // Act
             val forberedt = aktivitetskortService
                 .forberedAktivitetskort(ctx.deltakerliste.id)
+                .meldinger
                 .single()
                 .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
 
@@ -482,10 +483,31 @@ class AktivitetskortServiceTest {
             val gjennomforingId = UUID.randomUUID()
             every { meldingRepository.getByDeltakerlisteId(gjennomforingId) } returns emptyList()
 
-            aktivitetskortService.forberedAktivitetskort(gjennomforingId) shouldBe emptyList()
+            aktivitetskortService.forberedAktivitetskort(gjennomforingId).meldinger shouldBe emptyList()
 
             verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
             verify(exactly = 0) { veilarboppfolgingClient.hentOppfolgingperiode(any()) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `første kort etter tomt gruppeutvalg forkaster forsøket`(arrangor: Boolean) {
+            val ctx = TestData.MockContext()
+            every { arrangorRepository.getUnderordnedeArrangorer(ctx.arrangor.id) } returns emptyList()
+            every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            val gruppe = if (arrangor) {
+                aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor)
+            } else {
+                aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+            }
+
+            assertThrows<ConcurrencyFailureException> { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) }
+
+            verify(exactly = 1) { meldingRepository.laasGruppeutvalg() }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
         }
 
         @Test

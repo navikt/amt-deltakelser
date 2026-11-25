@@ -134,14 +134,14 @@ class KafkaConsumerService(
         val forberedteMeldinger = if (lagretDeltakerliste != null) {
             aktivitetskortService.forberedAktivitetskort(deltakerlisteModel.id)
         } else {
-            emptyList()
+            null
         }
 
         transactionTemplate.executeWithoutResult {
-            aktivitetskortService.laasMeldingshistorikkForGruppe(forberedteMeldinger)
+            aktivitetskortService.laasAktivitetskortGruppe(forberedteMeldinger)
             when (deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
-                    if (lagretDeltakerliste == null) {
+                    if (forberedteMeldinger == null) {
                         throw ConcurrencyFailureException(
                             "Deltakerliste ${payload.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt.",
                         )
@@ -180,14 +180,14 @@ class KafkaConsumerService(
         val forberedteMeldinger = if (lagretArrangor != null) {
             aktivitetskortService.forberedAktivitetskortForArrangor(arrangorModel)
         } else {
-            emptyList()
+            null
         }
 
         transactionTemplate.executeWithoutResult {
-            aktivitetskortService.laasMeldingshistorikkForGruppe(forberedteMeldinger)
+            aktivitetskortService.laasAktivitetskortGruppe(forberedteMeldinger)
             when (arrangorRepository.upsert(arrangorModel)) {
                 is RepositoryResult.Modified -> {
-                    if (lagretArrangor == null) {
+                    if (forberedteMeldinger == null) {
                         throw ConcurrencyFailureException(
                             "Arrangør ${arrangor.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt.",
                         )

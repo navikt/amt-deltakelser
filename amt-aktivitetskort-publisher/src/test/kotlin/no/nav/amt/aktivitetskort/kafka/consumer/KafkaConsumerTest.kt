@@ -23,6 +23,7 @@ import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
+import no.nav.amt.aktivitetskort.service.AktivitetskortService
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -59,6 +60,7 @@ class KafkaConsumerTest(
     private val jdbcTemplate: JdbcTemplate,
     private val unleashClient: FakeUnleash,
     private val transactionTemplate: TransactionTemplate,
+    private val aktivitetskortService: AktivitetskortService,
 ) : IntegrationTestBase() {
     private val offset: Long = 0
     private val ack: Acknowledgment = mockk(relaxed = true)
@@ -690,6 +692,101 @@ class KafkaConsumerTest(
         }
 
         meldingRepository.getByDeltakerId(ctx.deltaker.id).size shouldBe if (nyttKort) 2 else 1
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["liste", "arrangør", "underarrangør"])
+    fun `førstegangskort under gruppeforberedelse ruller tilbake og blir med ved gjenlevering`(gruppe: String) {
+        val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        val andreArrangor = if (gruppe == "underarrangør") {
+            TestData.lagArrangor(overordnetArrangorId = forste.arrangor.id)
+        } else {
+            forste.arrangor
+        }
+        val andreListe = if (gruppe == "underarrangør") {
+            TestData.lagDeltakerliste(arrangorId = andreArrangor.id)
+        } else {
+            forste.deltakerliste
+        }
+        val andre = TestData.MockContext(
+            deltaker = TestData.lagDeltaker(deltakerlisteId = andreListe.id, kilde = Kilde.KOMET),
+            deltakerliste = andreListe,
+            arrangor = andreArrangor,
+        )
+        arrangorRepository.upsert(forste.arrangor)
+        arrangorRepository.upsert(andre.arrangor)
+        deltakerlisteRepository.upsert(forste.deltakerliste)
+        deltakerlisteRepository.upsert(andre.deltakerliste)
+        listOf(forste, andre).forEach { deltakerRepository.upsert(it.deltaker, offset) }
+        meldingRepository.upsert(forste.melding)
+        val endretListe = forste.deltakerliste.copy(navn = "Endret navn")
+        val endretArrangor = forste.arrangor.copy(navn = "Endret Arrangørnavn")
+        val periodeId = UUID.randomUUID()
+        mockVeilarboppfolgingClient(periodeId)
+        var forsteForsok = true
+        val nySluttdato = LocalDate.now().plusMonths(3)
+        every { amtDeltakerClient.getDeltaker(andre.deltaker.id) } answers {
+            TestData.lagDeltakerResponse(
+                if (forsteForsok) andre.deltaker else andre.deltaker.copy(sluttdato = nySluttdato),
+                if (forsteForsok || gruppe != "liste") andre.deltakerliste else endretListe,
+                if (forsteForsok || gruppe != "arrangør") andre.arrangor else endretArrangor,
+            )
+        }
+        every { amtDeltakerClient.getDeltaker(forste.deltaker.id) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            if (forsteForsok) {
+                aktivitetskortService.lagAktivitetskort(andre.deltaker.id).shouldNotBeNull()
+                forsteForsok = false
+            }
+            TestData.lagDeltakerResponse(
+                forste.deltaker,
+                if (gruppe == "liste") endretListe else forste.deltakerliste,
+                if (gruppe == "liste") forste.arrangor else endretArrangor,
+            )
+        }
+        val record = if (gruppe == "liste") {
+            gjennomforingRecord(forste, endretListe)
+        } else {
+            ConsumerRecord(
+                ARRANGOR_TOPIC,
+                0,
+                offset,
+                endretArrangor.id.toString(),
+                objectMapper.writeValueAsString(endretArrangor.toDto()),
+            )
+        }
+        val acknowledgment = mockk<Acknowledgment>(relaxed = true)
+
+        shouldThrow<ConcurrencyFailureException> { kafkaConsumer.listen(record, acknowledgment) }
+
+        deltakerlisteRepository.get(forste.deltakerliste.id) shouldBe forste.deltakerliste
+        arrangorRepository.get(forste.arrangor.id) shouldBe forste.arrangor
+        meldingRepository.getByDeltakerId(forste.deltaker.id).single().aktivitetskort shouldBe forste.aktivitetskort
+        val forstegangskort = meldingRepository.getByDeltakerId(andre.deltaker.id).single()
+        forstegangskort.aktivitetskort.tittel shouldBe andre.aktivitetskort.tittel
+        antallOutbox(forste.aktivitetskortId) shouldBe 0
+        antallOutbox(forstegangskort.id) shouldBe 1
+        verify(exactly = 0) { acknowledgment.acknowledge() }
+
+        kafkaConsumer.listen(record, acknowledgment)
+
+        if (gruppe == "liste") {
+            deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        } else {
+            arrangorRepository.get(endretArrangor.id) shouldBe endretArrangor
+        }
+        antallOutbox(forste.aktivitetskortId) shouldBe 1
+        antallOutbox(forstegangskort.id) shouldBe 2
+        val oppdatert = meldingRepository.getByDeltakerId(andre.deltaker.id).single()
+        oppdatert.id shouldBe forstegangskort.id
+        oppdatert.aktivitetskort.sluttDato shouldBe nySluttdato
+        oppdatert.aktivitetskort.tittel shouldBe TestData
+            .lagDeltakerResponse(
+                andre.deltaker,
+                if (gruppe == "liste") endretListe else andre.deltakerliste,
+                if (gruppe == "arrangør") endretArrangor else andre.arrangor,
+            ).gjennomforing.visningsnavn.aktivitetskortTittel
+        verify(exactly = 1) { acknowledgment.acknowledge() }
     }
 
     @Test

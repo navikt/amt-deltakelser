@@ -54,6 +54,12 @@ class KafkaConsumerServiceTest(
     private val ctx: TestData.MockContext = TestData.MockContext()
     private val historikk = AktivitetskortService.Meldingshistorikk(ctx.deltaker.id, listOf(ctx.melding))
     private val forberedtMelding = AktivitetskortService.ForberedtMelding.Klar(ctx.melding, TestData.oppfolgingsperiode(), historikk)
+    private val forberedtListe = AktivitetskortService.ForberedtGruppe(
+        AktivitetskortService.Gruppeutvalg.Deltakerliste(ctx.deltakerliste.id),
+        listOf(ctx.melding),
+        listOf(forberedtMelding),
+    )
+    private val forberedtArrangor = forberedtListe.copy(utvalg = AktivitetskortService.Gruppeutvalg.Arrangor(ctx.arrangor.id))
 
     private val offset: Long = 0
 
@@ -81,6 +87,7 @@ class KafkaConsumerServiceTest(
         every { aktivitetskortService.hentMeldingshistorikk(any()) } returns historikk
         justRun { aktivitetskortService.laasMeldingshistorikk(any()) }
         justRun { aktivitetskortService.laasMeldingshistorikkForGruppe(any()) }
+        justRun { aktivitetskortService.laasAktivitetskortGruppe(any()) }
         justRun { aktivitetskortService.lagreAktivitetskortGruppe(any()) }
     }
 
@@ -290,7 +297,7 @@ class KafkaConsumerServiceTest(
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Modified(ctx.deltakerliste)
-            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns forberedtListe
 
             // Act
             kafkaConsumerService.handleGjennomforing(
@@ -304,7 +311,7 @@ class KafkaConsumerServiceTest(
                 aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
                 transactionTemplate.executeWithoutResult(any())
                 deltakerlisteRepository.upsert(ctx.deltakerliste)
-                aktivitetskortService.lagreAktivitetskortGruppe(listOf(forberedtMelding))
+                aktivitetskortService.lagreAktivitetskortGruppe(forberedtListe)
             }
         }
 
@@ -349,7 +356,7 @@ class KafkaConsumerServiceTest(
         fun `deltakerliste uendret ved siste sjekk - forkast forberedte meldinger`() {
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
-            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns forberedtListe
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.NoChange()
 
             kafkaConsumerService.handleGjennomforing(
@@ -441,7 +448,7 @@ class KafkaConsumerServiceTest(
             // Arrange
             every { arrangorRepository.upsert(ctx.arrangor) } returns RepositoryResult.Modified(ctx.arrangor)
             every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor.copy(navn = "Tidligere navn")
-            every { aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor) } returns forberedtArrangor
 
             // Act
             kafkaConsumerService.handleArrangor(
@@ -451,7 +458,7 @@ class KafkaConsumerServiceTest(
 
             // Assert
             verify(exactly = 1) { arrangorRepository.upsert(ctx.arrangor) }
-            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskortGruppe(listOf(forberedtMelding)) }
+            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskortGruppe(forberedtArrangor) }
         }
 
         @Test
