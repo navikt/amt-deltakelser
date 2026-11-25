@@ -2,7 +2,7 @@ package no.nav.tiltaksarrangor.service
 
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengderMedFallback
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype.Companion.tiltakMedDeltakelsesmengder
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
@@ -56,8 +56,8 @@ class DeltakerMapper(
         val veiledere = ansattService.getVeiledereForDeltaker(deltaker.id)
 
         val deltakelsesmengder = if (deltakerliste.tiltakskode in tiltakMedDeltakelsesmengder) {
-            deltaker.startdato?.let { deltaker.historikk.toDeltakelsesmengder().periode(it, deltaker.sluttdato) }
-                ?: deltaker.historikk.toDeltakelsesmengder()
+            deltaker.startdato?.let { deltaker.historikk.toDeltakelsesmengderMedFallback().periode(it, deltaker.sluttdato) }
+                ?: deltaker.historikk.toDeltakelsesmengderMedFallback()
         } else {
             null
         }

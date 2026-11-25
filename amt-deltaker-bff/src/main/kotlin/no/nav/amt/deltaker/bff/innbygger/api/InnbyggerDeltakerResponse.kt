@@ -26,7 +26,7 @@ data class InnbyggerDeltakerResponse(
     val adresseDelesMedArrangor: Boolean,
     val forslag: List<ForslagResponse>,
     val importertFraArena: ImportertFraArenaResponse?,
-    val deltakelsesmengder: DeltakelsesmengderResponse,
+    val deltakelsesmengder: DeltakelsesmengderResponse?,
     val erManueltDeltMedArrangor: Boolean,
 ) {
     companion object {
@@ -52,8 +52,7 @@ data class InnbyggerDeltakerResponse(
                     )
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
-                // Frontend støtter ikke at DeltakelsesmengderResponse er nullable
-                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )
         }

@@ -21,7 +21,6 @@ import no.nav.amt.aktivitetskort.kafka.consumer.dto.ArrangorDto
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilEtikett
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
@@ -197,7 +196,7 @@ object TestData {
             sistEndret = LocalDateTime.now(),
             opprettet = LocalDateTime.now(),
             soktInnDato = null,
-            deltakelsesmengder = DeltakelsesmengderResponse(),
+            deltakelsesmengder = null,
             erLaastForEndringer = false,
             endringsforslagFraArrangor = emptyList(),
             sisteVurdering = null,

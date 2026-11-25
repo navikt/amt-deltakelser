@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
@@ -362,10 +361,7 @@ object TestData {
         sistEndret = deltaker.sistEndret,
         opprettet = deltaker.opprettet,
         soktInnDato = null,
-        deltakelsesmengder = DeltakelsesmengderResponse(
-            nesteDeltakelsesmengde = null,
-            sisteDeltakelsesmengde = null,
-        ),
+        deltakelsesmengder = null,
         erLaastForEndringer = false,
         endringsforslagFraArrangor = emptyList(),
         sisteVurdering = null,

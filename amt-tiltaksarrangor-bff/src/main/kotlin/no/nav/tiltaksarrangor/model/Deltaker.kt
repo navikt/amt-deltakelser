@@ -88,7 +88,7 @@ data class DeltakelsesmengdeDto(
 )
 
 fun Deltakelsesmengde.toDto() = DeltakelsesmengdeDto(
-    deltakelsesprosent,
+    requireNotNull(deltakelsesprosent),
     dagerPerUke,
     gyldigFra,
 )

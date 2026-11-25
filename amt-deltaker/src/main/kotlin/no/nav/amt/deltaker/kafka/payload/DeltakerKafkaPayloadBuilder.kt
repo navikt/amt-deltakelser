@@ -16,6 +16,7 @@ import no.nav.amt.lib.models.deltaker.Vurdering
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde.Companion.EMPTY_DELTAKELSESPROSENT
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengderMedFallback
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDato
 import no.nav.amt.lib.models.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.lib.models.kafka.DeltakerKafkaPayload
@@ -299,7 +300,11 @@ class DeltakerKafkaPayloadBuilder(
 
         if (!skalBeregneDeltakelsesmengder) return emptyList()
 
-        val mengder = historikk.toDeltakelsesmengder(isForDeltakerExternalTopic = isForDeltakerExternalTopic)
+        val mengder = if (isForDeltakerExternalTopic) {
+            historikk.toDeltakelsesmengder(isForDeltakerExternalTopic = true)
+        } else {
+            historikk.toDeltakelsesmengderMedFallback()
+        }
 
         return deltaker.startdato
             ?.let {
@@ -313,7 +318,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerV1Dto.DeltakelsesmengdeDto(
-            deltakelsesprosent = it.deltakelsesprosent,
+            deltakelsesprosent = requireNotNull(it.deltakelsesprosent),
             dagerPerUke = it.dagerPerUke,
             gyldigFra = it.gyldigFra,
             opprettet = it.opprettet,
@@ -322,7 +327,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerEksternV1Dto.DeltakelsesmengdeDto(
-            deltakelsesprosent = it.deltakelsesprosent.takeIf { prosent -> prosent > EMPTY_DELTAKELSESPROSENT },
+            deltakelsesprosent = it.deltakelsesprosent?.takeIf { prosent -> prosent > EMPTY_DELTAKELSESPROSENT },
             dagerPerUke = it.dagerPerUke,
             gyldigFraDato = it.gyldigFra,
             opprettetTidspunkt = it.opprettet,

@@ -5,7 +5,10 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class DeltakerAmtDeltakerResponseTest {
     @Test
@@ -44,6 +47,45 @@ class DeltakerAmtDeltakerResponseTest {
             soktInnDato shouldBe responseInTest.soktInnDato
             deltakelsesmengder shouldBe responseInTest.deltakelsesmengder
             importertFraArena shouldBe responseInTest.importertFraArena
+        }
+    }
+
+    @Test
+    fun `manglende mengder bevares uten fallback`() {
+        // Arrange
+        val response = lagDeltakerResponse().copy(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            deltakelsesmengder = null,
+        )
+
+        // Act
+        val model = ModelMapper.toDeltaker(response)
+
+        // Assert
+        model.deltakelsesprosent shouldBe null
+        model.dagerPerUke shouldBe null
+        model.deltakelsesmengder shouldBe null
+    }
+
+    @Test
+    fun `perioder uten prosent bevarer dager og dato`() {
+        listOf(3F, null).forEach { dager ->
+            // Arrange
+            val periode = DeltakelsesmengdeResponse(null, dager, LocalDate.of(2026, 12, 1))
+            val response = lagDeltakerResponse().copy(
+                deltakelsesprosent = null,
+                dagerPerUke = dager,
+                deltakelsesmengder = DeltakelsesmengderResponse(periode, periode),
+            )
+
+            // Act
+            val model = ModelMapper.toDeltaker(response)
+
+            // Assert
+            model.deltakelsesprosent shouldBe null
+            model.dagerPerUke shouldBe dager
+            model.deltakelsesmengder shouldBe response.deltakelsesmengder
         }
     }
 }

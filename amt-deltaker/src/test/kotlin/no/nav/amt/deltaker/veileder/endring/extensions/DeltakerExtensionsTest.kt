@@ -12,6 +12,38 @@ import java.time.LocalDate
 
 class DeltakerExtensionsTest {
     @Test
+    fun `endreDeltakersOppstart - manglende prosent i perioden erstatter gammel prosent`() {
+        // Arrange
+        val idag = LocalDate.now()
+        val nyStartdato = idag.plusMonths(1)
+        val deltaker = TestData.lagDeltaker(
+            startdato = idag,
+            deltakelsesprosent = 80F,
+            dagerPerUke = 4F,
+        )
+
+        listOf(3F, null).forEach { dager ->
+            val mengde = Deltakelsesmengde(
+                deltakelsesprosent = null,
+                dagerPerUke = dager,
+                gyldigFra = nyStartdato,
+                opprettet = idag.atStartOfDay(),
+            )
+
+            // Act
+            val endretDeltaker = deltaker.endreDeltakersOppstart(
+                startdato = nyStartdato,
+                sluttdato = null,
+                deltakelsesmengder = Deltakelsesmengder(listOf(mengde)),
+            )
+
+            // Assert
+            endretDeltaker.deltakelsesprosent shouldBe null
+            endretDeltaker.dagerPerUke shouldBe dager
+        }
+    }
+
+    @Test
     fun `endreDeltakersOppstart - uten historikk for deltakelsesmengde - bevarer eksisterende mengde`() {
         val idag = LocalDate.now()
         val nyStartdato = idag.plusMonths(1)
