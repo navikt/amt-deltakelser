@@ -425,8 +425,11 @@ class AktivitetskortService(
 
         // Hvis lagring av ett kort feiler, angres også de andre kortene og meldingene som skulle sendes til Kafka.
         // Da kan hele liste- eller arrangørendringen forsøkes på nytt uten en halvferdig oppdatering.
+        forberedteMeldinger
+            .mapNotNull { it.oppfolgingsperiode }
+            .sortedBy { it.id.toString() }
+            .forEach { oppfolgingsperiodeRepository.upsert(it) }
         forberedteMeldinger.forEach { forberedt ->
-            forberedt.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
             if (forberedt is ForberedtMelding.Klar) {
                 meldingRepository.upsert(forberedt.melding, medlemskapLaasNodvendig = false)
                 aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
