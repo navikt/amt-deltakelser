@@ -548,44 +548,44 @@ class AktivitetskortServiceTest {
                     ),
                 )
             }
+        }
 
-            @Test
-            fun `kortvalg bruker historikken fra før HTTP-kallet`() {
-                val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
-                every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
-                every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
+        @Test
+        fun `kortvalg bruker historikken fra før HTTP-kallet`() {
+            val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
 
-                val forberedt = aktivitetskortService
-                    .forberedMelding(ctx.deltakerModel())
-                    .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
+            val forberedt = aktivitetskortService
+                .forberedMelding(ctx.deltakerModel())
+                .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
 
-                forberedt.historikk.meldinger shouldBe emptyList()
-                forberedt.melding.id shouldNotBe ctx.melding.id
-                verify(exactly = 1) { meldingRepository.getByDeltakerId(ctx.deltaker.id) }
-                assertThrows<ConcurrencyFailureException> { aktivitetskortService.lagreAktivitetskort(forberedt) }
+            forberedt.historikk.meldinger shouldBe emptyList()
+            forberedt.melding.id shouldNotBe ctx.melding.id
+            verify(exactly = 1) { meldingRepository.getByDeltakerId(ctx.deltaker.id) }
+            assertThrows<ConcurrencyFailureException> { aktivitetskortService.lagreAktivitetskort(forberedt) }
+        }
+
+        @Test
+        fun `grupper låser deltakere i samme rekkefølge uavhengig av rekkefølgen på kortene`() {
+            val forste = UUID.fromString("00000000-0000-0000-0000-000000000001")
+            val andre = UUID.fromString("00000000-0000-0000-0000-000000000002")
+            val meldinger = listOf(andre, forste).map {
+                AktivitetskortService.ForberedtMelding.Klar(
+                    TestData.melding(deltakerId = it),
+                    nyPeriode,
+                    AktivitetskortService.Meldingshistorikk(it, emptyList()),
+                )
             }
 
-            @Test
-            fun `grupper låser deltakere i samme rekkefølge uavhengig av rekkefølgen på kortene`() {
-                val forste = UUID.fromString("00000000-0000-0000-0000-000000000001")
-                val andre = UUID.fromString("00000000-0000-0000-0000-000000000002")
-                val meldinger = listOf(andre, forste).map {
-                    AktivitetskortService.ForberedtMelding.Klar(
-                        TestData.melding(deltakerId = it),
-                        nyPeriode,
-                        AktivitetskortService.Meldingshistorikk(it, emptyList()),
-                    )
-                }
+            aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger)
+            aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger.reversed())
 
-                aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger)
-                aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger.reversed())
-
-                verifyOrder {
-                    meldingRepository.laasMeldingshistorikk(forste)
-                    meldingRepository.laasMeldingshistorikk(andre)
-                    meldingRepository.laasMeldingshistorikk(forste)
-                    meldingRepository.laasMeldingshistorikk(andre)
-                }
+            verifyOrder {
+                meldingRepository.laasMeldingshistorikk(forste)
+                meldingRepository.laasMeldingshistorikk(andre)
+                meldingRepository.laasMeldingshistorikk(forste)
+                meldingRepository.laasMeldingshistorikk(andre)
             }
         }
     }
