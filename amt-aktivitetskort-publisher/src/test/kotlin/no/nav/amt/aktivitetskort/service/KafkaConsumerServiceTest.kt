@@ -29,6 +29,8 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.json.JsonTest
 import org.springframework.dao.ConcurrencyFailureException
@@ -152,6 +154,23 @@ class KafkaConsumerServiceTest(
             )
 
             // Assert
+            verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
+            verify(exactly = 1) { aktivitetskortService.lagreAktivitetskort(forberedtMelding) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `avvist kort forsøkes lagret én gang ved opprettelse og endring`(opprettet: Boolean) {
+            ctx.stubDeltakerFraAmtDeltaker()
+            every { deltakerRepository.upsert(ctx.deltaker, offset) } returns if (opprettet) {
+                RepositoryResult.Created(ctx.deltaker)
+            } else {
+                RepositoryResult.Modified(ctx.deltaker)
+            }
+            every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns null
+
+            kafkaConsumerService.handleDeltaker(ctx.deltaker.id, ctx.deltaker.toDto(), offset)
+
             verify(exactly = 1) { deltakerRepository.upsert(ctx.deltaker, offset) }
             verify(exactly = 1) { aktivitetskortService.lagreAktivitetskort(forberedtMelding) }
         }

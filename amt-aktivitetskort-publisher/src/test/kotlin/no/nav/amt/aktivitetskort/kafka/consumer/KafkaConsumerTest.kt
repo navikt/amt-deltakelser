@@ -679,12 +679,7 @@ class KafkaConsumerTest(
                 .execute {
                     meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
                     executor.submit { meldingRepository.upsert(melding) }.also {
-                        await().atMost(10, TimeUnit.SECONDS).untilAsserted {
-                            jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
-                            jdbcTemplate.queryForObject<Int>(
-                                "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
-                            ) shouldBe 1
-                        }
+                        ventPaAdvisoryLaas(jdbcTemplate)
                         it.isDone shouldBe false
                     }
                 }.shouldNotBeNull()

@@ -82,17 +82,21 @@ class AktivitetskortService(
     fun lagreAktivitetskortGruppe(gruppe: ForberedtGruppe) {
         transactionTemplate.executeWithoutResult {
             laasAktivitetskortGruppe(gruppe)
-            val gjeldende = hentGruppeutvalg(gruppe.utvalg).groupBy { it.deltakerId }
-            val opprinnelige = gruppe.utvalgteMeldinger.groupBy { it.deltakerId }
-            if (opprinnelige.keys != gjeldende.keys ||
-                opprinnelige.any { (id, meldinger) -> !Meldingshistorikk(id, meldinger).erLik(gjeldende.getValue(id)) }
-            ) {
-                throw ConcurrencyFailureException("Gruppeutvalget er endret. Aktivitetskortene må forberedes på nytt.")
-            }
-            lagreMeldinger(gruppe.meldinger)
+            validerGruppeutvalg(gruppe)
+            validerOgLagreMeldinger(gruppe.meldinger)
         }
         gruppe.meldinger.forEach { forberedt ->
             tryOpprettMelding(forberedt.deltakerId) { meldingEllerFeil(forberedt) }
+        }
+    }
+
+    private fun validerGruppeutvalg(gruppe: ForberedtGruppe) {
+        val gjeldende = hentGruppeutvalg(gruppe.utvalg).groupBy { it.deltakerId }
+        val opprinnelige = gruppe.utvalgteMeldinger.groupBy { it.deltakerId }
+        if (opprinnelige.keys != gjeldende.keys ||
+            opprinnelige.any { (id, meldinger) -> !Meldingshistorikk(id, meldinger).erLik(gjeldende.getValue(id)) }
+        ) {
+            throw ConcurrencyFailureException("Gruppeutvalget er endret. Aktivitetskortene må forberedes på nytt.")
         }
     }
 
@@ -368,26 +372,27 @@ class AktivitetskortService(
     private fun lagreMeldinger(forberedteMeldinger: List<ForberedtMelding>) {
         transactionTemplate.executeWithoutResult {
             laasMeldingshistorikkForGruppe(forberedteMeldinger)
-            // Et forberedt kort kan bygge på gamle opplysninger hvis noen har lagret et kort i mellomtiden.
-            // Vi sjekker alle kortene til deltakeren, også eldre kort og at et første kort fortsatt mangler.
-            // Låsen hindrer nye endringer fra denne sjekken til lagringen er ferdig.
-            forberedteMeldinger.map { it.historikk }.distinctBy { it.deltakerId }.forEach { historikk ->
-                if (!historikk.erLik(meldingRepository.getByDeltakerId(historikk.deltakerId))) {
-                    throw endretMeldingshistorikk(historikk.deltakerId)
-                }
-            }
+            validerOgLagreMeldinger(forberedteMeldinger)
+        }
+    }
 
-            // Hvis lagring av ett kort feiler, angres også de andre kortene og meldingene som skulle sendes til Kafka.
-            // Da kan hele liste- eller arrangørendringen forsøkes på nytt uten en halvferdig oppdatering.
-            forberedteMeldinger.forEach { forberedt ->
-                when (forberedt) {
-                    is ForberedtMelding.Avvist -> forberedt.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
-                    is ForberedtMelding.Klar -> {
-                        oppfolgingsperiodeRepository.upsert(forberedt.oppfolgingsperiode)
-                        meldingRepository.upsert(forberedt.melding)
-                        aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
-                    }
-                }
+    private fun validerOgLagreMeldinger(forberedteMeldinger: List<ForberedtMelding>) {
+        // Et forberedt kort kan bygge på gamle opplysninger hvis noen har lagret et kort i mellomtiden.
+        // Vi sjekker alle kortene til deltakeren, også eldre kort og at et første kort fortsatt mangler.
+        // Låsen hindrer nye endringer fra denne sjekken til lagringen er ferdig.
+        forberedteMeldinger.map { it.historikk }.distinctBy { it.deltakerId }.forEach { historikk ->
+            if (!historikk.erLik(meldingRepository.getByDeltakerId(historikk.deltakerId))) {
+                throw endretMeldingshistorikk(historikk.deltakerId)
+            }
+        }
+
+        // Hvis lagring av ett kort feiler, angres også de andre kortene og meldingene som skulle sendes til Kafka.
+        // Da kan hele liste- eller arrangørendringen forsøkes på nytt uten en halvferdig oppdatering.
+        forberedteMeldinger.forEach { forberedt ->
+            forberedt.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
+            if (forberedt is ForberedtMelding.Klar) {
+                meldingRepository.upsert(forberedt.melding)
+                aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
             }
         }
     }
@@ -403,32 +408,19 @@ class AktivitetskortService(
     sealed interface ForberedtMelding {
         val historikk: Meldingshistorikk
         val deltakerId: UUID get() = historikk.deltakerId
+        val oppfolgingsperiode: Oppfolgingsperiode?
 
         data class Klar(
             val melding: Melding,
-            val oppfolgingsperiode: Oppfolgingsperiode,
+            override val oppfolgingsperiode: Oppfolgingsperiode,
             override val historikk: Meldingshistorikk,
         ) : ForberedtMelding
 
         data class Avvist(
             override val historikk: Meldingshistorikk,
             val feil: RuntimeException,
-            val oppfolgingsperiode: Oppfolgingsperiode? = null,
+            override val oppfolgingsperiode: Oppfolgingsperiode? = null,
         ) : ForberedtMelding
-    }
-
-    fun opprettMelding(
-        deltaker: DeltakerDbo,
-        meldingId: UUID? = null,
-    ): Melding {
-        val historikk = hentMeldingshistorikk(deltaker.id)
-        return lagreOgPubliser(
-            forberedMelding(
-                deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltaker.id)),
-                meldingId = meldingId,
-                historikk = historikk,
-            ),
-        )
     }
 
     fun opprettNyttKort(deltakerId: UUID): Melding {

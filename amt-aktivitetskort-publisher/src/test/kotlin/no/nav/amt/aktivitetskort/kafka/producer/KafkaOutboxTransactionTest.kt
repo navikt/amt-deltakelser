@@ -133,15 +133,7 @@ class KafkaOutboxTransactionTest(
                                 aktivitetskortService.resendSisteMelding(ctx.deltaker.id)
                             }
                         }.also {
-                            await().atMost(10, TimeUnit.SECONDS).untilAsserted {
-                                jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
-                                jdbcTemplate.queryForObject<Int>(
-                                    """
-                                    SELECT count(*) FROM pg_stat_activity
-                                    WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'
-                                    """.trimIndent(),
-                                ) shouldBe 1
-                            }
+                            ventPaAdvisoryLaas(jdbcTemplate)
                             meldingRepository.upsert(nyMelding)
                         }
                 }.shouldNotBeNull()
@@ -237,12 +229,7 @@ class KafkaOutboxTransactionTest(
                 .execute { status ->
                     aktivitetskortService.lagreAktivitetskortGruppe(gruppe)
                     executor.submit { meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null)) }.also {
-                        await().atMost(10, TimeUnit.SECONDS).untilAsserted {
-                            jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
-                            jdbcTemplate.queryForObject<Int>(
-                                "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
-                            ) shouldBe 1
-                        }
+                        ventPaAdvisoryLaas(jdbcTemplate)
                         it.isDone shouldBe false
                         meldingRepository.getByDeltakerId(ctx.deltaker.id) shouldBe emptyList()
                         if (angre) status.setRollbackOnly()
@@ -268,12 +255,7 @@ class KafkaOutboxTransactionTest(
                     executor
                         .submit(Callable { runCatching { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) } })
                         .also {
-                            await().atMost(10, TimeUnit.SECONDS).untilAsserted {
-                                jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
-                                jdbcTemplate.queryForObject<Int>(
-                                    "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
-                                ) shouldBe 1
-                            }
+                            ventPaAdvisoryLaas(jdbcTemplate)
                             it.isDone shouldBe false
                             meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null))
                         }
