@@ -255,6 +255,87 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris for kladd`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.KLADD,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris for utkast`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ARBEIDSMARKEDSOPPLAERING - mapper gjeldende og ventende pris for utkast`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ENKELTPLASS_FAG_OG_YRKESOPPLAERING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    private fun verifiserGjennomforingResponse(
+        tiltakskode: Tiltakskode,
+        deltakerStatus: DeltakerStatus.Type,
+    ) {
+        val deltakerliste = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            tiltakstype = lagTiltakstype(tiltakskode = tiltakskode),
+        )
+        val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+        val ventendePrisinfo = Anskaffelse(pris = 12000)
+
+        mockkObject(PrisinfoRepoAdapter)
+        try {
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
+            } returns mapOf(
+                PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
+                PrisinfoDbo.Rolle.ENDRING to ventendePrisinfo,
+            )
+
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(
+                gjennomforing = deltakerliste,
+                includePrisinfo = true,
+                deltakerStatus = deltakerStatus,
+            )
+
+            response.prisinformasjon shouldBe gjeldendePrisinfo
+            response.prisinformasjonTilGodkjenning shouldBe ventendePrisinfo
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+    }
+
+    @Test
     fun `buildGjennomforingResponse - setter begrunnelse på matchende prisinformasjonTilGodkjenning`() {
         // Arrange
         val deltakerliste = lagDeltakerliste(
@@ -904,7 +985,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class HentPrisinfoPairTests {
+    inner class FinnPrisinfoTests {
         private val gjennomforingId = UUID.randomUUID()
         private val gjeldendePrisinfo = Anskaffelse(pris = 10000)
         private val endringPrisinfo = Anskaffelse(pris = 12000)
@@ -916,7 +997,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         fun teardown() = unmockkObject(PrisinfoRepoAdapter)
 
         @Test
-        fun `ingen prisinfo - returnerer Funnet(null, null)`() {
+        fun `ingen prisinfo - returnerer null`() {
             // Arrange
             every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
@@ -924,8 +1005,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe null
-            funnet?.tilGodkjenning shouldBe null
+            funnet shouldBe null
         }
 
         @Test
@@ -960,8 +1040,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Assert
-            funnet?.aktiv shouldBe null
-            funnet?.tilGodkjenning shouldBe endringPrisinfo
+            funnet!!.aktiv shouldBe null
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
 
         @Test
@@ -975,8 +1055,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe gjeldendePrisinfo
-            funnet?.tilGodkjenning shouldBe null
+            funnet!!.aktiv shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe null
         }
 
         @Test
@@ -993,8 +1073,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe gjeldendePrisinfo
-            funnet?.tilGodkjenning shouldBe endringPrisinfo
+            funnet!!.aktiv shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
     }
 }

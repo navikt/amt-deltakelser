@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.kafka.payload.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.kafka.payload.DeltakerV1Dto
 import no.nav.amt.deltaker.repository.DeltakerStatusRepository
+import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.tiltak.TiltakRepository
 import no.nav.amt.deltaker.utils.IntegrationTestWithDbBase
 import no.nav.amt.deltaker.utils.assertNotProduced
@@ -31,6 +32,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
+import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -203,6 +205,73 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
                 kilde shouldBe Kilde.KOMET
             }
         }
+
+        @Test
+        fun `oppdaterKladd- HOYERE_UTDANNING - oppdaterer pris`() = runTest {
+            val hoyereUtdanning = prepareHoyereUtdanning()
+            val deltaker = enkeltplassService.opprettKladd(
+                hoyereUtdanning.tiltakskode,
+                navBrukerInTest.personident,
+            )
+            val oppdatertPris = Anskaffelse(pris = 12000)
+
+            enkeltplassService.oppdaterKladd(
+                deltakerId = deltaker.id,
+                oppdaterKladdRequest = OppdaterEnkeltplassKladdRequest(
+                    beskrivelse = "Oppdatert beskrivelse",
+                    prisinformasjon = oppdatertPris,
+                    startdato = null,
+                    sluttdato = null,
+                    arrangorUnderenhet = null,
+                ),
+            )
+
+            PrisinfoRepoAdapter.hentPrisinfo(deltaker.gjennomforing.id) shouldBe oppdatertPris
+        }
+
+        @Test
+        fun `oppdaterUtkast - HOYERE_UTDANNING - oppdaterer pris`() = runTest {
+            val hoyereUtdanning = prepareHoyereUtdanning()
+            val deltaker = enkeltplassService.opprettKladd(
+                hoyereUtdanning.tiltakskode,
+                navBrukerInTest.personident,
+            )
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltaker.id,
+                decoratedRequest = utkastRequest(Anskaffelse(pris = 10000)),
+            )
+            val oppdatertPris = Anskaffelse(pris = 12000)
+
+            enkeltplassService.oppdaterUtkast(
+                deltakerId = deltaker.id,
+                decoratedRequest = utkastRequest(oppdatertPris),
+            )
+
+            PrisinfoRepoAdapter.hentPrisinfo(deltaker.gjennomforing.id) shouldBe oppdatertPris
+        }
+
+        private fun prepareHoyereUtdanning() = TestData.lagTiltakstype(Tiltakskode.HOYERE_UTDANNING).also {
+            TiltakRepository().upsert(it)
+            arrangorRepository.upsert(lagArrangor(organisasjonsnummer = "987654321"))
+            coEvery { opplaringKategoriseringClient.hentOpplaringKategorisering(Tiltakskode.HOYERE_UTDANNING) } returns
+                OpplaringKategoriseringResponse(
+                    tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+                    alternativer = emptyList(),
+                    sertifiseringValg = emptySet(),
+                )
+        }
+
+        private fun utkastRequest(pris: PrisinformasjonDto) = EnkeltplassPameldingDecoratedRequest(
+            wrappedRequest = EnkeltplassPameldingRequest(
+                beskrivelse = "Oppdatert utkast",
+                startdato = LocalDate.now(),
+                sluttdato = LocalDate.now().plusDays(2),
+                prisinformasjon = pris,
+                arrangorUnderenhet = "987654321",
+            ),
+            endretAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
+            endretAv = sistEndretAvNavAnsatt.navIdent,
+        )
 
         @Test
         fun `oppdaterKladd - uten beskrivelse - lagrer tom innhold-liste`() = runTest {

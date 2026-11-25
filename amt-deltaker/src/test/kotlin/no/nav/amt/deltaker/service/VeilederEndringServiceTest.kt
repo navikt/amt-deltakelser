@@ -139,7 +139,55 @@ class VeilederEndringServiceTest : IntegrationTestWithDbBase() {
     }
 
     @Nested
-    inner class Prisinfo {
+    inner class LagreOgProduserPrisinfoEndring {
+        @Test
+        fun `ingen pris fra før og status DELTAR - lagrer endring og produserer ny pris`() {
+            // Arrange
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker)
+            val gjennomforingId = deltaker.gjennomforing.id
+            PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) shouldBe emptyMap()
+            val nyPrisinfo = PrisinformasjonDto.Tilskudd(
+                tilskudd = listOf(
+                    PrisinformasjonDto.Tilskudd.TilskuddInfo(
+                        type = PrisinformasjonDto.Tilskudd.Tilskuddstype.SKOLEPENGER,
+                        pris = 32000,
+                    ),
+                ),
+                tilleggsopplysninger = null,
+            )
+
+            // Act
+            val prisinformasjonId = gjennomforingProducerService.lagreOgProduserPrisinfoEndring(
+                gjennomforingId = gjennomforingId,
+                prisinfo = nyPrisinfo,
+                begrunnelse = "Første pris",
+                endretAvNavIdent = navAnsattInTest.navIdent,
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
+            )
+
+            // Assert
+            PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.GJELDENDE).shouldBeNull()
+            PrisinfoRepoAdapter.hentPrisinfo(gjennomforingId, PrisinfoDbo.Rolle.ENDRING) shouldBe
+                nyPrisinfo.copy(begrunnelse = "Første pris")
+            verify {
+                outboxService.insertRecord(
+                    key = gjennomforingId,
+                    value = match<GjennomforingRequestPayload.EnkeltplassEndrePrisinformasjon> {
+                        it.totrinnskontroll.id == prisinformasjonId &&
+                            it.payload == GjennomforingRequestPayload.Prisinformasjon.fromAmtPrisinfo(nyPrisinfo)
+                    },
+                    topic = Environment.GJENNOMFORING_REQUEST_TOPIC,
+                    suppressOutsideTxWarning = any(),
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class EndretPrisinfoRequest {
         @Test
         fun `identisk prisinfo gir ingen endring`() = runTest {
             // Arrange
