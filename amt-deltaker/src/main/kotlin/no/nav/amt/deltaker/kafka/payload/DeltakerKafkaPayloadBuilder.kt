@@ -318,6 +318,8 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun List<Deltakelsesmengde>.toDeltakelsesmengdeV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerV1Dto.DeltakelsesmengdeDto(
+            // toDeltakelsesmengderMedFallback() setter 100 % for endringer uten prosent
+            // og filtrerer bort vedtak/import uten prosent. Derfor er verdien ikke null her.
             deltakelsesprosent = requireNotNull(it.deltakelsesprosent),
             dagerPerUke = it.dagerPerUke,
             gyldigFra = it.gyldigFra,
