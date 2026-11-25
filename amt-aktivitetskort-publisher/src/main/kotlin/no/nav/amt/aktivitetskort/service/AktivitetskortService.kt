@@ -203,9 +203,13 @@ class AktivitetskortService(
         utvalg: Gruppeutvalg,
         gruppe: ForberedtGruppe?,
     ) {
-        medlemskapFor(utvalg)
+        val eksklusiveMedlemskap = medlemskapFor(utvalg)
+        val alleMedlemskap = eksklusiveMedlemskap + medlemskapFor(gruppe?.meldinger.orEmpty())
+        alleMedlemskap
             .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
-            .forEach { meldingRepository.advisoryLockMedlemskap(it.type, it.id) }
+            .forEach {
+                meldingRepository.advisoryLockMedlemskap(it.type, it.id, delt = it !in eksklusiveMedlemskap)
+            }
         laasDeltakerhistorikkForGruppe(gruppe?.meldinger.orEmpty())
     }
 
