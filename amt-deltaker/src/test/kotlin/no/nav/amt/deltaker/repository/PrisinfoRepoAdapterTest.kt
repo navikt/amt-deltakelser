@@ -1200,7 +1200,7 @@ class PrisinfoRepoAdapterTest {
 
     @Nested
     inner class ValiderPrisinfoTypeKanEndresTests {
-        private fun gjeldendeAnskaffelse(gjennomforingId: UUID) {
+        private fun genererGjeldendeAnskaffelse(gjennomforingId: UUID) {
             val gjeldendeId = PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
                 gjennomforingId = gjennomforingId,
                 prisinformasjon = Anskaffelse(pris = 10000),
@@ -1208,12 +1208,19 @@ class PrisinfoRepoAdapterTest {
             godkjennMedTestGodkjenner(gjennomforingId = gjennomforingId, prisinformasjonId = gjeldendeId)
         }
 
+        private fun genererIkkeGodkjentEndringAnskaffelse(gjennomforingId: UUID) {
+            PrisinfoRepoAdapter.lagrePrisinfoForKladdOgUtkast(
+                gjennomforingId = gjennomforingId,
+                prisinformasjon = Anskaffelse(pris = 10000),
+            )
+        }
+
         @Test
-        fun `typeendring med status DELTAR - kaster`() {
+        fun `pristype endring med status DELTAR - kaster feil`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
-            gjeldendeAnskaffelse(deltakerliste.id)
+            genererGjeldendeAnskaffelse(deltakerliste.id)
 
             // Act & Assert
             shouldThrow<IllegalArgumentException> {
@@ -1226,11 +1233,11 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `typeendring med status SOKT_INN - kaster ikke`() {
+        fun `pris er godkjent, deltakerstatus SOKT_INN - feiler ikke`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
-            gjeldendeAnskaffelse(deltakerliste.id)
+            genererGjeldendeAnskaffelse(deltakerliste.id)
 
             // Act & Assert
             PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
@@ -1241,11 +1248,11 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `verdiendring av samme type med status DELTAR - kaster ikke`() {
+        fun `pris av samme type, deltakerstatus DELTAR - feiler ikke`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
-            gjeldendeAnskaffelse(deltakerliste.id)
+            genererGjeldendeAnskaffelse(deltakerliste.id)
 
             // Act & Assert
             PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
@@ -1256,10 +1263,40 @@ class PrisinfoRepoAdapterTest {
         }
 
         @Test
-        fun `ingen gjeldende prisinfo - kaster ikke ved typeendring`() {
+        fun `ingen gjeldende prisinfo(arenadeltaker) - feiler ikke`() {
             // Arrange
             val deltakerliste = lagDeltakerliste()
             TestRepository.insert(deltakerliste)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.DELTAR,
+            )
+        }
+
+        @Test
+        fun `forslag til prisendring finnes allerede, deltakerstatus SOKT_INN - feiler ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            genererIkkeGodkjentEndringAnskaffelse(deltakerliste.id)
+
+            // Act & Assert
+            PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(
+                gjennomforingId = deltakerliste.id,
+                nyPrisinformasjon = IngenKostnader(tilleggsopplysninger = ""),
+                deltakerStatus = DeltakerStatus.Type.SOKT_INN,
+            )
+        }
+
+        @Test
+        fun `forslag til prisendring finnes allerede, deltakerstatus DELTAR - feiler ikke`() {
+            // Arrange
+            val deltakerliste = lagDeltakerliste()
+            TestRepository.insert(deltakerliste)
+            genererIkkeGodkjentEndringAnskaffelse(deltakerliste.id)
 
             // Act & Assert
             PrisinfoRepoAdapter.validerPrisinfoTypeKanEndres(

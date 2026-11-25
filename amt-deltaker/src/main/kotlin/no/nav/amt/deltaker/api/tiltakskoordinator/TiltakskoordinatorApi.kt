@@ -31,7 +31,7 @@ fun Routing.registerTiltakskoordinatorApi(
                 ?: throw NoSuchElementException("Fant ikke deltakerliste med id $gjennomforingId")
             val gjennomforingResponse = deltakerResponseBuilder.buildGjennomforingResponse(
                 gjennomforing = deltakerliste,
-                includeOpplaringKategorisering = false,
+                includePrisinfo = false,
             )
 
             call.respond(gjennomforingResponse)

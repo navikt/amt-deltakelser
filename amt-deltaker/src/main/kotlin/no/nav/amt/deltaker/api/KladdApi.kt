@@ -31,7 +31,7 @@ fun Routing.registerKladdApi(
             )
             val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(
                 deltaker = deltaker,
-                includeOpplaringKategorisering = true,
+                includePrisinfo = true,
             )
 
             call.respond(deltakerResponse)

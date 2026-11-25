@@ -84,7 +84,7 @@ class TiltakskoordinatorApiTest : IntegrationTestBase() {
             every {
                 deltakerResponseBuilder.buildGjennomforingResponse(
                     gjennomforing = deltakerliste,
-                    includeOpplaringKategorisering = false,
+                    includePrisinfo = false,
                 )
             } returns expectedResponse
 

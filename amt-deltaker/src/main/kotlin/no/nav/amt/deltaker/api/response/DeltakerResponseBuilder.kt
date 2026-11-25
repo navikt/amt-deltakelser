@@ -19,6 +19,7 @@ import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -37,7 +38,7 @@ class DeltakerResponseBuilder(
 ) {
     suspend fun buildDeltakerResponse(
         deltaker: Deltaker,
-        includeOpplaringKategorisering: Boolean = true,
+        includePrisinfo: Boolean = true,
     ): DeltakerResponse {
         val endringsforslagForDeltaker = SharedResponseMappers.hentEndringsforslagVenterPaSvar(
             forslagRepository = forslagRepository,
@@ -65,7 +66,8 @@ class DeltakerResponseBuilder(
             ),
             gjennomforing = buildGjennomforingResponse(
                 gjennomforing = deltaker.gjennomforing,
-                includeOpplaringKategorisering = includeOpplaringKategorisering,
+                includePrisinfo = includePrisinfo,
+                deltakerStatus = deltaker.status.type,
             ),
             startdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
@@ -114,11 +116,13 @@ class DeltakerResponseBuilder(
 
     internal fun buildGjennomforingResponse(
         gjennomforing: Gjennomforing,
-        includeOpplaringKategorisering: Boolean,
+        includePrisinfo: Boolean,
+        deltakerStatus: DeltakerStatus.Type? = null,
     ): GjennomforingResponse {
         val prisinformasjon = GjennomforingPrisinformasjon.hent(
             gjennomforing = gjennomforing,
-            includeOpplaringKategorisering = includeOpplaringKategorisering,
+            includePrisinfo = includePrisinfo,
+            deltakerStatus = deltakerStatus,
         )
 
         return SharedResponseMappers.buildGjennomforingResponse(

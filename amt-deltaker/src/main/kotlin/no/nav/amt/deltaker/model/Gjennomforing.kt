@@ -34,10 +34,8 @@ data class Gjennomforing(
 
     fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == GjennomforingStatusType.AVSLUTTET
 
-    // enkeltplass opplæring etter ny forskrift
     @get:JsonIgnore
-    val erNyForskriftOpplaring get() = gjennomforingstype == GjennomforingType.Enkeltplass &&
-        !tiltakstype.tiltakskode.erArenaEnkeltplass()
+    val erEnkeltplassOpplaring get() = gjennomforingstype == GjennomforingType.Enkeltplass && tiltakstype.erOpplaeringstiltak
 
     @get:JsonIgnore
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES

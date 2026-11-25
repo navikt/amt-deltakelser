@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.tiltaksarrangor.ArrangorService
 import no.nav.amt.deltaker.utils.IntegrationTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.veileder.DeltakerLaaseService
 import no.nav.amt.felles.visningsnavn.TiltakVisningsnavn
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
@@ -34,6 +35,7 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringType
 import no.nav.amt.lib.models.deltaker.OpplaringKategoriseringValg
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto.Anskaffelse
@@ -44,6 +46,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.SertifiseringValg
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -214,7 +217,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             } returns emptyMap()
 
             // Act
-            val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includePrisinfo = true)
 
             // Assert
             response.opplaringKategoriseringValg shouldBe opplaringKategoriseringValg
@@ -231,7 +234,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         )
 
         // Act
-        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = true)
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includePrisinfo = true)
 
         // Assert
         response.opplaringKategoriseringValg shouldBe null
@@ -245,16 +248,100 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         )
 
         // Act
-        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includeOpplaringKategorisering = false)
+        val response = deltakerResponseBuilder.buildGjennomforingResponse(deltakerliste, includePrisinfo = false)
 
         // Assert
         response.opplaringKategoriseringValg shouldBe null
     }
 
     @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris for kladd`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.KLADD,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - HOYERE_UTDANNING - mapper gjeldende og ventende pris for utkast`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            deltakerStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ARBEIDSMARKEDSOPPLAERING - mapper gjeldende og ventende pris for utkast`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    @Test
+    fun `buildGjennomforingResponse - ENKELTPLASS_FAG_OG_YRKESOPPLAERING - mapper gjeldende og ventende pris`() {
+        verifiserGjennomforingResponse(
+            tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            deltakerStatus = DeltakerStatus.Type.DELTAR,
+        )
+    }
+
+    private fun verifiserGjennomforingResponse(
+        tiltakskode: Tiltakskode,
+        deltakerStatus: DeltakerStatus.Type,
+    ) {
+        val deltakerliste = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            tiltakstype = lagTiltakstype(tiltakskode = tiltakskode),
+        )
+        val gjeldendePrisinfo = Anskaffelse(pris = 10000)
+        val ventendePrisinfo = Anskaffelse(pris = 12000)
+
+        mockkObject(PrisinfoRepoAdapter)
+        try {
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(deltakerliste.id)
+            } returns mapOf(
+                PrisinfoDbo.Rolle.GJELDENDE to gjeldendePrisinfo,
+                PrisinfoDbo.Rolle.ENDRING to ventendePrisinfo,
+            )
+
+            val response = deltakerResponseBuilder.buildGjennomforingResponse(
+                gjennomforing = deltakerliste,
+                includePrisinfo = true,
+                deltakerStatus = deltakerStatus,
+            )
+
+            response.prisinformasjon shouldBe gjeldendePrisinfo
+            response.prisinformasjonTilGodkjenning shouldBe ventendePrisinfo
+        } finally {
+            unmockkObject(PrisinfoRepoAdapter)
+        }
+    }
+
+    @Test
     fun `buildGjennomforingResponse - setter begrunnelse på matchende prisinformasjonTilGodkjenning`() {
         // Arrange
-        val deltakerliste = lagDeltakerliste(gjennomforingstype = GjennomforingType.Enkeltplass)
+        val deltakerliste = lagDeltakerliste(
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
+        )
         val gjeldendePrisinfo = Anskaffelse(pris = 10000)
         val forventetBegrunnelse = "Oppdatert etter ny dokumentasjon"
         val prisinfoTilGodkjenning = Anskaffelse(pris = 12000, begrunnelse = forventetBegrunnelse)
@@ -271,7 +358,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             // Act
             val response = deltakerResponseBuilder.buildGjennomforingResponse(
                 gjennomforing = deltakerliste,
-                includeOpplaringKategorisering = true,
+                includePrisinfo = true,
             )
 
             // Assert
@@ -395,7 +482,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         every { forslagRepository.getForDeltaker(any()) } returns expectedForslag
 
         // Act
-        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+        val deltakerResponse = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
         // Assert
         assertSoftly(deltakerResponse) {
@@ -481,7 +568,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, emptyList())
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -513,7 +600,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -559,7 +646,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), fremtidig))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             val fremtidigResponse = DeltakelsesmengdeResponse(
@@ -608,7 +695,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), innenforPeriode))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             // Vedtaket før startdato avgrenses til startdato, og endringen innenfor blir siste/neste
@@ -645,7 +732,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak)))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -687,7 +774,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(importertFraArena))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -747,7 +834,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             assertSoftly(response.deltakelsesmengder.shouldNotBeNull()) {
@@ -821,7 +908,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             )
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             // nesteDeltakelsesmengde = den fremtidige endringen (50%/2 dager fra +14 dager)
@@ -881,7 +968,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             setupMocks(navAnsatt, navEnhet, listOf(DeltakerHistorikk.Vedtak(vedtak), endringFraArrangor))
 
             // Act
-            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includeOpplaringKategorisering = false)
+            val response = deltakerResponseBuilder.buildDeltakerResponse(deltaker, includePrisinfo = false)
 
             // Assert
             // Regresjonstest: EndringFraArrangor må være en del av historikken som hentes til
@@ -898,7 +985,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class HentPrisinfoPairTests {
+    inner class FinnPrisinfoTests {
         private val gjennomforingId = UUID.randomUUID()
         private val gjeldendePrisinfo = Anskaffelse(pris = 10000)
         private val endringPrisinfo = Anskaffelse(pris = 12000)
@@ -910,7 +997,7 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
         fun teardown() = unmockkObject(PrisinfoRepoAdapter)
 
         @Test
-        fun `ingen prisinfo - returnerer Funnet(null, null)`() {
+        fun `ingen prisinfo - returnerer null`() {
             // Arrange
             every { PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId) } returns emptyMap()
 
@@ -918,23 +1005,43 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe null
-            funnet?.tilGodkjenning shouldBe null
+            funnet shouldBe null
         }
 
         @Test
-        fun `kun ENDRING finnes (KLADD eller UTKAST) - returnerer Funnet(endring, null)`() {
+        fun `kun ENDRING finnes med status UTKAST_TIL_PAMELDING - returnerer endringen som aktiv prisinfo`() {
             // Arrange
             every {
                 PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
             } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
 
             // Act
-            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(
+                gjennomforingId,
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            )
 
             // Assert
             funnet?.aktiv shouldBe endringPrisinfo
             funnet?.tilGodkjenning shouldBe null
+        }
+
+        @Test
+        fun `kun ENDRING finnes, deltakerstatus DELTAR - returnerer endringen til godkjenning`() {
+            // Arrange
+            every {
+                PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
+            } returns mapOf(PrisinfoDbo.Rolle.ENDRING to endringPrisinfo)
+
+            // Act
+            val funnet = GjennomforingPrisinformasjon.finnPrisInfo(
+                gjennomforingId,
+                DeltakerStatus.Type.DELTAR,
+            )
+
+            // Assert
+            funnet!!.aktiv shouldBe null
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
 
         @Test
@@ -948,8 +1055,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe gjeldendePrisinfo
-            funnet?.tilGodkjenning shouldBe null
+            funnet!!.aktiv shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe null
         }
 
         @Test
@@ -966,8 +1073,8 @@ class DeltakerResponseBuilderTest : IntegrationTestBase() {
             val funnet = GjennomforingPrisinformasjon.finnPrisInfo(gjennomforingId)
 
             // Assert
-            funnet?.aktiv shouldBe gjeldendePrisinfo
-            funnet?.tilGodkjenning shouldBe endringPrisinfo
+            funnet!!.aktiv shouldBe gjeldendePrisinfo
+            funnet.tilGodkjenning shouldBe endringPrisinfo
         }
     }
 }

@@ -45,7 +45,7 @@ class GjennomforingApiTest : IntegrationTestBase() {
             deltakerRepository = mockk(),
         ).buildGjennomforingResponse(
             gjennomforing = deltakerliste,
-            includeOpplaringKategorisering = false,
+            includePrisinfo = false,
         )
 
         withTestApplicationContext { client ->
