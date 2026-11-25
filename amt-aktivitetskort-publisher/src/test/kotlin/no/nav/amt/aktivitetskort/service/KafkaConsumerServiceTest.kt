@@ -89,7 +89,7 @@ class KafkaConsumerServiceTest(
         every { aktivitetskortService.hentMeldingshistorikk(any()) } returns historikk
         justRun { aktivitetskortService.laasMeldingshistorikk(any()) }
         justRun { aktivitetskortService.laasMeldingshistorikkForGruppe(any()) }
-        justRun { aktivitetskortService.laasAktivitetskortGruppe(any()) }
+        justRun { aktivitetskortService.laasAktivitetskortGruppe(any(), any()) }
         justRun { aktivitetskortService.lagreAktivitetskortGruppe(any()) }
     }
 
@@ -133,7 +133,7 @@ class KafkaConsumerServiceTest(
                 aktivitetskortService.hentMeldingshistorikk(ctx.deltaker.id)
                 aktivitetskortService.forberedMelding(any(), historikk = historikk)
                 transactionTemplate.executeWithoutResult(any())
-                aktivitetskortService.laasMeldingshistorikk(ctx.deltaker.id)
+                aktivitetskortService.laasMeldingshistorikkForGruppe(listOf(forberedtMelding))
                 deltakerRepository.upsert(ctx.deltaker, offset)
                 aktivitetskortService.lagreAktivitetskort(forberedtMelding)
             }

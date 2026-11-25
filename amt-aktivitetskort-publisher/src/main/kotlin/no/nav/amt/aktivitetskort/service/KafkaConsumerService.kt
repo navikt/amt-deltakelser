@@ -66,7 +66,7 @@ class KafkaConsumerService(
         transactionTemplate.executeWithoutResult {
             // Vi låser før vi endrer deltakeren, slik sletting også gjør.
             // Da unngår vi at en oppdatering og en sletting blir stående og vente på hverandre.
-            aktivitetskortService.laasMeldingshistorikk(deltaker.id)
+            aktivitetskortService.laasMeldingshistorikkForGruppe(listOf(forberedtMelding))
             val deltakerUpsertResult = deltakerRepository.upsert(
                 deltaker = deltakerDbo,
                 offset = offset,
@@ -125,6 +125,7 @@ class KafkaConsumerService(
             ?: hentOgLagreArrangorFraAmtArrangor(payload.arrangor.organisasjonsnummer)
 
         val deltakerlisteModel = payload.toDeltakerliste(arrangor.id)
+        val utvalg = AktivitetskortService.Gruppeutvalg.Deltakerliste(deltakerlisteModel.id)
         val lagretDeltakerliste = deltakerlisteRepository.get(deltakerlisteModel.id)
         if (lagretDeltakerliste == deltakerlisteModel) {
             log.info("Ny hendelse for deltakerliste ${payload.id}: Ingen endring")
@@ -138,7 +139,7 @@ class KafkaConsumerService(
         }
 
         transactionTemplate.executeWithoutResult {
-            aktivitetskortService.laasAktivitetskortGruppe(forberedtGruppe)
+            aktivitetskortService.laasAktivitetskortGruppe(utvalg, forberedtGruppe)
             when (deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
                     if (forberedtGruppe == null) {
@@ -175,6 +176,7 @@ class KafkaConsumerService(
         }
 
         val arrangorModel = arrangor.toModel()
+        val utvalg = AktivitetskortService.Gruppeutvalg.Arrangor(arrangorModel.id)
         val lagretArrangor = arrangorRepository.get(arrangor.id)
         if (lagretArrangor == arrangorModel) return
         val forberedtGruppe = if (lagretArrangor != null) {
@@ -184,7 +186,7 @@ class KafkaConsumerService(
         }
 
         transactionTemplate.executeWithoutResult {
-            aktivitetskortService.laasAktivitetskortGruppe(forberedtGruppe)
+            aktivitetskortService.laasAktivitetskortGruppe(utvalg, forberedtGruppe)
             when (arrangorRepository.upsert(arrangorModel)) {
                 is RepositoryResult.Modified -> {
                     if (forberedtGruppe == null) {

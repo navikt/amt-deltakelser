@@ -242,6 +242,56 @@ class KafkaOutboxTransactionTest(
     }
 
     @Test
+    fun `første kort venter på arrangørlåsen`() {
+        val ctx = TestData.MockContext()
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        val gruppe = aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor)
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            transactionTemplate.executeWithoutResult {
+                aktivitetskortService.lagreAktivitetskortGruppe(gruppe)
+                executor
+                    .submit {
+                        meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null))
+                    }.also {
+                        ventPaAdvisoryLaas(jdbcTemplate)
+                        it.isDone shouldBe false
+                    }
+            }
+        }
+
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.melding.id
+    }
+
+    @Test
+    fun `første kort i en annen gruppe venter ikke på bulkoppdateringen`() {
+        val ctx = TestData.MockContext()
+        val annenDeltakerliste = TestData.lagDeltakerliste(arrangorId = ctx.arrangor.id)
+        val annenGruppe = TestData.MockContext(
+            deltaker = TestData.lagDeltaker(deltakerlisteId = annenDeltakerliste.id),
+            deltakerliste = annenDeltakerliste,
+            arrangor = ctx.arrangor,
+        )
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        testDatabase.insertDeltakerliste(annenGruppe.deltakerliste)
+        val gruppe = aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            transactionTemplate.executeWithoutResult {
+                aktivitetskortService.lagreAktivitetskortGruppe(gruppe)
+                executor
+                    .submit {
+                        meldingRepository.upsert(annenGruppe.melding.copy(oppfolgingperiode = null))
+                    }.get(10, TimeUnit.SECONDS)
+            }
+        }
+
+        meldingRepository.getByDeltakerId(annenGruppe.deltaker.id).single().id shouldBe annenGruppe.melding.id
+    }
+
+    @Test
     fun `gruppevalidering venter på pågående førstegangsskriving og oppdager nytt medlem`() {
         val ctx = TestData.MockContext()
         testDatabase.insertArrangor(ctx.arrangor)
@@ -251,7 +301,15 @@ class KafkaOutboxTransactionTest(
         Executors.newSingleThreadExecutor().use { executor ->
             val lagring = transactionTemplate
                 .execute {
-                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    aktivitetskortService.laasMeldingshistorikkForGruppe(
+                        listOf(
+                            AktivitetskortService.ForberedtMelding.Klar(
+                                ctx.melding,
+                                TestData.oppfolgingsperiode(),
+                                AktivitetskortService.Meldingshistorikk(ctx.deltaker.id, emptyList()),
+                            ),
+                        ),
+                    )
                     executor
                         .submit(Callable { runCatching { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) } })
                         .also {

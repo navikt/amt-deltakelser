@@ -32,7 +32,14 @@ class MeldingRepository(
     }
 
     @Transactional
-    fun upsert(melding: Melding) {
+    fun upsert(
+        melding: Melding,
+        medlemskapLaasNodvendig: Boolean = true,
+    ) {
+        if (medlemskapLaasNodvendig) {
+            laasMedlemskap("arrangor", melding.arrangorId, delt = true)
+            laasMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
+        }
         laasMeldingshistorikk(melding.deltakerId)
         template.update(
             """
@@ -66,15 +73,18 @@ class MeldingRepository(
     // før kalleren har validert historikken og fullført eller angret lagringen.
     @Transactional(propagation = Propagation.MANDATORY)
     fun laasMeldingshistorikk(deltakerId: UUID) {
-        advisoryLock("gruppeutvalg", delt = true)
         advisoryLock("meldingshistorikk:$deltakerId")
     }
 
-    // MANDATORY krever at gruppelåsen tas i bulkoppdateringens transaksjon.
+    // MANDATORY krever at medlemskapslåsen tas i bulkoppdateringens transaksjon.
     // En egen transaksjon ville sluppet låsen før utvalget valideres og kortene lagres.
     @Transactional(propagation = Propagation.MANDATORY)
-    fun laasGruppeutvalg() {
-        advisoryLock("gruppeutvalg")
+    fun laasMedlemskap(
+        type: String,
+        id: UUID,
+        delt: Boolean = false,
+    ) {
+        advisoryLock("medlemskap:$type:$id", delt)
     }
 
     private fun advisoryLock(

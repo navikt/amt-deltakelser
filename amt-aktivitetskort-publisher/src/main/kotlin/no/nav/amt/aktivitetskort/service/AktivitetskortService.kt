@@ -81,7 +81,7 @@ class AktivitetskortService(
 
     fun lagreAktivitetskortGruppe(gruppe: ForberedtGruppe) {
         transactionTemplate.executeWithoutResult {
-            laasAktivitetskortGruppe(gruppe)
+            laasAktivitetskortGruppe(gruppe.utvalg, gruppe)
             validerGruppeutvalg(gruppe)
             validerOgLagreMeldinger(gruppe.meldinger)
         }
@@ -145,7 +145,7 @@ class AktivitetskortService(
 
         val oppdatertMelding = melding.copy(aktivitetskort = aktivitetskort)
 
-        meldingRepository.upsert(oppdatertMelding)
+        meldingRepository.upsert(oppdatertMelding, medlemskapLaasNodvendig = false)
         aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
     }
 
@@ -199,20 +199,57 @@ class AktivitetskortService(
 
     fun hentMeldingshistorikk(deltakerId: UUID) = Meldingshistorikk(deltakerId, meldingRepository.getByDeltakerId(deltakerId))
 
-    fun laasAktivitetskortGruppe(gruppe: ForberedtGruppe?) {
-        meldingRepository.laasGruppeutvalg()
-        laasMeldingshistorikkForGruppe(gruppe?.meldinger.orEmpty())
+    fun laasAktivitetskortGruppe(
+        utvalg: Gruppeutvalg,
+        gruppe: ForberedtGruppe?,
+    ) {
+        medlemskapFor(utvalg)
+            .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
+            .forEach { meldingRepository.laasMedlemskap(it.type, it.id) }
+        laasDeltakerhistorikkForGruppe(gruppe?.meldinger.orEmpty())
     }
 
     fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
-        // En arrangørendring og en listeendring kan berøre de samme deltakerne.
-        // Begge tar låsene i samme rekkefølge, så de ikke blir stående og vente på hverandres låser.
+        medlemskapFor(forberedteMeldinger)
+            .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
+            .forEach { meldingRepository.laasMedlemskap(it.type, it.id, delt = true) }
+        laasDeltakerhistorikkForGruppe(forberedteMeldinger)
+    }
+
+    fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.laasMeldingshistorikk(deltakerId)
+
+    private fun laasDeltakerhistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
         forberedteMeldinger.map { it.deltakerId }.distinct().sortedBy { it.toString() }.forEach {
             meldingRepository.laasMeldingshistorikk(it)
         }
     }
 
-    fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.laasMeldingshistorikk(deltakerId)
+    private fun medlemskapFor(forberedteMeldinger: List<ForberedtMelding>): Set<Medlemskap> = forberedteMeldinger
+        .flatMap { forberedt ->
+            val meldinger = forberedt.historikk.meldinger + when (forberedt) {
+                is ForberedtMelding.Avvist -> emptyList()
+                is ForberedtMelding.Klar -> listOf(forberedt.melding)
+            }
+            meldinger.flatMap {
+                listOf(
+                    Medlemskap("deltakerliste", it.deltakerlisteId),
+                    Medlemskap("arrangor", it.arrangorId),
+                )
+            }
+        }.toSet()
+
+    private fun medlemskapFor(utvalg: Gruppeutvalg): Set<Medlemskap> = when (utvalg) {
+        is Gruppeutvalg.Deltakerliste -> setOf(Medlemskap("deltakerliste", utvalg.id))
+        is Gruppeutvalg.Arrangor ->
+            (listOf(utvalg.id) + arrangorRepository.getUnderordnedeArrangorer(utvalg.id).map { it.id })
+                .map { Medlemskap("arrangor", it) }
+                .toSet()
+    }
+
+    private data class Medlemskap(
+        val type: String,
+        val id: UUID,
+    )
 
     private fun endretMeldingshistorikk(deltakerId: UUID) = ConcurrencyFailureException(
         "Meldingshistorikken for deltaker $deltakerId er endret. Aktivitetskortet må forberedes på nytt.",
@@ -391,7 +428,7 @@ class AktivitetskortService(
         forberedteMeldinger.forEach { forberedt ->
             forberedt.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
             if (forberedt is ForberedtMelding.Klar) {
-                meldingRepository.upsert(forberedt.melding)
+                meldingRepository.upsert(forberedt.melding, medlemskapLaasNodvendig = false)
                 aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
             }
         }
