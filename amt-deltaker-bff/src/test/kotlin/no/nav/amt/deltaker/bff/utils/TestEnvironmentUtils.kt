@@ -12,8 +12,6 @@ fun configureEnvForAuthentication() {
         .toURL()
         .toString()
 
-    // val preAuthorizedApp = PreAuthorizedApp("dev:tpts:tiltakspenger-tiltak", "tiltakspenger-tiltak")
-
     setProperty(Environment.AZURE_OPENID_CONFIG_JWKS_URI_KEY, uri)
     setProperty(Environment.AZURE_OPENID_CONFIG_ISSUER_KEY, "issuer")
     setProperty(Environment.AZURE_APP_CLIENT_ID_KEY, "deltaker-bff")
@@ -21,5 +19,4 @@ fun configureEnvForAuthentication() {
     setProperty(Environment.TOKEN_X_ISSUER_KEY, "issuer")
     setProperty(Environment.TOKEN_X_CLIENT_ID_KEY, "deltaker-bff")
     setProperty(Environment.AD_ROLLE_TILTAKSKOORDINATOR, UUID(0L, 0L).toString())
-    // setProperty(Environment.AZURE_APP_PRE_AUTHORIZED_APPS, objectMapper.writeValueAsString(listOf(preAuthorizedApp)))
 }
