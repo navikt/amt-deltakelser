@@ -23,6 +23,7 @@ import no.nav.amt.aktivitetskort.domain.Detalj
 import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.domain.Oppfolgingsperiode
 import no.nav.amt.aktivitetskort.domain.Tiltak
+import no.nav.amt.aktivitetskort.exceptions.FeilOppfolgingsperiodeException
 import no.nav.amt.aktivitetskort.exceptions.HistoriskArenaDeltakerException
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.mock.mockCluster
@@ -143,6 +144,64 @@ class AktivitetskortServiceTest {
             lagretMelding.captured.aktivitetskort.sluttDato shouldBe aktivitetskort.sluttDato
             lagretMelding.captured.aktivitetskort.avtaltMedNav shouldBe aktivitetskort.avtaltMedNav
             lagretMelding.captured.aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
+        }
+    }
+
+    @Nested
+    inner class ForberedMelding {
+        @Test
+        fun `forbereder kort uten a lagre eller publisere`() {
+            val ctx = TestData.MockContext()
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+            every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
+
+            val forberedt = aktivitetskortService.forberedMelding(ctx.deltakerModel(), ctx.aktivitetskortId)
+
+            (forberedt is AktivitetskortService.ForberedtMelding.Klar) shouldBe true
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+            verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
+        }
+
+        @Test
+        fun `avvist oppfolgingsperiode lagres forst nar det forberedte resultatet lagres`() {
+            val ctx = TestData.MockContext(
+                deltaker = TestData.lagDeltaker(
+                    status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, null, nyPeriode.startDato.minusDays(1)),
+                ),
+            )
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+            every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
+
+            val forberedt = aktivitetskortService.forberedMelding(ctx.deltakerModel())
+
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
+            aktivitetskortService.lagreAktivitetskort(forberedt) shouldBe null
+            verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
+        }
+
+        @Test
+        fun `direkte opprettMelding lagrer avvist periode og kaster fortsatt domenefeilen`() {
+            val ctx = TestData.MockContext(
+                deltaker = TestData.lagDeltaker(
+                    status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, null, nyPeriode.startDato.minusDays(1)),
+                ),
+            )
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+            every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
+
+            assertThrows<FeilOppfolgingsperiodeException> {
+                aktivitetskortService.opprettMelding(ctx.deltakerModel())
+            }
+
+            verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
         }
     }
 
