@@ -62,24 +62,29 @@ class MeldingRepository(
 
     // To forespørsler kan begge tro at deltakeren mangler kort og lage hvert sitt første kort.
     // Derfor låser vi deltakeren, ikke et bestemt kort. Låsen virker også før det første kortet finnes.
-    // Databasen slipper låsen når hele lagringen er fullført eller angret.
+    // MANDATORY krever en eksisterende transaksjon, så låsen ikke slippes
+    // før kalleren har validert historikken og fullført eller angret lagringen.
     @Transactional(propagation = Propagation.MANDATORY)
     fun laasMeldingshistorikk(deltakerId: UUID) {
-        template.query(
-            "SELECT pg_advisory_xact_lock_shared(hashtextextended('aktivitetskort:gruppeutvalg', 0))",
-            emptyMap<String, Any>(),
-        ) { _ -> }
-        template.query(
-            "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:meldingshistorikk:' || CAST(:deltaker_id AS text), 0))",
-            sqlParameters("deltaker_id" to deltakerId),
-        ) { _ -> }
+        advisoryLock("gruppeutvalg", delt = true)
+        advisoryLock("meldingshistorikk:$deltakerId")
     }
 
+    // MANDATORY krever at gruppelåsen tas i bulkoppdateringens transaksjon.
+    // En egen transaksjon ville sluppet låsen før utvalget valideres og kortene lagres.
     @Transactional(propagation = Propagation.MANDATORY)
     fun laasGruppeutvalg() {
+        advisoryLock("gruppeutvalg")
+    }
+
+    private fun advisoryLock(
+        noekkel: String,
+        delt: Boolean = false,
+    ) {
+        val funksjon = if (delt) "pg_advisory_xact_lock_shared" else "pg_advisory_xact_lock"
         template.query(
-            "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:gruppeutvalg', 0))",
-            emptyMap<String, Any>(),
+            "SELECT $funksjon(hashtextextended(:noekkel, 0))",
+            sqlParameters("noekkel" to "aktivitetskort:$noekkel"),
         ) { _ -> }
     }
 
