@@ -1,14 +1,23 @@
 package no.nav.amt.aktivitetskort.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.database.TestData
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.IllegalTransactionStateException
 import java.time.LocalDate
 import java.util.UUID
 
 class MeldingRepositoryTest(
     private val meldingRepository: MeldingRepository,
 ) : RepositoryTestBase() {
+    @Test
+    fun `låsing uten transaksjon feiler i stedet for å slippe låsen før lagring`() {
+        shouldThrow<IllegalTransactionStateException> {
+            meldingRepository.laasMeldingshistorikk(UUID.randomUUID())
+        }
+    }
+
     @Test
     fun `get - finnes ikke - returnerer tom liste`() {
         meldingRepository.getByDeltakerId(UUID.randomUUID()) shouldBe emptyList()

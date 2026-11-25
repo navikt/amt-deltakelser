@@ -39,8 +39,10 @@ import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.ConcurrencyFailureException
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -68,23 +70,46 @@ class AktivitetskortService(
 
     fun lagAktivitetskort(deltaker: Deltaker): Aktivitetskort? = tryOpprettMelding(deltaker.id) { opprettMelding(deltaker) }?.aktivitetskort
 
-    fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? = amtDeltakerClient
-        .getDeltaker(deltakerId)
-        .let { deltakerResponse ->
-            lagAktivitetskort(Deltaker.fromDeltakerResponse(deltakerResponse))
-        }
+    fun lagAktivitetskort(deltakerId: UUID): Aktivitetskort? {
+        val historikk = hentMeldingshistorikk(deltakerId)
+        val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltakerId))
+        return lagreAktivitetskort(forberedMelding(deltaker, historikk = historikk))
+    }
 
     fun lagreAktivitetskort(forberedtMelding: ForberedtMelding): Aktivitetskort? =
         tryOpprettMelding(forberedtMelding.deltakerId) { lagreOgPubliser(forberedtMelding) }?.aktivitetskort
 
+    fun lagreAktivitetskortGruppe(forberedteMeldinger: List<ForberedtMelding>) {
+        lagreMeldinger(forberedteMeldinger)
+        forberedteMeldinger.forEach { forberedt ->
+            tryOpprettMelding(forberedt.deltakerId) { meldingEllerFeil(forberedt) }
+        }
+    }
+
     /**
-     * Avbryter aktivitetskortet for en slettet deltaker, publiserer endringen og sletter den lokale deltakeren.
-     *
-     * Bruker den lagrede meldingen i stedet for å hente deltakeren fra amt-deltaker på nytt. Ved behandling
-     * av en tombstone kan deltakeren allerede være slettet der, slik at et nytt oppslag feiler og kortet
-     * ikke blir avbrutt. Oppdatering, publisering via outbox og lokal sletting skjer i samme transaksjon.
+     * Sletter den lokale deltakeren og avbryter kortet hvis det fortsatt er aktivt.
+     * Vi bruker det lagrede kortet fordi deltakeren allerede kan være slettet i amt-deltaker.
+     * Kortendringen, meldingen til Kafka og slettingen lagres sammen, eller angres sammen hvis noe feiler.
      */
-    fun oppdaterAktivitetskortForSlettetDeltaker(
+    fun slettDeltaker(deltakerId: UUID) {
+        transactionTemplate.executeWithoutResult {
+            meldingRepository.laasMeldingshistorikk(deltakerId)
+            // Et nytt kort kan ha blitt lagret mens slettingen ventet.
+            // Vi leser derfor deltakeren og kortet etter at vi har fått låsen, så vi avbryter riktig kort.
+            val deltaker = deltakerRepository.get(deltakerId) ?: return@executeWithoutResult
+            val melding = getSisteMeldingForDeltaker(deltakerId)
+            if (melding != null &&
+                melding.aktivitetskort.aktivitetStatus in
+                setOf(AktivitetStatus.FORSLAG, AktivitetStatus.PLANLAGT, AktivitetStatus.GJENNOMFORES)
+            ) {
+                oppdaterAktivitetskortForSlettetDeltaker(deltaker, melding)
+            }
+            deltakerRepository.delete(deltakerId)
+            log.info("Slettet lokal deltaker $deltakerId")
+        }
+    }
+
+    private fun oppdaterAktivitetskortForSlettetDeltaker(
         deltaker: DeltakerDbo,
         melding: Melding,
     ) {
@@ -106,69 +131,69 @@ class AktivitetskortService(
 
         val oppdatertMelding = melding.copy(aktivitetskort = aktivitetskort)
 
-        transactionTemplate.executeWithoutResult {
-            meldingRepository.upsert(oppdatertMelding)
-            aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
-            deltakerRepository.delete(oppdatertMelding.deltakerId)
+        meldingRepository.upsert(oppdatertMelding)
+        aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
+    }
+
+    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtMelding> =
+        forberedAktivitetskort(meldingRepository.getByDeltakerlisteId(gjennomforingId)) { it.deltakerlisteId }
+
+    fun forberedAktivitetskortForArrangor(arrangor: Arrangor): List<ForberedtMelding> {
+        val arrangorer = listOf(arrangor) + arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
+        return forberedAktivitetskort(
+            arrangorer.flatMap { meldingRepository.getByArrangorId(it.id) }.filter { it.aktivitetskort.erAktivDeltaker() },
+        ) { it.arrangorId }
+    }
+
+    private fun forberedAktivitetskort(
+        meldinger: List<Melding>,
+        gruppeId: (Melding) -> UUID,
+    ): List<ForberedtMelding> {
+        val historikk = meldinger.map { it.deltakerId }.distinct().associateWith { hentMeldingshistorikk(it) }
+        return meldinger.map { melding ->
+            val deltakerHistorikk = historikk.getValue(melding.deltakerId)
+            val valgt = deltakerHistorikk.meldinger.filter { gruppeId(it) == gruppeId(melding) }.maxByOrNull { it.createdAt }
+            if (valgt?.id != melding.id || !deltakerHistorikk.inneholder(melding)) {
+                throw endretMeldingshistorikk(melding.deltakerId)
+            }
+            val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(melding.deltakerId))
+            forberedMelding(deltaker, meldingId = melding.id, historikk = deltakerHistorikk)
         }
     }
 
-    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtAktivitetskort> {
-        val meldinger = meldingRepository.getByDeltakerlisteId(gjennomforingId).map {
-            it to getSisteMeldingForDeltaker(it.deltakerId)
-        }
-        return meldinger.map { (it, sisteMelding) ->
-            val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(it.deltakerId))
-            ForberedtAktivitetskort(it, sisteMelding, forberedMelding(deltaker, meldingId = it.id))
-        }
-    }
+    fun hentMeldingshistorikk(deltakerId: UUID) = Meldingshistorikk(deltakerId, meldingRepository.getByDeltakerId(deltakerId))
 
-    fun kontrollerMeldingshistorikk(forberedt: ForberedtAktivitetskort) {
-        val deltakerId = forberedt.forberedtMelding.deltakerId
-        meldingRepository.laasMeldingshistorikk(deltakerId)
-        val meldinger = meldingRepository.getByDeltakerId(deltakerId)
-        val gjeldende = meldinger.maxByOrNull { it.createdAt }
-        val valgt = meldinger
-            .filter { it.deltakerlisteId == forberedt.opprinneligMelding.deltakerlisteId }
-            .maxByOrNull { it.createdAt }
-        if (!sammeMelding(gjeldende, forberedt.sisteMelding) || !sammeMelding(valgt, forberedt.opprinneligMelding)) {
-            throw ConcurrencyFailureException(
-                "Meldingshistorikken for deltaker $deltakerId er endret. Aktivitetskortet må forberedes på nytt.",
-            )
+    fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
+        // En arrangørendring og en listeendring kan berøre de samme deltakerne.
+        // Begge tar låsene i samme rekkefølge, så de ikke blir stående og vente på hverandres låser.
+        forberedteMeldinger.map { it.deltakerId }.distinct().sortedBy { it.toString() }.forEach {
+            meldingRepository.laasMeldingshistorikk(it)
         }
     }
 
     fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.laasMeldingshistorikk(deltakerId)
 
-    private fun sammeMelding(
-        a: Melding?,
-        b: Melding?,
-    ) = a?.id == b?.id &&
-        a?.oppfolgingperiode == b?.oppfolgingperiode &&
-        a?.modifiedAt == b?.modifiedAt &&
-        a == b
-
-    data class ForberedtAktivitetskort(
-        val opprinneligMelding: Melding,
-        val sisteMelding: Melding?,
-        val forberedtMelding: ForberedtMelding,
+    private fun endretMeldingshistorikk(deltakerId: UUID) = ConcurrencyFailureException(
+        "Meldingshistorikken for deltaker $deltakerId er endret. Aktivitetskortet må forberedes på nytt.",
     )
 
-    /**
-     * En oppdatering på en arrangør skal medføre at:
-     * - Alle aktivitetskort som er koblet til arrangøren blir oppdatert
-     * - Alle aktivitetskort som er koblet til en underordnet arrangør av den oppdaterte arrangøren blir oppdatert
-     **/
-    fun oppdaterAktivitetskort(arrangor: Arrangor) {
-        val underordnedeArrangorer = arrangorRepository.getUnderordnedeArrangorer(arrangor.id)
-        val alleOppdaterteArrangorer = listOf(arrangor) + underordnedeArrangorer
-        alleOppdaterteArrangorer.forEach { a ->
-            meldingRepository
-                .getByArrangorId(a.id)
-                .filter { it.aktivitetskort.erAktivDeltaker() }
-                .forEach { oppdaterAktivitetskort(it.deltakerId, it.id) }
+    data class Meldingshistorikk(
+        val deltakerId: UUID,
+        val meldinger: List<Melding>,
+    ) {
+        private val meldingerPerId = meldinger.associateBy { it.id }
+        val sisteMelding: Melding? get() = meldinger.maxByOrNull { it.createdAt }
 
-            log.info("Opprettet nye aktivitetskort for arrangør: ${a.id}")
+        fun erLik(gjeldende: List<Melding>): Boolean = meldinger.size == gjeldende.size && gjeldende.all { inneholder(it) }
+
+        fun inneholder(melding: Melding): Boolean {
+            val lagret = meldingerPerId[melding.id] ?: return false
+            // Vanlig sammenligning av Melding ser bort fra blant annet oppfølgingsperioden.
+            // Et kort som er flyttet til en annen periode, må også gjøre at vi lager forslaget på nytt.
+            return lagret == melding &&
+                lagret.oppfolgingperiode == melding.oppfolgingperiode &&
+                lagret.createdAt == melding.createdAt &&
+                lagret.modifiedAt == melding.modifiedAt
         }
     }
 
@@ -182,8 +207,9 @@ class AktivitetskortService(
     private fun getAktivitetskortId(
         deltaker: Deltaker,
         oppfolgingsperiode: Oppfolgingsperiode,
+        historikk: Meldingshistorikk,
     ): UUID {
-        val nyesteAktivitetskortForDeltaker = getSisteMeldingForDeltaker(deltaker.id)
+        val nyesteAktivitetskortForDeltaker = historikk.sisteMelding
         val nyesteAktivitetskortId = nyesteAktivitetskortForDeltaker?.id
 
         if (deltaker.kilde == Kilde.KOMET) {
@@ -213,20 +239,6 @@ class AktivitetskortService(
             ?.also { log.info("deltaker $deltakerId skal ha aktivitetId: $it") }
             ?: throw IllegalStateException("Arenadeltaker $deltakerId fikk ikke id fra AKAS")
 
-    private fun oppdaterAktivitetskort(
-        deltakerId: UUID,
-        meldingId: UUID,
-    ) {
-        val deltakerResponse = amtDeltakerClient.getDeltaker(deltakerId)
-
-        tryOpprettMelding(deltakerId) {
-            opprettMelding(
-                deltaker = Deltaker.fromDeltakerResponse(deltakerResponse),
-                meldingId = meldingId,
-            )
-        }
-    }
-
     private fun tryOpprettMelding(
         deltakerId: UUID,
         opprett: () -> Melding,
@@ -248,19 +260,23 @@ class AktivitetskortService(
         meldingId: UUID? = null,
     ): Melding = lagreOgPubliser(forberedMelding(deltaker, meldingId))
 
+    // Vi leser kortene før vi spør andre tjenester. Mens vi venter på svar, kan for eksempel
+    // /internal/publiser lage et nytt kort. Ved lagring sjekker vi at kortene fortsatt er de samme.
+    // Vi holder ingen lås mens vi venter på svar, så andre forespørsler kan fortsette å lagre kort.
     fun forberedMelding(
         deltaker: Deltaker,
         meldingId: UUID? = null,
+        historikk: Meldingshistorikk = hentMeldingshistorikk(deltaker.id),
     ): ForberedtMelding {
         val oppfolgingsperiode = veilarboppfolgingClient.hentOppfolgingperiode(deltaker.personident)
             ?: return ForberedtMelding.Avvist(
-                deltakerId = deltaker.id,
+                historikk = historikk,
                 feil = IngenOppfolgingsperiodeException(
                     "Kan ikke opprette aktivitetskort på deltaker ${deltaker.id} som ikke er under oppfølging",
                 ),
             )
 
-        val nyesteAktivitetskortForDeltaker = getSisteMeldingForDeltaker(deltaker.id)
+        val nyesteAktivitetskortForDeltaker = historikk.sisteMelding
 
         if (deltaker.kilde == Kilde.ARENA &&
             nyesteAktivitetskortForDeltaker == null &&
@@ -268,7 +284,7 @@ class AktivitetskortService(
             deltaker.status.gyldigFra?.isBefore(oppfolgingsperiode.startDato) == true
         ) {
             return ForberedtMelding.Avvist(
-                deltakerId = deltaker.id,
+                historikk = historikk,
                 feil = FeilOppfolgingsperiodeException(
                     "Lager ikke aktivitetskort for ukjent arenadeltaker i oppfølgingsperiode: ${oppfolgingsperiode.id}" +
                         "deltaker ${deltaker.id} er avsluttet ${deltaker.status.gyldigFra} " +
@@ -282,9 +298,10 @@ class AktivitetskortService(
             meldingId ?: getAktivitetskortId(
                 deltaker = deltaker,
                 oppfolgingsperiode = oppfolgingsperiode,
+                historikk = historikk,
             )
         } catch (e: HistoriskArenaDeltakerException) {
-            return ForberedtMelding.Avvist(deltakerId = deltaker.id, feil = e)
+            return ForberedtMelding.Avvist(historikk = historikk, feil = e)
         }
 
         val aktivitetskort = lagAktivitetskort(
@@ -301,44 +318,63 @@ class AktivitetskortService(
             oppfolgingperiode = oppfolgingsperiode.id,
         )
 
-        return ForberedtMelding.Klar(melding, oppfolgingsperiode)
+        return ForberedtMelding.Klar(melding, oppfolgingsperiode, historikk)
     }
 
     private fun lagreOgPubliser(forberedtMelding: ForberedtMelding): Melding {
-        when (forberedtMelding) {
-            is ForberedtMelding.Avvist -> {
-                forberedtMelding.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
-                throw forberedtMelding.feil
-            }
+        lagreMeldinger(listOf(forberedtMelding))
+        // Selv om kortet avvises, skal en funnet oppfølgingsperiode beholdes.
+        // Derfor melder vi fra om avvisningen etter lagringen, uten å angre den.
+        return meldingEllerFeil(forberedtMelding)
+    }
 
-            is ForberedtMelding.Klar -> {
-                transactionTemplate.executeWithoutResult {
-                    meldingRepository.laasMeldingshistorikk(forberedtMelding.deltakerId)
-                    oppfolgingsperiodeRepository.upsert(forberedtMelding.oppfolgingsperiode)
-                    meldingRepository.upsert(forberedtMelding.melding)
-                    aktivitetskortProducer.send(forberedtMelding.melding.aktivitetskort)
+    private fun lagreMeldinger(forberedteMeldinger: List<ForberedtMelding>) {
+        transactionTemplate.executeWithoutResult {
+            laasMeldingshistorikkForGruppe(forberedteMeldinger)
+            // Et forberedt kort kan bygge på gamle opplysninger hvis noen har lagret et kort i mellomtiden.
+            // Vi sjekker alle kortene til deltakeren, også eldre kort og at et første kort fortsatt mangler.
+            // Låsen hindrer nye endringer fra denne sjekken til lagringen er ferdig.
+            forberedteMeldinger.map { it.historikk }.distinctBy { it.deltakerId }.forEach { historikk ->
+                if (!historikk.erLik(meldingRepository.getByDeltakerId(historikk.deltakerId))) {
+                    throw endretMeldingshistorikk(historikk.deltakerId)
                 }
-
-                log.info(
-                    "Opprettet nytt aktivitetskort: ${forberedtMelding.melding.aktivitetskort.id} for deltaker: ${forberedtMelding.deltakerId}",
-                )
-                return forberedtMelding.melding
             }
+
+            // Hvis lagring av ett kort feiler, angres også de andre kortene og meldingene som skulle sendes til Kafka.
+            // Da kan hele liste- eller arrangørendringen forsøkes på nytt uten en halvferdig oppdatering.
+            forberedteMeldinger.forEach { forberedt ->
+                when (forberedt) {
+                    is ForberedtMelding.Avvist -> forberedt.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
+                    is ForberedtMelding.Klar -> {
+                        oppfolgingsperiodeRepository.upsert(forberedt.oppfolgingsperiode)
+                        meldingRepository.upsert(forberedt.melding)
+                        aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun meldingEllerFeil(forberedt: ForberedtMelding): Melding = when (forberedt) {
+        is ForberedtMelding.Avvist -> throw forberedt.feil
+        is ForberedtMelding.Klar -> {
+            log.info("Opprettet nytt aktivitetskort: ${forberedt.melding.id} for deltaker: ${forberedt.deltakerId}")
+            forberedt.melding
         }
     }
 
     sealed interface ForberedtMelding {
-        val deltakerId: UUID
+        val historikk: Meldingshistorikk
+        val deltakerId: UUID get() = historikk.deltakerId
 
         data class Klar(
             val melding: Melding,
             val oppfolgingsperiode: Oppfolgingsperiode,
-        ) : ForberedtMelding {
-            override val deltakerId: UUID get() = melding.deltakerId
-        }
+            override val historikk: Meldingshistorikk,
+        ) : ForberedtMelding
 
         data class Avvist(
-            override val deltakerId: UUID,
+            override val historikk: Meldingshistorikk,
             val feil: RuntimeException,
             val oppfolgingsperiode: Oppfolgingsperiode? = null,
         ) : ForberedtMelding
@@ -347,10 +383,46 @@ class AktivitetskortService(
     fun opprettMelding(
         deltaker: DeltakerDbo,
         meldingId: UUID? = null,
-    ): Melding = opprettMelding(
-        deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltaker.id)),
-        meldingId = meldingId,
-    )
+    ): Melding {
+        val historikk = hentMeldingshistorikk(deltaker.id)
+        return lagreOgPubliser(
+            forberedMelding(
+                deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltaker.id)),
+                meldingId = meldingId,
+                historikk = historikk,
+            ),
+        )
+    }
+
+    fun opprettNyttKort(deltakerId: UUID): Melding {
+        val historikk = hentMeldingshistorikk(deltakerId)
+        val deltaker = deltakerRepository.get(deltakerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val sisteMelding = historikk.sisteMelding
+            ?: throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Denne deltakelsen har ingen tidligere meldinger og skal opprettes",
+            )
+        if (sisteMelding.oppfolgingperiode != null) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Siste melding for deltaker $deltakerId har oppfølgingsperiode ${sisteMelding.oppfolgingperiode}." +
+                    "Endepunktet skal kun brukes for meldinger uten info om oppfølgingsperiode",
+            )
+        }
+        val arenaId = if (deltaker.kilde == Kilde.ARENA) hentAktivitetskortIdForArenaDeltaker(deltakerId) else null
+        val meldingId = arenaId?.takeIf { it != sisteMelding.id } ?: UUID.randomUUID()
+        val deltakerModel = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(deltakerId))
+        return lagreOgPubliser(forberedMelding(deltakerModel, meldingId, historikk))
+    }
+
+    fun resendSisteMelding(deltakerId: UUID) {
+        transactionTemplate.executeWithoutResult {
+            meldingRepository.laasMeldingshistorikk(deltakerId)
+            val melding = getSisteMeldingForDeltaker(deltakerId)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke melding")
+            aktivitetskortProducer.send(melding.aktivitetskort)
+        }
+    }
 
     private fun lagAktivitetskort(
         id: UUID,

@@ -1,19 +1,19 @@
 package no.nav.amt.aktivitetskort.internal
 
 import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
-import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.service.AktivitetskortService
-import no.nav.amt.lib.models.deltaker.Kilde
 import org.slf4j.LoggerFactory
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @Suppress("SpringMvcPathVariableDeclarationInspection")
@@ -23,7 +23,6 @@ class InternalApi(
     private val aktivitetskortService: AktivitetskortService,
     private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
-    private val deltakerRepository: DeltakerRepository,
 ) {
     // Regenererer aktivitetskort på samme deltaker
     @GetMapping("/publiser/{deltakerId}")
@@ -43,38 +42,7 @@ class InternalApi(
         // og det ikke er opprettet nytt kort fordi vi tidligere ikke sjekket oppfølgingsperiode
 
         body.deltakere.forEach { deltakerId ->
-            val deltaker = deltakerRepository.get(deltakerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-            val sisteMelding = aktivitetskortService.getSisteMeldingForDeltaker(deltakerId)
-                ?: throw ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Denne deltakelsen har ingen tidligere meldinger og skal opprettes",
-                )
-            if (sisteMelding.oppfolgingperiode != null) {
-                throw ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Siste melding for deltaker $deltakerId har oppfølgingsperiode ${sisteMelding.oppfolgingperiode}." +
-                        "Endepunktet skal kun brukes for meldinger uten info om oppfølgingsperiode",
-                )
-            }
-            var nyAktivitetskortId = UUID.randomUUID()
-            if (deltaker.kilde == Kilde.ARENA) {
-                val aktivitetskortIdFraDab = aktivitetskortService.hentAktivitetskortIdForArenaDeltaker(deltakerId)
-                if (aktivitetskortIdFraDab != sisteMelding.id) {
-                    // Hvis vi får ny id fra dab så har de allerede laget et kort i en ny periode
-                    nyAktivitetskortId = aktivitetskortIdFraDab
-                }
-            }
-
-            log.info(
-                "Siste melding for deltaker med id $deltakerId," +
-                    " er ${sisteMelding.id}. Oppretter ny melding med id $nyAktivitetskortId Kilde=${deltaker.kilde}",
-            )
-
-            val melding = aktivitetskortService.opprettMelding(
-                deltaker = deltaker,
-                meldingId = nyAktivitetskortId,
-            )
-
+            val melding = aktivitetskortService.opprettNyttKort(deltakerId)
             log.info("La nytt aktivitetskort ${melding.id} i Kafka-outbox for deltaker med id $deltakerId")
         }
     }
@@ -83,17 +51,7 @@ class InternalApi(
     fun resendSistSendteMelding(
         @PathVariable("deltakerId") deltakerId: UUID,
     ) {
-        val aktivitetskort = aktivitetskortService
-            .getSisteMeldingForDeltaker(deltakerId)
-            ?.aktivitetskort
-            ?: throw ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Fant ikke melding",
-            )
-
-        transactionTemplate.executeWithoutResult {
-            aktivitetskortProducer.send(aktivitetskort)
-        }
+        aktivitetskortService.resendSisteMelding(deltakerId)
         logResendMessage(deltakerId)
     }
 
@@ -102,14 +60,7 @@ class InternalApi(
         @RequestBody body: DeltakereBody,
     ) {
         body.deltakere.forEach { deltakerId ->
-            val aktivitetskort = aktivitetskortService
-                .getSisteMeldingForDeltaker(deltakerId)
-                ?.aktivitetskort
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke melding")
-
-            transactionTemplate.executeWithoutResult {
-                aktivitetskortProducer.send(aktivitetskort)
-            }
+            aktivitetskortService.resendSisteMelding(deltakerId)
             logResendMessage(deltakerId)
         }
     }
@@ -125,6 +76,12 @@ class InternalApi(
                 navIdent = body.navIdent,
             )
         }
+    }
+
+    @ExceptionHandler(ConcurrencyFailureException::class)
+    fun handterSamtidigEndring(e: ConcurrencyFailureException): ResponseEntity<String> {
+        log.warn("Kortene ble endret under behandlingen. Forespørselen må forsøkes på nytt.", e)
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Kortene er endret. Forsøk forespørselen på nytt.")
     }
 
     data class DeltakereBody(

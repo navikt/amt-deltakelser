@@ -447,16 +447,16 @@ class KafkaConsumerTest(
         }
         val periodeId = UUID.randomUUID()
         every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } answers {
-            TransactionSynchronizationManager.isActualTransactionActive() shouldBe arrangorHendelse
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
             TestData.oppfolgingsperiode(id = periodeId)
         }
         var antallOppslag = 0
         var skalFeile = true
         every { amtDeltakerClient.getDeltaker(any()) } answers {
-            TransactionSynchronizationManager.isActualTransactionActive() shouldBe arrangorHendelse
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
             antallOppslag++
             if (skalFeile && antallOppslag == 2) {
-                deltakere.sumOf { antallOutbox(it.aktivitetskortId) } shouldBe if (arrangorHendelse) 1 else 0
+                deltakere.sumOf { antallOutbox(it.aktivitetskortId) } shouldBe 0
                 throw IllegalStateException("Andre deltaker feiler")
             }
             val ctx = deltakere.single { it.deltaker.id == firstArg<UUID>() }
@@ -602,8 +602,9 @@ class KafkaConsumerTest(
         antallOutbox(ctx.aktivitetskortId) shouldBe 0
     }
 
-    @Test
-    fun `samtidig kortoppdatering ruller tilbake gjennomføringen og forsøkes på nytt`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `samtidig kortoppdatering ruller tilbake gruppen og forsøkes på nytt`(arrangorHendelse: Boolean) {
         val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
         val andre = TestData.MockContext(
             deltaker = TestData.lagDeltaker(deltakerlisteId = forste.deltakerliste.id, kilde = Kilde.KOMET),
@@ -618,6 +619,7 @@ class KafkaConsumerTest(
             meldingRepository.upsert(it.melding)
         }
         val endretListe = forste.deltakerliste.copy(navn = "Endret navn")
+        val endretArrangor = forste.arrangor.copy(navn = "Endret Arrangørnavn")
         val periodeId = UUID.randomUUID()
         mockVeilarboppfolgingClient(periodeId)
         var antallOppslag = 0
@@ -631,12 +633,17 @@ class KafkaConsumerTest(
             }
             TestData.lagDeltakerResponse(ctx.deltaker, endretListe, ctx.arrangor)
         }
-        val record = gjennomforingRecord(forste, endretListe)
+        val record = if (arrangorHendelse) {
+            ConsumerRecord(ARRANGOR_TOPIC, 0, offset, endretArrangor.id.toString(), objectMapper.writeValueAsString(endretArrangor.toDto()))
+        } else {
+            gjennomforingRecord(forste, endretListe)
+        }
         val acknowledgment = mockk<Acknowledgment>(relaxed = true)
 
         shouldThrow<ConcurrencyFailureException> { kafkaConsumer.listen(record, acknowledgment) }
 
         deltakerlisteRepository.get(endretListe.id) shouldBe forste.deltakerliste
+        arrangorRepository.get(endretArrangor.id) shouldBe forste.arrangor
         meldingRepository.getByDeltakerId(endretMelding.deltakerId).single().aktivitetskort shouldBe endretMelding.aktivitetskort
         deltakere.forEach { antallOutbox(it.aktivitetskortId) shouldBe 0 }
         antallPerioder(periodeId) shouldBe 0
@@ -644,7 +651,11 @@ class KafkaConsumerTest(
 
         kafkaConsumer.listen(record, acknowledgment)
 
-        deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        if (arrangorHendelse) {
+            arrangorRepository.get(endretArrangor.id) shouldBe endretArrangor
+        } else {
+            deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        }
         deltakere.forEach { antallOutbox(it.aktivitetskortId) shouldBe 1 }
         antallOppslag shouldBe 4
         verify(exactly = 1) { acknowledgment.acknowledge() }
@@ -866,7 +877,7 @@ class KafkaConsumerTest(
 
     @ParameterizedTest
     @CsvSource("false,false,false", "false,true,false", "true,false,false", "true,true,false", "false,false,true", "false,true,true")
-    fun `overlappende leveringer ruller tilbake utdatert kort og gjenlevering gjenbruker ID`(
+    fun `overlappende leveringer lagrer ett kort og gjenlevering gjenbruker ID`(
         tidligerePeriode: Boolean,
         sammeOffset: Boolean,
         sammePeriode: Boolean,
@@ -916,7 +927,8 @@ class KafkaConsumerTest(
                                 jdbcTemplate.queryForObject<Int>(
                                     """
                                     SELECT count(*) FROM pg_stat_activity
-                                    WHERE wait_event_type = 'Lock' AND query LIKE '%insert into deltaker(%'
+                                    WHERE wait_event_type = 'Lock'
+                                      AND (query LIKE '%insert into deltaker(%' OR query LIKE '%pg_advisory_xact_lock%')
                                     """.trimIndent(),
                                 ) shouldBe 2
                             }
@@ -924,16 +936,13 @@ class KafkaConsumerTest(
                 }.shouldNotBeNull()
             val resultater = leveringer.map { it.get(10, TimeUnit.SECONDS) }
             meldingRepository.getByDeltakerId(ctx.deltaker.id).count { it.oppfolgingperiode == periode.id } shouldBe 1
-            resultater.count { it.isSuccess } shouldBe 1
-            val vinner = resultater.indexOfFirst { it.isSuccess }
-            val taper = 1 - vinner
-            (resultater[taper].exceptionOrNull() is ConcurrencyFailureException) shouldBe true
-            jdbcTemplate.queryForObject<Long>(
+            resultater.forEach { it.getOrThrow() }
+            val lagretOffset = jdbcTemplate.queryForObject<Long>(
                 "SELECT kafkaoffset FROM deltaker WHERE id = ?",
                 ctx.deltaker.id,
-            ) shouldBe records[vinner].offset()
-            verify(exactly = 1) { acknowledgments[vinner].acknowledge() }
-            verify(exactly = 0) { acknowledgments[taper].acknowledge() }
+            )
+            records.any { it.offset() == lagretOffset } shouldBe true
+            acknowledgments.forEach { acknowledgment -> verify(exactly = 1) { acknowledgment.acknowledge() } }
             val melding = meldingRepository.getByDeltakerId(ctx.deltaker.id).single { it.oppfolgingperiode == periode.id }
             if (sammePeriode) melding.id shouldBe ctx.aktivitetskortId
             antallOutbox(melding.id) shouldBe 1

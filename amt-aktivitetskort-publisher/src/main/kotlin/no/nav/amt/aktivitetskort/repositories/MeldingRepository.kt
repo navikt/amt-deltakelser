@@ -7,6 +7,7 @@ import no.nav.amt.lib.utils.toPGObject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -59,6 +60,10 @@ class MeldingRepository(
         )
     }
 
+    // To forespørsler kan begge tro at deltakeren mangler kort og lage hvert sitt første kort.
+    // Derfor låser vi deltakeren, ikke et bestemt kort. Låsen virker også før det første kortet finnes.
+    // Databasen slipper låsen når hele lagringen er fullført eller angret.
+    @Transactional(propagation = Propagation.MANDATORY)
     fun laasMeldingshistorikk(deltakerId: UUID) {
         template.query(
             "SELECT pg_advisory_xact_lock(hashtextextended('aktivitetskort:meldingshistorikk:' || CAST(:deltaker_id AS text), 0))",

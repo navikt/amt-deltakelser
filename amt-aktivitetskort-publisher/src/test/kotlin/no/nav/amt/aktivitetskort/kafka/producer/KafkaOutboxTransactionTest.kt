@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.aktivitetskort.IntegrationTestBase
 import no.nav.amt.aktivitetskort.database.TestData
+import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.Melding
 import no.nav.amt.aktivitetskort.kafka.KafkaOutboxLifecycle
@@ -17,6 +18,7 @@ import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
 import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.service.AktivitetskortService
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.producer.KafkaProducerClient
@@ -28,14 +30,23 @@ import org.apache.kafka.clients.producer.RecordMetadata
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.queryForObject
 import org.springframework.transaction.IllegalTransactionStateException
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.util.UUID
+import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 class KafkaOutboxTransactionTest(
@@ -48,6 +59,166 @@ class KafkaOutboxTransactionTest(
     private val jdbcTemplate: JdbcTemplate,
     private val producerRepository: PostgresJdbcTemplateProducerRepository,
 ) : IntegrationTestBase() {
+    @ParameterizedTest
+    @ValueSource(strings = ["første kort", "samme kort", "ny periode"])
+    fun `to samtidige publiseringer kan ikke lagre hvert sitt forslag fra samme historikk`(tilfelle: String) {
+        val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        val periode = TestData.oppfolgingsperiode()
+        if (tilfelle != "første kort") {
+            val gammelPeriode = if (tilfelle == "samme kort") periode else TestData.oppfolgingsperiode()
+            oppfolgingsperiodeRepository.upsert(gammelPeriode)
+            meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = gammelPeriode.id))
+        }
+        val beggeForbereder = CyclicBarrier(2)
+        val antallKall = AtomicInteger()
+        every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            TestData.lagDeltakerResponse(ctx.deltaker, ctx.deltakerliste, ctx.arrangor)
+        }
+        every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } answers {
+            TransactionSynchronizationManager.isActualTransactionActive() shouldBe false
+            if (antallKall.incrementAndGet() <= 2) beggeForbereder.await(10, TimeUnit.SECONDS)
+            periode
+        }
+
+        Executors.newFixedThreadPool(2).use { executor ->
+            val publiseringer = (1..2).map {
+                executor.submit(Callable { runCatching { aktivitetskortService.lagAktivitetskort(ctx.deltaker.id) } })
+            }
+            val resultater = publiseringer.map { it.get(10, TimeUnit.SECONDS) }
+
+            resultater.count { it.isSuccess } shouldBe 1
+            resultater.count { it.exceptionOrNull() is ConcurrencyFailureException } shouldBe 1
+        }
+
+        val lagrede = meldingRepository.getByDeltakerId(ctx.deltaker.id)
+        lagrede.size shouldBe if (tilfelle == "ny periode") 2 else 1
+        val vinner = lagrede.single { it.oppfolgingperiode == periode.id }
+        if (tilfelle == "samme kort") vinner.id shouldBe ctx.melding.id
+        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 1
+
+        aktivitetskortService.lagAktivitetskort(ctx.deltaker.id).shouldNotBeNull().id shouldBe vinner.id
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).size shouldBe lagrede.size
+        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 2
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `sletting og resend velger kortet som ble lagret mens de ventet på låsen`(slett: Boolean) {
+        val ctx = TestData.MockContext()
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+        testDatabase.insertDeltaker(ctx.deltaker)
+        meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null))
+        val nyId = UUID.randomUUID()
+        val nyMelding = ctx.melding.copy(
+            id = nyId,
+            aktivitetskort = ctx.aktivitetskort.copy(id = nyId),
+            oppfolgingperiode = null,
+        )
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            val ventende = transactionTemplate
+                .execute {
+                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    executor
+                        .submit {
+                            if (slett) {
+                                aktivitetskortService.slettDeltaker(
+                                    ctx.deltaker.id,
+                                )
+                            } else {
+                                aktivitetskortService.resendSisteMelding(ctx.deltaker.id)
+                            }
+                        }.also {
+                            await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+                                jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
+                                jdbcTemplate.queryForObject<Int>(
+                                    """
+                                    SELECT count(*) FROM pg_stat_activity
+                                    WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'
+                                    """.trimIndent(),
+                                ) shouldBe 1
+                            }
+                            meldingRepository.upsert(nyMelding)
+                        }
+                }.shouldNotBeNull()
+            ventende.get(10, TimeUnit.SECONDS)
+        }
+
+        val key = jdbcTemplate.queryForObject("SELECT key FROM kafka_producer_record", ByteArray::class.java).shouldNotBeNull()
+        key.toString(Charsets.UTF_8) shouldBe nyId.toString()
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single { it.id == ctx.melding.id }.aktivitetskort shouldBe ctx.aktivitetskort
+        if (slett) {
+            deltakerRepository.get(ctx.deltaker.id) shouldBe null
+            meldingRepository
+                .getByDeltakerId(ctx.deltaker.id)
+                .single { it.id == nyId }
+                .aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
+        } else {
+            deltakerRepository.get(ctx.deltaker.id) shouldBe ctx.deltaker
+        }
+    }
+
+    @Test
+    fun `overlappende grupper med ulik kortrekkefølge fullfører uten å vente på hverandre for alltid`() {
+        val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        val deltakere = listOf(forste) + (1..2).map {
+            TestData.MockContext(
+                deltaker = TestData.lagDeltaker(deltakerlisteId = forste.deltakerliste.id, kilde = Kilde.KOMET),
+                deltakerliste = forste.deltakerliste,
+                arrangor = forste.arrangor,
+            )
+        }
+        testDatabase.insertArrangor(forste.arrangor)
+        testDatabase.insertDeltakerliste(forste.deltakerliste)
+        deltakere.forEach { meldingRepository.upsert(it.melding.copy(oppfolgingperiode = null)) }
+        every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns TestData.oppfolgingsperiode()
+        val forberedte = deltakere.map {
+            aktivitetskortService.forberedMelding(
+                Deltaker.fromDeltakerResponse(TestData.lagDeltakerResponse(it.deltaker, it.deltakerliste, it.arrangor)),
+            )
+        }
+        val grupper = listOf(listOf(forberedte[1], forberedte[0]), listOf(forberedte[2], forberedte[1]))
+        val start = CyclicBarrier(2)
+
+        Executors.newFixedThreadPool(2).use { executor ->
+            val lagringer = grupper.map { gruppe ->
+                executor.submit(
+                    Callable {
+                        start.await(10, TimeUnit.SECONDS)
+                        runCatching { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) }
+                    },
+                )
+            }
+            val resultater = lagringer.map { it.get(10, TimeUnit.SECONDS) }
+
+            resultater.count { it.isSuccess } shouldBe 1
+            resultater.count { it.exceptionOrNull() is ConcurrencyFailureException } shouldBe 1
+        }
+
+        jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 2
+        deltakere.count { meldingRepository.getByDeltakerId(it.deltaker.id).single().oppfolgingperiode != null } shouldBe 2
+    }
+
+    @Test
+    fun `en låst deltaker hindrer ikke lagring av kort for en annen deltaker`() {
+        val ctx = TestData.MockContext()
+        testDatabase.insertArrangor(ctx.arrangor)
+        testDatabase.insertDeltakerliste(ctx.deltakerliste)
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            transactionTemplate.executeWithoutResult {
+                meldingRepository.laasMeldingshistorikk(UUID.randomUUID())
+                executor.submit { meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null)) }.get(10, TimeUnit.SECONDS)
+            }
+        }
+
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.melding.id
+    }
+
     @Nested
     inner class LagreOgPubliser {
         @Test
@@ -110,6 +281,7 @@ class KafkaOutboxTransactionTest(
             )
             meldingRepository.upsert(melding)
             val feilendeDeltakerRepository = mockk<DeltakerRepository> {
+                every { get(deltaker.id) } returns deltaker
                 every { delete(deltaker.id) } answers {
                     deltakerRepository.delete(deltaker.id)
                     throw IllegalStateException("Sletting feilet")
@@ -133,7 +305,7 @@ class KafkaOutboxTransactionTest(
 
             // Act
             shouldThrow<IllegalStateException> {
-                aktivitetskortService.oppdaterAktivitetskortForSlettetDeltaker(deltaker, melding)
+                aktivitetskortService.slettDeltaker(deltaker.id)
             }.message shouldBe "Sletting feilet"
 
             // Assert
