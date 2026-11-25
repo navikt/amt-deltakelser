@@ -14,10 +14,10 @@ class MeldingRepositoryTest(
     @Test
     fun `låsing uten transaksjon feiler i stedet for å slippe låsen før lagring`() {
         shouldThrow<IllegalTransactionStateException> {
-            meldingRepository.laasMeldingshistorikk(UUID.randomUUID())
+            meldingRepository.advisoryLockMedlemshistorikk(UUID.randomUUID())
         }
         shouldThrow<IllegalTransactionStateException> {
-            meldingRepository.laasMedlemskap("deltakerliste", UUID.randomUUID())
+            meldingRepository.advisoryLockMedlemskap("deltakerliste", UUID.randomUUID())
         }
     }
 

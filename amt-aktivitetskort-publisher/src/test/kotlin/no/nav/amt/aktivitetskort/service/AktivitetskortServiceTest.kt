@@ -507,7 +507,7 @@ class AktivitetskortServiceTest {
 
             val type = if (arrangor) "arrangor" else "deltakerliste"
             val id = if (arrangor) ctx.arrangor.id else ctx.deltakerliste.id
-            verify(exactly = 1) { meldingRepository.laasMedlemskap(type, id) }
+            verify(exactly = 1) { meldingRepository.advisoryLockMedlemskap(type, id) }
             verify(exactly = 0) { meldingRepository.upsert(any(), false) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
             verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
@@ -550,7 +550,7 @@ class AktivitetskortServiceTest {
                 )
             }
 
-            verify(exactly = 1) { meldingRepository.laasMeldingshistorikk(ctx.deltaker.id) }
+            verify(exactly = 1) { meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id) }
             verify(exactly = 0) { meldingRepository.upsert(any(), false) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
         }
@@ -607,10 +607,10 @@ class AktivitetskortServiceTest {
             aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger.reversed())
 
             verifyOrder {
-                meldingRepository.laasMeldingshistorikk(forste)
-                meldingRepository.laasMeldingshistorikk(andre)
-                meldingRepository.laasMeldingshistorikk(forste)
-                meldingRepository.laasMeldingshistorikk(andre)
+                meldingRepository.advisoryLockMedlemshistorikk(forste)
+                meldingRepository.advisoryLockMedlemshistorikk(andre)
+                meldingRepository.advisoryLockMedlemshistorikk(forste)
+                meldingRepository.advisoryLockMedlemshistorikk(andre)
             }
         }
     }

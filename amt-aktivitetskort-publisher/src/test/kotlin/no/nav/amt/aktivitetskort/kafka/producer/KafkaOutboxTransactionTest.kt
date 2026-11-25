@@ -122,7 +122,7 @@ class KafkaOutboxTransactionTest(
         Executors.newSingleThreadExecutor().use { executor ->
             val ventende = transactionTemplate
                 .execute {
-                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id)
                     executor
                         .submit {
                             if (slett) {
@@ -208,7 +208,7 @@ class KafkaOutboxTransactionTest(
 
         Executors.newSingleThreadExecutor().use { executor ->
             transactionTemplate.executeWithoutResult {
-                meldingRepository.laasMeldingshistorikk(UUID.randomUUID())
+                meldingRepository.advisoryLockMedlemshistorikk(UUID.randomUUID())
                 executor.submit { meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = null)) }.get(10, TimeUnit.SECONDS)
             }
         }

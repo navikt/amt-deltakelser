@@ -37,10 +37,10 @@ class MeldingRepository(
         medlemskapLaasNodvendig: Boolean = true,
     ) {
         if (medlemskapLaasNodvendig) {
-            laasMedlemskap("arrangor", melding.arrangorId, delt = true)
-            laasMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
+            advisoryLockMedlemskap("arrangor", melding.arrangorId, delt = true)
+            advisoryLockMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
         }
-        laasMeldingshistorikk(melding.deltakerId)
+        advisoryLockMedlemshistorikk(melding.deltakerId)
         template.update(
             """
             INSERT INTO melding(id, deltaker_id, deltakerliste_id, arrangor_id, melding, oppfolgingsperiode)
@@ -72,14 +72,14 @@ class MeldingRepository(
     // MANDATORY krever en eksisterende transaksjon, så låsen ikke slippes
     // før kalleren har validert historikken og fullført eller angret lagringen.
     @Transactional(propagation = Propagation.MANDATORY)
-    fun laasMeldingshistorikk(deltakerId: UUID) {
+    fun advisoryLockMedlemshistorikk(deltakerId: UUID) {
         advisoryLock("meldingshistorikk:$deltakerId")
     }
 
     // MANDATORY krever at medlemskapslåsen tas i bulkoppdateringens transaksjon.
     // En egen transaksjon ville sluppet låsen før utvalget valideres og kortene lagres.
     @Transactional(propagation = Propagation.MANDATORY)
-    fun laasMedlemskap(
+    fun advisoryLockMedlemskap(
         type: String,
         id: UUID,
         delt: Boolean = false,

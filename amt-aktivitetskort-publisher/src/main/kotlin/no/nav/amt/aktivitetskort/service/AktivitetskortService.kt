@@ -107,7 +107,7 @@ class AktivitetskortService(
      */
     fun slettDeltaker(deltakerId: UUID) {
         transactionTemplate.executeWithoutResult {
-            meldingRepository.laasMeldingshistorikk(deltakerId)
+            meldingRepository.advisoryLockMedlemshistorikk(deltakerId)
             // Et nytt kort kan ha blitt lagret mens slettingen ventet.
             // Vi leser derfor deltakeren og kortet etter at vi har fått låsen, så vi avbryter riktig kort.
             val deltaker = deltakerRepository.get(deltakerId) ?: return@executeWithoutResult
@@ -205,22 +205,22 @@ class AktivitetskortService(
     ) {
         medlemskapFor(utvalg)
             .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
-            .forEach { meldingRepository.laasMedlemskap(it.type, it.id) }
+            .forEach { meldingRepository.advisoryLockMedlemskap(it.type, it.id) }
         laasDeltakerhistorikkForGruppe(gruppe?.meldinger.orEmpty())
     }
 
     fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
         medlemskapFor(forberedteMeldinger)
             .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
-            .forEach { meldingRepository.laasMedlemskap(it.type, it.id, delt = true) }
+            .forEach { meldingRepository.advisoryLockMedlemskap(it.type, it.id, delt = true) }
         laasDeltakerhistorikkForGruppe(forberedteMeldinger)
     }
 
-    fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.laasMeldingshistorikk(deltakerId)
+    fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.advisoryLockMedlemshistorikk(deltakerId)
 
     private fun laasDeltakerhistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
         forberedteMeldinger.map { it.deltakerId }.distinct().sortedBy { it.toString() }.forEach {
-            meldingRepository.laasMeldingshistorikk(it)
+            meldingRepository.advisoryLockMedlemshistorikk(it)
         }
     }
 
@@ -483,7 +483,7 @@ class AktivitetskortService(
 
     fun resendSisteMelding(deltakerId: UUID) {
         transactionTemplate.executeWithoutResult {
-            meldingRepository.laasMeldingshistorikk(deltakerId)
+            meldingRepository.advisoryLockMedlemshistorikk(deltakerId)
             val melding = getSisteMeldingForDeltaker(deltakerId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke melding")
             aktivitetskortProducer.send(melding.aktivitetskort)

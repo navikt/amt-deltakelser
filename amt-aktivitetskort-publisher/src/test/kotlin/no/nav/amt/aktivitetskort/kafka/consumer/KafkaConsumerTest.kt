@@ -677,7 +677,7 @@ class KafkaConsumerTest(
         Executors.newSingleThreadExecutor().use { executor ->
             val skriving = transactionTemplate
                 .execute {
-                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id)
                     executor.submit { meldingRepository.upsert(melding) }.also {
                         ventPaAdvisoryLaas(jdbcTemplate)
                         it.isDone shouldBe false
