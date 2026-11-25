@@ -7,6 +7,7 @@ import no.nav.amt.lib.utils.toPGObject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
@@ -29,7 +30,9 @@ class MeldingRepository(
         )
     }
 
+    @Transactional
     fun upsert(melding: Melding) {
+        laasMeldingshistorikk(melding.deltakerId)
         template.update(
             """
             INSERT INTO melding(id, deltaker_id, deltakerliste_id, arrangor_id, melding, oppfolgingsperiode)
@@ -54,6 +57,13 @@ class MeldingRepository(
                 "melding" to objectMapper.toPGObject(melding.aktivitetskort),
             ),
         )
+    }
+
+    fun laasMeldingshistorikk(deltakerId: UUID) {
+        template.query(
+            "SELECT pg_advisory_xact_lock(hashtextextended(CAST(:deltaker_id AS text), 0))",
+            sqlParameters("deltaker_id" to deltakerId),
+        ) { _ -> }
     }
 
     fun getByDeltakerId(deltakerId: UUID): List<Melding> = template.query(

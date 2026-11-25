@@ -42,6 +42,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.test.context.TestPropertySource
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.SimpleTransactionStatus
@@ -445,7 +448,7 @@ class AktivitetskortServiceTest {
     @Nested
     inner class ForberedAktivitetskortDeltakerliste {
         @Test
-        fun `meldinger finnes - forbereder kort med eksisterende ID uten a lagre`() {
+        fun `meldinger finnes - forbereder kort med eksisterende ID uten å lagre`() {
             // Arrange
             val ctx = TestData.MockContext()
             ctx.stubDeltakerFraAmtDeltaker()
@@ -458,6 +461,7 @@ class AktivitetskortServiceTest {
             val forberedt = aktivitetskortService
                 .forberedAktivitetskort(ctx.deltakerliste.id)
                 .single()
+                .forberedtMelding
                 .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
 
             // Assert
@@ -480,6 +484,51 @@ class AktivitetskortServiceTest {
 
             verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
             verify(exactly = 0) { veilarboppfolgingClient.hentOppfolgingperiode(any()) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["id", "periode", "modifiedAt", "innhold"])
+        fun `endret meldingshistorikk forkaster forberedelsen`(endring: String) {
+            val ctx = TestData.MockContext()
+            val oppdatert = when (endring) {
+                "id" -> ctx.melding.copy(id = UUID.randomUUID())
+                "periode" -> ctx.melding.copy(oppfolgingperiode = UUID.randomUUID())
+                "modifiedAt" -> ctx.melding.copy(modifiedAt = ctx.melding.modifiedAt.plusSeconds(1))
+                else -> ctx.melding.copy(aktivitetskort = ctx.aktivitetskort.copy(tittel = "Nyere kort"))
+            }
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(oppdatert)
+
+            assertThrows<ConcurrencyFailureException> {
+                aktivitetskortService.kontrollerMeldingshistorikk(
+                    AktivitetskortService.ForberedtAktivitetskort(
+                        ctx.melding,
+                        ctx.melding,
+                        AktivitetskortService.ForberedtMelding.Klar(ctx.melding, nyPeriode),
+                    ),
+                )
+            }
+
+            verify(exactly = 1) { meldingRepository.laasMeldingshistorikk(ctx.deltaker.id) }
+        }
+
+        @Test
+        fun `nytt kort mellom historikklesingene forkaster forberedelsen`() {
+            val ctx = TestData.MockContext()
+            val nyMelding = ctx.melding.copy(
+                id = UUID.randomUUID(),
+                createdAt = ctx.melding.createdAt.plusSeconds(1),
+            )
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(nyMelding, ctx.melding)
+
+            assertThrows<ConcurrencyFailureException> {
+                aktivitetskortService.kontrollerMeldingshistorikk(
+                    AktivitetskortService.ForberedtAktivitetskort(
+                        ctx.melding,
+                        nyMelding,
+                        AktivitetskortService.ForberedtMelding.Klar(ctx.melding, nyPeriode),
+                    ),
+                )
+            }
         }
     }
 

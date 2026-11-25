@@ -38,6 +38,7 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
@@ -112,12 +113,46 @@ class AktivitetskortService(
         }
     }
 
-    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtMelding> = meldingRepository
-        .getByDeltakerlisteId(gjennomforingId)
-        .map {
-            val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(it.deltakerId))
-            forberedMelding(deltaker, meldingId = it.id)
+    fun forberedAktivitetskort(gjennomforingId: UUID): List<ForberedtAktivitetskort> {
+        val meldinger = meldingRepository.getByDeltakerlisteId(gjennomforingId).map {
+            it to getSisteMeldingForDeltaker(it.deltakerId)
         }
+        return meldinger.map { (it, sisteMelding) ->
+            val deltaker = Deltaker.fromDeltakerResponse(amtDeltakerClient.getDeltaker(it.deltakerId))
+            ForberedtAktivitetskort(it, sisteMelding, forberedMelding(deltaker, meldingId = it.id))
+        }
+    }
+
+    fun kontrollerMeldingshistorikk(forberedt: ForberedtAktivitetskort) {
+        val deltakerId = forberedt.forberedtMelding.deltakerId
+        meldingRepository.laasMeldingshistorikk(deltakerId)
+        val meldinger = meldingRepository.getByDeltakerId(deltakerId)
+        val gjeldende = meldinger.maxByOrNull { it.createdAt }
+        val valgt = meldinger
+            .filter { it.deltakerlisteId == forberedt.opprinneligMelding.deltakerlisteId }
+            .maxByOrNull { it.createdAt }
+        if (!sammeMelding(gjeldende, forberedt.sisteMelding) || !sammeMelding(valgt, forberedt.opprinneligMelding)) {
+            throw ConcurrencyFailureException(
+                "Meldingshistorikken for deltaker $deltakerId er endret. Aktivitetskortet må forberedes på nytt.",
+            )
+        }
+    }
+
+    fun laasMeldingshistorikk(deltakerId: UUID) = meldingRepository.laasMeldingshistorikk(deltakerId)
+
+    private fun sammeMelding(
+        a: Melding?,
+        b: Melding?,
+    ) = a?.id == b?.id &&
+        a?.oppfolgingperiode == b?.oppfolgingperiode &&
+        a?.modifiedAt == b?.modifiedAt &&
+        a == b
+
+    data class ForberedtAktivitetskort(
+        val opprinneligMelding: Melding,
+        val sisteMelding: Melding?,
+        val forberedtMelding: ForberedtMelding,
+    )
 
     /**
      * En oppdatering på en arrangør skal medføre at:
@@ -278,6 +313,7 @@ class AktivitetskortService(
 
             is ForberedtMelding.Klar -> {
                 transactionTemplate.executeWithoutResult {
+                    meldingRepository.laasMeldingshistorikk(forberedtMelding.deltakerId)
                     oppfolgingsperiodeRepository.upsert(forberedtMelding.oppfolgingsperiode)
                     meldingRepository.upsert(forberedtMelding.melding)
                     aktivitetskortProducer.send(forberedtMelding.melding.aktivitetskort)

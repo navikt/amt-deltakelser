@@ -71,6 +71,7 @@ class KafkaConsumerService(
                 buyPassEqualityCheck = buyPassEqualityCheck,
             )
             if (deltakerUpsertResult !is RepositoryResult.NoChange) {
+                aktivitetskortService.laasMeldingshistorikk(deltaker.id)
                 val gjeldendeMelding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
                 if (gjeldendeMelding?.id != meldingForForberedelse?.id ||
                     gjeldendeMelding?.oppfolgingperiode != meldingForForberedelse?.oppfolgingperiode ||
@@ -153,7 +154,10 @@ class KafkaConsumerService(
                         "Deltakerliste ${payload.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt."
                     }
                     log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
-                    forberedteMeldinger.forEach { aktivitetskortService.lagreAktivitetskort(it) }
+                    forberedteMeldinger.sortedBy { it.forberedtMelding.deltakerId.toString() }.forEach {
+                        aktivitetskortService.kontrollerMeldingshistorikk(it)
+                        aktivitetskortService.lagreAktivitetskort(it.forberedtMelding)
+                    }
                     log.info("Opprettet nye aktivitetskort for deltakerliste: ${payload.id}")
                 }
 

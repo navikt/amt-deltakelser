@@ -517,7 +517,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `lagringsfeil pa andre kort ruller tilbake gjennomforing og alle kort og tillater gjenlevering`() {
+    fun `lagringsfeil på andre kort ruller tilbake gjennomføring og alle kort og tillater gjenlevering`() {
         val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
         val andre = TestData.MockContext(
             deltaker = TestData.lagDeltaker(deltakerlisteId = forste.deltakerliste.id, kilde = Kilde.KOMET),
@@ -579,7 +579,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `gjennomforing uendret etter forberedelse forkaster alle forberedte meldinger`() {
+    fun `gjennomføring uendret etter forberedelse forkaster alle forberedte meldinger`() {
         val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
@@ -603,7 +603,86 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `manglende oppfolgingsperiode for en deltaker hindrer ikke andre kort pa gjennomforingen`() {
+    fun `samtidig kortoppdatering ruller tilbake gjennomføringen og forsøkes på nytt`() {
+        val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+        val andre = TestData.MockContext(
+            deltaker = TestData.lagDeltaker(deltakerlisteId = forste.deltakerliste.id, kilde = Kilde.KOMET),
+            deltakerliste = forste.deltakerliste,
+            arrangor = forste.arrangor,
+        )
+        val deltakere = listOf(forste, andre)
+        arrangorRepository.upsert(forste.arrangor)
+        deltakerlisteRepository.upsert(forste.deltakerliste)
+        deltakere.forEach {
+            deltakerRepository.upsert(it.deltaker, offset)
+            meldingRepository.upsert(it.melding)
+        }
+        val endretListe = forste.deltakerliste.copy(navn = "Endret navn")
+        val periodeId = UUID.randomUUID()
+        mockVeilarboppfolgingClient(periodeId)
+        var antallOppslag = 0
+        var endretMelding = forste.melding
+        every { amtDeltakerClient.getDeltaker(any()) } answers {
+            val ctx = deltakere.single { it.deltaker.id == firstArg<UUID>() }
+            antallOppslag++
+            if (antallOppslag == 2) {
+                endretMelding = ctx.melding.copy(aktivitetskort = ctx.aktivitetskort.copy(tittel = "Nyere kort"))
+                meldingRepository.upsert(endretMelding)
+            }
+            TestData.lagDeltakerResponse(ctx.deltaker, endretListe, ctx.arrangor)
+        }
+        val record = gjennomforingRecord(forste, endretListe)
+        val acknowledgment = mockk<Acknowledgment>(relaxed = true)
+
+        shouldThrow<ConcurrencyFailureException> { kafkaConsumer.listen(record, acknowledgment) }
+
+        deltakerlisteRepository.get(endretListe.id) shouldBe forste.deltakerliste
+        meldingRepository.getByDeltakerId(endretMelding.deltakerId).single().aktivitetskort shouldBe endretMelding.aktivitetskort
+        deltakere.forEach { antallOutbox(it.aktivitetskortId) shouldBe 0 }
+        antallPerioder(periodeId) shouldBe 0
+        verify(exactly = 0) { acknowledgment.acknowledge() }
+
+        kafkaConsumer.listen(record, acknowledgment)
+
+        deltakerlisteRepository.get(endretListe.id) shouldBe endretListe
+        deltakere.forEach { antallOutbox(it.aktivitetskortId) shouldBe 1 }
+        antallOppslag shouldBe 4
+        verify(exactly = 1) { acknowledgment.acknowledge() }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `kortskriver venter på låst meldingshistorikk`(nyttKort: Boolean) {
+        val ctx = TestData.MockContext()
+        arrangorRepository.upsert(ctx.arrangor)
+        deltakerlisteRepository.upsert(ctx.deltakerliste)
+        deltakerRepository.upsert(ctx.deltaker, offset)
+        meldingRepository.upsert(ctx.melding)
+        val id = if (nyttKort) UUID.randomUUID() else ctx.melding.id
+        val melding = ctx.melding.copy(id = id, aktivitetskort = ctx.aktivitetskort.copy(id = id))
+
+        Executors.newSingleThreadExecutor().use { executor ->
+            val skriving = transactionTemplate
+                .execute {
+                    meldingRepository.laasMeldingshistorikk(ctx.deltaker.id)
+                    executor.submit { meldingRepository.upsert(melding) }.also {
+                        await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+                            jdbcTemplate.execute("SELECT pg_stat_clear_snapshot()")
+                            jdbcTemplate.queryForObject<Int>(
+                                "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%pg_advisory_xact_lock%'",
+                            ) shouldBe 1
+                        }
+                        it.isDone shouldBe false
+                    }
+                }.shouldNotBeNull()
+            skriving.get(10, TimeUnit.SECONDS)
+        }
+
+        meldingRepository.getByDeltakerId(ctx.deltaker.id).size shouldBe if (nyttKort) 2 else 1
+    }
+
+    @Test
+    fun `manglende oppfølgingsperiode for en deltaker hindrer ikke andre kort på gjennomføringen`() {
         val forste = TestData.MockContext(deltaker = TestData.lagDeltaker(personident = "forste", kilde = Kilde.ARENA))
         val andre = TestData.MockContext(
             deltaker = TestData.lagDeltaker(

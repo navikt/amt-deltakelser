@@ -56,6 +56,7 @@ class KafkaConsumerServiceTest(
 
     private val ctx: TestData.MockContext = TestData.MockContext()
     private val forberedtMelding = AktivitetskortService.ForberedtMelding.Klar(ctx.melding, TestData.oppfolgingsperiode())
+    private val forberedtAktivitetskort = AktivitetskortService.ForberedtAktivitetskort(ctx.melding, ctx.melding, forberedtMelding)
 
     private val offset: Long = 0
 
@@ -81,6 +82,8 @@ class KafkaConsumerServiceTest(
         every { deltakerRepository.skalOppdatere(any(), any(), any()) } returns true
         every { aktivitetskortService.forberedMelding(any()) } returns forberedtMelding
         every { aktivitetskortService.getSisteMeldingForDeltaker(any()) } returns null
+        justRun { aktivitetskortService.laasMeldingshistorikk(any()) }
+        justRun { aktivitetskortService.kontrollerMeldingshistorikk(any()) }
     }
 
     private fun TestData.MockContext.stubDeltakerFraAmtDeltaker(
@@ -315,7 +318,7 @@ class KafkaConsumerServiceTest(
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Modified(ctx.deltakerliste)
-            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtAktivitetskort)
             every { aktivitetskortService.lagreAktivitetskort(forberedtMelding) } returns ctx.aktivitetskort
 
             // Act
@@ -375,7 +378,7 @@ class KafkaConsumerServiceTest(
         fun `deltakerliste uendret ved siste sjekk - forkast forberedte meldinger`() {
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
-            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtMelding)
+            every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } returns listOf(forberedtAktivitetskort)
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.NoChange()
 
             kafkaConsumerService.handleGjennomforing(
@@ -388,7 +391,7 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
-        fun `deltakerliste opprettet under forberedelse - feil fremfor a hoppe over kortoppdatering`() {
+        fun `deltakerliste opprettet under forberedelse - feil fremfor å hoppe over kortoppdatering`() {
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns null
             every { deltakerlisteRepository.upsert(ctx.deltakerliste) } returns RepositoryResult.Modified(ctx.deltakerliste)
@@ -404,7 +407,7 @@ class KafkaConsumerServiceTest(
         }
 
         @Test
-        fun `teknisk feil ved forberedelse av gjennomforing starter ikke transaksjon`() {
+        fun `teknisk feil ved forberedelse av gjennomføring starter ikke transaksjon`() {
             every { arrangorRepository.get(ctx.arrangor.organisasjonsnummer) } returns ctx.arrangor
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste.copy(navn = "Tidligere navn")
             every { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) } throws IllegalStateException("API-feil")
