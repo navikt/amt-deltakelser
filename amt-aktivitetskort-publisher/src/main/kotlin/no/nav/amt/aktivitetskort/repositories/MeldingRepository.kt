@@ -33,15 +33,15 @@ class MeldingRepository(
     }
 
     @Transactional
-    fun upsert(
-        melding: Melding,
-        medlemskapLaasNodvendig: Boolean = true,
-    ) {
-        if (medlemskapLaasNodvendig) {
-            advisoryLockMedlemskap("arrangor", melding.arrangorId, delt = true)
-            advisoryLockMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
-        }
+    fun upsert(melding: Melding) {
+        advisoryLockMedlemskap("arrangor", melding.arrangorId, delt = true)
+        advisoryLockMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
         advisoryLockMedlemshistorikk(melding.deltakerId)
+        upsertLaast(melding)
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun upsertLaast(melding: Melding) {
         template.update(
             """
             INSERT INTO melding(id, deltaker_id, deltakerliste_id, arrangor_id, melding, oppfolgingsperiode)

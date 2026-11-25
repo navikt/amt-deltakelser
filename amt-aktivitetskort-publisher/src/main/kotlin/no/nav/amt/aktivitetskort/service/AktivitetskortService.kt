@@ -144,7 +144,7 @@ class AktivitetskortService(
 
         val oppdatertMelding = melding.copy(aktivitetskort = aktivitetskort)
 
-        meldingRepository.upsert(oppdatertMelding, medlemskapLaasNodvendig = false)
+        meldingRepository.upsertLaast(oppdatertMelding)
         aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
     }
 
@@ -432,7 +432,7 @@ class AktivitetskortService(
             .forEach { oppfolgingsperiodeRepository.upsert(it) }
         forberedteMeldinger.forEach { forberedt ->
             if (forberedt is ForberedtMelding.Klar) {
-                meldingRepository.upsert(forberedt.melding, medlemskapLaasNodvendig = false)
+                meldingRepository.upsertLaast(forberedt.melding)
                 aktivitetskortProducer.send(forberedt.melding.aktivitetskort)
             }
         }

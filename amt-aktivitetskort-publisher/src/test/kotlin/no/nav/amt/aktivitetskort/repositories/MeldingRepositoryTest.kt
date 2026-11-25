@@ -35,6 +35,13 @@ class MeldingRepositoryTest(
     }
 
     @Test
+    fun `lagring med låser eid av kalleren krever en eksisterende transaksjon`() {
+        shouldThrow<IllegalTransactionStateException> {
+            meldingRepository.upsertLaast(TestData.melding())
+        }
+    }
+
+    @Test
     fun `get - finnes ikke - returnerer tom liste`() {
         meldingRepository.getByDeltakerId(UUID.randomUUID()) shouldBe emptyList()
     }
