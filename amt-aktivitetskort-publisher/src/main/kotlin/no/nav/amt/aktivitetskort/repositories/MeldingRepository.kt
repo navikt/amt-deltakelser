@@ -1,6 +1,7 @@
 package no.nav.amt.aktivitetskort.repositories
 
 import no.nav.amt.aktivitetskort.domain.Melding
+import no.nav.amt.aktivitetskort.utils.advisoryLock
 import no.nav.amt.aktivitetskort.utils.getZonedDateTime
 import no.nav.amt.aktivitetskort.utils.sqlParameters
 import no.nav.amt.lib.utils.toPGObject
@@ -73,7 +74,7 @@ class MeldingRepository(
     // før kalleren har validert historikken og fullført eller angret lagringen.
     @Transactional(propagation = Propagation.MANDATORY)
     fun advisoryLockMedlemshistorikk(deltakerId: UUID) {
-        advisoryLock("meldingshistorikk:$deltakerId")
+        template.advisoryLock("aktivitetskort:meldingshistorikk:$deltakerId")
     }
 
     // MANDATORY krever at medlemskapslåsen tas i bulkoppdateringens transaksjon.
@@ -84,18 +85,7 @@ class MeldingRepository(
         id: UUID,
         delt: Boolean = false,
     ) {
-        advisoryLock("medlemskap:$type:$id", delt)
-    }
-
-    private fun advisoryLock(
-        noekkel: String,
-        delt: Boolean = false,
-    ) {
-        val funksjon = if (delt) "pg_advisory_xact_lock_shared" else "pg_advisory_xact_lock"
-        template.query(
-            "SELECT $funksjon(hashtextextended(:noekkel, 0))",
-            sqlParameters("noekkel" to "aktivitetskort:$noekkel"),
-        ) { _ -> }
+        template.advisoryLock("aktivitetskort:medlemskap:$type:$id", delt)
     }
 
     fun getByDeltakerId(deltakerId: UUID): List<Melding> = template.query(

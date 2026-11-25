@@ -3,13 +3,16 @@ package no.nav.amt.aktivitetskort.repositories
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.aktivitetskort.database.TestData
+import no.nav.amt.aktivitetskort.utils.advisoryLock
 import org.junit.jupiter.api.Test
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.transaction.IllegalTransactionStateException
 import java.time.LocalDate
 import java.util.UUID
 
 class MeldingRepositoryTest(
     private val meldingRepository: MeldingRepository,
+    private val template: NamedParameterJdbcTemplate,
 ) : RepositoryTestBase() {
     @Test
     fun `låsing uten transaksjon feiler i stedet for å slippe låsen før lagring`() {
@@ -18,6 +21,16 @@ class MeldingRepositoryTest(
         }
         shouldThrow<IllegalTransactionStateException> {
             meldingRepository.advisoryLockMedlemskap("deltakerliste", UUID.randomUUID())
+        }
+    }
+
+    @Test
+    fun `databasehjelperen avviser delte og eksklusive låser uten transaksjon`() {
+        shouldThrow<IllegalTransactionStateException> {
+            template.advisoryLock("test:uten-transaksjon", delt = true)
+        }
+        shouldThrow<IllegalTransactionStateException> {
+            template.advisoryLock("test:uten-transaksjon")
         }
     }
 
