@@ -498,7 +498,7 @@ class AktivitetskortServiceTest {
             every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
             every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
             val gruppe = if (arrangor) {
-                aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor)
+                aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id)
             } else {
                 aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
             }
@@ -613,6 +613,52 @@ class AktivitetskortServiceTest {
                 meldingRepository.advisoryLockMedlemshistorikk(andre)
             }
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["delt", "deltakerliste", "arrangor"])
+        fun `låser medlemskap fra historikk og nye kort før deltakere med riktig låsetype`(gruppeType: String) {
+            val forste = UUID.fromString("00000000-0000-0000-0000-000000000001")
+            val andre = UUID.fromString("00000000-0000-0000-0000-000000000002")
+            val forsteDeltaker = UUID.fromString("00000000-0000-0000-0000-000000000003")
+            val andreDeltaker = UUID.fromString("00000000-0000-0000-0000-000000000004")
+            val meldinger = listOf(andreDeltaker, forsteDeltaker).map { deltakerId ->
+                AktivitetskortService.ForberedtMelding.Klar(
+                    TestData.melding(deltakerId = deltakerId, deltakerlisteId = forste, arrangorId = forste),
+                    nyPeriode,
+                    AktivitetskortService.Meldingshistorikk(
+                        deltakerId,
+                        listOf(TestData.melding(deltakerId = deltakerId, deltakerlisteId = andre, arrangorId = andre)),
+                    ),
+                )
+            }
+            every { arrangorRepository.getUnderordnedeArrangorer(forste) } returns
+                listOf(TestData.lagArrangor(id = andre, overordnetArrangorId = forste))
+
+            if (gruppeType == "delt") {
+                aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger)
+            } else {
+                val utvalg = if (gruppeType == "deltakerliste") {
+                    AktivitetskortService.Gruppeutvalg.Deltakerliste(forste)
+                } else {
+                    AktivitetskortService.Gruppeutvalg.Arrangor(forste)
+                }
+                aktivitetskortService.laasAktivitetskortGruppe(
+                    utvalg,
+                    AktivitetskortService.ForberedtGruppe(utvalg, emptyList(), meldinger),
+                )
+            }
+
+            verifyOrder {
+                meldingRepository.advisoryLockMedlemskap("arrangor", forste, delt = gruppeType != "arrangor")
+                meldingRepository.advisoryLockMedlemskap("arrangor", andre, delt = gruppeType != "arrangor")
+                meldingRepository.advisoryLockMedlemskap("deltakerliste", forste, delt = gruppeType != "deltakerliste")
+                meldingRepository.advisoryLockMedlemskap("deltakerliste", andre, delt = true)
+                meldingRepository.advisoryLockMedlemshistorikk(forsteDeltaker)
+                meldingRepository.advisoryLockMedlemshistorikk(andreDeltaker)
+            }
+            verify(exactly = 4) { meldingRepository.advisoryLockMedlemskap(any(), any(), any()) }
+            verify(exactly = 2) { meldingRepository.advisoryLockMedlemshistorikk(any()) }
+        }
     }
 
     @Nested
@@ -643,7 +689,7 @@ class AktivitetskortServiceTest {
             every { meldingRepository.upsert(capture(lagredeMeldinger), false) } returns Unit
 
             // Act
-            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor))
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
             verify(exactly = 1) { meldingRepository.upsert(any(), false) }
@@ -699,7 +745,7 @@ class AktivitetskortServiceTest {
             every { meldingRepository.upsert(capture(lagredeMeldinger), false) } returns Unit
 
             // Act
-            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor))
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
             verify(exactly = 2) { meldingRepository.upsert(any(), false) }
@@ -728,7 +774,7 @@ class AktivitetskortServiceTest {
             every { arrangorRepository.getUnderordnedeArrangorer(ctx.arrangor.id) } returns emptyList()
 
             // Act
-            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor))
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
             verify(exactly = 0) { meldingRepository.upsert(any(), false) }

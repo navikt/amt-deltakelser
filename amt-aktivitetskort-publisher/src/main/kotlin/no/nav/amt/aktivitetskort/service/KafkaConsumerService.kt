@@ -180,7 +180,7 @@ class KafkaConsumerService(
         val lagretArrangor = arrangorRepository.get(arrangor.id)
         if (lagretArrangor == arrangorModel) return
         val forberedtGruppe = if (lagretArrangor != null) {
-            aktivitetskortService.forberedAktivitetskortForArrangor(arrangorModel)
+            aktivitetskortService.forberedAktivitetskortForArrangor(arrangorModel.id)
         } else {
             null
         }

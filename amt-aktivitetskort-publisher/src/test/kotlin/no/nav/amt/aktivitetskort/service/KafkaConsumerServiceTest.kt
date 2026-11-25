@@ -467,7 +467,7 @@ class KafkaConsumerServiceTest(
             // Arrange
             every { arrangorRepository.upsert(ctx.arrangor) } returns RepositoryResult.Modified(ctx.arrangor)
             every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor.copy(navn = "Tidligere navn")
-            every { aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor) } returns forberedtArrangor
+            every { aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id) } returns forberedtArrangor
 
             // Act
             kafkaConsumerService.handleArrangor(

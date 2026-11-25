@@ -6,7 +6,6 @@ import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.VeilarboppfolgingClient
 import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Aktivitetskort
-import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
 import no.nav.amt.aktivitetskort.domain.DeltakerStatusModel
@@ -149,24 +148,25 @@ class AktivitetskortService(
         aktivitetskortProducer.send(oppdatertMelding.aktivitetskort)
     }
 
-    fun forberedAktivitetskort(gjennomforingId: UUID): ForberedtGruppe =
-        forberedAktivitetskort(Gruppeutvalg.Deltakerliste(gjennomforingId)) { it.deltakerlisteId }
+    fun forberedAktivitetskort(gjennomforingId: UUID): ForberedtGruppe = forberedAktivitetskort(Gruppeutvalg.Deltakerliste(gjennomforingId))
 
-    fun forberedAktivitetskortForArrangor(arrangor: Arrangor): ForberedtGruppe =
-        forberedAktivitetskort(Gruppeutvalg.Arrangor(arrangor.id)) { it.arrangorId }
+    fun forberedAktivitetskortForArrangor(arrangorId: UUID): ForberedtGruppe = forberedAktivitetskort(Gruppeutvalg.Arrangor(arrangorId))
 
     private fun hentGruppeutvalg(utvalg: Gruppeutvalg): List<Melding> = when (utvalg) {
         is Gruppeutvalg.Deltakerliste -> meldingRepository.getByDeltakerlisteId(utvalg.id)
-        is Gruppeutvalg.Arrangor -> {
-            val arrangorIder = listOf(utvalg.id) + arrangorRepository.getUnderordnedeArrangorer(utvalg.id).map { it.id }
-            arrangorIder.flatMap { meldingRepository.getByArrangorId(it) }.filter { it.aktivitetskort.erAktivDeltaker() }
-        }
+        is Gruppeutvalg.Arrangor -> hentArrangorIder(utvalg.id)
+            .flatMap { meldingRepository.getByArrangorId(it) }
+            .filter { it.aktivitetskort.erAktivDeltaker() }
     }
 
-    private fun forberedAktivitetskort(
-        utvalg: Gruppeutvalg,
-        gruppeId: (Melding) -> UUID,
-    ): ForberedtGruppe {
+    private fun hentArrangorIder(arrangorId: UUID): List<UUID> =
+        listOf(arrangorId) + arrangorRepository.getUnderordnedeArrangorer(arrangorId).map { it.id }
+
+    private fun forberedAktivitetskort(utvalg: Gruppeutvalg): ForberedtGruppe {
+        val gruppeId: (Melding) -> UUID = when (utvalg) {
+            is Gruppeutvalg.Deltakerliste -> { melding -> melding.deltakerlisteId }
+            is Gruppeutvalg.Arrangor -> { melding -> melding.arrangorId }
+        }
         val meldinger = hentGruppeutvalg(utvalg)
         val historikk = meldinger.map { it.deltakerId }.distinct().associateWith { hentMeldingshistorikk(it) }
         val forberedteMeldinger = meldinger.map { melding ->
@@ -202,21 +202,21 @@ class AktivitetskortService(
     fun laasAktivitetskortGruppe(
         utvalg: Gruppeutvalg,
         gruppe: ForberedtGruppe?,
+    ) = laasMedlemskapOgHistorikk(gruppe?.meldinger.orEmpty(), medlemskapFor(utvalg))
+
+    fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) =
+        laasMedlemskapOgHistorikk(forberedteMeldinger, emptySet())
+
+    private fun laasMedlemskapOgHistorikk(
+        forberedteMeldinger: List<ForberedtMelding>,
+        eksklusiveMedlemskap: Set<Medlemskap>,
     ) {
-        val eksklusiveMedlemskap = medlemskapFor(utvalg)
-        val alleMedlemskap = eksklusiveMedlemskap + medlemskapFor(gruppe?.meldinger.orEmpty())
+        val alleMedlemskap = eksklusiveMedlemskap + medlemskapFor(forberedteMeldinger)
         alleMedlemskap
             .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
             .forEach {
                 meldingRepository.advisoryLockMedlemskap(it.type, it.id, delt = it !in eksklusiveMedlemskap)
             }
-        laasDeltakerhistorikkForGruppe(gruppe?.meldinger.orEmpty())
-    }
-
-    fun laasMeldingshistorikkForGruppe(forberedteMeldinger: List<ForberedtMelding>) {
-        medlemskapFor(forberedteMeldinger)
-            .sortedWith(compareBy<Medlemskap> { it.type }.thenBy { it.id.toString() })
-            .forEach { meldingRepository.advisoryLockMedlemskap(it.type, it.id, delt = true) }
         laasDeltakerhistorikkForGruppe(forberedteMeldinger)
     }
 
@@ -244,10 +244,7 @@ class AktivitetskortService(
 
     private fun medlemskapFor(utvalg: Gruppeutvalg): Set<Medlemskap> = when (utvalg) {
         is Gruppeutvalg.Deltakerliste -> setOf(Medlemskap("deltakerliste", utvalg.id))
-        is Gruppeutvalg.Arrangor ->
-            (listOf(utvalg.id) + arrangorRepository.getUnderordnedeArrangorer(utvalg.id).map { it.id })
-                .map { Medlemskap("arrangor", it) }
-                .toSet()
+        is Gruppeutvalg.Arrangor -> hentArrangorIder(utvalg.id).map { Medlemskap("arrangor", it) }.toSet()
     }
 
     private data class Medlemskap(

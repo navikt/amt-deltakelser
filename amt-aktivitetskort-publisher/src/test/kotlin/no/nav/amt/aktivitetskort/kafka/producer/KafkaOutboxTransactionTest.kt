@@ -246,7 +246,7 @@ class KafkaOutboxTransactionTest(
         val ctx = TestData.MockContext()
         testDatabase.insertArrangor(ctx.arrangor)
         testDatabase.insertDeltakerliste(ctx.deltakerliste)
-        val gruppe = aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor)
+        val gruppe = aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id)
 
         Executors.newSingleThreadExecutor().use { executor ->
             transactionTemplate.executeWithoutResult {
