@@ -15,8 +15,8 @@ import no.nav.amt.aktivitetskort.kafka.consumer.AKTIVITETSKORT_TOPIC
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
-import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.service.AktivitetskortService
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.producer.KafkaProducerClient
@@ -42,7 +42,6 @@ class KafkaOutboxTransactionTest(
     private val aktivitetskortProducer: AktivitetskortProducer,
     private val deltakerRepository: DeltakerRepository,
     private val meldingRepository: MeldingRepository,
-    private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
     private val aktivitetskortService: AktivitetskortService,
     private val transactionTemplate: TransactionTemplate,
     private val jdbcTemplate: JdbcTemplate,
@@ -50,6 +49,38 @@ class KafkaOutboxTransactionTest(
 ) : IntegrationTestBase() {
     @Nested
     inner class LagreOgPubliser {
+        @Test
+        fun `gjeldende periode styrer Komet-kortidentitet uten lokal periodelagring`() {
+            val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+            testDatabase.insertDeltakerliste(ctx.deltakerliste)
+            every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } returns TestData.lagDeltakerResponse(
+                ctx.deltaker,
+                ctx.deltakerliste,
+                ctx.arrangor,
+            )
+            val periode = TestData.oppfolgingsperiode()
+            every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns periode
+
+            val forsteKort = aktivitetskortService.lagAktivitetskort(ctx.deltaker.id).shouldNotBeNull()
+            val sammePeriodeKort = aktivitetskortService.lagAktivitetskort(ctx.deltaker.id).shouldNotBeNull()
+
+            sammePeriodeKort.id shouldBe forsteKort.id
+            meldingRepository.getByDeltakerId(ctx.deltaker.id).single().oppfolgingperiode shouldBe periode.id
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 0
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 2
+
+            val nyPeriode = periode.copy(id = UUID.randomUUID())
+            every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
+
+            val nyttKort = aktivitetskortService.lagAktivitetskort(ctx.deltaker.id).shouldNotBeNull()
+            (nyttKort.id == forsteKort.id) shouldBe false
+            val meldinger = meldingRepository.getByDeltakerId(ctx.deltaker.id)
+            meldinger.size shouldBe 2
+            meldinger.map { it.oppfolgingperiode }.toSet() shouldBe setOf(periode.id, nyPeriode.id)
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 0
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 3
+        }
+
         @Test
         fun `melding og outbox-record rulles tilbake sammen`() {
             // Arrange
@@ -122,7 +153,6 @@ class KafkaOutboxTransactionTest(
                 amtArenaAclClient = amtArenaAclClient,
                 unleashToggle = mockk<CommonUnleashToggle>(),
                 veilarboppfolgingClient = veilarboppfolgingClient,
-                oppfolgingsperiodeRepository = oppfolgingsperiodeRepository,
                 deltakerRepository = feilendeDeltakerRepository,
                 aktivitetskortProducer = aktivitetskortProducer,
                 transactionTemplate = transactionTemplate,
@@ -152,11 +182,8 @@ class KafkaOutboxTransactionTest(
         fun `melding lagres sammen med korrekt outbox-record`() {
             // Arrange
             val melding = lagMelding()
-            val oppfolgingsperiode = TestData.oppfolgingsperiode()
-
             // Act
             transactionTemplate.executeWithoutResult {
-                oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
                 meldingRepository.upsert(melding)
                 aktivitetskortProducer.send(melding.aktivitetskort)
             }
@@ -192,9 +219,7 @@ class KafkaOutboxTransactionTest(
         fun `lagret outbox-record publiseres og slettes`() {
             // Arrange
             val melding = lagMelding()
-            val oppfolgingsperiode = TestData.oppfolgingsperiode()
             transactionTemplate.executeWithoutResult {
-                oppfolgingsperiodeRepository.upsert(oppfolgingsperiode)
                 meldingRepository.upsert(melding)
                 aktivitetskortProducer.send(melding.aktivitetskort)
             }

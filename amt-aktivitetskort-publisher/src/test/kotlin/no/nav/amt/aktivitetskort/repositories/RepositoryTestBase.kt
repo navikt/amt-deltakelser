@@ -20,7 +20,7 @@ import javax.sql.DataSource
 @SpringBootTest(
     classes = [
         ArrangorRepository::class, DeltakerlisteRepository::class, DeltakerRepository::class,
-        FeilmeldingRepository::class, MeldingRepository::class, OppfolgingsperiodeRepository::class,
+        FeilmeldingRepository::class, MeldingRepository::class,
         UnleashTestConfiguration::class, TestDatabaseService::class,
     ],
 )

@@ -28,7 +28,6 @@ import no.nav.amt.aktivitetskort.kafka.producer.AktivitetskortProducer
 import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
-import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilAktivitetStatus
 import no.nav.amt.aktivitetskort.service.StatusMapping.deltakerStatusTilEtikett
 import no.nav.amt.aktivitetskort.unleash.UnleashConfig.Companion.AKTIVITETSKORT_APP_NAME
@@ -51,7 +50,6 @@ class AktivitetskortService(
     private val amtArenaAclClient: AmtArenaAclClient,
     private val unleashToggle: CommonUnleashToggle,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
-    private val oppfolgingsperiodeRepository: OppfolgingsperiodeRepository,
     private val deltakerRepository: DeltakerRepository,
     private val aktivitetskortProducer: AktivitetskortProducer,
     private val transactionTemplate: TransactionTemplate,
@@ -273,13 +271,11 @@ class AktivitetskortService(
     private fun lagreOgPubliser(forberedtMelding: ForberedtMelding): Melding {
         when (forberedtMelding) {
             is ForberedtMelding.Avvist -> {
-                forberedtMelding.oppfolgingsperiode?.let { oppfolgingsperiodeRepository.upsert(it) }
                 throw forberedtMelding.feil
             }
 
             is ForberedtMelding.Klar -> {
                 transactionTemplate.executeWithoutResult {
-                    oppfolgingsperiodeRepository.upsert(forberedtMelding.oppfolgingsperiode)
                     meldingRepository.upsert(forberedtMelding.melding)
                     aktivitetskortProducer.send(forberedtMelding.melding.aktivitetskort)
                 }

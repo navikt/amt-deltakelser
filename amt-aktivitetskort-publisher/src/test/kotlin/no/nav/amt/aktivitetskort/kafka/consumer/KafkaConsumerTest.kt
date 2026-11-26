@@ -245,7 +245,6 @@ class KafkaConsumerTest(
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
         deltakerRepository.upsert(ctx.deltaker, offset)
-        testDatabase.insertAktivOppfolgingsperiode(id = ctx.oppfolgingsperiodeId)
         meldingRepository.upsert(ctx.melding)
 
         kafkaConsumer.listen(
@@ -276,7 +275,6 @@ class KafkaConsumerTest(
         arrangorRepository.upsert(ctx.arrangor)
         deltakerlisteRepository.upsert(ctx.deltakerliste)
         deltakerRepository.upsert(ctx.deltaker, offset)
-        testDatabase.insertAktivOppfolgingsperiode(id = ctx.oppfolgingsperiodeId)
         meldingRepository.upsert(ctx.melding)
 
         mockAmtArenaAclClient(ctx.deltaker.id, 1234)
