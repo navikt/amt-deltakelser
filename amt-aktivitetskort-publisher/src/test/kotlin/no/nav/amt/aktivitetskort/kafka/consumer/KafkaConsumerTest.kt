@@ -347,7 +347,7 @@ class KafkaConsumerTest(
         deltakerRepository.get(endret.id) shouldBe endret
         jdbcTemplate.queryForObject<Long>("SELECT kafkaoffset FROM deltaker WHERE id = ?", endret.id) shouldBe 1
         meldingRepository.getByDeltakerId(endret.id).single().oppfolgingperiode shouldBe periodeId
-        antallPerioder(periodeId) shouldBe 1
+        antallPerioder(periodeId) shouldBe 0
         antallOutbox(ctx.aktivitetskortId) shouldBe 1
         verify(exactly = 1) { acknowledgment.acknowledge() }
 
@@ -396,7 +396,7 @@ class KafkaConsumerTest(
     }
 
     @Test
-    fun `avsluttet Arena-deltaker fra for oppfolgingsperioden lagres med periode men uten kort`() {
+    fun `avsluttet Arena-deltaker fra for oppfolgingsperioden lagres uten periodekopi eller kort`() {
         val ctx = TestData.MockContext(
             deltaker = TestData.lagDeltaker(
                 status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, null, LocalDate.now().minusMonths(2).atStartOfDay()),
@@ -412,7 +412,7 @@ class KafkaConsumerTest(
 
         deltakerRepository.get(ctx.deltaker.id) shouldBe ctx.deltaker
         meldingRepository.getByDeltakerId(ctx.deltaker.id) shouldBe emptyList()
-        antallPerioder(periodeId) shouldBe 1
+        antallPerioder(periodeId) shouldBe 0
         antallOutbox(ctx.aktivitetskortId) shouldBe 0
         verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
     }
@@ -525,7 +525,6 @@ class KafkaConsumerTest(
         deltakerlisteRepository.upsert(ctx.deltakerliste)
         if (eksisterende) {
             deltakerRepository.upsert(ctx.deltaker.copy(sluttdato = LocalDate.now()), -1)
-            testDatabase.insertAktivOppfolgingsperiode(periode.id)
             meldingRepository.upsert(ctx.melding)
         }
         every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } answers {
@@ -651,7 +650,7 @@ class KafkaConsumerTest(
 
         deltakerRepository.get(ctx.deltaker.id) shouldBe ctx.deltaker
         meldingRepository.getByDeltakerId(ctx.deltaker.id).single().id shouldBe ctx.aktivitetskortId
-        antallPerioder(periodeId) shouldBe 1
+        antallPerioder(periodeId) shouldBe 0
         antallOutbox(ctx.aktivitetskortId) shouldBe 1
         verify(exactly = 1) { acknowledgment.acknowledge() }
     }
@@ -671,7 +670,6 @@ class KafkaConsumerTest(
         if (tidligerePeriode || sammePeriode) {
             deltakerRepository.upsert(gammelDeltaker, -1)
             val gammelPeriodeId = if (sammePeriode) periode.id else UUID.randomUUID()
-            testDatabase.insertAktivOppfolgingsperiode(gammelPeriodeId)
             meldingRepository.upsert(ctx.melding.copy(oppfolgingperiode = gammelPeriodeId))
         }
         every { amtDeltakerClient.getDeltaker(ctx.deltaker.id) } answers {
@@ -729,7 +727,7 @@ class KafkaConsumerTest(
             val melding = meldingRepository.getByDeltakerId(ctx.deltaker.id).single { it.oppfolgingperiode == periode.id }
             if (sammePeriode) melding.id shouldBe ctx.aktivitetskortId
             antallOutbox(melding.id) shouldBe 1
-            antallPerioder(periode.id) shouldBe 1
+            antallPerioder(periode.id) shouldBe 0
 
             unleashClient.enableAll()
             kafkaConsumer.listen(records.last(), ack)
