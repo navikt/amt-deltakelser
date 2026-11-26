@@ -363,7 +363,7 @@ class DistribuerEndringService(
 
         // for endringsvedtak er dette overflødig, men kalltreet er foreløpig for dypt til å skru dette av/på
         // bør refaktureres
-        val (prisinformasjon, opplaringKategoriseringValg) = if (deltaker.gjennomforing.erNyForskriftOpplaring) {
+        val (prisinformasjon, opplaringKategoriseringValg) = if (deltaker.gjennomforing.erEnkeltplassOpplaring) {
             Pair(
                 PrisinfoRepoAdapter.hentPrisinfo(deltaker.gjennomforing.id),
                 OpplaringKategoriseringRepoAdapter.hentOpplaringKategoriseringValg(deltaker.gjennomforing.id),

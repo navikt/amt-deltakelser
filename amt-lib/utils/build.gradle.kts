@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-lib:models"))
+    api(project(":amt-lib:models"))
 
-    api(libs.logback.classic)
+    implementation(libs.slf4j.api)
 
     api(libs.tools.jackson.module.kotlin)
     api(libs.postgresql)
@@ -17,7 +17,7 @@ dependencies {
             because("CVE-2023-3635: upgrade OkHttp to fix vulnerability")
         }
     }
-    implementation(libs.unleash)
+    api(libs.unleash)
 
     testImplementation(project(":amt-lib:testing"))
 }

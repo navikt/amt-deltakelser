@@ -3,38 +3,44 @@ package no.nav.amt.deltaker.api.response
 import no.nav.amt.deltaker.model.Gjennomforing
 import no.nav.amt.deltaker.repository.PrisinfoRepoAdapter
 import no.nav.amt.deltaker.repository.dbo.PrisinfoDbo
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.PrisinformasjonDto
 import java.util.UUID
 
 object GjennomforingPrisinformasjon {
     data class PrisinformasjonData(
-        val aktiv: PrisinformasjonDto,
+        val aktiv: PrisinformasjonDto?,
         val tilGodkjenning: PrisinformasjonDto?,
     )
 
     fun hent(
         gjennomforing: Gjennomforing,
-        includeOpplaringKategorisering: Boolean,
+        includePrisinfo: Boolean,
+        deltakerStatus: DeltakerStatus.Type? = null,
     ): PrisinformasjonData? {
-        val skalHenteEnkeltplassValg = includeOpplaringKategorisering && gjennomforing.erNyForskriftOpplaring
+        val skalHenteEnkeltplassPrisinfo = includePrisinfo && gjennomforing.erEnkeltplassOpplaring
 
-        if (!skalHenteEnkeltplassValg) return null
+        if (!skalHenteEnkeltplassPrisinfo) return null
 
-        return finnPrisInfo(gjennomforing.id)
+        return finnPrisInfo(gjennomforing.id, deltakerStatus)
     }
 
     /**
-     * Henter gjeldende- og prisinfo til endring.
+     * Henter gjeldende prisinfo for deltakelse.
      *
-     * For deltakerstatuser SOKT_INN og senere, skal det alltid finnes en gjeldende prisinfo (GJELDENDE i databasen).
-     * `aktiv` vil da inneholde gjeldende prisinfo, og `tilGodkjenning` vil inneholde endring om det finnes.
+     * ENDRING uten GJELDENDE betyr at prisinfo ikke er godkjent ennå.
      *
-     * For deltakerstatuser KLADD og UTKAST, skal det kun finnes prisinfo til godkjenning (ENDRING i databasen).
-     * `aktiv` vil da inneholde endringen.
+     * For KLADD og UTKAST_TIL_PAMELDING er ENDRING den aktive prisinformasjonen forslaget
+     * (siden disse vises flatt på deltakelsen og godkjennes i tiltaksadministrasjon sammen med deltakelsen i sin helhet).
+     * For andre deltakelsesstatuser skal endringen være GJELDENDE.
      *
      * @param gjennomforingId Deltakerliste-ID
+     * @param deltakerStatus Deltakerens status
      */
-    fun finnPrisInfo(gjennomforingId: UUID): PrisinformasjonData? {
+    fun finnPrisInfo(
+        gjennomforingId: UUID,
+        deltakerStatus: DeltakerStatus.Type? = null,
+    ): PrisinformasjonData? {
         val prisinfoMap = PrisinfoRepoAdapter.hentPrisinfoMap(gjennomforingId)
 
         if (prisinfoMap.isEmpty()) return null
@@ -42,17 +48,27 @@ object GjennomforingPrisinformasjon {
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
         val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
-        if (gjeldendePrisinfo == null) {
-            if (prisinfoTilGodkjenning == null) {
-                return null
-            }
+        if (gjeldendePrisinfo != null) {
             return PrisinformasjonData(
+                aktiv = gjeldendePrisinfo,
+                tilGodkjenning = prisinfoTilGodkjenning,
+            )
+        }
+
+        if (prisinfoTilGodkjenning == null) {
+            return null
+        }
+
+        return if (deltakerStatus in setOf(DeltakerStatus.Type.KLADD, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)) {
+            // Hvis statusen er kladd eller utkast, så er prisinformasjon med status ENDRING den aktive endringen på deltakelsen
+            PrisinformasjonData(
                 aktiv = prisinfoTilGodkjenning,
                 tilGodkjenning = null,
             )
         } else {
-            return PrisinformasjonData(
-                aktiv = gjeldendePrisinfo,
+            // Arenadeltakere kan ha andre statuser enn kladd og utkast og i tillegg mangle prisinformasjon(uten at FORSLAG blir aktiv)
+            PrisinformasjonData(
+                aktiv = null, // gjeldendePrisinfo
                 tilGodkjenning = prisinfoTilGodkjenning,
             )
         }

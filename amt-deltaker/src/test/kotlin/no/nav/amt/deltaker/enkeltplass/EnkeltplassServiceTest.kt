@@ -527,6 +527,7 @@ class EnkeltplassServiceTest : IntegrationTestBase() {
             ),
             gjennomforing = lagDeltakerliste(
                 gjennomforingstype = GjennomforingType.Enkeltplass,
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSMARKEDSOPPLAERING),
                 status = GjennomforingStatusType.KLADD,
                 opplaringKategorisering = TestData.lagOpplaringKategorisering(),
             ),

@@ -37,12 +37,6 @@ data class Tiltakstype(
             JOBBKLUBB,
         )
 
-        val arenaEnkeltplassTiltakskoder = setOf(
-            HOYERE_UTDANNING,
-            ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
-            ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
-        )
-
         val opplaeringsTiltak = setOf(
             ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
             ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
