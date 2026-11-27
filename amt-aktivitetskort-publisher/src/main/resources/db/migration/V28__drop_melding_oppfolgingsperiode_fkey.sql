@@ -1,1 +1,0 @@
-ALTER TABLE melding DROP CONSTRAINT melding_oppfolgingsperiode_fkey;

@@ -66,7 +66,7 @@ class KafkaOutboxTransactionTest(
 
             sammePeriodeKort.id shouldBe forsteKort.id
             meldingRepository.getByDeltakerId(ctx.deltaker.id).single().oppfolgingperiode shouldBe periode.id
-            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 0
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 1
             jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 2
 
             val nyPeriode = periode.copy(id = UUID.randomUUID())
@@ -77,7 +77,7 @@ class KafkaOutboxTransactionTest(
             val meldinger = meldingRepository.getByDeltakerId(ctx.deltaker.id)
             meldinger.size shouldBe 2
             meldinger.map { it.oppfolgingperiode }.toSet() shouldBe setOf(periode.id, nyPeriode.id)
-            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 0
+            jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM oppfolgingsperiode") shouldBe 2
             jdbcTemplate.queryForObject<Int>("SELECT count(*) FROM kafka_producer_record") shouldBe 3
         }
 
@@ -153,6 +153,7 @@ class KafkaOutboxTransactionTest(
                 amtArenaAclClient = amtArenaAclClient,
                 unleashToggle = mockk<CommonUnleashToggle>(),
                 veilarboppfolgingClient = veilarboppfolgingClient,
+                oppfolgingsperiodeRepository = mockk(),
                 deltakerRepository = feilendeDeltakerRepository,
                 aktivitetskortProducer = aktivitetskortProducer,
                 transactionTemplate = transactionTemplate,

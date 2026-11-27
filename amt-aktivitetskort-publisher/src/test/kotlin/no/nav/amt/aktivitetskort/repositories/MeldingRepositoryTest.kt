@@ -5,11 +5,9 @@ import no.nav.amt.aktivitetskort.database.TestData
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 class MeldingRepositoryTest(
     private val meldingRepository: MeldingRepository,
-    private val dataSource: DataSource,
 ) : RepositoryTestBase() {
     @Test
     fun `get - finnes ikke - returnerer tom liste`() {

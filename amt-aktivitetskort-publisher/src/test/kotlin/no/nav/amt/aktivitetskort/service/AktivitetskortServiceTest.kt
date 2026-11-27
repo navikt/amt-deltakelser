@@ -31,6 +31,7 @@ import no.nav.amt.aktivitetskort.repositories.ArrangorRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerRepository
 import no.nav.amt.aktivitetskort.repositories.DeltakerlisteRepository
 import no.nav.amt.aktivitetskort.repositories.MeldingRepository
+import no.nav.amt.aktivitetskort.repositories.OppfolgingsperiodeRepository
 import no.nav.amt.aktivitetskort.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -60,6 +61,7 @@ class AktivitetskortServiceTest {
     private val amtDeltakerClient = mockk<AmtDeltakerClient>()
     private val unleash = mockk<DefaultUnleash>()
     private val veilarboppfolgingClient = mockk<VeilarboppfolgingClient>()
+    private val oppfolgingsperiodeRepository = mockk<OppfolgingsperiodeRepository>()
     private val aktivitetskortProducer = mockk<AktivitetskortProducer>(relaxed = true)
     private val transactionTemplate = mockk<TransactionTemplate>()
 
@@ -70,6 +72,7 @@ class AktivitetskortServiceTest {
         amtArenaAclClient = amtArenaAclClient,
         unleashToggle = CommonUnleashToggle(unleash),
         veilarboppfolgingClient = veilarboppfolgingClient,
+        oppfolgingsperiodeRepository = oppfolgingsperiodeRepository,
         deltakerRepository = deltakerRepository,
         aktivitetskortProducer = aktivitetskortProducer,
         transactionTemplate = transactionTemplate,
@@ -85,6 +88,7 @@ class AktivitetskortServiceTest {
 
     @BeforeEach
     fun setup() {
+        every { oppfolgingsperiodeRepository.upsert(any()) } returns TestData.oppfolgingsperiode()
         every { transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>()) } answers {
             firstArg<Consumer<TransactionStatus>>().accept(SimpleTransactionStatus())
         }
@@ -154,6 +158,7 @@ class AktivitetskortServiceTest {
             val forberedt = aktivitetskortService.forberedMelding(ctx.deltakerModel(), ctx.aktivitetskortId)
 
             (forberedt is AktivitetskortService.ForberedtMelding.Klar) shouldBe true
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
             verify(exactly = 0) { meldingRepository.upsert(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
             verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
@@ -161,7 +166,7 @@ class AktivitetskortServiceTest {
         }
 
         @Test
-        fun `forberedt avvisning gir ingen melding eller publisering`() {
+        fun `avvist oppfolgingsperiode lagres forst nar det forberedte resultatet lagres`() {
             val ctx = TestData.MockContext(
                 deltaker = TestData.lagDeltaker(
                     status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, null, nyPeriode.startDato.minusDays(1)),
@@ -172,14 +177,16 @@ class AktivitetskortServiceTest {
 
             val forberedt = aktivitetskortService.forberedMelding(ctx.deltakerModel())
 
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
             aktivitetskortService.lagreAktivitetskort(forberedt) shouldBe null
+            verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
             verify(exactly = 0) { meldingRepository.upsert(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
             verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
         }
 
         @Test
-        fun `direkte opprettMelding kaster fortsatt domenefeilen for avvist periode`() {
+        fun `direkte opprettMelding lagrer avvist periode og kaster fortsatt domenefeilen`() {
             val ctx = TestData.MockContext(
                 deltaker = TestData.lagDeltaker(
                     status = DeltakerStatusModel(DeltakerStatus.Type.FULLFORT, null, nyPeriode.startDato.minusDays(1)),
@@ -192,6 +199,7 @@ class AktivitetskortServiceTest {
                 aktivitetskortService.opprettMelding(ctx.deltakerModel())
             }
 
+            verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
             verify(exactly = 0) { meldingRepository.upsert(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
         }
