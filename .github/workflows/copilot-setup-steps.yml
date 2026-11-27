@@ -33,6 +33,3 @@ jobs:
 
       - name: Verify Docker
         run: docker info
-
-      - name: Run baseline checks
-        run: ./gradlew check --no-daemon --no-configuration-cache

@@ -18,6 +18,14 @@ on the final changes before creating or updating a PR, including test-name-only
 changes. `test` does not run the ktlint checks required by CI. Resolve missing
 Java 25 or Docker prerequisites instead of skipping validation.
 
+## Read-only code reviews
+
+Do not run builds, tests or linters during read-only PR reviews unless the user
+explicitly requests them. Review the diff and relevant code, and use existing
+GitHub Actions results when available. If CI results are missing or pending,
+state that limitation without starting local validation or waiting for CI.
+The validation requirements above apply when making changes, not read-only reviews.
+
 ## Key Patterns
 
 <!-- TODO: Document project-specific patterns, e.g.:
