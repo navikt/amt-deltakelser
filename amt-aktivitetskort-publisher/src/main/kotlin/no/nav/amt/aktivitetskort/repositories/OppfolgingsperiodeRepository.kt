@@ -7,6 +7,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
+/**
+ * Periodenes start- og sluttdato brukes per 2026-11-27 ikke i applikasjonen, men er nyttige å kunne trekke ut ved feilsøking.
+ * La stå inn til videre!
+ * Se https://github.com/navikt/amt-deltakelser/pull/782#issuecomment-7212766883
+ */
 @Repository
 class OppfolgingsperiodeRepository(
     private val template: NamedParameterJdbcTemplate,
