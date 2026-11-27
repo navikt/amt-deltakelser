@@ -18,6 +18,8 @@ data class DeltakerEksternV1Dto(
     val endretTidspunkt: LocalDateTime,
     val kilde: Kilde,
     val innhold: DeltakelsesinnholdDto?,
+    val dagerPerUke: Float?, // deltakelsesmengde
+    val deltakelsesprosent: Float?, // deltakelsesmengde
     val deltakelsesmengder: List<DeltakelsesmengdeDto>,
 ) {
     data class NavVeilederDto(

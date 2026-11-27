@@ -116,6 +116,8 @@ class DeltakerKafkaPayloadBuilder(
                 historikk = deltakerhistorikk,
                 isForDeltakerExternalTopic = true,
             ).toDeltakelsesmengdeEksternV1Dto(),
+            deltakelsesprosent = deltaker.deltakelsesprosent,
+            dagerPerUke = deltaker.dagerPerUke,
         )
     }
 
