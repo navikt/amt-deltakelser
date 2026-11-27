@@ -46,7 +46,7 @@ object GjennomforingPrisinformasjon {
         if (prisinfoMap.isEmpty()) return null
 
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
-        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING] //
+        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
 
         if (gjeldendePrisinfo != null) {
             return PrisinformasjonData(
