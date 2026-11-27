@@ -27,8 +27,11 @@ class KafkaOutboxLifecycle(
         if (!running) return
 
         log.info("Stopping Kafka outbox processor...")
-        producerRecordProcessor.close()
-        running = false
+        try {
+            producerRecordProcessor.closeAndAwait()
+        } finally {
+            running = false
+        }
     }
 
     override fun isRunning() = running

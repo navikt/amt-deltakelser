@@ -1,14 +1,14 @@
 [versions]
 java-version = "25"
 kotlin-version = "2.4.21"
-ktor-version = "3.6.1"
+ktor-version = "3.6.2"
 logback-version = "1.6.8"
-slf4j-version = "2.0.19"
+slf4j-version = "2.0.20"
 micrometer-version = "1.18.0"
 ktlint-version = "14.2.0"
 ktlint-cli-version = "1.8.0"
 jackson2-version = "2.23.0"
-nav-common-version = "4.2026.11.24_01.21-c252fd5dd64e"
+nav-common-version = "4.2026.11.25_00.10-dc0fdbb558ad"
 poao-tilgang-version = "2026.05.05_13.02-76cbce4f654a"
 kotest-version = "6.2.7"
 flyway-version = "13.13.0"
@@ -39,7 +39,7 @@ springmockk-version = "5.0.1"
 
 # amt-pdfgen spesifikt
 jsoup-version = "1.24.1"
-pdfgen-core-version = "2.0.1"
+pdfgen-core-version = "2.0.2"
 
 # CVE-fixes
 netty-version = "4.2.21.Final"

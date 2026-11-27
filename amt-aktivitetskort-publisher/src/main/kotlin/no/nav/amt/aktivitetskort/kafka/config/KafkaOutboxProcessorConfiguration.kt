@@ -32,7 +32,7 @@ class KafkaOutboxProcessorConfiguration {
     @Bean
     fun kafkaProducerLeaderElectionClient(lockProvider: LockProvider): LeaderElectionClient = ShedLockLeaderElectionClient(lockProvider)
 
-    @Bean
+    @Bean(destroyMethod = "closeAndAwait")
     fun kafkaProducerRecordProcessor(
         producerRepository: PostgresJdbcTemplateProducerRepository,
         @Qualifier("kafkaOutboxProducer")

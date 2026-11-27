@@ -5,7 +5,7 @@
 ## Build & Test Commands
 
 Use JDK 25 and a running Docker daemon for Testcontainers. Copilot cloud sessions
-prepare these and run baseline checks through `.github/workflows/copilot-setup-steps.yml`.
+prepare these through `.github/workflows/copilot-setup-steps.yml`.
 If Java 25 is missing in another environment, install it and set `JAVA_HOME` and
 `PATH` before running Gradle. Do not change the project's Java target to bypass this.
 
@@ -26,7 +26,7 @@ affected module. Run the full command for changes to shared modules (`amt-felles
 it does not run ktlint, which also checks test source formatting. Test-name-only
 changes still require `check`.
 
-Setup checks run before edits and do not replace validation of the final diff.
+Environment setup does not replace validation of the final diff.
 Fix failures and rerun the checks before handing off. Do not skip tasks with `-x`
 or weaken checks to get a passing result. If validation remains blocked, report
 the exact command and blocker in the PR description and final response, and do

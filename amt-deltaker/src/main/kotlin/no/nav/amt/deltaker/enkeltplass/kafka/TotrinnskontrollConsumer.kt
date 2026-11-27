@@ -96,7 +96,15 @@ class TotrinnskontrollConsumer(
         val totrinnskontrollStatus = PrisinfoRepository.hentPrisinfoStatus(
             gjennomforingId = deltaker.gjennomforing.id,
             prisinformasjonId = totrinnskontrollHendelse.id,
-        ) ?: error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
+        ) ?: run {
+            // TODO: Midlertidig løsning
+            // Se https://trello.com/c/5L2cWmts
+            if (Environment.isDev()) {
+                log.warn("Hopper over prisinfo ${totrinnskontrollHendelse.id} for deltaker ${deltaker.id}")
+                return
+            }
+            error("Fant ikke prisinfo for deltaker ${deltaker.id} med id ${totrinnskontrollHendelse.id}")
+        }
 
         // Sjekk om prisinfo allerede er godkjent for å gjøre consumer idempotent.
         if (totrinnskontrollStatus == PrisinfoDbo.TotrinnskontrollStatus.GODKJENT) {

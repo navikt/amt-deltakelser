@@ -129,7 +129,7 @@ class KafkaOutboxTransactionTest(
             publishAttempts.get() shouldBe 2
         } finally {
             allowRetryToSucceed.countDown()
-            processor.close()
+            processor.closeAndAwait()
         }
     }
 
