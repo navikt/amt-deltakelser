@@ -46,7 +46,7 @@ object GjennomforingPrisinformasjon {
         if (prisinfoMap.isEmpty()) return null
 
         val gjeldendePrisinfo = prisinfoMap[PrisinfoDbo.Rolle.GJELDENDE]
-        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING]
+        val prisinfoTilGodkjenning = prisinfoMap[PrisinfoDbo.Rolle.ENDRING] //
 
         if (gjeldendePrisinfo != null) {
             return PrisinformasjonData(
@@ -59,7 +59,12 @@ object GjennomforingPrisinformasjon {
             return null
         }
 
-        return if (deltakerStatus in setOf(DeltakerStatus.Type.KLADD, DeltakerStatus.Type.UTKAST_TIL_PAMELDING)) {
+        return if (deltakerStatus in setOf(
+                DeltakerStatus.Type.KLADD,
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+                DeltakerStatus.Type.SOKT_INN,
+            )
+        ) {
             // Hvis statusen er kladd eller utkast, så er prisinformasjon med status ENDRING den aktive endringen på deltakelsen
             PrisinformasjonData(
                 aktiv = prisinfoTilGodkjenning,
