@@ -1,21 +1,17 @@
 package no.nav.tiltaksarrangor
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.boot.resttestclient.TestRestTemplate
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
-import org.springframework.boot.resttestclient.getForEntity
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.web.server.LocalManagementPort
-import org.springframework.http.HttpStatus
+import org.springframework.test.web.servlet.client.RestTestClient
 import org.springframework.web.util.UriComponentsBuilder
 
-@AutoConfigureTestRestTemplate
+@AutoConfigureRestTestClient
 class ActuatorTest(
     @LocalManagementPort private val managementPort: Int,
-    private val restTemplate: TestRestTemplate,
+    private val restTestClient: RestTestClient,
 ) : IntegrationTestBase() {
     @ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
     @ValueSource(strings = ["liveness", "readiness"])
@@ -25,21 +21,26 @@ class ActuatorTest(
             .buildAndExpand(managementPort, probeName)
             .toUri()
 
-        val response = restTemplate.getForEntity<String>(uri)
+        val result = restTestClient
+            .get()
+            .uri(uri)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
 
-        response.statusCode shouldBe HttpStatus.OK
+        result.jsonPath("$.status").isEqualTo("UP")
 
-        val body = objectMapper.readTree(response.body)
-
-        assertSoftly {
-            body["status"].asString() shouldBe "UP"
-
-            if (probeName == "readiness") {
-                body["components"]["readinessState"]["status"].asString() shouldBe "UP"
-                body["components"]["db"]["status"].asString() shouldBe "UP"
-            } else {
-                body["components"]["livenessState"]["status"].asString() shouldBe "UP"
-            }
+        if (probeName == "readiness") {
+            result
+                .jsonPath("$.components.readinessState.status")
+                .isEqualTo("UP")
+                .jsonPath("$.components.db.status")
+                .isEqualTo("UP")
+        } else {
+            result
+                .jsonPath("$.components.livenessState.status")
+                .isEqualTo("UP")
         }
     }
 
@@ -50,8 +51,11 @@ class ActuatorTest(
             .buildAndExpand(managementPort)
             .toUri()
 
-        val response = restTemplate.getForEntity<String>(uri)
-
-        response.statusCode shouldBe HttpStatus.OK
+        restTestClient
+            .get()
+            .uri(uri)
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 }
