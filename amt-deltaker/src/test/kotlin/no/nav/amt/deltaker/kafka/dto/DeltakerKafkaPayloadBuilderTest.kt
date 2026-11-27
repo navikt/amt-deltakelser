@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.kafka.dto
 
 import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -80,11 +81,92 @@ class DeltakerKafkaPayloadBuilderTest {
             .buildDeltakerV1Record(deltaker)
             .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
             DeltakerV1Dto.DeltakelsesmengdeDto(
-                it.deltakelsesprosent,
+                it.deltakelsesprosent.shouldNotBeNull(),
                 it.dagerPerUke,
                 it.gyldigFra,
                 it.opprettet,
             )
+        }
+    }
+
+    @Test
+    fun `buildDeltakerV1Record - fallback brukes før like perioder slås sammen`() {
+        // Arrange
+        val startdato = deltaker.startdato.shouldNotBeNull()
+        val vedtakMedHundreProsent = lagVedtak(
+            deltakerVedVedtak = deltaker.copy(deltakelsesprosent = 100F, dagerPerUke = 3F),
+            fattet = startdato.atStartOfDay(),
+        )
+        val endring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = null,
+                dagerPerUke = 3F,
+                gyldigFra = LocalDate.now().plusDays(1),
+                begrunnelse = null,
+            ),
+        )
+        historikk.clear()
+        historikk.addAll(listOf(DeltakerHistorikk.Vedtak(vedtakMedHundreProsent), DeltakerHistorikk.Endring(endring)))
+
+        // Act
+        val mengder = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker).deltakelsesmengder
+        val mengderUtenFallback = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder shouldBe listOf(
+            DeltakerV1Dto.DeltakelsesmengdeDto(
+                deltakelsesprosent = 100F,
+                dagerPerUke = 3F,
+                gyldigFra = startdato,
+                opprettet = startdato.atStartOfDay(),
+            ),
+        )
+        mengderUtenFallback.map { it.deltakelsesprosent } shouldBe listOf(100F, null)
+    }
+
+    @Test
+    fun `buildDeltakerV1Record - tom endring publiseres fortsatt med hundre prosent`() {
+        // Arrange
+        val gyldigFra = LocalDate.now().plusDays(1)
+        val endring = lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = null,
+                dagerPerUke = null,
+                gyldigFra = gyldigFra,
+                begrunnelse = null,
+            ),
+        )
+        historikk.add(DeltakerHistorikk.Endring(endring))
+
+        // Act
+        val mengde = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker).deltakelsesmengder.last()
+
+        // Assert
+        mengde.deltakelsesprosent shouldBe 100F
+        mengde.dagerPerUke shouldBe null
+        mengde.gyldigFra shouldBe gyldigFra
+    }
+
+    @Test
+    fun `buildDeltakerV1Record - vedtak uten prosent gir fortsatt ingen periode`() {
+        listOf(3F, null).forEach { dager ->
+            // Arrange
+            val vedtakUtenProsent = lagVedtak(
+                deltakerVedVedtak = deltaker.copy(deltakelsesprosent = null, dagerPerUke = dager),
+                fattet = vedtak.fattet,
+            )
+            historikk.clear()
+            historikk.add(DeltakerHistorikk.Vedtak(vedtakUtenProsent))
+
+            // Act
+            val response = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
+            val mengderUtenFallback = historikk.toDeltakelsesmengder()
+
+            // Assert
+            response.deltakelsesmengder shouldBe emptyList()
+            mengderUtenFallback.map { it.dagerPerUke } shouldBe listOfNotNull(dager)
         }
     }
 

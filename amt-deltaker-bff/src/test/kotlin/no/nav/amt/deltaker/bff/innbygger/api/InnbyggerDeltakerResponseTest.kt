@@ -9,8 +9,11 @@ import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.deltaker.bff.utils.TestData.lagForslag
 import no.nav.amt.deltaker.bff.utils.TestData.lagGjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.InnholdResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerStatusResponse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class InnbyggerDeltakerResponseTest {
     @Test
@@ -122,5 +125,55 @@ class InnbyggerDeltakerResponseTest {
         result.deltakerliste.startdato shouldBe gjennomforing.startDato
         result.deltakerliste.sluttdato shouldBe gjennomforing.sluttDato
         result.deltakerliste.oppmoteSted shouldBe gjennomforing.oppmoteSted
+    }
+
+    @Test
+    fun `fromModel - deltaker uten mengde og perioder - bevarer null`() {
+        // Arrange
+        val model = ModelMapper.toDeltaker(lagDeltakerResponse()).copy(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            deltakelsesmengder = null,
+        )
+
+        // Act
+        val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
+
+        // Assert
+        result.deltakelsesprosent shouldBe null
+        result.dagerPerUke shouldBe null
+        result.deltakelsesmengder shouldBe null
+    }
+
+    @Test
+    fun `fromModel - periode uten prosent - bevarer dager og dato som neste og siste periode`() {
+        listOf(3F, null).forEach { dager ->
+            // Arrange
+            val gyldigFra = LocalDate.now().plusMonths(1)
+            val periode = DeltakelsesmengdeResponse(
+                deltakelsesprosent = null,
+                dagerPerUke = dager,
+                gyldigFra = gyldigFra,
+            )
+            val model = ModelMapper.toDeltaker(lagDeltakerResponse()).copy(
+                deltakelsesprosent = 79.5F,
+                dagerPerUke = 4F,
+                deltakelsesmengder = DeltakelsesmengderResponse(
+                    nesteDeltakelsesmengde = periode,
+                    sisteDeltakelsesmengde = periode,
+                ),
+            )
+
+            // Act
+            val result = InnbyggerDeltakerResponse.fromModel(deltaker = model)
+
+            // Assert
+            result.deltakelsesprosent shouldBe 79.5F
+            result.dagerPerUke shouldBe 4F
+            result.deltakelsesmengder shouldBe model.deltakelsesmengder
+            result.deltakelsesmengder shouldNotBe null
+            result.deltakelsesmengder!!.nesteDeltakelsesmengde shouldBe periode
+            result.deltakelsesmengder.sisteDeltakelsesmengde shouldBe periode
+        }
     }
 }

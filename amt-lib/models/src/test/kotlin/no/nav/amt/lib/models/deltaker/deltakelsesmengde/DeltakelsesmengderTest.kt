@@ -10,6 +10,234 @@ import java.time.LocalDateTime
 
 class DeltakelsesmengderTest {
     @Test
+    fun `endring uten prosent bevarer dager og manglende prosent`() {
+        // Arrange
+        val endring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = 3,
+            gyldigFra = LocalDate.now(),
+            opprettet = LocalDateTime.now(),
+        )
+
+        // Act
+        val deltakelsesmengde = endring.toDeltakelsesmengde()
+
+        // Assert
+        assertSoftly(deltakelsesmengde.shouldNotBeNull()) {
+            deltakelsesprosent shouldBe null
+            dagerPerUke shouldBe 3F
+        }
+    }
+
+    @Test
+    fun `vedtak med prosent eller dager bevarer perioden`() {
+        listOf(null to 3F, 80F to null).forEach { (prosent, dager) ->
+            // Arrange
+            val vedtak = TestData.lagVedtak(deltakelsesprosent = prosent, dagerPerUke = dager)
+            val historikk = TestData.lagDeltakerHistorikk(vedtak = listOf(vedtak))
+
+            // Act
+            val mengder = historikk.toDeltakelsesmengder()
+
+            // Assert
+            mengder.size shouldBe 1
+            assertSoftly(mengder.single()) {
+                deltakelsesprosent shouldBe prosent
+                dagerPerUke shouldBe dager
+                gyldigFra shouldBe vedtak.fattet.shouldNotBeNull().toLocalDate()
+            }
+        }
+    }
+
+    @Test
+    fun `vedtak uten prosent og dager gir ingen periode`() {
+        // Arrange
+        val vedtak = TestData.lagVedtak(deltakelsesprosent = null, dagerPerUke = null)
+        val historikk = TestData.lagDeltakerHistorikk(vedtak = listOf(vedtak))
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.toList() shouldBe emptyList()
+        mengder.gjeldende shouldBe null
+        mengder.neste shouldBe null
+    }
+
+    @Test
+    fun `vedtak uten prosent og dager erstatter ikke tidligere registrert mengde`() {
+        // Arrange
+        val tidligere = TestData.lagVedtak(
+            deltakelsesprosent = 80F,
+            dagerPerUke = 4F,
+            fattet = LocalDate.now().minusMonths(1).atStartOfDay(),
+        )
+        val tomtVedtak = TestData.lagVedtak(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            fattet = LocalDate.now().atStartOfDay(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(vedtak = listOf(tidligere, tomtVedtak))
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.toList() shouldBe listOf(tidligere.toDeltakelsesmengde())
+        mengder.gjeldende shouldBe tidligere.toDeltakelsesmengde()
+    }
+
+    @Test
+    fun `Arena-import med prosent eller dager bevarer perioden`() {
+        listOf(null to 3F, 80F to null).forEach { (prosent, dager) ->
+            // Arrange
+            val import = TestData.lagImportertFraArena(deltakelsesprosent = prosent, dagerPerUke = dager)
+            val historikk = TestData.lagDeltakerHistorikk(importertFraArena = listOf(import))
+
+            // Act
+            val mengder = historikk.toDeltakelsesmengder()
+
+            // Assert
+            mengder.size shouldBe 1
+            assertSoftly(mengder.single()) {
+                deltakelsesprosent shouldBe prosent
+                dagerPerUke shouldBe dager
+                gyldigFra shouldBe import.deltakerVedImport.innsoktDato
+            }
+        }
+    }
+
+    @Test
+    fun `Arena-import uten prosent og dager gir ingen periode`() {
+        // Arrange
+        val import = TestData.lagImportertFraArena(deltakelsesprosent = null, dagerPerUke = null)
+        val historikk = TestData.lagDeltakerHistorikk(importertFraArena = listOf(import))
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.toList() shouldBe emptyList()
+        mengder.gjeldende shouldBe null
+        mengder.neste shouldBe null
+    }
+
+    @Test
+    fun `Arena-import uten prosent og dager erstatter ikke tidligere registrert mengde`() {
+        // Arrange
+        val tidligere = TestData.lagVedtak(
+            deltakelsesprosent = 80F,
+            dagerPerUke = 4F,
+            fattet = LocalDate.now().minusMonths(1).atStartOfDay(),
+        )
+        val import = TestData.lagImportertFraArena(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            innsoktDato = LocalDate.now(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(tidligere),
+            importertFraArena = listOf(import),
+        )
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.toList() shouldBe listOf(tidligere.toDeltakelsesmengde())
+        mengder.gjeldende shouldBe tidligere.toDeltakelsesmengde()
+    }
+
+    @Test
+    fun `tom gjeldende periode erstatter tidligere registrert mengde`() {
+        // Arrange
+        val tidligere = TestData.lagVedtak(
+            deltakelsesprosent = 80F,
+            dagerPerUke = 4F,
+            fattet = LocalDate.now().minusMonths(1).atStartOfDay(),
+        )
+        val tomPeriode = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            gyldigFra = LocalDate.now(),
+            opprettet = LocalDateTime.now(),
+        )
+
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(tidligere),
+            endringer = listOf(tomPeriode),
+        )
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.size shouldBe 2
+        assertSoftly(mengder.gjeldende.shouldNotBeNull()) {
+            deltakelsesprosent shouldBe null
+            dagerPerUke shouldBe null
+            gyldigFra shouldBe LocalDate.now()
+        }
+    }
+
+    @Test
+    fun `tom fremtidig periode beholdes som neste og siste mengde`() {
+        // Arrange
+        val tidligere = TestData.lagVedtak(fattet = LocalDate.now().minusMonths(1).atStartOfDay())
+        val gyldigFra = LocalDate.now().plusMonths(1)
+        val tomPeriode = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            gyldigFra = gyldigFra,
+            opprettet = LocalDateTime.now(),
+        )
+
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(tidligere),
+            endringer = listOf(tomPeriode),
+        )
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.gjeldende?.deltakelsesprosent shouldBe tidligere.deltakerVedVedtak.deltakelsesprosent
+        mengder.neste shouldBe mengder.last()
+        assertSoftly(mengder.neste.shouldNotBeNull()) {
+            deltakelsesprosent shouldBe null
+            dagerPerUke shouldBe null
+            this.gyldigFra shouldBe gyldigFra
+        }
+    }
+
+    @Test
+    fun `manglende prosent slås ikke sammen med hundre prosent`() {
+        // Arrange
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = 100F,
+            dagerPerUke = 3F,
+            fattet = LocalDate.now().minusMonths(1).atStartOfDay(),
+        )
+        val endring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = 3,
+            gyldigFra = LocalDate.now().plusMonths(1),
+            opprettet = LocalDateTime.now(),
+        )
+
+        val historikk = TestData.lagDeltakerHistorikk(
+            vedtak = listOf(vedtak),
+            endringer = listOf(endring),
+        )
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengder.map { it.deltakelsesprosent } shouldBe listOf(100F, null)
+    }
+
+    @Test
     fun `Deltakelsesmengder - kun vedtak - returnerer riktig deltakelsesmengder`() {
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now())
         val historikk = TestData.lagDeltakerHistorikk(listOf(vedtak))
@@ -265,6 +493,88 @@ class DeltakelsesmengderTest {
 
         deltakelsesmengder.size shouldBe 1
         forsteEndring.toDeltakelsesmengde() shouldBe deltakelsesmengder[0]
+    }
+
+    @Test
+    fun `legacy-konvertering slår sammen perioder etter fallback`() {
+        // Arrange
+        val vedtak = TestData.lagVedtak(
+            deltakelsesprosent = 100F,
+            dagerPerUke = 3F,
+            fattet = LocalDate.now().minusMonths(1).atStartOfDay(),
+        )
+        val endring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = 3,
+            gyldigFra = LocalDate.now().plusMonths(1),
+            opprettet = LocalDateTime.now(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(vedtak = listOf(vedtak), endringer = listOf(endring))
+
+        // Act
+        val mengderMedFallback = historikk.toDeltakelsesmengderMedFallback()
+        val mengder = historikk.toDeltakelsesmengder()
+
+        // Assert
+        mengderMedFallback.toList() shouldBe listOf(vedtak.toDeltakelsesmengde())
+        mengder.map { it.deltakelsesprosent } shouldBe listOf(100F, null)
+    }
+
+    @Test
+    fun `legacy-konvertering utelater fortsatt vedtak og import uten prosent`() {
+        listOf(3F, null).forEach { dager ->
+            // Arrange
+            val historikk = TestData.lagDeltakerHistorikk(
+                vedtak = listOf(TestData.lagVedtak(deltakelsesprosent = null, dagerPerUke = dager)),
+                importertFraArena = listOf(TestData.lagImportertFraArena(deltakelsesprosent = null, dagerPerUke = dager)),
+            )
+
+            // Act
+            val mengder = historikk.toDeltakelsesmengderMedFallback()
+
+            // Assert
+            mengder.isEmpty() shouldBe true
+        }
+    }
+
+    @Test
+    fun `legacy-konvertering bruker fortsatt hundre prosent for endringer uten mengde`() {
+        // Arrange
+        val gyldigFra = LocalDate.now().plusMonths(1)
+        val endring = TestData.lagEndreDeltakelsesmengde(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+            gyldigFra = gyldigFra,
+            opprettet = LocalDateTime.now(),
+        )
+        val historikk = TestData.lagDeltakerHistorikk(endringer = listOf(endring))
+
+        // Act
+        val mengder = historikk.toDeltakelsesmengderMedFallback()
+
+        // Assert
+        assertSoftly(mengder.single()) {
+            deltakelsesprosent shouldBe 100F
+            dagerPerUke shouldBe null
+            this.gyldigFra shouldBe gyldigFra
+        }
+    }
+
+    @Test
+    fun `tom mengde brukes som sammenligningsgrunnlag i validering`() {
+        // Arrange
+        val tomMengde = Deltakelsesmengde(null, null, LocalDate.now(), LocalDateTime.now())
+        val mengder = Deltakelsesmengder(listOf(tomMengde))
+
+        // Act
+        val uendretMengdeErGyldig = mengder.validerNyDeltakelsesmengde(tomMengde)
+        val endretProsentErGyldig = mengder.validerNyDeltakelsesmengde(tomMengde.copy(deltakelsesprosent = 60F))
+        val endretDagerPerUkeErGyldig = mengder.validerNyDeltakelsesmengde(tomMengde.copy(dagerPerUke = 3F))
+
+        // Assert
+        uendretMengdeErGyldig shouldBe false
+        endretProsentErGyldig shouldBe true
+        endretDagerPerUkeErGyldig shouldBe true
     }
 
     @Test

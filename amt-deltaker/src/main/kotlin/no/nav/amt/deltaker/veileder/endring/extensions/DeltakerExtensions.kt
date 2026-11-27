@@ -56,10 +56,13 @@ fun Deltaker.endreDeltakersOppstart(
 
             !nySluttdato.erPassert(now) && (nyStartdato == null || nyStartdato.isAfter(now)) ->
                 nyStatusHvisEndret(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+
             nyStartdato != null && !nyStartdato.isAfter(now) && !nySluttdato.erPassert(now) ->
                 nyStatusHvisEndret(DeltakerStatus.Type.DELTAR)
+
             nySluttdato.erPassert(now) ->
                 nyStatusHvisEndret(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
+
             else -> status
         }
     }
@@ -69,16 +72,30 @@ fun Deltaker.endreDeltakersOppstart(
         nyStartdato = startdato,
         nySluttdato = faktiskSluttdato,
     )
+
+    val (startdato, sluttdato) = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) {
+        null to null
+    } else {
+        startdato to faktiskSluttdato
+    }
+
     val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
-    // Ved fremtidig startdato er ingen mengde gjeldende i dag; bruk da den første som gjelder fra ny startdato
+    // Før fremtidig oppstart finnes ingen gjeldende mengde i dag. Lagre da den første
+    // mengden fra ny startdato slik at den kan vises også mens deltakeren venter på oppstart.
     val forsteGjeldendeMengde = oppdatertDeltakelsmengde.gjeldende ?: oppdatertDeltakelsmengde.firstOrNull()
 
+    // Prosent og dager hører til samme periode. Null i en eksisterende periode betyr at feltet
+    // er tømt; behold gamle verdier bare når historikken ikke gir noen mengde.
+    val (nyDeltakelsesprosent, nyeDagerPerUke) = forsteGjeldendeMengde
+        ?.let { it.deltakelsesprosent to it.dagerPerUke }
+        ?: (deltakelsesprosent to dagerPerUke)
+
     return this.copy(
-        startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,
-        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else faktiskSluttdato,
+        startdato = startdato,
+        sluttdato = sluttdato,
         status = oppdatertStatus,
-        deltakelsesprosent = forsteGjeldendeMengde?.deltakelsesprosent ?: deltakelsesprosent,
-        dagerPerUke = if (forsteGjeldendeMengde != null) forsteGjeldendeMengde.dagerPerUke else dagerPerUke,
+        deltakelsesprosent = nyDeltakelsesprosent,
+        dagerPerUke = nyeDagerPerUke,
     )
 }
 

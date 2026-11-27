@@ -1,11 +1,17 @@
 package no.nav.amt.deltaker.bff.veileder.api.response
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.bff.clients.ModelMapper
+import no.nav.amt.deltaker.bff.utils.TestData.lagDeltakerResponse
 import no.nav.amt.internapi.deltaker.annetInnholdselement
 import no.nav.amt.internapi.deltaker.response.DeltakelsesinnholdResponse.Companion.fulltInnhold
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengdeResponse
+import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.toInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class DeltakerResponseTest {
     private val innholdselementer = listOf(
@@ -48,6 +54,48 @@ class DeltakerResponseTest {
                 }
 
                 else -> it.valgt shouldBe false
+            }
+        }
+    }
+
+    @Nested
+    inner class FromDeltakerModel {
+        @Test
+        fun `manglende mengder bevares uten tomt erstatningsobjekt`() {
+            // Arrange
+            val model = ModelMapper.toDeltaker(lagDeltakerResponse()).copy(
+                deltakelsesprosent = null,
+                dagerPerUke = null,
+                deltakelsesmengder = null,
+            )
+
+            // Act
+            val response = DeltakerResponse.fromDeltakerModel(model)
+
+            // Assert
+            response.deltakelsesprosent shouldBe null
+            response.dagerPerUke shouldBe null
+            response.deltakelsesmengder shouldBe null
+        }
+
+        @Test
+        fun `perioder uten prosent beholdes uavhengig av gjeldende mengde`() {
+            listOf(3F, null).forEach { dager ->
+                // Arrange
+                val periode = DeltakelsesmengdeResponse(null, dager, LocalDate.of(2026, 12, 1))
+                val model = ModelMapper.toDeltaker(lagDeltakerResponse()).copy(
+                    deltakelsesprosent = 79.5F,
+                    dagerPerUke = 4F,
+                    deltakelsesmengder = DeltakelsesmengderResponse(periode, periode),
+                )
+
+                // Act
+                val response = DeltakerResponse.fromDeltakerModel(model)
+
+                // Assert
+                response.deltakelsesprosent shouldBe 79.5F
+                response.dagerPerUke shouldBe 4F
+                response.deltakelsesmengder shouldBe model.deltakelsesmengder
             }
         }
     }

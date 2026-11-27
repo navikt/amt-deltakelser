@@ -2,7 +2,6 @@ package no.nav.amt.distribusjon.utils.data
 
 import no.nav.amt.distribusjon.utils.data.Persondata.lagNavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.ArrangorResponse
-import no.nav.amt.internapi.deltaker.response.DeltakelsesmengderResponse
 import no.nav.amt.internapi.deltaker.response.DeltakerResponse
 import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.VisningsnavnResponse
@@ -46,7 +45,7 @@ object DeltakerData {
         endringsforslagFraArrangor = emptyList(),
         sisteVurdering = null,
         soktInnDato = null,
-        deltakelsesmengder = DeltakelsesmengderResponse(),
+        deltakelsesmengder = null,
         importertFraArena = null,
     )
 

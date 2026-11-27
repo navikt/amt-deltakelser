@@ -18,6 +18,7 @@ import no.nav.amt.internapi.deltaker.response.GjennomforingResponse
 import no.nav.amt.internapi.deltaker.response.NavBrukerResponse
 import no.nav.amt.internapi.deltaker.response.VedtaksinformasjonResponse
 import no.nav.amt.internapi.deltaker.response.VurderingResponse
+import no.nav.amt.internapi.deltaker.response.nesteTilVisning
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -88,22 +89,7 @@ class DeltakerResponseBuilder(
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
             soktInnDato = deltakerRepository.getSoktInnDato(deltaker.id),
-            // Følgende er påkrevd for å beregne deltakelsesmengder
-            // DeltakerHistorikk.ImportertFraArena
-            // DeltakerHistorikk.Endring
-            // DeltakerHistorikk.Vedtak
-            // EndringFraArrangor.LeggTilOppstartsdato
-            deltakelsesmengder = historikk
-                .toDeltakelsesmengder()
-                .let { mengder ->
-                    // Usikker på hva dette handler om men koden er kopiert fra Deltaker
-                    deltaker.startdato?.let { mengder.periode(it, deltaker.sluttdato) } ?: mengder
-                }.let { deltakelsesmengder ->
-                    DeltakelsesmengderResponse(
-                        nesteDeltakelsesmengde = deltakelsesmengder.neste?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
-                        sisteDeltakelsesmengde = deltakelsesmengder.lastOrNull()?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
-                    )
-                },
+            deltakelsesmengder = buildDeltakelsesmengderResponse(deltaker, historikk),
             erLaastForEndringer = deltakerLaaseService.erLaastForEndringer(deltaker),
             endringsforslagFraArrangor = endringsforslagForDeltaker,
             sisteVurdering = sisteVurdering?.let { VurderingResponse.fromVurdering(it) },
@@ -112,6 +98,40 @@ class DeltakerResponseBuilder(
                 .filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
                 .let { it.firstOrNull()?.importertFraArena },
         )
+    }
+
+    internal fun buildDeltakelsesmengderResponse(
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk>,
+    ): DeltakelsesmengderResponse? {
+        // Vedtak, Arena-import og mengdeendringer gir mengdene. Endret oppstartsdato
+        // fra Nav eller arrangør flytter periodenes start i historikkberegningen.
+        val deltakelsesmengder = historikk.toDeltakelsesmengder()
+
+        // Avgrens også mot deltakerens faktiske datoer: første mengde skal ikke
+        // starte før oppstart, og endringer etter sluttdato skal ikke vises.
+        val avgrensedeMengder = if (deltaker.startdato != null) {
+            deltakelsesmengder.periode(deltaker.startdato, deltaker.sluttdato)
+        } else {
+            deltakelsesmengder
+        }
+
+        // Uten gyldige mengdeperioder returneres null for hele deltakelsesmengder-feltet.
+        // Finnes en periode, bevares den selv om prosent og dager er tømt.
+        val sisteMengde = avgrensedeMengder.lastOrNull()
+        return if (sisteMengde == null) {
+            null
+        } else {
+            DeltakelsesmengderResponse(
+                // Bare senere endringer vises som neste periode. Mengden fra selve
+                // oppstarten vises allerede fra deltakerresponsens toppnivåfelter.
+                nesteDeltakelsesmengde = avgrensedeMengder
+                    .nesteTilVisning(deltaker.startdato)
+                    ?.let(DeltakelsesmengdeResponse::fromDeltakelsesmengde),
+                // Endringsskjemaet trenger siste planlagte mengde selv om den ikke vises som «neste».
+                sisteDeltakelsesmengde = DeltakelsesmengdeResponse.fromDeltakelsesmengde(sisteMengde),
+            )
+        }
     }
 
     internal fun buildGjennomforingResponse(

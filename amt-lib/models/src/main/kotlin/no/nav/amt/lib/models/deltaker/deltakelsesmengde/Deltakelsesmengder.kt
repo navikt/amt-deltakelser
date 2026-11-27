@@ -206,14 +206,17 @@ class Deltakelsesmengder(
 }
 
 // Filtrerer ut deltakelsesmengder og returnerer et Deltakelsesmengder-objekt
-fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder = this
+fun List<DeltakerHistorikk>.toDeltakelsesmengder(isForDeltakerExternalTopic: Boolean = false): Deltakelsesmengder =
+    toDeltakelsesmengder { historikk ->
+        if (isForDeltakerExternalTopic) historikk.toDeltakelsesmengdeEkstern() else historikk.toDeltakelsesmengde()
+    }
+
+internal fun List<DeltakerHistorikk>.toDeltakelsesmengder(
+    mapDeltakelsesmengde: (DeltakerHistorikk) -> Deltakelsesmengde?,
+): Deltakelsesmengder = this
     .sortedBy { it.sistEndret }
     .fold(Deltakelsesmengder(emptyList())) { mengder, historikk ->
-        val deltakelsesmengde = if (isForDeltakerExternalTopic) {
-            historikk.toDeltakelsesmengdeEkstern()
-        } else {
-            historikk.toDeltakelsesmengde()
-        }
+        val deltakelsesmengde = mapDeltakelsesmengde(historikk)
 
         val startdato = historikk.toStartdato()
 

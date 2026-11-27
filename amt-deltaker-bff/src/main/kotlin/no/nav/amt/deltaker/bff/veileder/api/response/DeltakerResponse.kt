@@ -33,7 +33,7 @@ data class DeltakerResponse(
     val vedtaksinformasjon: VedtaksinformasjonResponse?,
     val importertFraArena: ImportertFraArenaResponse?,
     val harAdresse: Boolean,
-    val deltakelsesmengder: DeltakelsesmengderResponse,
+    val deltakelsesmengder: DeltakelsesmengderResponse?,
     val erUnderOppfolging: Boolean,
     val erManueltDeltMedArrangor: Boolean,
 ) {
@@ -77,9 +77,7 @@ data class DeltakerResponse(
                 },
                 importertFraArena = importertFraArena?.let { ImportertFraArenaResponse(importertFraArena.deltakerVedImport.innsoktDato) },
                 harAdresse = navBruker.adresse != null,
-                // Her bør det gjøres noen forenklinger
-                // Kan dette utledes i amt-deltaker?
-                deltakelsesmengder = deltakelsesmengder ?: DeltakelsesmengderResponse(),
+                deltakelsesmengder = deltakelsesmengder,
                 erUnderOppfolging = navBruker.harAktivOppfolgingsperiode,
                 erManueltDeltMedArrangor = erManueltDeltMedArrangor,
             )

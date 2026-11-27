@@ -88,7 +88,9 @@ data class DeltakelsesmengdeDto(
 )
 
 fun Deltakelsesmengde.toDto() = DeltakelsesmengdeDto(
-    deltakelsesprosent,
+    // toDeltakelsesmengderMedFallback() setter 100 % for endringer uten prosent
+    // og filtrerer bort vedtak/import uten prosent. Derfor er verdien ikke null her.
+    requireNotNull(deltakelsesprosent),
     dagerPerUke,
     gyldigFra,
 )
