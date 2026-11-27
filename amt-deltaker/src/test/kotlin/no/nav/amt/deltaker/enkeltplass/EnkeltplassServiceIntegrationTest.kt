@@ -796,6 +796,51 @@ class EnkeltplassServiceIntegrationTest : IntegrationTestWithDbBase() {
         }
 
         @Test
+        fun `fra kladd - lagrer prisinformasjon fra requesten på innsøket`() = runTest {
+            // Arrange
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+
+            // Act
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+
+            // Assert
+            val innsok = innsokRepository.getForDeltaker(deltakerInTest.id).shouldNotBeNull()
+            innsok.prisinformasjonVedInnsok shouldBe pameldingRequest.prisinformasjon
+        }
+
+        @Test
+        fun `fra utkast med endret pris - lagrer ny pris fra requesten på innsøket`() = runTest {
+            // Arrange
+            val deltakerInTest = enkeltplassService.opprettKladd(
+                tiltakInTest.tiltakskode,
+                navBrukerInTest.personident,
+            )
+            enkeltplassService.delUtkastMedInnbygger(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest,
+            )
+            val nyPris = Anskaffelse(5678)
+
+            // Act
+            enkeltplassService.meldPaaDirekte(
+                deltakerId = deltakerInTest.id,
+                decoratedRequest = decoratedRequest.copy(
+                    wrappedRequest = pameldingRequest.copy(prisinformasjon = nyPris),
+                ),
+            )
+
+            // Assert
+            val innsok = innsokRepository.getForDeltaker(deltakerInTest.id).shouldNotBeNull()
+            innsok.prisinformasjonVedInnsok shouldBe nyPris
+        }
+
+        @Test
         fun `skal sette status SOKT_INN fra UTKAST_TIL_PAMELDING status`() = runTest {
             // Arrange
             val deltakerInTest = enkeltplassService.opprettKladd(
