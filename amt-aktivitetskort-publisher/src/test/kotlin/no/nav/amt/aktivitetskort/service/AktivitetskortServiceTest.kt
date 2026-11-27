@@ -5,10 +5,12 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import no.nav.amt.aktivitetskort.client.AktivitetArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtArenaAclClient
 import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
@@ -41,6 +43,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.test.context.TestPropertySource
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.SimpleTransactionStatus
@@ -89,6 +94,7 @@ class AktivitetskortServiceTest {
     @BeforeEach
     fun setup() {
         every { oppfolgingsperiodeRepository.upsert(any()) } returns TestData.oppfolgingsperiode()
+        every { arrangorRepository.getUnderordnedeArrangorer(any()) } returns emptyList()
         every { transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>()) } answers {
             firstArg<Consumer<TransactionStatus>>().accept(SimpleTransactionStatus())
         }
@@ -133,17 +139,27 @@ class AktivitetskortServiceTest {
                 aktivitetskort = aktivitetskort,
             )
             val lagretMelding = slot<Melding>()
-            every { meldingRepository.upsert(capture(lagretMelding)) } returns Unit
+            every { meldingRepository.upsertLaast(capture(lagretMelding)) } returns Unit
+            every { deltakerRepository.get(deltaker.id) } returns deltaker
+            every { meldingRepository.getByDeltakerId(deltaker.id) } returns listOf(melding)
             every { deltakerRepository.delete(deltaker.id) } returns Unit
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskortForSlettetDeltaker(deltaker, melding)
+            aktivitetskortService.slettDeltaker(deltaker.id)
 
             // Assert
             lagretMelding.captured.aktivitetskort.startDato shouldBe aktivitetskort.startDato
             lagretMelding.captured.aktivitetskort.sluttDato shouldBe aktivitetskort.sluttDato
             lagretMelding.captured.aktivitetskort.avtaltMedNav shouldBe aktivitetskort.avtaltMedNav
             lagretMelding.captured.aktivitetskort.aktivitetStatus shouldBe AktivitetStatus.AVBRUTT
+            verifyOrder {
+                meldingRepository.advisoryLockMedlemshistorikk(deltaker.id)
+                meldingRepository.getByDeltakerId(deltaker.id)
+                meldingRepository.upsertLaast(any())
+                aktivitetskortProducer.send(any())
+                deltakerRepository.delete(deltaker.id)
+            }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
         }
     }
 
@@ -159,7 +175,7 @@ class AktivitetskortServiceTest {
 
             (forberedt is AktivitetskortService.ForberedtMelding.Klar) shouldBe true
             verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
             verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
             verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
@@ -180,7 +196,7 @@ class AktivitetskortServiceTest {
             verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
             aktivitetskortService.lagreAktivitetskort(forberedt) shouldBe null
             verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
             verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
         }
@@ -200,8 +216,33 @@ class AktivitetskortServiceTest {
             }
 
             verify(exactly = 1) { oppfolgingsperiodeRepository.upsert(nyPeriode) }
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+        }
+
+        @Test
+        fun `forberedt kort låses og valideres før lagring uten nye repositorylåser`() {
+            val ctx = TestData.MockContext()
+            val forberedt = AktivitetskortService.ForberedtMelding.Klar(
+                ctx.melding,
+                nyPeriode,
+                AktivitetskortService.Meldingshistorikk(ctx.deltaker.id, listOf(ctx.melding)),
+            )
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(ctx.melding)
+
+            aktivitetskortService.lagreAktivitetskort(forberedt) shouldBe ctx.aktivitetskort
+
+            verifyOrder {
+                meldingRepository.advisoryLockMedlemskap("arrangor", ctx.arrangor.id, delt = true)
+                meldingRepository.advisoryLockMedlemskap("deltakerliste", ctx.deltakerliste.id, delt = true)
+                meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id)
+                meldingRepository.getByDeltakerId(ctx.deltaker.id)
+                oppfolgingsperiodeRepository.upsert(nyPeriode)
+                meldingRepository.upsertLaast(ctx.melding)
+                aktivitetskortProducer.send(ctx.aktivitetskort)
+            }
+            verify(exactly = 1) { meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id) }
+            verify(exactly = 0) { meldingRepository.upsert(any()) }
         }
     }
 
@@ -223,7 +264,7 @@ class AktivitetskortServiceTest {
             val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
 
             assertSoftly(aktivitetskort.shouldNotBeNull()) {
                 id shouldBe aktivitetskordId
@@ -278,7 +319,7 @@ class AktivitetskortServiceTest {
             val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
 
             assertSoftly(aktivitetskort.shouldNotBeNull()) {
                 personident shouldBe ctx.aktivitetskort.personident
@@ -315,7 +356,7 @@ class AktivitetskortServiceTest {
             }
 
             // Assert
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 0) { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) }
         }
 
@@ -339,7 +380,7 @@ class AktivitetskortServiceTest {
             aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 0) { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) }
         }
 
@@ -378,7 +419,7 @@ class AktivitetskortServiceTest {
             }
 
             // Assert
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
             verify(exactly = 1) { aktivitetArenaAclClient.getAktivitetIdForArenaId(any()) }
         }
 
@@ -395,7 +436,7 @@ class AktivitetskortServiceTest {
             val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
             aktivitetskort shouldBe ctx.aktivitetskort
         }
 
@@ -415,7 +456,7 @@ class AktivitetskortServiceTest {
             val aktivitetskort = aktivitetskortService.lagAktivitetskort(ctx.deltakerModel())
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
             aktivitetskort?.id shouldNotBe ctx.aktivitetskort.id
         }
 
@@ -442,29 +483,214 @@ class AktivitetskortServiceTest {
     }
 
     @Nested
-    inner class OppdaterAktivitetskortDeltakerliste {
+    inner class ForberedAktivitetskortDeltakerliste {
         @Test
-        fun `oppdaterAktivitetskort(deltakerliste) - meldinger finnes - lager nye aktivitetskort`() {
+        fun `meldinger finnes - forbereder kort med eksisterende ID uten å lagre`() {
             // Arrange
             val ctx = TestData.MockContext()
             ctx.stubDeltakerFraAmtDeltaker()
 
             every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returns listOf(ctx.melding)
-            every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker
-            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
-            every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
-            every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(ctx.melding)
             every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
-            val lagredeMeldinger = mutableListOf<Melding>()
-            every { meldingRepository.upsert(capture(lagredeMeldinger)) } returns Unit
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskort(ctx.deltakerliste.id)
+            val forberedt = aktivitetskortService
+                .forberedAktivitetskort(ctx.deltakerliste.id)
+                .meldinger
+                .single()
+                .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            forberedt.melding.aktivitetskort shouldBe ctx.aktivitetskort
+            forberedt.melding.id shouldBe ctx.melding.id
+            forberedt.oppfolgingsperiode shouldBe nyPeriode
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
+            verify(exactly = 0) { oppfolgingsperiodeRepository.upsert(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+            verify(exactly = 0) { amtArenaAclClient.getArenaIdForAmtId(any()) }
+        }
 
-            lagredeMeldinger.map { it.aktivitetskort } shouldBe listOf(ctx.aktivitetskort)
+        @Test
+        fun `ingen meldinger - ingen API-kall`() {
+            val gjennomforingId = UUID.randomUUID()
+            every { meldingRepository.getByDeltakerlisteId(gjennomforingId) } returns emptyList()
+
+            aktivitetskortService.forberedAktivitetskort(gjennomforingId).meldinger shouldBe emptyList()
+
+            verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
+            verify(exactly = 0) { veilarboppfolgingClient.hentOppfolgingperiode(any()) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `første kort etter tomt gruppeutvalg forkaster forsøket`(arrangor: Boolean) {
+            val ctx = TestData.MockContext()
+            every { arrangorRepository.getUnderordnedeArrangorer(ctx.arrangor.id) } returns emptyList()
+            every { meldingRepository.getByArrangorId(ctx.arrangor.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            val gruppe = if (arrangor) {
+                aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id)
+            } else {
+                aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id)
+            }
+
+            assertThrows<ConcurrencyFailureException> { aktivitetskortService.lagreAktivitetskortGruppe(gruppe) }
+
+            val type = if (arrangor) "arrangor" else "deltakerliste"
+            val id = if (arrangor) ctx.arrangor.id else ctx.deltakerliste.id
+            verify(exactly = 1) { meldingRepository.advisoryLockMedlemskap(type, id) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+            verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
+        }
+
+        @Test
+        fun `et nyere kort på listen mellom utvalg og historikklesing forkaster forsøket`() {
+            val ctx = TestData.MockContext()
+            val nyeste = ctx.melding.copy(id = UUID.randomUUID(), createdAt = ctx.melding.createdAt.plusDays(1))
+            every { meldingRepository.getByDeltakerlisteId(ctx.deltakerliste.id) } returns listOf(ctx.melding)
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(nyeste, ctx.melding)
+
+            assertThrows<ConcurrencyFailureException> { aktivitetskortService.forberedAktivitetskort(ctx.deltakerliste.id) }
+
+            verify(exactly = 0) { amtDeltakerClient.getDeltaker(any()) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["id", "periode", "createdAt", "modifiedAt", "innhold", "slettet"])
+        fun `endret meldingshistorikk forkaster forberedelsen`(endring: String) {
+            val ctx = TestData.MockContext()
+            val oppdatert = when (endring) {
+                "id" -> ctx.melding.copy(id = UUID.randomUUID())
+                "periode" -> ctx.melding.copy(oppfolgingperiode = UUID.randomUUID())
+                "createdAt" -> ctx.melding.copy(createdAt = ctx.melding.createdAt.minusSeconds(1))
+                "modifiedAt" -> ctx.melding.copy(modifiedAt = ctx.melding.modifiedAt.plusSeconds(1))
+                else -> ctx.melding.copy(aktivitetskort = ctx.aktivitetskort.copy(tittel = "Nyere kort"))
+            }
+            val nyeste = ctx.melding.copy(id = UUID.randomUUID(), createdAt = ctx.melding.createdAt.plusDays(1))
+            val gjeldende = if (endring == "slettet") listOf(nyeste) else listOf(nyeste, oppdatert)
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns gjeldende
+
+            assertThrows<ConcurrencyFailureException> {
+                aktivitetskortService.lagreAktivitetskort(
+                    AktivitetskortService.ForberedtMelding.Klar(
+                        ctx.melding,
+                        nyPeriode,
+                        AktivitetskortService.Meldingshistorikk(ctx.deltaker.id, listOf(ctx.melding, nyeste)),
+                    ),
+                )
+            }
+
+            verify(exactly = 1) { meldingRepository.advisoryLockMedlemshistorikk(ctx.deltaker.id) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
+            verify(exactly = 0) { aktivitetskortProducer.send(any()) }
+        }
+
+        @Test
+        fun `nytt kort mellom historikklesingene forkaster forberedelsen`() {
+            val ctx = TestData.MockContext()
+            val nyMelding = ctx.melding.copy(
+                id = UUID.randomUUID(),
+                createdAt = ctx.melding.createdAt.plusSeconds(1),
+            )
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns listOf(nyMelding, ctx.melding)
+
+            assertThrows<ConcurrencyFailureException> {
+                aktivitetskortService.lagreAktivitetskort(
+                    AktivitetskortService.ForberedtMelding.Klar(
+                        ctx.melding,
+                        nyPeriode,
+                        AktivitetskortService.Meldingshistorikk(ctx.deltaker.id, listOf(ctx.melding)),
+                    ),
+                )
+            }
+        }
+
+        @Test
+        fun `kortvalg bruker historikken fra før HTTP-kallet`() {
+            val ctx = TestData.MockContext(deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET))
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returnsMany listOf(emptyList(), listOf(ctx.melding))
+            every { veilarboppfolgingClient.hentOppfolgingperiode(any()) } returns nyPeriode
+
+            val forberedt = aktivitetskortService
+                .forberedMelding(ctx.deltakerModel())
+                .shouldBeInstanceOf<AktivitetskortService.ForberedtMelding.Klar>()
+
+            forberedt.historikk.meldinger shouldBe emptyList()
+            forberedt.melding.id shouldNotBe ctx.melding.id
+            verify(exactly = 1) { meldingRepository.getByDeltakerId(ctx.deltaker.id) }
+            assertThrows<ConcurrencyFailureException> { aktivitetskortService.lagreAktivitetskort(forberedt) }
+        }
+
+        @Test
+        fun `grupper låser deltakere i samme rekkefølge uavhengig av rekkefølgen på kortene`() {
+            val forste = UUID.fromString("00000000-0000-0000-0000-000000000001")
+            val andre = UUID.fromString("00000000-0000-0000-0000-000000000002")
+            val meldinger = listOf(andre, forste).map {
+                AktivitetskortService.ForberedtMelding.Klar(
+                    TestData.melding(deltakerId = it),
+                    nyPeriode,
+                    AktivitetskortService.Meldingshistorikk(it, emptyList()),
+                )
+            }
+
+            aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger)
+            aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger.reversed())
+
+            verifyOrder {
+                meldingRepository.advisoryLockMedlemshistorikk(forste)
+                meldingRepository.advisoryLockMedlemshistorikk(andre)
+                meldingRepository.advisoryLockMedlemshistorikk(forste)
+                meldingRepository.advisoryLockMedlemshistorikk(andre)
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["delt", "deltakerliste", "arrangor"])
+        fun `låser medlemskap fra historikk og nye kort før deltakere med riktig låsetype`(gruppeType: String) {
+            val forste = UUID.fromString("00000000-0000-0000-0000-000000000001")
+            val andre = UUID.fromString("00000000-0000-0000-0000-000000000002")
+            val forsteDeltaker = UUID.fromString("00000000-0000-0000-0000-000000000003")
+            val andreDeltaker = UUID.fromString("00000000-0000-0000-0000-000000000004")
+            val meldinger = listOf(andreDeltaker, forsteDeltaker).map { deltakerId ->
+                AktivitetskortService.ForberedtMelding.Klar(
+                    TestData.melding(deltakerId = deltakerId, deltakerlisteId = forste, arrangorId = forste),
+                    nyPeriode,
+                    AktivitetskortService.Meldingshistorikk(
+                        deltakerId,
+                        listOf(TestData.melding(deltakerId = deltakerId, deltakerlisteId = andre, arrangorId = andre)),
+                    ),
+                )
+            }
+            every { arrangorRepository.getUnderordnedeArrangorer(forste) } returns
+                listOf(TestData.lagArrangor(id = andre, overordnetArrangorId = forste))
+
+            if (gruppeType == "delt") {
+                aktivitetskortService.laasMeldingshistorikkForGruppe(meldinger)
+            } else {
+                val utvalg = if (gruppeType == "deltakerliste") {
+                    AktivitetskortService.Gruppeutvalg.Deltakerliste(forste)
+                } else {
+                    AktivitetskortService.Gruppeutvalg.Arrangor(forste)
+                }
+                aktivitetskortService.laasAktivitetskortGruppe(
+                    utvalg,
+                    AktivitetskortService.ForberedtGruppe(utvalg, emptyList(), meldinger),
+                )
+            }
+
+            verifyOrder {
+                meldingRepository.advisoryLockMedlemskap("arrangor", forste, delt = gruppeType != "arrangor")
+                meldingRepository.advisoryLockMedlemskap("arrangor", andre, delt = gruppeType != "arrangor")
+                meldingRepository.advisoryLockMedlemskap("deltakerliste", forste, delt = gruppeType != "deltakerliste")
+                meldingRepository.advisoryLockMedlemskap("deltakerliste", andre, delt = true)
+                meldingRepository.advisoryLockMedlemshistorikk(forsteDeltaker)
+                meldingRepository.advisoryLockMedlemshistorikk(andreDeltaker)
+            }
+            verify(exactly = 4) { meldingRepository.advisoryLockMedlemskap(any(), any(), any()) }
+            verify(exactly = 2) { meldingRepository.advisoryLockMedlemshistorikk(any()) }
         }
     }
 
@@ -486,19 +712,20 @@ class AktivitetskortServiceTest {
                 ),
             )
             every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker.copy(sluttdato = deltakerSluttdato)
-            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns
+                listOf(ctx.melding.copy(aktivitetskort = mockAktivitetskort))
             every { deltakerlisteRepository.get(ctx.deltakerliste.id) } returns ctx.deltakerliste
             every { arrangorRepository.get(ctx.arrangor.id) } returns ctx.arrangor
             every { arrangorRepository.getUnderordnedeArrangorer(ctx.arrangor.id) } returns emptyList()
             every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
             val lagredeMeldinger = mutableListOf<Melding>()
-            every { meldingRepository.upsert(capture(lagredeMeldinger)) } returns Unit
+            every { meldingRepository.upsertLaast(capture(lagredeMeldinger)) } returns Unit
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskort(ctx.arrangor)
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
-            verify(exactly = 1) { meldingRepository.upsert(any()) }
+            verify(exactly = 1) { meldingRepository.upsertLaast(any()) }
 
             lagredeMeldinger.map { it.aktivitetskort } shouldBe listOf(mockAktivitetskort)
         }
@@ -527,8 +754,9 @@ class AktivitetskortServiceTest {
                 ),
             )
             every { meldingRepository.getByArrangorId(underarrangor.id) } returns listOf(underarrangorMelding)
-            every { meldingRepository.getByDeltakerId(ctxUnderarrangor.deltaker.id) } returns emptyList()
-            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns emptyList()
+            every { meldingRepository.getByDeltakerId(ctxUnderarrangor.deltaker.id) } returns listOf(underarrangorMelding)
+            every { meldingRepository.getByDeltakerId(ctx.deltaker.id) } returns
+                listOf(ctx.melding.copy(aktivitetskort = mockAktivitetskort))
 
             every { deltakerRepository.get(ctx.deltaker.id) } returns ctx.deltaker.copy(sluttdato = deltakerSluttdato)
             every {
@@ -547,13 +775,13 @@ class AktivitetskortServiceTest {
             every { aktivitetArenaAclClient.getAktivitetIdForArenaId(2L) } returns mockAktivitetskortUnderarrangor.id
             every { veilarboppfolgingClient.hentOppfolgingperiode(ctx.deltaker.personident) } returns nyPeriode
             val lagredeMeldinger = mutableListOf<Melding>()
-            every { meldingRepository.upsert(capture(lagredeMeldinger)) } returns Unit
+            every { meldingRepository.upsertLaast(capture(lagredeMeldinger)) } returns Unit
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskort(ctx.arrangor)
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
-            verify(exactly = 2) { meldingRepository.upsert(any()) }
+            verify(exactly = 2) { meldingRepository.upsertLaast(any()) }
 
             lagredeMeldinger.map { it.aktivitetskort } shouldBe listOf(mockAktivitetskort, mockAktivitetskortUnderarrangor)
         }
@@ -579,10 +807,10 @@ class AktivitetskortServiceTest {
             every { arrangorRepository.getUnderordnedeArrangorer(ctx.arrangor.id) } returns emptyList()
 
             // Act
-            aktivitetskortService.oppdaterAktivitetskort(ctx.arrangor)
+            aktivitetskortService.lagreAktivitetskortGruppe(aktivitetskortService.forberedAktivitetskortForArrangor(ctx.arrangor.id))
 
             // Assert
-            verify(exactly = 0) { meldingRepository.upsert(any()) }
+            verify(exactly = 0) { meldingRepository.upsertLaast(any()) }
         }
     }
 }

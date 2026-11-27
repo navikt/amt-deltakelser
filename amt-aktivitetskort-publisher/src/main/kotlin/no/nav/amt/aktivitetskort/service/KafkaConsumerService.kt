@@ -3,7 +3,6 @@ package no.nav.amt.aktivitetskort.service
 import no.nav.amt.aktivitetskort.client.AmtArrangorClient
 import no.nav.amt.aktivitetskort.client.AmtDeltakerClient
 import no.nav.amt.aktivitetskort.client.response.ArrangorMedOverordnetArrangorResponse
-import no.nav.amt.aktivitetskort.domain.AktivitetStatus
 import no.nav.amt.aktivitetskort.domain.Arrangor
 import no.nav.amt.aktivitetskort.domain.Deltaker
 import no.nav.amt.aktivitetskort.domain.DeltakerDbo
@@ -45,12 +44,13 @@ class KafkaConsumerService(
         deltakerPayload: DeltakerKafkaPayload?,
         offset: Long,
     ) {
-        if (deltakerPayload == null) return handterSlettetDeltaker(id)
+        if (deltakerPayload == null) return aktivitetskortService.slettDeltaker(id)
 
         if (deltakerStatusTilAktivitetStatus(deltakerPayload.status.type).isFailure) {
             log.info("Kan ikke lage aktivitetskort for deltaker ${deltakerPayload.id} med status ${deltakerPayload.status.type}")
             return
         }
+        val historikk = aktivitetskortService.hentMeldingshistorikk(id)
         val deltaker = amtDeltakerClient
             .getDeltaker(deltakerPayload.id)
             .let { Deltaker.fromDeltakerResponse(it) }
@@ -61,48 +61,39 @@ class KafkaConsumerService(
             log.info("Konsumerte melding med deltaker $id, offset $offset")
             return
         }
-        val meldingForForberedelse = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
-        val forberedtMelding = aktivitetskortService.forberedMelding(deltaker)
+        val forberedtMelding = aktivitetskortService.forberedMelding(deltaker, historikk = historikk)
 
         transactionTemplate.executeWithoutResult {
+            // Vi låser før vi endrer deltakeren, slik sletting også gjør.
+            // Da unngår vi at en oppdatering og en sletting blir stående og vente på hverandre.
+            aktivitetskortService.laasMeldingshistorikkForGruppe(listOf(forberedtMelding))
             val deltakerUpsertResult = deltakerRepository.upsert(
                 deltaker = deltakerDbo,
                 offset = offset,
                 buyPassEqualityCheck = buyPassEqualityCheck,
             )
-            if (deltakerUpsertResult !is RepositoryResult.NoChange) {
-                val gjeldendeMelding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
-                if (gjeldendeMelding?.id != meldingForForberedelse?.id ||
-                    gjeldendeMelding?.oppfolgingperiode != meldingForForberedelse?.oppfolgingperiode ||
-                    gjeldendeMelding?.modifiedAt != meldingForForberedelse?.modifiedAt
-                ) {
-                    throw ConcurrencyFailureException(
-                        "Meldingshistorikken for deltaker ${deltaker.id} er endret. Aktivitetskortet må forberedes på nytt.",
-                    )
-                }
-            }
             when (deltakerUpsertResult) {
                 is RepositoryResult.Modified -> {
                     log.info("Ny hendelse for deltaker ${deltakerPayload.id}: Oppdatering")
-                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
-                    if (aktivitetskort == null) {
-                        log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
-                        return@executeWithoutResult
-                    }
                 }
 
                 is RepositoryResult.Created -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Opprettelse")
-                    val aktivitetskort = aktivitetskortService.lagreAktivitetskort(forberedtMelding)
-                    if (aktivitetskort == null) {
-                        log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
-                        return@executeWithoutResult
-                    }
                 }
 
                 is RepositoryResult.NoChange -> {
                     log.info("Ny hendelse for deltaker ${deltaker.id}: Ingen endring")
                 }
+            }
+            if (deltakerUpsertResult !is RepositoryResult.NoChange &&
+                aktivitetskortService.lagreAktivitetskort(forberedtMelding) == null
+            ) {
+                if (deltakerUpsertResult is RepositoryResult.Created) {
+                    log.warn("aktivitetskort for deltaker ${deltaker.id} ble ikke opprettet")
+                } else {
+                    log.warn("aktivitetskort for deltaker ${deltakerPayload.id} ble ikke oppdatert.")
+                }
+                return@executeWithoutResult
             }
             log.info("Konsumerte melding med deltaker $id, offset $offset")
         }
@@ -134,12 +125,31 @@ class KafkaConsumerService(
             ?: hentOgLagreArrangorFraAmtArrangor(payload.arrangor.organisasjonsnummer)
 
         val deltakerlisteModel = payload.toDeltakerliste(arrangor.id)
+        val utvalg = AktivitetskortService.Gruppeutvalg.Deltakerliste(deltakerlisteModel.id)
+        val lagretDeltakerliste = deltakerlisteRepository.get(deltakerlisteModel.id)
+        if (lagretDeltakerliste == deltakerlisteModel) {
+            log.info("Ny hendelse for deltakerliste ${payload.id}: Ingen endring")
+            log.info("Konsumerte melding med deltakerliste ${payload.id}")
+            return
+        }
+        val forberedtGruppe = if (lagretDeltakerliste != null) {
+            aktivitetskortService.forberedAktivitetskort(deltakerlisteModel.id)
+        } else {
+            null
+        }
 
         transactionTemplate.executeWithoutResult {
-            when (val result = deltakerlisteRepository.upsert(deltakerlisteModel)) {
+            aktivitetskortService.laasAktivitetskortGruppe(utvalg, forberedtGruppe)
+            when (deltakerlisteRepository.upsert(deltakerlisteModel)) {
                 is RepositoryResult.Modified -> {
+                    if (forberedtGruppe == null) {
+                        throw ConcurrencyFailureException(
+                            "Deltakerliste ${payload.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt.",
+                        )
+                    }
                     log.info("Ny hendelse for deltakerliste ${payload.id}: Oppdatering")
-                    aktivitetskortService.oppdaterAktivitetskort(result.data.id)
+                    aktivitetskortService.lagreAktivitetskortGruppe(forberedtGruppe)
+                    log.info("Opprettet nye aktivitetskort for deltakerliste: ${payload.id}")
                 }
 
                 is RepositoryResult.Created -> {
@@ -165,11 +175,27 @@ class KafkaConsumerService(
             hentOgLagreArrangorFraAmtArrangor(arrangor.overordnetArrangorId)
         }
 
+        val arrangorModel = arrangor.toModel()
+        val utvalg = AktivitetskortService.Gruppeutvalg.Arrangor(arrangorModel.id)
+        val lagretArrangor = arrangorRepository.get(arrangor.id)
+        if (lagretArrangor == arrangorModel) return
+        val forberedtGruppe = if (lagretArrangor != null) {
+            aktivitetskortService.forberedAktivitetskortForArrangor(arrangorModel.id)
+        } else {
+            null
+        }
+
         transactionTemplate.executeWithoutResult {
-            when (val result = arrangorRepository.upsert(arrangor.toModel())) {
+            aktivitetskortService.laasAktivitetskortGruppe(utvalg, forberedtGruppe)
+            when (arrangorRepository.upsert(arrangorModel)) {
                 is RepositoryResult.Modified -> {
+                    if (forberedtGruppe == null) {
+                        throw ConcurrencyFailureException(
+                            "Arrangør ${arrangor.id} ble opprettet under forberedelsen. Kortoppdatering må forsøkes på nytt.",
+                        )
+                    }
                     log.info("Ny hendelse for arrangor ${arrangor.id}: Oppdatering")
-                    aktivitetskortService.oppdaterAktivitetskort(result.data)
+                    aktivitetskortService.lagreAktivitetskortGruppe(forberedtGruppe)
                 }
 
                 is RepositoryResult.Created -> {
@@ -216,35 +242,6 @@ class KafkaConsumerService(
                 overordnetArrangorId = arrangorMedOverordnetArrangor.overordnetArrangor?.id,
             ),
         )
-    }
-
-    private fun handterSlettetDeltaker(deltakerId: UUID) {
-        val deltaker = deltakerRepository.get(deltakerId) ?: return
-        val melding = aktivitetskortService.getSisteMeldingForDeltaker(deltaker.id)
-
-        if (melding != null && skalAvbryteAktivitetskort(melding.aktivitetskort.aktivitetStatus)) {
-            aktivitetskortService.oppdaterAktivitetskortForSlettetDeltaker(
-                deltaker = deltaker,
-                melding = melding,
-            )
-            log.info(
-                "Mottok tombstone for deltaker: ${deltaker.id} som hadde status: ${deltaker.status.type}. " +
-                    "Avbrøt deltakelse og aktivitetskort: ${melding.id}.",
-            )
-        } else {
-            deltakerRepository.delete(deltakerId)
-        }
-
-        log.info("Mottok tombstone for deltaker: $deltakerId og slettet deltaker")
-    }
-
-    private fun skalAvbryteAktivitetskort(status: AktivitetStatus?): Boolean = when (status) {
-        AktivitetStatus.FORSLAG,
-        AktivitetStatus.PLANLAGT,
-        AktivitetStatus.GJENNOMFORES,
-        -> true
-
-        else -> false
     }
 
     fun DeltakerKafkaPayload.toDbo() = DeltakerDbo(

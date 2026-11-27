@@ -1,12 +1,15 @@
 package no.nav.amt.aktivitetskort.repositories
 
 import no.nav.amt.aktivitetskort.domain.Melding
+import no.nav.amt.aktivitetskort.utils.advisoryLock
 import no.nav.amt.aktivitetskort.utils.getZonedDateTime
 import no.nav.amt.aktivitetskort.utils.sqlParameters
 import no.nav.amt.lib.utils.toPGObject
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.util.UUID
@@ -29,7 +32,16 @@ class MeldingRepository(
         )
     }
 
+    @Transactional
     fun upsert(melding: Melding) {
+        advisoryLockMedlemskap("arrangor", melding.arrangorId, delt = true)
+        advisoryLockMedlemskap("deltakerliste", melding.deltakerlisteId, delt = true)
+        advisoryLockMedlemshistorikk(melding.deltakerId)
+        upsertLaast(melding)
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun upsertLaast(melding: Melding) {
         template.update(
             """
             INSERT INTO melding(id, deltaker_id, deltakerliste_id, arrangor_id, melding, oppfolgingsperiode)
@@ -54,6 +66,26 @@ class MeldingRepository(
                 "melding" to objectMapper.toPGObject(melding.aktivitetskort),
             ),
         )
+    }
+
+    // To forespørsler kan begge tro at deltakeren mangler kort og lage hvert sitt første kort.
+    // Derfor låser vi deltakeren, ikke et bestemt kort. Låsen virker også før det første kortet finnes.
+    // MANDATORY krever en eksisterende transaksjon, så låsen ikke slippes
+    // før kalleren har validert historikken og fullført eller angret lagringen.
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun advisoryLockMedlemshistorikk(deltakerId: UUID) {
+        template.advisoryLock("aktivitetskort:meldingshistorikk:$deltakerId")
+    }
+
+    // MANDATORY krever at medlemskapslåsen tas i bulkoppdateringens transaksjon.
+    // En egen transaksjon ville sluppet låsen før utvalget valideres og kortene lagres.
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun advisoryLockMedlemskap(
+        type: String,
+        id: UUID,
+        delt: Boolean = false,
+    ) {
+        template.advisoryLock("aktivitetskort:medlemskap:$type:$id", delt)
     }
 
     fun getByDeltakerId(deltakerId: UUID): List<Melding> = template.query(
