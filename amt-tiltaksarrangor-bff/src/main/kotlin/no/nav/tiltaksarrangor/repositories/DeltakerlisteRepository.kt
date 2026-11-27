@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.UUID
 
@@ -145,6 +146,7 @@ class DeltakerlisteRepository(
         )
     }
 
+    @Transactional
     fun deleteDeltakerlisteOgDeltakere(deltakerlisteId: UUID): Int {
         val slettedeDeltakere = deltakerRepository.deleteDeltakereForDeltakerliste(deltakerlisteId)
         log.info("Slettet $slettedeDeltakere deltakere ved sletting av deltakerliste med id $deltakerlisteId")

@@ -23,6 +23,7 @@ import no.nav.tiltaksarrangor.utils.sqlParameters
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
@@ -258,6 +259,7 @@ class DeltakerRepository(
         )
     }
 
+    @Transactional
     fun deleteDeltaker(deltakerId: UUID): Int {
         template.update(
             "DELETE FROM veileder_deltaker WHERE deltaker_id = :deltaker_id",
@@ -467,6 +469,7 @@ class DeltakerRepository(
             deltakerMedDeltakerlisteRowMapper,
         ).firstOrNull()
 
+    @Transactional
     fun deleteDeltakereForDeltakerliste(deltakerlisteId: UUID): Int {
         val deltakereSomSkalSlettes =
             template.query(

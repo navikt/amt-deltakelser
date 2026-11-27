@@ -28,6 +28,14 @@ class NavAnsattService(
         }
     }
 
+    fun hentNavAnsattHvisMangler(id: UUID): NavAnsatt? {
+        if (navAnsattRepository.get(id) != null) return null
+
+        log.info("Fant ikke Nav-ansatt med id $id i databasen, henter fra amt-person-service")
+
+        return amtPersonClient.hentNavAnsatt(id).toModel()
+    }
+
     fun hentAnsatteForHistorikk(historikk: List<DeltakerHistorikk>): Map<UUID, NavAnsatt> {
         val ider = historikk.flatMap { it.navAnsatte() }.distinct()
         return hentAnsatte(ider)

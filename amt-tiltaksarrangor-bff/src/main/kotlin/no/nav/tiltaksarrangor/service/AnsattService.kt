@@ -33,10 +33,8 @@ class AnsattService(
 
         log.info("Hentet ansatt med id ${ansatt.id} fra amt-arrangor")
 
-        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo())
+        tiltaksarrangorAnsattRepository.insertOrUpdateAnsatt(ansatt.toAnsattDbo(), oppdaterSistInnlogget = true)
         log.info("Lagret eller oppdatert ansatt med id ${ansatt.id}")
-
-        tiltaksarrangorAnsattRepository.updateSistInnlogget(ansatt.id)
 
         return ansatt.arrangorer
             .flatMap { it.roller }
