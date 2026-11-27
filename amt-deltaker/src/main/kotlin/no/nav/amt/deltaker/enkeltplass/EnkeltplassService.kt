@@ -261,7 +261,7 @@ class EnkeltplassService(
      * OBS: Denne kan ikke brukes for andre endringer på deltakelse i dette formatet
      * Fordi det må ikke publiseres flere meldinger av TODO
      *
-     * Brukes av: delUtkastMedInnbygger (kladd->utkast) og meldPaaDirekte (utkast->søkt inn)
+     * Brukes av: delUtkastMedInnbygger (kladd->utkast) og meldPaaDirekte (utkast/kladd->søkt inn)
      */
     private suspend fun lagreOgPubliser(
         deltakerId: UUID,
@@ -309,6 +309,14 @@ class EnkeltplassService(
                 ),
             )
 
+            lagreKategoriseringOgPrisinfo(
+                gjennomforingId = gjennomforing.id,
+                kodeverkValg = request.kodeverkValg,
+                sertifiseringValg = request.sertifiseringValg,
+                prisinformasjon = request.prisinformasjon,
+                kategoriseringForTiltak = kategoriseringForTiltak,
+            )
+
             val oppdatertDeltaker = deltakerService.getOrThrow(deltakerId)
             val deltakerMedVedtak = lagreVedtakIkkeFattet(
                 deltaker = oppdatertDeltaker,
@@ -318,14 +326,6 @@ class EnkeltplassService(
             if (nyStatus == DeltakerStatus.Type.SOKT_INN) {
                 innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedVedtak, deltaker.status)
             }
-
-            lagreKategoriseringOgPrisinfo(
-                gjennomforingId = gjennomforing.id,
-                kodeverkValg = request.kodeverkValg,
-                sertifiseringValg = request.sertifiseringValg,
-                prisinformasjon = request.prisinformasjon,
-                kategoriseringForTiltak = kategoriseringForTiltak,
-            )
 
             gjennomforingProducerService.produserGjennomforingUpsert(
                 deltaker = deltakerMedVedtak,
