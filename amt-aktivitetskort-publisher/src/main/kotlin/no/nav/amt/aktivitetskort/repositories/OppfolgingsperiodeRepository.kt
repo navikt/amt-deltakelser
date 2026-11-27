@@ -24,8 +24,8 @@ class OppfolgingsperiodeRepository(
             """
             INSERT INTO oppfolgingsperiode(id, start_dato, slutt_dato)
             VALUES (:id,
-            		:start_dato,
-            		:slutt_dato)
+                    :start_dato,
+                    :slutt_dato)
             ON CONFLICT (id) DO UPDATE SET start_dato = :start_dato, slutt_dato = :slutt_dato
             returning *
             """.trimIndent(),
