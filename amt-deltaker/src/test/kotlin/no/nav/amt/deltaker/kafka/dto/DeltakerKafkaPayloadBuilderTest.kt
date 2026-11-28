@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.kafka.dto
 
 import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -146,20 +147,25 @@ class DeltakerKafkaPayloadBuilderTest {
 
     @Test
     fun `buildDeltakerEksternV1Record - deltaker med deltakelsesmengder - eksternV1 har deltakelsesmengder`() {
-        deltakerKafkaPayloadBuilder
+        val deltakerEksternV1Dto = deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltaker)
-            .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
+
+        deltakerEksternV1Dto.deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
             DeltakerEksternV1Dto.DeltakelsesmengdeDto(
-                it.deltakelsesprosent,
-                it.dagerPerUke,
-                it.gyldigFra,
-                it.opprettet,
+                deltakelsesprosent = it.deltakelsesprosent,
+                dagerPerUke = it.dagerPerUke,
+                gyldigFraDato = it.gyldigFra,
+                opprettetTidspunkt = it.opprettet,
             )
         }
+
+        deltakerEksternV1Dto.dagerPerUke shouldBe 5.0f
+        deltakerEksternV1Dto.deltakelsesprosent shouldBe 100.0f
     }
 
     @Test
     fun `buildDeltakerEksternV1Record - bevarer manglende deltakelsesprosent i deltakelsesmengde`() {
+        // Arrange
         val eksplisittProsent = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
@@ -172,6 +178,7 @@ class DeltakerKafkaPayloadBuilderTest {
             endretAvEnhet = navEnhet.id,
             endret = vedtak.sistEndret.plusDays(1),
         )
+
         val manglendeProsent = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
@@ -191,11 +198,14 @@ class DeltakerKafkaPayloadBuilderTest {
             ),
         )
 
-        val deltakelsesmengder = deltakerKafkaPayloadBuilder
+        // Act
+        val deltakerEksternV1Dto = deltakerKafkaPayloadBuilder
             .buildDeltakerEksternV1Record(deltaker)
-            .deltakelsesmengder
 
-        deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(50F, null)
+        // Assert
+        deltakerEksternV1Dto.deltakelsesmengder.map { it.deltakelsesprosent } shouldBe listOf(50F, null)
+        deltakerEksternV1Dto.deltakelsesprosent shouldBe 100.0f
+        deltakerEksternV1Dto.dagerPerUke shouldBe 5.0f
     }
 
     @Test
@@ -206,13 +216,30 @@ class DeltakerKafkaPayloadBuilderTest {
             )
 
             // Act
-            val deltakelsesmengdeDtos = deltakerKafkaPayloadBuilder
+            val deltakerEksternV1Dto = deltakerKafkaPayloadBuilder
                 .buildDeltakerEksternV1Record(deltaker2)
-                .deltakelsesmengder
 
             // Assert
-            deltakelsesmengdeDtos.shouldNotBeEmpty()
+            deltakerEksternV1Dto.deltakelsesmengder.shouldNotBeEmpty()
+            deltakerEksternV1Dto.dagerPerUke shouldBe 5.0f
+            deltakerEksternV1Dto.deltakelsesprosent shouldBe 100.0f
         }
+    }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - har ikke deltakelsesprosent eller dagerPerUke`() {
+        val deltakerInTest = deltaker.copy(
+            deltakelsesprosent = null,
+            dagerPerUke = null,
+        )
+
+        // Act
+        val deltakerEksternV1Dto = deltakerKafkaPayloadBuilder
+            .buildDeltakerEksternV1Record(deltakerInTest)
+
+        // Assert
+        deltakerEksternV1Dto.dagerPerUke.shouldBeNull()
+        deltakerEksternV1Dto.deltakelsesprosent.shouldBeNull()
     }
 
     @Test
