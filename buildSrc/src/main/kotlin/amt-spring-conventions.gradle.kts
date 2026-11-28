@@ -23,7 +23,7 @@ repositories {
 dependencies {
     // --- Spring Boot ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     implementation("org.springframework.boot:spring-boot-starter-jetty")
@@ -31,7 +31,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.springframework.boot:spring-boot-kafka")
     implementation("org.springframework.boot:spring-boot-restclient")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
 
     implementation(versionCatalog.findLibrary("tools.jackson.module.kotlin").get())
     implementation(versionCatalog.findLibrary("kafka.clients").get())

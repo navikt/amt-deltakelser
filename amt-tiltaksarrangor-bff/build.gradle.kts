@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     implementation(libs.nav.common.audit.log)
     implementation(libs.nav.common.rest)
